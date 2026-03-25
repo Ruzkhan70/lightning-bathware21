@@ -26,7 +26,7 @@ export interface Order {
     image: string;
   }>;
   total: number;
-  status: "Pending" | "Processing" | "Delivered";
+  status: "Pending" | "Processing" | "Completed";
   date: string;
   deliveryOption: string;
   deliveryCost: number;
