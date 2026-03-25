@@ -6,6 +6,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { Product, useAdmin } from "../context/AdminContext";
 import { toast } from "sonner";
 import ProductModal from "./ProductModal";
+import { AnimatePresence } from "framer-motion";
 
 interface ProductCardProps {
   product: Product;
@@ -152,12 +153,15 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Product Modal */}
-      {showModal && (
-        <ProductModal
-          product={product}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showModal && (
+          <ProductModal
+            key="product-modal"
+            product={product}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
