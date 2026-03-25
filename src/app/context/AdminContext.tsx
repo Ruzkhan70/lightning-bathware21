@@ -918,6 +918,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const resetSiteContent = () => {
+    localStorage.removeItem("siteContent");
     setSiteContent(DEFAULT_SITE_CONTENT);
   };
 
