@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 
-const LOGO_URL = "https://i.imgur.com/EKKhbqA.png";
-
 export default function LoadingScreen() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white overflow-hidden">
@@ -43,51 +41,14 @@ export default function LoadingScreen() {
 
       {/* Main Content */}
       <div className="relative text-center px-4">
-        {/* Logo Container with Glow */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative mb-8"
-        >
-          {/* Glow Effect Behind Logo */}
-          <motion.div
-            className="absolute inset-0 blur-3xl bg-[#D4AF37]/20 rounded-full scale-150"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-
-          {/* Logo Image */}
-          <motion.img
-            src={LOGO_URL}
-            alt="Lightning Bathware Logo"
-            className="relative w-48 h-48 md:w-56 md:h-56 object-contain mx-auto"
-            animate={{
-              scale: [1, 1.02, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </motion.div>
-
         {/* Store Name */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="mb-8"
+          transition={{ duration: 0.5 }}
+          className="mb-12"
         >
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             <span className="text-black">Lightning</span>
             <span className="text-[#D4AF37]"> Bathware</span>
           </h1>
@@ -97,8 +58,8 @@ export default function LoadingScreen() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="relative w-24 h-24 mx-auto mb-6"
+          transition={{ delay: 0.3 }}
+          className="relative w-28 h-28 mx-auto mb-8"
         >
           {/* Outer Ring */}
           <motion.div
@@ -121,7 +82,7 @@ export default function LoadingScreen() {
 
           {/* Inner Spinning Ring - Counter Clockwise */}
           <motion.div
-            className="absolute inset-4 border-4 border-transparent rounded-full"
+            className="absolute inset-5 border-4 border-transparent rounded-full"
             style={{
               borderBottomColor: "#D4AF37",
               borderLeftColor: "#D4AF37",
@@ -132,7 +93,7 @@ export default function LoadingScreen() {
 
           {/* Center Logo Dot */}
           <motion.div
-            className="absolute inset-7 bg-gradient-to-br from-[#D4AF37] to-[#B8962E] rounded-full flex items-center justify-center shadow-lg"
+            className="absolute inset-10 bg-gradient-to-br from-[#D4AF37] to-[#B8962E] rounded-full flex items-center justify-center shadow-lg"
             animate={{
               scale: [1, 1.1, 1],
               boxShadow: [
@@ -155,7 +116,7 @@ export default function LoadingScreen() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.5 }}
         >
           <div className="flex items-center justify-center gap-1">
             <span className="text-gray-500 text-sm tracking-[0.3em] uppercase font-medium">
