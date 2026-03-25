@@ -202,7 +202,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={10} suffix="+" duration={1500} />
+                  <AnimatedCounter end={10} suffix="+" duration={2500} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
@@ -211,7 +211,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={350} suffix="+" duration={1800} />
+                  <AnimatedCounter end={350} suffix="+" duration={3000} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
@@ -220,7 +220,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={5000} suffix="+" duration={2000} />
+                  <AnimatedCounter end={5000} suffix="+" duration={3500} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
@@ -229,7 +229,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={100} suffix="%" duration={1500} />
+                  <AnimatedCounter end={100} suffix="%" duration={2500} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
