@@ -142,7 +142,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Shop by Category
+              Our Categories
             </h2>
             <p className="text-gray-600 text-lg">
               Explore our wide range of premium products
@@ -159,13 +159,13 @@ export default function Home() {
                   className="group relative h-64 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
                 >
                   <div
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
+                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500 grayscale group-hover:grayscale-0"
                     style={{ backgroundImage: `url('${category.image}')` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-[#D4AF37] rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
                         <CategoryIcon className="w-6 h-6 text-black" />
                       </div>
                       <h3 className="text-2xl font-bold">{category.name}</h3>
