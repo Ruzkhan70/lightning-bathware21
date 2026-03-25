@@ -45,24 +45,26 @@ export default function Contact() {
     });
   };
 
+  const { storeProfile } = useAdmin();
+
   const contactInfo = [
     {
       icon: MapPin,
       title: "Visit Us",
-      details: ["No. 456, Galle Road", "Colombo 00300", "Sri Lanka"],
+      details: [storeProfile.addressStreet, storeProfile.addressCity, "Sri Lanka"],
     },
     {
       icon: Phone,
       title: "Call Us",
-      details: ["+94 11 234 5678", "+94 77 123 4567", "Mon-Sat: 9AM - 6PM"],
+      details: [storeProfile.phone, storeProfile.secondaryPhone, "Mon-Sat: 9AM - 6PM"],
     },
     {
       icon: Mail,
       title: "Email Us",
       details: [
-        "info@lightingbathware.lk",
-        "sales@lightingbathware.lk",
-        "support@lightingbathware.lk",
+        storeProfile.email,
+        storeProfile.salesEmail,
+        storeProfile.supportEmail,
       ],
     },
     {

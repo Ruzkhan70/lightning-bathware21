@@ -3,7 +3,7 @@ import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Services() {
-  const { siteContent } = useAdmin();
+  const { siteContent, storeProfile } = useAdmin();
   const icons = [Truck, Headphones, Wrench, Award, Clock, Shield];
   const services = siteContent.services.items.map((item, index) => ({
     icon: icons[index] || Truck,
@@ -102,12 +102,12 @@ export default function Services() {
               help with your project
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <a href="tel:+94112345678">
+              <a href={`tel:${storeProfile.phone}`}>
                 <button className="px-8 py-3 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold rounded-lg transition-colors hover:scale-105">
-                  Call: +94 11 234 5678
+                  Call: {storeProfile.phone}
                 </button>
               </a>
-              <a href="mailto:info@lightingbathware.lk">
+              <a href={`mailto:${storeProfile.email}`}>
                 <button className="px-8 py-3 bg-white hover:bg-gray-100 text-black font-bold rounded-lg transition-colors hover:scale-105">
                   Email Us
                 </button>

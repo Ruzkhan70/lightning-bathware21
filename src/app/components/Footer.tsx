@@ -7,8 +7,11 @@ import {
   Phone,
   MapPin,
 } from "lucide-react";
+import { useAdmin } from "../context/AdminContext";
 
 export default function Footer() {
+  const { storeProfile } = useAdmin();
+
   return (
     <footer className="bg-black text-white border-t border-gray-800">
       <div className="container mx-auto px-4 py-12">
@@ -118,20 +121,20 @@ export default function Footer() {
               <li className="flex items-start gap-2 text-gray-400">
                 <MapPin className="w-5 h-5 mt-1 flex-shrink-0 text-[#D4AF37]" />
                 <span>
-                  No. 456, Galle Road
+                  {storeProfile.addressStreet}
                   <br />
-                  Colombo 00300
+                  {storeProfile.addressCity}
                   <br />
                   Sri Lanka
                 </span>
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <Phone className="w-5 h-5 text-[#D4AF37]" />
-                <span>+94 11 234 5678</span>
+                <span>{storeProfile.phone}</span>
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <Mail className="w-5 h-5 text-[#D4AF37]" />
-                <span>info@lightningbathware.lk</span>
+                <span>{storeProfile.email}</span>
               </li>
             </ul>
           </div>
