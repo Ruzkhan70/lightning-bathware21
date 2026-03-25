@@ -56,7 +56,7 @@ export default function AdminProducts() {
       p.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === "all" || p.category === filterCategory;
     const matchesStock = filterStock === "all" ||
-      (filterStock === "low" && p.stock < 10 && p.stock > 0) ||
+      (filterStock === "low" && p.stock <= 10) ||
       (filterStock === "out" && p.stock === 0) ||
       (filterStock === "in" && p.stock >= 10);
     return matchesSearch && matchesCategory && matchesStock;
@@ -154,7 +154,7 @@ export default function AdminProducts() {
             <div>
               <p className="font-semibold text-orange-800">Low Stock Products</p>
               <p className="text-sm text-orange-600">
-                Showing products with stock less than 10
+                Showing products with stock 10 or less (including out of stock)
               </p>
             </div>
           </div>
