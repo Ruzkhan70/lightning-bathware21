@@ -2,10 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is authenticated
+    // Helper function
     function isAuthenticated() {
       return request.auth != null;
     }
+    
+    // Store data - Public read (website), public write (admin portal - no Firebase Auth used)
+    // This includes: hero images, site content, categories, store profile
+    match /storeData/{document} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Orders - Public create (customers), authenticated read/update/delete (admin)
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
+      allow update, delete: if isAuthenticated();
+    }
+    
+    // Users - Authenticated users only (Firebase Auth)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Wishlist - Authenticated users only
+    match /wishlist/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Offers - Public read (website), public write (admin)
+    match /offers/{offerId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
     
     // Helper function to check if user is the admin
     function isAdmin() {
