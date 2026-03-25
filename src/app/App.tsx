@@ -6,6 +6,7 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { AdminProvider } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
 import { Toaster } from "./components/ui/sonner";
+import LoadingScreen from "./components/LoadingScreen";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -70,19 +71,65 @@ class ErrorBoundary extends React.Component<
 }
 
 function App() {
+  // Detect page refresh using sessionStorage
+  const [showRefreshLoader, setShowRefreshLoader] = React.useState(false);
+  const [initialLoad, setInitialLoad] = React.useState(true);
+
+  React.useEffect(() => {
+    // Check if this is a refresh (page was loaded recently)
+    const lastLoad = sessionStorage.getItem('lastPageLoad');
+    const now = Date.now();
+    
+    if (lastLoad) {
+      const timeSinceLastLoad = now - parseInt(lastLoad);
+      // If page was loaded within last 10 seconds, show loading
+      if (timeSinceLastLoad < 10000) {
+        setShowRefreshLoader(true);
+      }
+    }
+    
+    // Update last load time
+    sessionStorage.setItem('lastPageLoad', now.toString());
+    
+    // Also set a refresh flag before unload
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem('isRefreshing', 'true');
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Hide loader after initial render
+    const timer = setTimeout(() => {
+      setShowRefreshLoader(false);
+      setInitialLoad(false);
+    }, 2000);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      clearTimeout(timer);
+    };
+  }, []);
+
   return (
-    <ErrorBoundary>
-      <UserProvider>
-        <AdminProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <RouterProvider router={router} />
-              <Toaster position="top-right" />
-            </WishlistProvider>
-          </CartProvider>
-        </AdminProvider>
-      </UserProvider>
-    </ErrorBoundary>
+    <>
+      {/* Refresh Loading Screen */}
+      {showRefreshLoader && (
+        <LoadingScreen />
+      )}
+      
+      <ErrorBoundary>
+        <UserProvider>
+          <AdminProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <RouterProvider router={router} />
+                <Toaster position="top-right" />
+              </WishlistProvider>
+            </CartProvider>
+          </AdminProvider>
+        </UserProvider>
+      </ErrorBoundary>
+    </>
   );
 }
 
