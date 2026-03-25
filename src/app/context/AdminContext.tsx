@@ -233,13 +233,13 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         ],
       },
       {
-        title: "Technical Support",
-        description: "Expert guidance on product selection, specifications, and technical requirements for your projects.",
+        title: "Product Verification & Testing",
+        description: "Ensuring every product meets quality and performance standards before reaching you.",
         features: [
-          "Certified technicians",
-          "Quality workmanship guarantee",
-          "Flexible scheduling",
-          "Competitive pricing",
+          "Pre-sale quality checks",
+          "Performance verification",
+          "Trusted brand sourcing",
+          "Compliance with standards",
         ],
       },
       {
