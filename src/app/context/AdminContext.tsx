@@ -123,6 +123,7 @@ interface AdminContextType {
   adminUsername: string;
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  triggerLogout: () => void;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -354,9 +355,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 export function AdminProvider({ children }: { children: ReactNode }) {
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(
-    () => localStorage.getItem("isAdminLoggedIn") === "true"
-  );
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUsername, setAdminUsername] = useState(DEFAULT_USERNAME);
   const [adminPassword, setAdminPassword] = useState(DEFAULT_PASSWORD);
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(
@@ -829,10 +828,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, [showAdminLogin]);
 
   useEffect(() => {
-    localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn.toString());
-  }, [isAdminLoggedIn]);
-
-  useEffect(() => {
     localStorage.setItem("categories", JSON.stringify(categories));
   }, [categories]);
 
@@ -948,6 +943,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    setIsAdminLoggedIn(false);
+    localStorage.removeItem("isAdminLoggedIn");
+  };
+
+  const triggerLogout = () => {
     setIsAdminLoggedIn(false);
     localStorage.removeItem("isAdminLoggedIn");
   };
@@ -1107,6 +1107,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         adminUsername,
         login,
         logout,
+        triggerLogout,
         changePassword,
         changeUsername,
         storeProfile,

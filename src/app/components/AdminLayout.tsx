@@ -14,19 +14,44 @@ import {
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
-import { toast } from "sonner";
+import SessionWarning from "./admin/SessionWarning";
+import { useAdminTimeout } from "../hooks/useAdminTimeout";
 
 export default function AdminLayout() {
-  const { isAdminLoggedIn, logout } = useAdmin();
+  const { isAdminLoggedIn, logout, triggerLogout } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { showWarning, remainingTime, resetTimer, logoutNow } = useAdminTimeout(
+    isAdminLoggedIn,
+    triggerLogout
+  );
 
   useEffect(() => {
     if (!isAdminLoggedIn) {
       navigate("/admin/login");
     }
   }, [isAdminLoggedIn, navigate]);
+
+  const handleStayLoggedIn = () => {
+    resetTimer();
+  };
+
+  const handleWarningLogout = () => {
+    logoutNow();
+    navigate("/admin/login");
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/admin/login");
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    window.location.reload();
+  };
 
   if (!isAdminLoggedIn) {
     return null;
@@ -75,77 +100,75 @@ export default function AdminLayout() {
     },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate("/admin/login");
-  };
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    // Reload the page without logging out
-    window.location.reload();
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <ScrollToTop />
-      {/* Sidebar */}
-      <aside className="w-64 bg-black text-white flex-shrink-0">
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold">
-            <span className="text-white">Lightning</span>
-            <span className="text-[#D4AF37]"> Bathware</span>
-          </h1>
-          <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
-        </div>
+    <>
+      <SessionWarning
+        show={showWarning}
+        remainingTime={remainingTime}
+        onStayLoggedIn={handleStayLoggedIn}
+        onLogout={handleWarningLogout}
+      />
 
-        <nav className="p-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                        ? "bg-[#D4AF37] text-black font-semibold"
-                        : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                      }`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+      <div className="min-h-screen bg-gray-100 flex">
+        <ScrollToTop />
+        {/* Sidebar */}
+        <aside className="w-64 bg-black text-white flex-shrink-0">
+          <div className="p-6 border-b border-gray-800">
+            <h1 className="text-xl font-bold">
+              <span className="text-white">Lightning</span>
+              <span className="text-[#D4AF37]"> Bathware</span>
+            </h1>
+            <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
+          </div>
 
-        <div className="absolute bottom-0 w-64 p-4 border-t border-gray-800 space-y-2">
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-400 hover:bg-gray-800 hover:text-blue-300 transition-colors w-full"
-          >
-            <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`} />
-            <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 hover:text-red-300 transition-colors w-full"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+          <nav className="p-4">
+            <ul className="space-y-2">
+              {menuItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <li key={item.path}>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                          ? "bg-[#D4AF37] text-black font-semibold"
+                          : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                        }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+          <div className="absolute bottom-0 w-64 p-4 border-t border-gray-800 space-y-2">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-400 hover:bg-gray-800 hover:text-blue-300 transition-colors w-full"
+            >
+              <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`} />
+              <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 hover:text-red-300 transition-colors w-full"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
