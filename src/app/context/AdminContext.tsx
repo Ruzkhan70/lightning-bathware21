@@ -135,6 +135,7 @@ interface AdminContextType {
   bulkDeleteProducts: (ids: string[]) => void;
   orders: Order[];
   updateOrderStatus: (id: string, status: "Pending" | "Processing" | "Delivered") => void;
+  deleteOrder: (id: string) => void;
   addOrder: (order: Omit<Order, "id" | "date" | "status">) => void;
   offers: Offer[];
   addOffer: (offer: Omit<Offer, "id" | "createdAt">) => void;
@@ -614,6 +615,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteOrder = async (id: string) => {
+    setOrders(prev => prev.filter(order => order.id !== id));
+    try {
+      await deleteDoc(doc(db, "orders", id));
+    } catch (error) {
+      console.error("Error deleting order:", error);
+    }
+  };
+
   const addOrder = async (order: Omit<Order, "id" | "date" | "status">) => {
     const newOrder: Order = {
       ...order,
@@ -771,6 +781,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         bulkDeleteProducts,
         orders,
         updateOrderStatus,
+        deleteOrder,
         addOrder,
         offers,
         addOffer,

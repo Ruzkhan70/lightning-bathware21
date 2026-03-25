@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, Trash2, AlertTriangle } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -19,9 +19,10 @@ import {
 import { toast } from "sonner";
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus } = useAdmin();
+  const { orders, updateOrderStatus, deleteOrder } = useAdmin();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingOrder, setViewingOrder] = useState<string | null>(null);
+  const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
 
   const filteredOrders = orders.filter(
     (o) =>
@@ -37,6 +38,16 @@ export default function AdminOrders() {
     toast.success("Order status updated!");
   };
 
+  const handleDeleteOrder = (orderId: string) => {
+    deleteOrder(orderId);
+    toast.success("Order deleted successfully!");
+    setDeletingOrder(null);
+  };
+
+  const pendingCount = orders.filter(o => o.status === "Pending").length;
+  const processingCount = orders.filter(o => o.status === "Processing").length;
+  const completedCount = orders.filter(o => o.status === "Delivered").length;
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -44,8 +55,19 @@ export default function AdminOrders() {
           <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
           <p className="text-gray-600">Track and manage customer orders</p>
         </div>
-        <div className="text-2xl font-bold text-[#D4AF37]">
-          {orders.length} Orders
+        <div className="flex gap-4">
+          <div className="text-center px-3 py-1 bg-orange-100 rounded-lg">
+            <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
+            <p className="text-xs text-orange-600">Pending</p>
+          </div>
+          <div className="text-center px-3 py-1 bg-blue-100 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">{processingCount}</p>
+            <p className="text-xs text-blue-600">Processing</p>
+          </div>
+          <div className="text-center px-3 py-1 bg-green-100 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{completedCount}</p>
+            <p className="text-xs text-green-600">Completed</p>
+          </div>
         </div>
       </div>
 
@@ -109,18 +131,20 @@ export default function AdminOrders() {
                       <Select
                         value={order.status}
                         onValueChange={(value) =>
-                          handleStatusChange(order.id, value as any)
+                          handleStatusChange(order.id, value as "Pending" | "Processing" | "Delivered")
                         }
                       >
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger className={`w-32 ${
+                          order.status === "Pending" ? "border-orange-300 bg-orange-50" :
+                          order.status === "Processing" ? "border-blue-300 bg-blue-50" :
+                          "border-green-300 bg-green-50"
+                        }`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="Processing">
-                            Processing
-                          </SelectItem>
-                          <SelectItem value="Delivered">Delivered</SelectItem>
+                          <SelectItem value="Processing">Processing</SelectItem>
+                          <SelectItem value="Delivered">Completed</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
@@ -128,13 +152,23 @@ export default function AdminOrders() {
                       {new Date(order.date).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setViewingOrder(order.id)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setViewingOrder(order.id)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setDeletingOrder(order.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -200,9 +234,14 @@ export default function AdminOrders() {
                   {currentOrder.products.map((product, index) => (
                     <div
                       key={index}
-                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
                     >
-                      <div>
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                      <div className="flex-1">
                         <p className="font-semibold">{product.name}</p>
                         <p className="text-sm text-gray-600">
                           Quantity: {product.quantity} × Rs.{" "}
@@ -248,8 +287,12 @@ export default function AdminOrders() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Order Status</p>
-                    <p className="font-semibold text-lg">
-                      {currentOrder.status}
+                    <p className={`font-semibold text-lg ${
+                      currentOrder.status === "Pending" ? "text-orange-600" :
+                      currentOrder.status === "Processing" ? "text-blue-600" :
+                      "text-green-600"
+                    }`}>
+                      {currentOrder.status === "Delivered" ? "Completed" : currentOrder.status}
                     </p>
                   </div>
                   <div>
@@ -262,6 +305,49 @@ export default function AdminOrders() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={!!deletingOrder}
+        onOpenChange={() => setDeletingOrder(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Order
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4">
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to delete this order? This action cannot be undone.
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800 font-medium">
+                Warning: All order details will be permanently removed from the system.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeletingOrder(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deletingOrder && handleDeleteOrder(deletingOrder)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Order
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
