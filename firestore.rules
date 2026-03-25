@@ -12,10 +12,10 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == 'admin';
     }
     
-    // Store data - Admin only can write, anyone can read (for website)
+    // Store data - Anyone can read/write (public website content, no sensitive data)
     match /storeData/{document} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true;
     }
     
     // Orders - Customers can create orders, Admin can read/update all
