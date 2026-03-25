@@ -3,9 +3,15 @@ import { useAdmin } from "../context/AdminContext";
 import { Tag, Calendar, ShoppingBag } from "lucide-react";
 import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Offers() {
-  const { getActiveOffers, products } = useAdmin();
+  const { getActiveOffers, products, isDataLoaded } = useAdmin();
+
+  if (!isDataLoaded) {
+    return <LoadingScreen />;
+  }
+
   const activeOffers = getActiveOffers();
 
   return (

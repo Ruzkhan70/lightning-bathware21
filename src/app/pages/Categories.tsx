@@ -11,9 +11,14 @@ import {
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Categories() {
-  const { products, categories } = useAdmin();
+  const { products, categories, isDataLoaded } = useAdmin();
+
+  if (!isDataLoaded) {
+    return <LoadingScreen />;
+  }
 
   const activeCategories = categories.filter(c => c.isActive);
 

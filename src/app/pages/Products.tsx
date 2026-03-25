@@ -11,15 +11,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Products() {
   const [searchParams] = useSearchParams();
-  const { products } = useAdmin();
+  const { products, isDataLoaded } = useAdmin();
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  if (!isDataLoaded) {
+    return <LoadingScreen />;
+  }
 
   const categories = [
     "All Categories",
