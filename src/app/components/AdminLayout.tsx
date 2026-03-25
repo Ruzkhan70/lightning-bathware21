@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router";
 import {
   LayoutDashboard,
@@ -10,14 +10,17 @@ import {
   LogOut,
   Tag,
   List,
+  RefreshCw,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
+import { toast } from "sonner";
 
 export default function AdminLayout() {
   const { isAdminLoggedIn, logout } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isAdminLoggedIn) {
@@ -77,6 +80,12 @@ export default function AdminLayout() {
     navigate("/admin/login");
   };
 
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    // Reload the page without logging out
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
       <ScrollToTop />
@@ -112,7 +121,15 @@ export default function AdminLayout() {
           </ul>
         </nav>
 
-        <div className="absolute bottom-0 w-64 p-4 border-t border-gray-800">
+        <div className="absolute bottom-0 w-64 p-4 border-t border-gray-800 space-y-2">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-400 hover:bg-gray-800 hover:text-blue-300 transition-colors w-full"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`} />
+            <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+          </button>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 hover:text-red-300 transition-colors w-full"
