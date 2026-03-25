@@ -1,8 +1,16 @@
 import { motion } from "framer-motion";
 
-export default function LoadingScreen() {
+interface LoadingScreenProps {
+  onComplete?: () => void;
+}
+
+export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white overflow-hidden">
+    <motion.div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-white overflow-hidden"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Background Gradient Animation */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white">
         <motion.div
@@ -140,15 +148,19 @@ export default function LoadingScreen() {
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-4 w-48 h-1 bg-gray-200 rounded-full mx-auto overflow-hidden">
+          <div className="mt-4 w-48 h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8962E]"
+              className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-full"
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "linear",
+                duration: 1.5,
+                ease: "easeOut",
+              }}
+              onAnimationComplete={() => {
+                if (onComplete) {
+                  setTimeout(onComplete, 300);
+                }
               }}
             />
           </div>
@@ -176,6 +188,6 @@ export default function LoadingScreen() {
         animate={{ opacity: [0.2, 0.4, 0.2] }}
         transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
       />
-    </div>
+    </motion.div>
   );
 }

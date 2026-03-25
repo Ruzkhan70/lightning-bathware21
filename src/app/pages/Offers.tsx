@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useState, useEffect } from "react";
 import { useAdmin } from "../context/AdminContext";
 import { Tag, Calendar, ShoppingBag } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -7,8 +8,18 @@ import LoadingScreen from "../components/LoadingScreen";
 
 export default function Offers() {
   const { getActiveOffers, products, isDataLoaded } = useAdmin();
+  const [showLoading, setShowLoading] = useState(true);
 
-  if (!isDataLoaded) {
+  useEffect(() => {
+    if (isDataLoaded) {
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [isDataLoaded]);
+
+  if (showLoading) {
     return <LoadingScreen />;
   }
 

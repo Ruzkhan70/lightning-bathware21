@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import { Filter, X } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
@@ -16,13 +17,23 @@ import LoadingScreen from "../components/LoadingScreen";
 export default function Products() {
   const [searchParams] = useSearchParams();
   const { products, isDataLoaded } = useAdmin();
+  const [showLoading, setShowLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  if (!isDataLoaded) {
+  useEffect(() => {
+    if (isDataLoaded) {
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [isDataLoaded]);
+
+  if (showLoading) {
     return <LoadingScreen />;
   }
 

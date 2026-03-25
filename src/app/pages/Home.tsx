@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Lightbulb,
   Bath,
@@ -21,17 +22,19 @@ import LoadingScreen from "../components/LoadingScreen";
 
 export default function Home() {
   const { products, getActiveOffers, storeAssets, siteContent, categories, isDataLoaded } = useAdmin();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
   const featuredProducts = products.slice(0, 8);
   const activeOffers = getActiveOffers();
 
   useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
-  if (!isDataLoaded) {
-    return <LoadingScreen />;
-  }
+    if (isDataLoaded) {
+      // Small delay to show full progress bar, then reveal content
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [isDataLoaded]);
 
   const activeCategories = categories
     .filter((c) => c.isActive)
@@ -76,7 +79,15 @@ export default function Home() {
   ];
 
   return (
-    <div className="bg-white">
+    <AnimatePresence>
+      {showLoading && <LoadingScreen onComplete={() => setShowLoading(false)} />}
+      
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white"
+      >
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] flex items-center bg-black text-white overflow-hidden">
         {/* Background Image */}
@@ -91,20 +102,20 @@ export default function Home() {
           <div className="max-w-3xl">
             <h1 
               className={`text-4xl md:text-7xl font-bold mb-4 leading-tight transition-all duration-700 ${
-                isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                !showLoading ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
               }`}
             >
               {siteContent.home.heroTitle}
             </h1>
             <p 
               className={`text-base md:text-lg text-gray-300 mb-8 max-w-xl transition-all duration-700 delay-200 ${
-                isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                !showLoading ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
               }`}
             >
               {siteContent.home.heroSubtitle}
             </p>
             <div className={`flex flex-wrap items-center gap-4 transition-all duration-700 delay-400 ${
-                isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                !showLoading ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
               }`}>
               <Link to="/products">
                 <Button
@@ -324,6 +335,7 @@ export default function Home() {
           </Link>
         </div>
       </section>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

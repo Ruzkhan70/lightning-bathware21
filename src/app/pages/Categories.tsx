@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import {
   Lightbulb,
   Bath,
@@ -15,8 +17,18 @@ import LoadingScreen from "../components/LoadingScreen";
 
 export default function Categories() {
   const { products, categories, isDataLoaded } = useAdmin();
+  const [showLoading, setShowLoading] = useState(true);
 
-  if (!isDataLoaded) {
+  useEffect(() => {
+    if (isDataLoaded) {
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [isDataLoaded]);
+
+  if (showLoading) {
     return <LoadingScreen />;
   }
 
