@@ -233,45 +233,19 @@ export default function Contact() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">
-              Frequently Asked Questions
+              {siteContent.faq.title}
             </h2>
             <div className="space-y-6">
-              <div className="border-b pb-6">
-                <h3 className="font-bold text-lg mb-2">
-                  Do you offer technical support?
-                </h3>
-                <p className="text-gray-600">
-                  We do not provide installation or technical support services. However, we're always available to assist you with product details and recommendations to ensure you make the right choice.
-                </p>
-              </div>
-              <div className="border-b pb-6">
-                <h3 className="font-bold text-lg mb-2">
-                  What is your return policy?
-                </h3>
-                <p className="text-gray-600">
-                  We accept returns within 7 days of purchase for unopened
-                  items in original packaging. Some restrictions may apply.
-                </p>
-              </div>
-              <div className="border-b pb-6">
-                <h3 className="font-bold text-lg mb-2">
-                  Do you offer bulk discounts?
-                </h3>
-                <p className="text-gray-600">
-                  Yes, we offer special pricing for bulk orders and contractors.
-                  Please contact our sales team for a custom quote.
-                </p>
-              </div>
-              <div className="pb-6">
-                <h3 className="font-bold text-lg mb-2">
-                  How long does delivery take?
-                </h3>
-                <p className="text-gray-600">
-                  Delivery within Colombo typically takes 1-2 business days.
-                  Islandwide delivery takes 3-5 business days depending on
-                  location.
-                </p>
-              </div>
+              {siteContent.faq.items.map((item, index) => (
+                <div key={index} className={index < siteContent.faq.items.length - 1 ? "border-b pb-6" : "pb-6"}>
+                  <h3 className="font-bold text-lg mb-2">
+                    {item.question}
+                  </h3>
+                  <p className="text-gray-600">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

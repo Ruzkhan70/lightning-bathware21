@@ -739,6 +739,58 @@ export default function AdminSettings() {
               </div>
             </div>
 
+            {/* FAQ Section */}
+            <div className="border-b pb-6">
+              <h3 className="font-bold text-gray-800 mb-4">Frequently Asked Questions</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>FAQ Section Title</Label>
+                  <Input 
+                    value={contentForm.faq.title}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      faq: { ...contentForm.faq, title: e.target.value }
+                    })}
+                  />
+                </div>
+                
+                {/* FAQ Items */}
+                <div className="space-y-4 mt-4">
+                  <Label className="text-lg font-semibold">FAQ Items</Label>
+                  {contentForm.faq.items.map((item, index) => (
+                    <div key={index} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <Label className="font-medium">FAQ {index + 1}</Label>
+                      <Input 
+                        placeholder="Question"
+                        value={item.question}
+                        onChange={(e) => {
+                          const newItems = [...contentForm.faq.items];
+                          newItems[index] = { ...newItems[index], question: e.target.value };
+                          setContentForm({
+                            ...contentForm,
+                            faq: { ...contentForm.faq, items: newItems }
+                          });
+                        }}
+                      />
+                      <Textarea 
+                        placeholder="Answer"
+                        value={item.answer}
+                        onChange={(e) => {
+                          const newItems = [...contentForm.faq.items];
+                          newItems[index] = { ...newItems[index], answer: e.target.value };
+                          setContentForm({
+                            ...contentForm,
+                            faq: { ...contentForm.faq, items: newItems }
+                          });
+                        }}
+                        rows={3}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 type="button"

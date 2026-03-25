@@ -108,6 +108,13 @@ export interface SiteContent {
     subtitle: string;
     mapUrl: string;
   };
+  faq: {
+    title: string;
+    items: {
+      question: string;
+      answer: string;
+    }[];
+  };
 }
 
 interface AdminContextType {
@@ -279,6 +286,27 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     subtitle: "Have questions? Our team is here to help you find the perfect solutions.",
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.5828941031!2d79.7861642!3d6.9219225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a7003%3A0x320b2e4d32d3838d!2sColombo!5e0!3m2!1sen!2slk!4v1647854652397!5m2!1sen!2slk",
   },
+  faq: {
+    title: "Frequently Asked Questions",
+    items: [
+      {
+        question: "Do you offer technical support?",
+        answer: "We do not provide installation or technical support services. However, we're always available to assist you with product details and recommendations to ensure you make the right choice.",
+      },
+      {
+        question: "What is your return policy?",
+        answer: "We accept returns within 7 days of purchase for unopened items in original packaging. Some restrictions may apply.",
+      },
+      {
+        question: "Do you offer bulk discounts?",
+        answer: "Yes, we offer special pricing for bulk orders and contractors. Please contact our sales team for a custom quote.",
+      },
+      {
+        question: "How long does delivery take?",
+        answer: "Delivery within Colombo typically takes 1-2 business days. Islandwide delivery takes 3-5 business days depending on location.",
+      },
+    ],
+  },
 };
 
 const DEFAULT_CATEGORIES: Category[] = [
@@ -350,6 +378,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             ...item,
             features: item.features || DEFAULT_SITE_CONTENT.services.items[index]?.features || []
           })) || DEFAULT_SITE_CONTENT.services.items
+        },
+        faq: {
+          ...DEFAULT_SITE_CONTENT.faq,
+          ...parsed.faq,
+          items: parsed.faq?.items?.map((item: any, index: number) => ({
+            ...DEFAULT_SITE_CONTENT.faq.items[index],
+            ...item
+          })) || DEFAULT_SITE_CONTENT.faq.items
         }
       };
     }
