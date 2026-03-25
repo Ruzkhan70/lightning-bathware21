@@ -100,6 +100,7 @@ export interface SiteContent {
     items: {
       title: string;
       description: string;
+      features: string[];
     }[];
   };
   contact: {
@@ -214,26 +215,62 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       {
         title: "Island-wide Delivery",
         description: "We deliver to all parts of Sri Lanka. Fast delivery within Colombo and reliable islandwide shipping.",
+        features: [
+          "Same-day delivery available in Colombo",
+          "Secure packaging for all products",
+          "Real-time order tracking",
+          "Safe handling of fragile items",
+        ],
       },
       {
         title: "Expert Consultation",
         description: "Our experienced team provides professional advice to help you choose the right products for your needs.",
+        features: [
+          "Free product consultation",
+          "Technical specifications guidance",
+          "Project planning assistance",
+          "Expert recommendations",
+        ],
       },
       {
         title: "Technical Support",
         description: "Expert guidance on product selection, specifications, and technical requirements for your projects.",
+        features: [
+          "Certified technicians",
+          "Quality workmanship guarantee",
+          "Flexible scheduling",
+          "Competitive pricing",
+        ],
       },
       {
         title: "Quality Guarantee",
         description: "We stand behind every product we sell with authentic quality guarantees and manufacturer warranties.",
+        features: [
+          "100% authentic products",
+          "Manufacturer warranties",
+          "Quality inspection",
+          "Return and exchange policy",
+        ],
       },
       {
         title: "Bulk Orders",
         description: "Special pricing and dedicated support for contractors, builders, and bulk purchasers.",
+        features: [
+          "Volume discounts",
+          "Priority processing",
+          "Dedicated account manager",
+          "Flexible payment terms",
+        ],
       },
       {
         title: "After-Sales Support",
         description: "Comprehensive after-sales support to ensure complete customer satisfaction.",
+        features: [
+          "Technical support",
+          "Product troubleshooting",
+          "Replacement parts",
+          "Maintenance guidance",
+        ],
       },
     ],
   },

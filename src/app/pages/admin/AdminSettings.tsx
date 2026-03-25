@@ -641,6 +641,63 @@ export default function AdminSettings() {
                     })}
                   />
                 </div>
+                
+                {/* Service Items */}
+                <div className="space-y-6 mt-6">
+                  <Label className="text-lg font-semibold">Service Items</Label>
+                  {contentForm.services.items.map((item, index) => (
+                    <div key={index} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-medium">Service {index + 1}</Label>
+                      </div>
+                      <Input 
+                        placeholder="Service Title"
+                        value={item.title}
+                        onChange={(e) => {
+                          const newItems = [...contentForm.services.items];
+                          newItems[index] = { ...newItems[index], title: e.target.value };
+                          setContentForm({
+                            ...contentForm,
+                            services: { ...contentForm.services, items: newItems }
+                          });
+                        }}
+                      />
+                      <Textarea 
+                        placeholder="Service Description"
+                        value={item.description}
+                        onChange={(e) => {
+                          const newItems = [...contentForm.services.items];
+                          newItems[index] = { ...newItems[index], description: e.target.value };
+                          setContentForm({
+                            ...contentForm,
+                            services: { ...contentForm.services, items: newItems }
+                          });
+                        }}
+                        rows={2}
+                      />
+                      <div className="space-y-2">
+                        <Label className="text-sm text-gray-600">Features (one per line)</Label>
+                        <Textarea 
+                          placeholder="Feature 1&#10;Feature 2&#10;Feature 3&#10;Feature 4"
+                          value={item.features?.join('\n') || ''}
+                          onChange={(e) => {
+                            const newItems = [...contentForm.services.items];
+                            newItems[index] = { 
+                              ...newItems[index], 
+                              features: e.target.value.split('\n').filter(f => f.trim()) 
+                            };
+                            setContentForm({
+                              ...contentForm,
+                              services: { ...contentForm.services, items: newItems }
+                            });
+                          }}
+                          rows={4}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

@@ -2,74 +2,13 @@ import { Truck, Headphones, Wrench, Award, Clock, Shield } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 export default function Services() {
   const { siteContent } = useAdmin();
-  const services = [
-    {
-      icon: Truck,
-      title: siteContent.services.items[0].title,
-      description: siteContent.services.items[0].description,
-      features: [
-        "Same-day delivery available in Colombo",
-        "Secure packaging for all products",
-        "Real-time order tracking",
-        "Safe handling of fragile items",
-      ],
-    },
-    {
-      icon: Headphones,
-      title: siteContent.services.items[1].title,
-      description: siteContent.services.items[1].description,
-      features: [
-        "Free product consultation",
-        "Technical specifications guidance",
-        "Project planning assistance",
-        "Expert recommendations",
-      ],
-    },
-    {
-      icon: Wrench,
-      title: siteContent.services.items[2].title,
-      description: siteContent.services.items[2].description,
-      features: [
-        "Certified technicians",
-        "Quality workmanship guarantee",
-        "Flexible scheduling",
-        "Competitive pricing",
-      ],
-    },
-    {
-      icon: Award,
-      title: siteContent.services.items[3].title,
-      description: siteContent.services.items[3].description,
-      features: [
-        "100% authentic products",
-        "Manufacturer warranties",
-        "Quality inspection",
-        "Return and exchange policy",
-      ],
-    },
-    {
-      icon: Clock,
-      title: siteContent.services.items[4].title,
-      description: siteContent.services.items[4].description,
-      features: [
-        "Volume discounts",
-        "Priority processing",
-        "Dedicated account manager",
-        "Flexible payment terms",
-      ],
-    },
-    {
-      icon: Shield,
-      title: siteContent.services.items[5].title,
-      description: siteContent.services.items[5].description,
-      features: [
-        "Technical support",
-        "Product troubleshooting",
-        "Replacement parts",
-        "Maintenance guidance",
-      ],
-    },
-  ];
+  const icons = [Truck, Headphones, Wrench, Award, Clock, Shield];
+  const services = siteContent.services.items.map((item, index) => ({
+    icon: icons[index] || Truck,
+    title: item.title,
+    description: item.description,
+    features: item.features || [],
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
