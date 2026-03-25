@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
@@ -482,8 +482,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updatingOrderIdRef = useRef<string | null>(null);
-
   // Firebase real-time sync for orders
   useEffect(() => {
     const q = query(collection(db, "orders"), orderBy("date", "desc"));
@@ -492,10 +490,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const data = doc.data();
         return { ...data, id: data.id || doc.id } as Order;
       });
-      // Don't overwrite if we're updating a specific order
-      if (!updatingOrderIdRef.current) {
-        setOrders(firebaseOrders);
-      }
+      setOrders(firebaseOrders);
       setFirebaseLoaded(prev => ({ ...prev, orders: true }));
     }, (error) => {
       console.error("Firebase orders sync error:", error);
@@ -615,15 +610,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
-    updatingOrderIdRef.current = id;
+    // Update local state immediately
+    setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
+    // Update Firebase
     try {
-      const orderRef = doc(db, "orders", id);
-      await updateDoc(orderRef, { status });
-      setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
-      setTimeout(() => { updatingOrderIdRef.current = null; }, 500);
+      await updateDoc(doc(db, "orders", id), { status });
     } catch (error) {
       console.error("Error updating order status:", error);
-      updatingOrderIdRef.current = null;
+      // Revert on error
+      toast.error("Failed to update status");
     }
   };
 
