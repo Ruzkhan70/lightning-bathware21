@@ -1,4 +1,5 @@
 import { Package, ShoppingCart, Clock, DollarSign, Tag, AlertTriangle, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
+import { Link } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
 import { motion } from "framer-motion";
 
@@ -107,9 +108,9 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-          <a href="/admin/products?filter=low-stock" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
+          <Link to="/admin/products" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
             View Products
-          </a>
+          </Link>
         </motion.div>
       )}
 
