@@ -2,19 +2,25 @@ import { useState, useEffect, useRef } from "react";
 import { Target, Eye, Users, Award } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 
-function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
+function easeOutQuart(t: number): number {
+  return 1 - Math.pow(1 - t, 4);
+}
+
+function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
   const [count, setCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !isVisible) {
+        if (entry.isIntersecting && !hasAnimated) {
           setIsVisible(true);
+          setHasAnimated(true);
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3 }
     );
 
     if (ref.current) {
@@ -22,24 +28,36 @@ function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; d
     }
 
     return () => observer.disconnect();
-  }, [isVisible]);
+  }, [hasAnimated]);
 
   useEffect(() => {
     if (!isVisible) return;
 
     let startTime: number;
+    let animationFrame: number;
+
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutQuart(progress);
       
-      setCount(Math.floor(progress * end));
+      setCount(Math.floor(easedProgress * end));
       
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationFrame = requestAnimationFrame(animate);
+      } else {
+        setCount(end);
       }
     };
 
-    requestAnimationFrame(animate);
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
   }, [isVisible, end, duration]);
 
   return (
@@ -172,7 +190,7 @@ export default function About() {
 
       {/* Stats */}
       <section className="py-20 bg-black text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
             backgroundImage: 'radial-gradient(circle at 25% 25%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 75% 75%, #D4AF37 1px, transparent 1px)',
             backgroundSize: '50px 50px'
@@ -180,30 +198,42 @@ export default function About() {
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="group">
-              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
-                <AnimatedCounter end={10} suffix="+" duration={1500} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                <span className="relative z-10">
+                  <AnimatedCounter end={10} suffix="+" duration={2000} />
+                </span>
+                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-lg font-medium">Years of Experience</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Years of Experience</div>
             </div>
-            <div className="group">
-              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
-                <AnimatedCounter end={350} suffix="+" duration={2000} />
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                <span className="relative z-10">
+                  <AnimatedCounter end={350} suffix="+" duration={2500} />
+                </span>
+                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-lg font-medium">Products</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Products</div>
             </div>
-            <div className="group">
-              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
-                <AnimatedCounter end={5000} suffix="+" duration={2500} />
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                <span className="relative z-10">
+                  <AnimatedCounter end={5000} suffix="+" duration={3000} />
+                </span>
+                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-lg font-medium">Happy Customers</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Happy Customers</div>
             </div>
-            <div className="group">
-              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
-                <AnimatedCounter end={100} suffix="%" duration={1500} />
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                <span className="relative z-10">
+                  <AnimatedCounter end={100} suffix="%" duration={2000} />
+                </span>
+                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-lg font-medium">Authentic Products</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Authentic Products</div>
             </div>
           </div>
         </div>
