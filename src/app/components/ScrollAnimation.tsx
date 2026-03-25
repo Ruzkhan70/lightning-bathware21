@@ -13,7 +13,7 @@ export default function ScrollAnimation({
   children,
   animation = "fadeIn",
   delay = 0,
-  duration = 600,
+  duration = 400,
   className = "",
   once = true,
 }: ScrollAnimationProps) {
@@ -50,15 +50,15 @@ export default function ScrollAnimation({
   const getInitialTransform = (anim: string) => {
     switch (anim) {
       case "slideUp":
-        return "translateY(60px)";
-      case "slideLeft":
-        return "translateX(60px)";
-      case "slideRight":
-        return "translateX(-60px)";
-      case "scaleIn":
-        return "scale(0.8)";
-      default:
         return "translateY(40px)";
+      case "slideLeft":
+        return "translateX(40px)";
+      case "slideRight":
+        return "translateX(-40px)";
+      case "scaleIn":
+        return "scale(0.9)";
+      default:
+        return "translateY(30px)";
     }
   };
 

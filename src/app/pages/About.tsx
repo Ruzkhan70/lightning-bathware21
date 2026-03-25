@@ -199,37 +199,37 @@ export default function About() {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={10} suffix="+" duration={2000} />
+                  <AnimatedCounter end={10} suffix="+" duration={1500} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
               <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Years of Experience</div>
             </div>
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={350} suffix="+" duration={2500} />
+                  <AnimatedCounter end={350} suffix="+" duration={1800} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
               <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Products</div>
             </div>
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={5000} suffix="+" duration={3000} />
+                  <AnimatedCounter end={5000} suffix="+" duration={2000} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
               <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Happy Customers</div>
             </div>
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-500">
+            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={100} suffix="%" duration={2000} />
+                  <AnimatedCounter end={100} suffix="%" duration={1500} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
