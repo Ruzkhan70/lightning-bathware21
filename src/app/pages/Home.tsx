@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -18,23 +17,11 @@ import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
-import LoadingScreen from "../components/LoadingScreen";
 
 export default function Home() {
-  const { products, getActiveOffers, storeAssets, siteContent, categories, isDataLoaded } = useAdmin();
-  const [showLoading, setShowLoading] = useState(true);
+  const { products, getActiveOffers, storeAssets, siteContent, categories } = useAdmin();
   const featuredProducts = products.slice(0, 8);
   const activeOffers = getActiveOffers();
-
-  useEffect(() => {
-    if (isDataLoaded) {
-      // Small delay to show full progress bar, then reveal content
-      const timer = setTimeout(() => {
-        setShowLoading(false);
-      }, 1800);
-      return () => clearTimeout(timer);
-    }
-  }, [isDataLoaded]);
 
   const activeCategories = categories
     .filter((c) => c.isActive)

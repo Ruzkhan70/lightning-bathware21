@@ -1,14 +1,9 @@
 import { Truck, Headphones, Wrench, Award, Clock, Shield } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
-import LoadingScreen from "../components/LoadingScreen";
 
 export default function Services() {
-  const { siteContent, storeProfile, isDataLoaded } = useAdmin();
-  
-  if (!isDataLoaded) {
-    return <LoadingScreen />;
-  }
+  const { siteContent, storeProfile } = useAdmin();
   
   const icons = [Truck, Headphones, Wrench, Award, Clock, Shield];
   const services = siteContent.services.items.map((item, index) => ({

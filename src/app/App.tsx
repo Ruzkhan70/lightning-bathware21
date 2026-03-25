@@ -71,51 +71,27 @@ class ErrorBoundary extends React.Component<
 }
 
 function App() {
-  // Detect page refresh using sessionStorage
   const [showRefreshLoader, setShowRefreshLoader] = React.useState(false);
-  const [initialLoad, setInitialLoad] = React.useState(true);
 
   React.useEffect(() => {
-    // Check if this is a refresh (page was loaded recently)
-    const lastLoad = sessionStorage.getItem('lastPageLoad');
-    const now = Date.now();
+    const isAppLoaded = sessionStorage.getItem('appWasLoaded');
     
-    if (lastLoad) {
-      const timeSinceLastLoad = now - parseInt(lastLoad);
-      // If page was loaded within last 10 seconds, show loading
-      if (timeSinceLastLoad < 10000) {
-        setShowRefreshLoader(true);
-      }
+    if (isAppLoaded) {
+      setShowRefreshLoader(true);
     }
     
-    // Update last load time
-    sessionStorage.setItem('lastPageLoad', now.toString());
+    sessionStorage.setItem('appWasLoaded', 'true');
     
-    // Also set a refresh flag before unload
-    const handleBeforeUnload = () => {
-      sessionStorage.setItem('isRefreshing', 'true');
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    // Hide loader after initial render
     const timer = setTimeout(() => {
       setShowRefreshLoader(false);
-      setInitialLoad(false);
     }, 2000);
     
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <>
-      {/* Refresh Loading Screen */}
-      {showRefreshLoader && (
-        <LoadingScreen />
-      )}
+      {showRefreshLoader && <LoadingScreen />}
       
       <ErrorBoundary>
         <UserProvider>

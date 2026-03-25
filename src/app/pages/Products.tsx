@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { Filter, X } from "lucide-react";
 import ProductCard from "../components/ProductCard";
-import { useAdmin, Product } from "../context/AdminContext";
+import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import {
   Select,
@@ -11,81 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import LoadingScreen from "../components/LoadingScreen";
 
 export default function Products() {
   const [searchParams] = useSearchParams();
-  const { products, isDataLoaded } = useAdmin();
-  const [showLoading, setShowLoading] = useState(!isDataLoaded);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const { products } = useAdmin();
+  const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  useEffect(() => {
-    if (isDataLoaded && showLoading) {
-      const timer = setTimeout(() => {
-        setShowLoading(false);
-      }, 1800);
-      return () => clearTimeout(timer);
-    } else if (!isDataLoaded) {
-      setShowLoading(true);
-    }
-  }, [isDataLoaded]);
-
-  useEffect(() => {
-    let result = [...products];
-
-    const searchQuery = searchParams.get("search");
-    if (searchQuery) {
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      result = result.filter((p) => p.category === categoryParam);
-    } else if (selectedCategory !== "all" && selectedCategory !== "All Categories") {
-      result = result.filter((p) => p.category === selectedCategory);
-    }
-
-    if (priceRange !== "all") {
-      if (priceRange === "0-5000") {
-        result = result.filter((p) => p.price < 5000);
-      } else if (priceRange === "5000-10000") {
-        result = result.filter((p) => p.price >= 5000 && p.price < 10000);
-      } else if (priceRange === "10000-20000") {
-        result = result.filter((p) => p.price >= 10000 && p.price < 20000);
-      } else if (priceRange === "20000+") {
-        result = result.filter((p) => p.price >= 20000);
-      }
-    }
-
-    if (sortBy === "price-low") {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price-high") {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === "name") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    setFilteredProducts(result);
-  }, [products, searchParams, selectedCategory, sortBy, priceRange]);
-
-  const clearFilters = () => {
-    setSelectedCategory("all");
-    setSortBy("default");
-    setPriceRange("all");
-  };
-
-  if (showLoading || !isDataLoaded) {
-    return <LoadingScreen />;
-  }
 
   const categories = [
     "All Categories",
@@ -103,6 +37,60 @@ export default function Products() {
     { label: "Rs. 10,000 - Rs. 20,000", value: "10000-20000" },
     { label: "Above Rs. 20,000", value: "20000+" },
   ];
+
+  useEffect(() => {
+    let result = [...products];
+
+    // Search filter from URL params
+    const searchQuery = searchParams.get("search");
+    if (searchQuery) {
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Category filter from URL params
+    const categoryParam = searchParams.get("category");
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+      result = result.filter((p) => p.category === categoryParam);
+    } else if (selectedCategory !== "all" && selectedCategory !== "All Categories") {
+      result = result.filter((p) => p.category === selectedCategory);
+    }
+
+    // Price range filter
+    if (priceRange !== "all") {
+      if (priceRange === "0-5000") {
+        result = result.filter((p) => p.price < 5000);
+      } else if (priceRange === "5000-10000") {
+        result = result.filter((p) => p.price >= 5000 && p.price < 10000);
+      } else if (priceRange === "10000-20000") {
+        result = result.filter((p) => p.price >= 10000 && p.price < 20000);
+      } else if (priceRange === "20000+") {
+        result = result.filter((p) => p.price >= 20000);
+      }
+    }
+
+    // Sort
+    if (sortBy === "price-low") {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "price-high") {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "name") {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    setFilteredProducts(result);
+  }, [products, searchParams, selectedCategory, sortBy, priceRange]);
+
+  const clearFilters = () => {
+    setSelectedCategory("all");
+    setSortBy("default");
+    setPriceRange("all");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">

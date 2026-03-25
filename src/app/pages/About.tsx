@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Target, Eye, Users, Award } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
-import LoadingScreen from "../components/LoadingScreen";
 
 function easeOutQuart(t: number): number {
   return 1 - Math.pow(1 - t, 4);
