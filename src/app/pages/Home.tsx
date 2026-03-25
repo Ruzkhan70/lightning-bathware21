@@ -114,7 +114,7 @@ export default function Home() {
               <Link to="/categories">
                 <Button
                   size="lg"
-                  className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-7 text-lg rounded-lg shadow-lg font-bold border-0 transition-all duration-300"
+                  className="bg-transparent text-[#D4AF37] border-[1.5px] border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:scale-105 px-8 py-7 text-lg rounded-lg shadow-lg font-bold transition-all duration-300"
                 >
                   {siteContent.home.heroButtonText}
                 </Button>
