@@ -17,6 +17,7 @@ import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Home() {
   const { products, getActiveOffers, storeAssets, siteContent, categories, isDataLoaded } = useAdmin();
@@ -29,14 +30,7 @@ export default function Home() {
   }, []);
 
   if (!isDataLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   const activeCategories = categories

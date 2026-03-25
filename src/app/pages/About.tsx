@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Target, Eye, Users, Award } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
+import LoadingScreen from "../components/LoadingScreen";
 
 function easeOutQuart(t: number): number {
   return 1 - Math.pow(1 - t, 4);
@@ -72,14 +73,7 @@ export default function About() {
   const { storeAssets, siteContent, isDataLoaded } = useAdmin();
   
   if (!isDataLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   
   return (
