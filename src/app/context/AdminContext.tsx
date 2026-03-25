@@ -22,6 +22,7 @@ export interface Order {
     name: string;
     quantity: number;
     price: number;
+    image: string;
   }>;
   total: number;
   status: "Pending" | "Processing" | "Delivered";

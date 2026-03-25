@@ -419,7 +419,12 @@ export default function Account() {
                       </div>
                       <div className="space-y-3">
                         {selectedOrder.products.map((product, index) => (
-                          <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div key={index} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-16 h-16 object-cover rounded-lg"
+                            />
                             <div className="flex-1">
                               <p className="font-medium">{product.name}</p>
                               <p className="text-sm text-gray-500">Qty: {product.quantity}</p>

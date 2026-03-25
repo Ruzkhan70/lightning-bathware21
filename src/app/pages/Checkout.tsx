@@ -88,6 +88,7 @@ export default function Checkout() {
         name: item.name,
         quantity: item.quantity,
         price: item.price,
+        image: item.image,
       })),
       total: grandTotal,
       deliveryOption: selectedDelivery?.label || "",
