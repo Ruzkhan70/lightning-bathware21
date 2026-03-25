@@ -195,7 +195,7 @@ const DEFAULT_STORE_ASSETS: StoreAssets = {
   }
 };
 
-const DEFAULT_SITE_CONTENT: SiteContent = {
+export const DEFAULT_SITE_CONTENT: SiteContent = {
   home: {
     heroTitle: "Premium Lighting & Bathware",
     heroSubtitle: "Your one-stop destination for all bathroom fittings, lighting, electrical hardware, and construction tools in Sri Lanka.",
@@ -880,6 +880,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setSiteContent((prev) => ({ ...prev, ...content }));
   };
 
+  const resetSiteContent = () => {
+    setSiteContent(DEFAULT_SITE_CONTENT);
+  };
+
   const addProduct = (product: Omit<Product, "id">) => {
     const newProduct: Product = {
       ...product,
@@ -1026,6 +1030,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         updateStoreAssets,
         siteContent,
         updateSiteContent,
+        resetSiteContent,
         showAdminLogin,
         setShowAdminLogin,
         categories,

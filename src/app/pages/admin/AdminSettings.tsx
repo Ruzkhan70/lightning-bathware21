@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type } from "lucide-react";
+import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
-import { useAdmin } from "../../context/AdminContext";
+import { useAdmin, DEFAULT_SITE_CONTENT } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
 
 export default function AdminSettings() {
-  const { adminUsername, changeUsername, changePassword, storeProfile, updateStoreProfile, storeAssets, updateStoreAssets, showAdminLogin, setShowAdminLogin, siteContent, updateSiteContent } = useAdmin();
+  const { adminUsername, changeUsername, changePassword, storeProfile, updateStoreProfile, storeAssets, updateStoreAssets, showAdminLogin, setShowAdminLogin, siteContent, updateSiteContent, resetSiteContent } = useAdmin();
   const [usernameForm, setUsernameForm] = useState({
     newUsername: adminUsername,
   });
@@ -58,6 +58,14 @@ export default function AdminSettings() {
     e.preventDefault();
     updateSiteContent(contentForm);
     toast.success("Site content updated successfully!");
+  };
+
+  const handleResetToDefault = () => {
+    if (window.confirm("Are you sure you want to reset all page content to default? This action cannot be undone.")) {
+      resetSiteContent();
+      setContentForm(DEFAULT_SITE_CONTENT);
+      toast.success("Site content has been reset to default!");
+    }
   };
 
   const handleAssetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -674,13 +682,24 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold w-full"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Site Content
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetToDefault}
+                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white flex-1"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset to Default
+              </Button>
+              <Button
+                type="submit"
+                className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold flex-1"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Site Content
+              </Button>
+            </div>
           </form>
         </div>
 
