@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 const TOTAL_TIMEOUT = 120; // 2 minutes in seconds
-const WARNING_THRESHOLD = 60; // Show warning when 1 minute remaining
+const WARNING_THRESHOLD = 30; // Show warning when 30 seconds remaining
 
 interface UseAdminTimeoutReturn {
   showWarning: boolean;
