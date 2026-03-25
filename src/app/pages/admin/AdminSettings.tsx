@@ -140,7 +140,7 @@ export default function AdminSettings() {
         <p className="text-gray-600">Manage your admin account and store profile settings</p>
       </div>
 
-      <div className="max-w-2xl space-y-6">
+      <div className="space-y-6">
         {/* Store Profile */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
@@ -161,7 +161,7 @@ export default function AdminSettings() {
               <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <Store className="w-4 h-4" /> Store Name
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="storeName">Primary Name</Label>
                   <Input
@@ -190,7 +190,7 @@ export default function AdminSettings() {
               <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <Phone className="w-4 h-4" /> Phone Numbers
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="phone">Primary Phone</Label>
                   <Input
@@ -231,7 +231,7 @@ export default function AdminSettings() {
                     placeholder="info@example.com"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="salesEmail">Sales Email</Label>
                     <Input
@@ -274,7 +274,7 @@ export default function AdminSettings() {
                     placeholder="No. 456, Galle Road"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="addressCity">City / Postal Code</Label>
                     <Input
@@ -315,7 +315,7 @@ export default function AdminSettings() {
                     placeholder="Monday - Friday: 9:00 AM - 6:00 PM"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="businessHoursSaturday">Saturday</Label>
                     <Input
