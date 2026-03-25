@@ -33,7 +33,7 @@ export default function AdminOrders() {
 
   const currentOrder = orders.find((o) => o.id === viewingOrder);
 
-  const handleStatusChange = (orderId: string, status: "Pending" | "Processing" | "Completed") => {
+  const handleStatusChange = (orderId: string, status: "Pending" | "Processing" | "Delivered") => {
     updateOrderStatus(orderId, status);
     toast.success("Order status updated!");
   };
@@ -46,7 +46,7 @@ export default function AdminOrders() {
 
   const pendingCount = orders.filter(o => o.status === "Pending").length;
   const processingCount = orders.filter(o => o.status === "Processing").length;
-  const completedCount = orders.filter(o => o.status === "Completed").length;
+  const completedCount = orders.filter(o => o.status === "Delivered").length;
 
   return (
     <div>
@@ -131,7 +131,7 @@ export default function AdminOrders() {
                       <Select
                         value={order.status}
                         onValueChange={(value) =>
-                          handleStatusChange(order.id, value as "Pending" | "Processing" | "Completed")
+                          handleStatusChange(order.id, value as "Pending" | "Processing" | "Delivered")
                         }
                       >
                         <SelectTrigger className={`w-32 ${
@@ -144,7 +144,7 @@ export default function AdminOrders() {
                         <SelectContent>
                           <SelectItem value="Pending">Pending</SelectItem>
                           <SelectItem value="Processing">Processing</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
+                          <SelectItem value="Delivered">Delivered</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>

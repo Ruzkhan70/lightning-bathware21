@@ -69,8 +69,8 @@ export default function Account() {
             let message = "";
             if (updatedOrder.status === "Processing") {
               message = `Your order #${updatedOrder.id} is now being processed!`;
-            } else if (updatedOrder.status === "Completed") {
-              message = `Your order #${updatedOrder.id} has been completed!`;
+            } else if (updatedOrder.status === "Delivered") {
+              message = `Your order #${updatedOrder.id} has been delivered!`;
             }
             
             if (message) {
@@ -327,7 +327,7 @@ export default function Account() {
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === "Completed"
+                            order.status === "Delivered"
                               ? "bg-green-100 text-green-700"
                               : order.status === "Processing"
                               ? "bg-blue-100 text-blue-700"
@@ -387,7 +387,7 @@ export default function Account() {
                       <h3 className="font-semibold mb-2">Order Status</h3>
                       <span
                         className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                          selectedOrder.status === "Completed"
+                          selectedOrder.status === "Delivered"
                             ? "bg-green-100 text-green-700"
                             : selectedOrder.status === "Processing"
                             ? "bg-blue-100 text-blue-700"

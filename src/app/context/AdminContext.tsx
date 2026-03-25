@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ export interface Order {
     image: string;
   }>;
   total: number;
-  status: "Pending" | "Processing" | "Completed";
+  status: "Pending" | "Processing" | "Delivered";
   date: string;
   deliveryOption: string;
   deliveryCost: number;
@@ -482,39 +482,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const updatingOrderIdRef = useRef<string | null>(null);
 
   // Firebase real-time sync for orders
   useEffect(() => {
-    try {
-      const q = query(collection(db, "orders"), orderBy("date", "desc"));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const firebaseOrders: Order[] = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return { ...data, id: data.id || doc.id } as Order;
-        });
-        // Don't overwrite if we're updating a specific order
-        if (!updatingOrderId) {
-          setOrders(firebaseOrders);
-        }
-        setFirebaseLoaded(prev => ({ ...prev, orders: true }));
-      }, () => {
-        setFirebaseLoaded(prev => ({ ...prev, orders: true }));
+    const q = query(collection(db, "orders"), orderBy("date", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const firebaseOrders: Order[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { ...data, id: data.id || doc.id } as Order;
       });
-      return () => unsubscribe();
-    } catch (error) {
+      // Don't overwrite if we're updating a specific order
+      if (!updatingOrderIdRef.current) {
+        setOrders(firebaseOrders);
+      }
+      setFirebaseLoaded(prev => ({ ...prev, orders: true }));
+    }, (error) => {
       console.error("Firebase orders sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, orders: true }));
-    }
-  }, [updatingOrderId]);
-
-  // Clear updatingOrderId after a delay
-  useEffect(() => {
-    if (updatingOrderId) {
-      const timer = setTimeout(() => setUpdatingOrderId(null), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [updatingOrderId]);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Firebase real-time sync for offers
   useEffect(() => {
@@ -626,15 +614,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setProducts(prev => prev.filter(p => !ids.includes(p.id)));
   };
 
-  const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Completed") => {
-    setUpdatingOrderId(id);
+  const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
+    updatingOrderIdRef.current = id;
     try {
       const orderRef = doc(db, "orders", id);
       await updateDoc(orderRef, { status });
       setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
+      setTimeout(() => { updatingOrderIdRef.current = null; }, 500);
     } catch (error) {
       console.error("Error updating order status:", error);
-      setUpdatingOrderId(null);
+      updatingOrderIdRef.current = null;
     }
   };
 
