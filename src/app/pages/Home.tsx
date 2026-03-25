@@ -75,14 +75,6 @@ export default function Home() {
           }}
         />
 
-        {/* Text Decoration - HARDWARE HARDWARE */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
-          <div className="text-[120px] md:text-[240px] font-black tracking-tighter text-white opacity-[0.05] flex flex-col items-center">
-            <span>HARDWARE</span>
-            <span className="-mt-16 md:-mt-32">HARDWARE</span>
-          </div>
-        </div>
-
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-7xl font-bold mb-4 leading-tight">
