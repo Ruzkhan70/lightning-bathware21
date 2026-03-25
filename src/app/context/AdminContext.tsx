@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
+import { toast } from "sonner";
 
 export interface Product {
   id: string;
@@ -555,8 +556,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setStoreProfile(updated);
     try {
       await setDoc(doc(db, "storeData", "profile"), updated);
+      toast.success("Profile saved to Firebase!");
     } catch (error) {
       console.error("Error saving storeProfile:", error);
+      toast.error("Failed to save profile: " + (error as Error).message);
     }
   };
 
@@ -565,8 +568,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setStoreAssets(updated);
     try {
       await setDoc(doc(db, "storeData", "assets"), updated);
+      toast.success("Assets saved to Firebase!");
     } catch (error) {
       console.error("Error saving storeAssets:", error);
+      toast.error("Failed to save assets: " + (error as Error).message);
     }
   };
 
@@ -575,8 +580,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setSiteContent(updated);
     try {
       await setDoc(doc(db, "storeData", "siteContent"), updated);
+      toast.success("Content saved to Firebase!");
     } catch (error) {
       console.error("Error saving siteContent:", error);
+      toast.error("Failed to save content: " + (error as Error).message);
     }
   };
 
