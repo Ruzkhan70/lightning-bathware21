@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
+import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
@@ -44,6 +44,7 @@ export default function Account() {
   const [registerAddress, setRegisterAddress] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const previousOrderStatuses = useRef<Record<string, string>>({});
 
   useEffect(() => {
@@ -315,7 +316,8 @@ export default function Account() {
                   {userOrders.map((order) => (
                     <div
                       key={order.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedOrder(order)}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -352,8 +354,8 @@ export default function Account() {
                           <p className="font-bold text-xl text-[#D4AF37]">
                             Rs. {order.total.toLocaleString()}
                           </p>
-                          <p className="text-sm text-gray-500">
-                            {order.deliveryOption}
+                          <p className="text-sm text-[#D4AF37] font-medium hover:underline">
+                            View Details →
                           </p>
                         </div>
                       </div>
@@ -362,6 +364,100 @@ export default function Account() {
                 </div>
               )}
             </div>
+
+            {/* Order Details Modal */}
+            {selectedOrder && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold">Order Details</h2>
+                      <p className="text-sm text-gray-500">
+                        Order #{selectedOrder.id} • {new Date(selectedOrder.date).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    {/* Status */}
+                    <div>
+                      <h3 className="font-semibold mb-2">Order Status</h3>
+                      <span
+                        className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
+                          selectedOrder.status === "Delivered"
+                            ? "bg-green-100 text-green-700"
+                            : selectedOrder.status === "Processing"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {selectedOrder.status}
+                      </span>
+                    </div>
+
+                    {/* Delivery Info */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Truck className="w-5 h-5 text-[#D4AF37]" />
+                        <h3 className="font-semibold">Delivery Information</h3>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="font-medium">Delivery Type:</span> {selectedOrder.deliveryOption}</p>
+                        <p><span className="font-medium">Delivery Cost:</span> Rs. {selectedOrder.deliveryCost.toLocaleString()}</p>
+                        <p><span className="font-medium">Address:</span> {selectedOrder.address}</p>
+                      </div>
+                    </div>
+
+                    {/* Products */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <ShoppingBag className="w-5 h-5 text-[#D4AF37]" />
+                        <h3 className="font-semibold">Ordered Items</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedOrder.products.map((product, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex-1">
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
+                            </div>
+                            <p className="font-semibold text-[#D4AF37]">
+                              Rs. {(product.price * product.quantity).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Order Summary */}
+                    <div className="bg-[#D4AF37]/10 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>Rs. {(selectedOrder.total - selectedOrder.deliveryCost).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Delivery</span>
+                        <span>Rs. {selectedOrder.deliveryCost.toLocaleString()}</span>
+                      </div>
+                      <div className="border-t border-[#D4AF37]/30 pt-2 flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span className="text-[#D4AF37]">Rs. {selectedOrder.total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
