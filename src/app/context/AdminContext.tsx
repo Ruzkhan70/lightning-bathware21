@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { db } from "../../firebase";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
 
 export interface Product {
   id: string;
@@ -168,8 +170,8 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   email: "info@lightingbathware.lk",
   salesEmail: "sales@lightingbathware.lk",
   supportEmail: "support@lightingbathware.lk",
-  addressStreet: "123 Main Street",
-  addressCity: "Colombo 00700",
+  addressStreet: "No. 456, Galle Road",
+  addressCity: "Colombo 00300",
   addressCountry: "Sri Lanka",
   businessHoursWeekday: "Monday - Friday: 9:00 AM - 6:00 PM",
   businessHoursSaturday: "Saturday: 9:00 AM - 4:00 PM",
@@ -744,6 +746,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("orders", JSON.stringify(orders));
   }, [orders]);
 
+  // Firebase real-time sync for orders
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "orders"), orderBy("date", "desc"));
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firebaseOrders: Order[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: data.id || doc.id, // Use stored id or Firebase doc id
+          } as Order;
+        });
+        
+        // Use Firebase orders as source of truth 
+        console.log("Firebase orders loaded:", firebaseOrders.length);
+        setOrders(firebaseOrders);
+      }, (error) => {
+        console.error("Firebase orders sync error:", error);
+      });
+
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase init error:", error);
+    }
+  }, []);
+
   const [offers, setOffers] = useState<Offer[]>([
     {
       id: "1",
@@ -869,16 +898,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const updateOrderStatus = (
+  const updateOrderStatus = async (
     id: string,
     status: "Pending" | "Processing" | "Delivered"
   ) => {
     setOrders((prev) =>
       prev.map((order) => (order.id === id ? { ...order, status } : order))
     );
+    
+    // Update in Firebase
+    try {
+      const orderRef = doc(db, "orders", id);
+      await updateDoc(orderRef, { status });
+    } catch (error) {
+      console.error("Error updating order status in Firebase:", error);
+    }
   };
 
-  const addOrder = (order: Omit<Order, "id" | "date" | "status">) => {
+  const addOrder = async (order: Omit<Order, "id" | "date" | "status">) => {
     const newOrder: Order = {
       ...order,
       id: Date.now().toString(),
@@ -886,6 +923,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       status: "Pending",
     };
     setOrders((prev) => [...prev, newOrder]);
+    
+    // Save to Firebase with custom ID
+    try {
+      await setDoc(doc(db, "orders", newOrder.id), newOrder);
+    } catch (error) {
+      console.error("Error saving order to Firebase:", error);
+    }
   };
 
   const addOffer = (offer: Omit<Offer, "id" | "createdAt">) => {

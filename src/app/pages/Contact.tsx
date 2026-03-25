@@ -48,7 +48,7 @@ export default function Contact() {
     {
       icon: MapPin,
       title: "Visit Us",
-      details: ["123 Main Street", "Colombo 00700", "Sri Lanka"],
+      details: ["No. 456, Galle Road", "Colombo 00300", "Sri Lanka"],
     },
     {
       icon: Phone,

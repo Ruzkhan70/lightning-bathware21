@@ -1,15 +1,37 @@
-import { useState } from "react";
-import { User, LogOut, Package, MapPin, Phone, Mail } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
+import emailjs from "emailjs-com";
+import { db } from "../firebase";
+import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { Order } from "../context/AdminContext";
+
+const EMAILJS_PUBLIC_KEY = "z0LSWDMbKOfljQUzp";
+const EMAILJS_SERVICE_ID = "service_vd0s4n8";
+const EMAILJS_TEMPLATE_ID = "template_njxm8mi";
 
 export default function Account() {
-  const { user, isLoggedIn, login, register, logout } = useUser();
+  const { user, isLoggedIn, login, register, logout, resetPassword } = useUser();
   const { orders } = useAdmin();
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  
+  // Forgot password steps
+  const [forgotStep, setForgotStep] = useState<"email" | "verify" | "reset">("email");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [sentCode, setSentCode] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
+  const [showForgotPasswordField, setShowForgotPasswordField] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -22,6 +44,53 @@ export default function Account() {
   const [registerAddress, setRegisterAddress] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const previousOrderStatuses = useRef<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!isLoggedIn || !user?.phone) {
+      return;
+    }
+
+    const ordersRef = collection(db, "orders");
+    const q = query(
+      ordersRef,
+      where("phone", "==", user.phone),
+      orderBy("date", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "modified") {
+          const updatedOrder = change.doc.data() as Order;
+          const previousStatus = previousOrderStatuses.current[updatedOrder.id];
+          
+          if (previousStatus && previousStatus !== updatedOrder.status) {
+            let message = "";
+            if (updatedOrder.status === "Processing") {
+              message = `Your order #${updatedOrder.id} is now being processed!`;
+            } else if (updatedOrder.status === "Delivered") {
+              message = `Your order #${updatedOrder.id} has been delivered!`;
+            }
+            
+            if (message) {
+              toast.success(message, {
+                duration: 8000,
+              });
+            }
+          }
+          
+          previousOrderStatuses.current[updatedOrder.id] = updatedOrder.status;
+        }
+        
+        if (change.type === "added") {
+          const newOrder = change.doc.data() as Order;
+          previousOrderStatuses.current[newOrder.id] = newOrder.status;
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [isLoggedIn, user?.phone]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +135,106 @@ export default function Account() {
     } else {
       toast.error("Email already registered");
     }
+  };
+
+  const handleSendCode = async () => {
+    const storedUsers = localStorage.getItem("users");
+    const allUsers = storedUsers ? JSON.parse(storedUsers) : [];
+    const userExists = allUsers.some((u: { email: string }) => u.email === forgotEmail);
+
+    if (!userExists) {
+      toast.error("Email not found");
+      return;
+    }
+
+    setIsSendingCode(true);
+    
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          to_email: forgotEmail,
+          verification_code: code,
+          app_name: "Lightning Bathware",
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+      
+      setSentCode(code);
+      localStorage.setItem("resetCode", JSON.stringify({ 
+        code, 
+        email: forgotEmail, 
+        timestamp: Date.now() 
+      }));
+      
+      toast.success("Verification code sent to your email!");
+      setForgotStep("verify");
+    } catch (error) {
+      console.error("EmailJS Error:", error);
+      toast.error("Failed to send email. Please check configuration.");
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  const handleVerifyCode = () => {
+    const storedData = localStorage.getItem("resetCode");
+    if (!storedData) {
+      toast.error("Please request a new code");
+      return;
+    }
+
+    const { code, timestamp } = JSON.parse(storedData);
+    
+    // Code expires after 10 minutes
+    if (Date.now() - timestamp > 10 * 60 * 1000) {
+      toast.error("Code expired. Please request a new one.");
+      localStorage.removeItem("resetCode");
+      setForgotStep("email");
+      return;
+    }
+
+    if (verificationCode === code) {
+      setForgotStep("reset");
+      setShowForgotPasswordField(true);
+      toast.success("Code verified! Set your new password.");
+    } else {
+      toast.error("Invalid verification code");
+    }
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (forgotNewPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (resetPassword(forgotEmail, forgotNewPassword)) {
+      toast.success("Password reset successfully! Please login.");
+      localStorage.removeItem("resetCode");
+      closeForgotPassword();
+      setIsLoginMode(true);
+    } else {
+      toast.error("Something went wrong");
+    }
+  };
+
+  const closeForgotPassword = () => {
+    setShowForgotPassword(false);
+    setForgotStep("email");
+    setForgotEmail("");
+    setVerificationCode("");
+    setSentCode("");
+    setForgotNewPassword("");
+    setForgotConfirmPassword("");
+    setShowForgotPasswordField(false);
   };
 
   const handleLogout = () => {
@@ -259,15 +428,31 @@ export default function Account() {
                 <label className="block text-sm font-medium mb-2">
                   Password
                 </label>
-                <Input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 p-1"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-[#D4AF37] hover:underline"
+              >
+                Forgot Password?
+              </button>
               <Button
                 type="submit"
                 className="w-full bg-black hover:bg-[#D4AF37] text-white"
@@ -321,7 +506,7 @@ export default function Account() {
                   type="text"
                   value={registerAddress}
                   onChange={(e) => setRegisterAddress(e.target.value)}
-                  placeholder="123 Main Street, Colombo"
+                  placeholder="No. 456, Galle Road, Colombo"
                   required
                   className="w-full"
                 />
@@ -330,29 +515,47 @@ export default function Account() {
                 <label className="block text-sm font-medium mb-2">
                   Password
                 </label>
-                <Input
-                  type="password"
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Input
+                    type={showRegisterPassword ? "text" : "password"}
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    className="w-full pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showRegisterPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Confirm Password
                 </label>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    className="w-full pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <Button
                 type="submit"
@@ -364,6 +567,175 @@ export default function Account() {
             </form>
           )}
         </div>
+
+        {/* Forgot Password Modal */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+              {/* Step 1: Enter Email */}
+              {forgotStep === "email" && (
+                <>
+                  <div className="flex items-center mb-4">
+                    <button
+                      onClick={closeForgotPassword}
+                      className="mr-2 p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-2xl font-bold">Forgot Password</h2>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Enter your email address to receive a verification code.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Email</label>
+                      <Input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        required
+                        className="w-full"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleSendCode}
+                      disabled={isSendingCode || !forgotEmail}
+                      className="w-full bg-black hover:bg-[#D4AF37] text-white"
+                    >
+                      {isSendingCode ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending Code...
+                        </>
+                      ) : (
+                        "Send Verification Code"
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: Verify Code */}
+              {forgotStep === "verify" && (
+                <>
+                  <div className="flex items-center mb-4">
+                    <button
+                      onClick={() => setForgotStep("email")}
+                      className="mr-2 p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-2xl font-bold">Verify Code</h2>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Enter the 6-digit code sent to {forgotEmail}
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Verification Code</label>
+                      <Input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="Enter 6-digit code"
+                        required
+                        maxLength={6}
+                        className="w-full text-center text-2xl tracking-widest"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleVerifyCode}
+                      disabled={verificationCode.length !== 6}
+                      className="w-full bg-black hover:bg-[#D4AF37] text-white"
+                    >
+                      Verify Code
+                    </Button>
+                    <p className="text-sm text-gray-500 text-center">
+                      Didn't receive code?{" "}
+                      <button
+                        onClick={handleSendCode}
+                        className="text-[#D4AF37] hover:underline"
+                      >
+                        Resend
+                      </button>
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Step 3: Reset Password */}
+              {forgotStep === "reset" && showForgotPasswordField && (
+                <>
+                  <div className="flex items-center mb-4">
+                    <button
+                      onClick={() => setForgotStep("verify")}
+                      className="mr-2 p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-2xl font-bold">Reset Password</h2>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Set your new password for {forgotEmail}
+                  </p>
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">New Password</label>
+                      <div className="relative">
+                        <Input
+                          type={showForgotPasswordField ? "text" : "password"}
+                          value={forgotNewPassword}
+                          onChange={(e) => setForgotNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                          required
+                          minLength={6}
+                          className="w-full pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotPasswordField(!showForgotPasswordField)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showForgotPasswordField ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+                      <Input
+                        type="password"
+                        value={forgotConfirmPassword}
+                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        minLength={6}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        onClick={closeForgotPassword}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="flex-1 bg-black hover:bg-[#D4AF37] text-white"
+                      >
+                        Reset Password
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

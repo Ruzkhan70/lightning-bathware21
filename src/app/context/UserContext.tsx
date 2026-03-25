@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface User {
   id: string;
@@ -21,6 +21,7 @@ interface UserContextType {
   ) => boolean;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => void;
+  resetPassword: (email: string, newPassword: string) => boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -31,13 +32,31 @@ export function UserProvider({ children }: { children: ReactNode }) {
     Array<{ id: string; password: string } & User>
   >([]);
 
+  useEffect(() => {
+    const storedUsers = localStorage.getItem("users");
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    }
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("users", JSON.stringify(users));
+  }, [users]);
+
   const login = (email: string, password: string): boolean => {
-    const foundUser = users.find(
-      (u) => u.email === email && u.password === password
+    const storedUsers = localStorage.getItem("users");
+    const allUsers = storedUsers ? JSON.parse(storedUsers) : users;
+    const foundUser = allUsers.find(
+      (u: { email: string; password: string }) => u.email === email && u.password === password
     );
     if (foundUser) {
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword);
+      localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
       return true;
     }
     return false;
@@ -50,8 +69,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     address: string,
     password: string
   ): boolean => {
-    // Check if user already exists
-    if (users.some((u) => u.email === email)) {
+    const storedUsers = localStorage.getItem("users");
+    const allUsers: Array<{ id: string; name: string; email: string; phone: string; address: string; password: string }> = storedUsers ? JSON.parse(storedUsers) : users;
+    
+    if (allUsers.some((u) => u.email === email)) {
       return false;
     }
 
@@ -65,22 +86,41 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     setUsers((prev) => [...prev, newUser]);
+    localStorage.setItem("users", JSON.stringify([...allUsers, newUser]));
     const { password: _, ...userWithoutPassword } = newUser;
     setUser(userWithoutPassword);
+    localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
     return true;
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("currentUser");
   };
 
   const updateProfile = (updates: Partial<User>) => {
     if (user) {
-      setUser({ ...user, ...updates });
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
       setUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, ...updates } : u))
       );
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
     }
+  };
+
+  const resetPassword = (email: string, newPassword: string): boolean => {
+    const storedUsers = localStorage.getItem("users");
+    const allUsers: Array<{ id: string; name: string; email: string; phone: string; address: string; password: string }> = storedUsers ? JSON.parse(storedUsers) : users;
+    
+    const userIndex = allUsers.findIndex((u) => u.email === email);
+    if (userIndex === -1) {
+      return false;
+    }
+    allUsers[userIndex] = { ...allUsers[userIndex], password: newPassword };
+    setUsers(allUsers);
+    localStorage.setItem("users", JSON.stringify(allUsers));
+    return true;
   };
 
   return (
@@ -92,6 +132,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateProfile,
+        resetPassword,
       }}
     >
       {children}

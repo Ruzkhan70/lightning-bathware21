@@ -1,27 +1,57 @@
-import { Link, useNavigate } from "react-router";
-import { ShoppingCart, Heart, Search, Menu, User, X } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { ShoppingCart, Heart, Menu, User, X } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useUser } from "../context/UserContext";
+import { useAdmin } from "../context/AdminContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const { isLoggedIn } = useUser();
+  const { products } = useAdmin();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery("");
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setShowSuggestions(value.length > 0);
+    if (value.trim()) {
+      navigate(`/products?search=${encodeURIComponent(value)}`);
+    } else {
+      navigate(`/products`);
     }
   };
+
+  const suggestions = searchQuery.trim()
+    ? products.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 5)
+    : [];
+
+  const handleSuggestionClick = (productName: string) => {
+    setSearchQuery(productName);
+    setShowSuggestions(false);
+    navigate(`/products?search=${encodeURIComponent(productName)}`);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -47,26 +77,32 @@ export default function Header() {
           </Link>
 
           {/* Search Bar - Desktop */}
-          <form
-            onSubmit={handleSearch}
-            className="hidden md:flex flex-1 max-w-2xl"
-          >
+          <div className="hidden md:flex flex-1 max-w-2xl relative" ref={searchRef}>
             <div className="relative w-full">
               <Input
                 type="text"
                 placeholder="Search for products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
                 className="w-full pl-4 pr-12 py-6 bg-white text-black border-0 rounded-full"
               />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#D4AF37] text-black p-2 rounded-full hover:bg-[#C5A028] transition-colors"
-              >
-                <Search className="w-5 h-5" />
-              </button>
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-50 overflow-hidden">
+                  {suggestions.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => handleSuggestionClick(product.name)}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-100 text-black border-b border-gray-100 last:border-0"
+                    >
+                      <div className="font-medium">{product.name}</div>
+                      <div className="text-sm text-gray-500">{product.category}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </form>
+          </div>
 
           {/* Icons */}
           <div className="flex items-center gap-4">
@@ -115,23 +151,32 @@ export default function Header() {
         </div>
 
         {/* Search Bar - Mobile */}
-        <form onSubmit={handleSearch} className="md:hidden mt-4">
+        <div className="md:hidden mt-4 relative" ref={searchRef}>
           <div className="relative w-full">
             <Input
               type="text"
               placeholder="Search for products..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-4 pr-12 py-5 bg-white text-black border-0 rounded-full"
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
+              className="w-full pl-4 pr-4 py-5 bg-white text-black border-0 rounded-full"
             />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#D4AF37] text-black p-2 rounded-full hover:bg-[#C5A028] transition-colors"
-            >
-              <Search className="w-4 h-4" />
-            </button>
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-50 overflow-hidden">
+                {suggestions.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => handleSuggestionClick(product.name)}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-black border-b border-gray-100 last:border-0"
+                  >
+                    <div className="font-medium">{product.name}</div>
+                    <div className="text-sm text-gray-500">{product.category}</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Navigation */}

@@ -263,7 +263,7 @@ export default function AdminSettings() {
                     name="addressStreet"
                     value={profileForm.addressStreet}
                     onChange={handleProfileChange}
-                    placeholder="123 Main Street"
+                    placeholder="No. 456, Galle Road"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">

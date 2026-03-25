@@ -118,9 +118,9 @@ export default function Footer() {
               <li className="flex items-start gap-2 text-gray-400">
                 <MapPin className="w-5 h-5 mt-1 flex-shrink-0 text-[#D4AF37]" />
                 <span>
-                  123 Main Street
+                  No. 456, Galle Road
                   <br />
-                  Colombo 00700
+                  Colombo 00300
                   <br />
                   Sri Lanka
                 </span>

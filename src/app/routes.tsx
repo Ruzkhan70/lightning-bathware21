@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createHashRouter } from "react-router";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Categories from "./pages/Categories";
@@ -23,7 +23,7 @@ import AdminAddOffer from "./pages/admin/AdminAddOffer";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
