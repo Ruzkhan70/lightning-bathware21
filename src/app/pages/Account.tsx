@@ -65,12 +65,12 @@ export default function Account() {
           const updatedOrder = change.doc.data() as Order;
           const previousStatus = previousOrderStatuses.current[updatedOrder.id];
           
-          if (previousStatus && previousStatus !== updatedOrder.status) {
+            if (previousStatus && previousStatus !== updatedOrder.status) {
             let message = "";
             if (updatedOrder.status === "Processing") {
               message = `Your order #${updatedOrder.id} is now being processed!`;
-            } else if (updatedOrder.status === "Delivered") {
-              message = `Your order #${updatedOrder.id} has been delivered!`;
+            } else if (updatedOrder.status === "Completed") {
+              message = `Your order #${updatedOrder.id} has been completed!`;
             }
             
             if (message) {
@@ -327,7 +327,7 @@ export default function Account() {
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === "Delivered"
+                            order.status === "Completed"
                               ? "bg-green-100 text-green-700"
                               : order.status === "Processing"
                               ? "bg-blue-100 text-blue-700"
@@ -387,7 +387,7 @@ export default function Account() {
                       <h3 className="font-semibold mb-2">Order Status</h3>
                       <span
                         className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                          selectedOrder.status === "Delivered"
+                          selectedOrder.status === "Completed"
                             ? "bg-green-100 text-green-700"
                             : selectedOrder.status === "Processing"
                             ? "bg-blue-100 text-blue-700"
