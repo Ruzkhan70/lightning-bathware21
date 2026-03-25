@@ -3,7 +3,7 @@ import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
-import { AdminProvider } from "./context/AdminContext";
+import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
 import { Toaster } from "./components/ui/sonner";
 import LoadingScreen from "./components/LoadingScreen";
@@ -70,43 +70,37 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-function App() {
-  const [showRefreshLoader, setShowRefreshLoader] = React.useState(false);
+function DataLoader({ children }: { children: React.ReactNode }) {
+  const { isDataLoaded } = useAdmin();
+  
+  if (!isDataLoaded) {
+    return <LoadingScreen />;
+  }
+  
+  return <>{children}</>;
+}
 
-  React.useEffect(() => {
-    const isAppLoaded = sessionStorage.getItem('appWasLoaded');
-    
-    if (isAppLoaded) {
-      setShowRefreshLoader(true);
-    }
-    
-    sessionStorage.setItem('appWasLoaded', 'true');
-    
-    const timer = setTimeout(() => {
-      setShowRefreshLoader(false);
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
+function AppContent() {
   return (
-    <>
-      {showRefreshLoader && <LoadingScreen />}
-      
-      <ErrorBoundary>
-        <UserProvider>
-          <AdminProvider>
-            <CartProvider>
-              <WishlistProvider>
+    <ErrorBoundary>
+      <UserProvider>
+        <AdminProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <DataLoader>
                 <RouterProvider router={router} />
                 <Toaster position="top-right" />
-              </WishlistProvider>
-            </CartProvider>
-          </AdminProvider>
-        </UserProvider>
-      </ErrorBoundary>
-    </>
+              </DataLoader>
+            </WishlistProvider>
+          </CartProvider>
+        </AdminProvider>
+      </UserProvider>
+    </ErrorBoundary>
   );
+}
+
+function App() {
+  return <AppContent />;
 }
 
 export default App;

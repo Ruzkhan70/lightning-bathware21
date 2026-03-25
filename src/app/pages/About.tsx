@@ -69,11 +69,7 @@ function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number; d
 }
 
 export default function About() {
-  const { storeAssets, siteContent, isDataLoaded } = useAdmin();
-  
-  if (!isDataLoaded) {
-    return <LoadingScreen />;
-  }
+  const { storeAssets, siteContent } = useAdmin();
   
   return (
     <div className="min-h-screen bg-gray-50">
