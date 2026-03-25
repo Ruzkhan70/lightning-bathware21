@@ -220,8 +220,8 @@ const DEFAULT_SITE_CONTENT: SiteContent = {
         description: "Our experienced team provides professional advice to help you choose the right products for your needs.",
       },
       {
-        title: "Installation Services",
-        description: "Professional installation services for lighting, bathroom fittings, and electrical hardware.",
+        title: "Technical Support",
+        description: "Expert guidance on product selection, specifications, and technical requirements for your projects.",
       },
       {
         title: "Quality Guarantee",

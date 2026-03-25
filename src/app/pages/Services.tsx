@@ -21,8 +21,8 @@ export default function Services() {
       features: [
         "Free product consultation",
         "Technical specifications guidance",
-        "Installation recommendations",
         "Project planning assistance",
+        "Expert recommendations",
       ],
     },
     {

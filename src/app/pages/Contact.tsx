@@ -238,12 +238,11 @@ export default function Contact() {
             <div className="space-y-6">
               <div className="border-b pb-6">
                 <h3 className="font-bold text-lg mb-2">
-                  Do you offer installation services?
+                  Do you offer technical support?
                 </h3>
                 <p className="text-gray-600">
-                  Yes, we provide professional installation services for
-                  lighting, bathroom fittings, and electrical hardware. Contact
-                  us for a quote.
+                  Yes, our expert team provides comprehensive technical support and
+                  product guidance to help you choose the right products for your needs.
                 </p>
               </div>
               <div className="border-b pb-6">
