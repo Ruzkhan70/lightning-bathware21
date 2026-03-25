@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { db } from "../../firebase";
+import { collection, addDoc, updateDoc, doc, getDocs, query, where, onSnapshot } from "firebase/firestore";
 
 export interface User {
   id: string;
@@ -11,86 +13,111 @@ export interface User {
 interface UserContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   register: (
     name: string,
     email: string,
     phone: string,
     address: string,
     password: string
-  ) => boolean;
+  ) => Promise<boolean>;
   logout: () => void;
-  updateProfile: (updates: Partial<User>) => void;
-  resetPassword: (email: string, newPassword: string) => boolean;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
+  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<
-    Array<{ id: string; password: string } & User>
-  >([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUsers = localStorage.getItem("users");
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
+    const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
+      console.log("Users synced from Firebase:", snapshot.size);
+    });
 
-  const login = (email: string, password: string): boolean => {
-    const storedUsers = localStorage.getItem("users");
-    const allUsers = storedUsers ? JSON.parse(storedUsers) : users;
-    const foundUser = allUsers.find(
-      (u: { email: string; password: string }) => u.email === email && u.password === password
-    );
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
-      return true;
+    return () => unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email), where("password", "==", password));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        const loggedInUser: User = {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          address: userData.address,
+        };
+        setUser(loggedInUser);
+        localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
     }
-    return false;
   };
 
-  const register = (
+  const register = async (
     name: string,
     email: string,
     phone: string,
     address: string,
     password: string
-  ): boolean => {
-    const storedUsers = localStorage.getItem("users");
-    const allUsers: Array<{ id: string; name: string; email: string; phone: string; address: string; password: string }> = storedUsers ? JSON.parse(storedUsers) : users;
-    
-    if (allUsers.some((u) => u.email === email)) {
+  ): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        return false;
+      }
+
+      const newUser = {
+        name,
+        email,
+        phone,
+        address,
+        password,
+      };
+
+      const docRef = await addDoc(usersRef, {
+        ...newUser,
+        createdAt: new Date().toISOString(),
+      });
+
+      const registeredUser: User = {
+        id: docRef.id,
+        name,
+        email,
+        phone,
+        address,
+      };
+
+      setUser(registeredUser);
+      localStorage.setItem("currentUser", JSON.stringify(registeredUser));
+      return true;
+    } catch (error) {
+      console.error("Registration error:", error);
       return false;
     }
-
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      phone,
-      address,
-      password,
-    };
-
-    setUsers((prev) => [...prev, newUser]);
-    localStorage.setItem("users", JSON.stringify([...allUsers, newUser]));
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
-    return true;
   };
 
   const logout = () => {
@@ -98,30 +125,43 @@ export function UserProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("currentUser");
   };
 
-  const updateProfile = (updates: Partial<User>) => {
+  const updateProfile = async (updates: Partial<User>) => {
     if (user) {
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, ...updates } : u))
-      );
-      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      try {
+        const userRef = doc(db, "users", user.id);
+        await updateDoc(userRef, updates);
+
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error("Update profile error:", error);
+      }
     }
   };
 
-  const resetPassword = (email: string, newPassword: string): boolean => {
-    const storedUsers = localStorage.getItem("users");
-    const allUsers: Array<{ id: string; name: string; email: string; phone: string; address: string; password: string }> = storedUsers ? JSON.parse(storedUsers) : users;
-    
-    const userIndex = allUsers.findIndex((u) => u.email === email);
-    if (userIndex === -1) {
+  const resetPassword = async (email: string, newPassword: string): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return false;
+      }
+
+      const userDoc = querySnapshot.docs[0];
+      await updateDoc(doc(db, "users", userDoc.id), { password: newPassword });
+      return true;
+    } catch (error) {
+      console.error("Reset password error:", error);
       return false;
     }
-    allUsers[userIndex] = { ...allUsers[userIndex], password: newPassword };
-    setUsers(allUsers);
-    localStorage.setItem("users", JSON.stringify(allUsers));
-    return true;
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <UserContext.Provider

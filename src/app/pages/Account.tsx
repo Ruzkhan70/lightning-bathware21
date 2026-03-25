@@ -93,9 +93,10 @@ export default function Account() {
     return () => unsubscribe();
   }, [isLoggedIn, user?.phone]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(loginEmail, loginPassword)) {
+    const success = await login(loginEmail, loginPassword);
+    if (success) {
       toast.success("Welcome back!");
       setLoginEmail("");
       setLoginPassword("");
@@ -104,7 +105,7 @@ export default function Account() {
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (registerPassword !== confirmPassword) {
@@ -117,15 +118,15 @@ export default function Account() {
       return;
     }
 
-    if (
-      register(
-        registerName,
-        registerEmail,
-        registerPhone,
-        registerAddress,
-        registerPassword
-      )
-    ) {
+    const success = await register(
+      registerName,
+      registerEmail,
+      registerPhone,
+      registerAddress,
+      registerPassword
+    );
+
+    if (success) {
       toast.success("Account created successfully!");
       setRegisterName("");
       setRegisterEmail("");
@@ -139,15 +140,6 @@ export default function Account() {
   };
 
   const handleSendCode = async () => {
-    const storedUsers = localStorage.getItem("users");
-    const allUsers = storedUsers ? JSON.parse(storedUsers) : [];
-    const userExists = allUsers.some((u: { email: string }) => u.email === forgotEmail);
-
-    if (!userExists) {
-      toast.error("Email not found");
-      return;
-    }
-
     setIsSendingCode(true);
     
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -207,7 +199,7 @@ export default function Account() {
     }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (forgotNewPassword !== forgotConfirmPassword) {
       toast.error("Passwords do not match");
@@ -217,7 +209,8 @@ export default function Account() {
       toast.error("Password must be at least 6 characters");
       return;
     }
-    if (resetPassword(forgotEmail, forgotNewPassword)) {
+    const success = await resetPassword(forgotEmail, forgotNewPassword);
+    if (success) {
       toast.success("Password reset successfully! Please login.");
       localStorage.removeItem("resetCode");
       closeForgotPassword();
