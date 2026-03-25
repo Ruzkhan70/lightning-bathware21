@@ -334,9 +334,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(
     () => JSON.parse(localStorage.getItem("storeAssets") || "null") || DEFAULT_STORE_ASSETS
   );
-  const [siteContent, setSiteContent] = useState<SiteContent>(
-    () => JSON.parse(localStorage.getItem("siteContent") || "null") || DEFAULT_SITE_CONTENT
-  );
+  const [siteContent, setSiteContent] = useState<SiteContent>(() => {
+    const saved = localStorage.getItem("siteContent");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Merge with default to ensure all fields exist
+      return {
+        ...DEFAULT_SITE_CONTENT,
+        ...parsed,
+        services: {
+          ...DEFAULT_SITE_CONTENT.services,
+          ...parsed.services,
+          items: parsed.services?.items?.map((item: any, index: number) => ({
+            ...DEFAULT_SITE_CONTENT.services.items[index],
+            ...item,
+            features: item.features || DEFAULT_SITE_CONTENT.services.items[index]?.features || []
+          })) || DEFAULT_SITE_CONTENT.services.items
+        }
+      };
+    }
+    return DEFAULT_SITE_CONTENT;
+  });
   const [showAdminLogin, setShowAdminLogin] = useState(
     () => localStorage.getItem("showAdminLogin") === "true"
   );
@@ -918,7 +936,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const resetSiteContent = () => {
-    localStorage.removeItem("siteContent");
     setSiteContent(DEFAULT_SITE_CONTENT);
   };
 
