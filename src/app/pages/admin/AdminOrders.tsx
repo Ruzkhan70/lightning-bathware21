@@ -33,7 +33,7 @@ export default function AdminOrders() {
 
   const currentOrder = orders.find((o) => o.id === viewingOrder);
 
-  const handleStatusChange = (orderId: string, status: "Pending" | "Processing" | "Delivered") => {
+  const handleStatusChange = (orderId: string, status: "Pending" | "Processing" | "Completed") => {
     updateOrderStatus(orderId, status);
     toast.success("Order status updated!");
   };
@@ -46,7 +46,7 @@ export default function AdminOrders() {
 
   const pendingCount = orders.filter(o => o.status === "Pending").length;
   const processingCount = orders.filter(o => o.status === "Processing").length;
-  const completedCount = orders.filter(o => o.status === "Delivered").length;
+  const completedCount = orders.filter(o => o.status === "Completed").length;
 
   return (
     <div>
@@ -131,7 +131,7 @@ export default function AdminOrders() {
                       <Select
                         value={order.status}
                         onValueChange={(value) =>
-                          handleStatusChange(order.id, value as "Pending" | "Processing" | "Delivered")
+                          handleStatusChange(order.id, value as "Pending" | "Processing" | "Completed")
                         }
                       >
                         <SelectTrigger className={`w-32 ${
@@ -144,7 +144,7 @@ export default function AdminOrders() {
                         <SelectContent>
                           <SelectItem value="Pending">Pending</SelectItem>
                           <SelectItem value="Processing">Processing</SelectItem>
-                          <SelectItem value="Delivered">Completed</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
@@ -292,7 +292,7 @@ export default function AdminOrders() {
                       currentOrder.status === "Processing" ? "text-blue-600" :
                       "text-green-600"
                     }`}>
-                      {currentOrder.status === "Delivered" ? "Completed" : currentOrder.status}
+                      {currentOrder.status}
                     </p>
                   </div>
                   <div>

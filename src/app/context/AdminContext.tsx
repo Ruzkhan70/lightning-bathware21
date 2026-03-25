@@ -613,7 +613,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setProducts(prev => prev.filter(p => !ids.includes(p.id)));
   };
 
-  const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
+  const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Completed") => {
     setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
     try {
       await updateDoc(doc(db, "orders", id), { status });
