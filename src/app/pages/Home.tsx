@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Lightbulb,
   Bath,
@@ -66,15 +66,12 @@ export default function Home() {
   ];
 
   return (
-    <AnimatePresence>
-      {showLoading && <LoadingScreen onComplete={() => setShowLoading(false)} />}
-      
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white"
-      >
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white"
+    >
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] flex items-center bg-black text-white overflow-hidden">
         {/* Background Image */}
@@ -87,23 +84,13 @@ export default function Home() {
 
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
-            <h1 
-              className={`text-4xl md:text-7xl font-bold mb-4 leading-tight transition-all duration-700 ${
-                !showLoading ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-              }`}
-            >
+            <h1 className="text-4xl md:text-7xl font-bold mb-4 leading-tight">
               {siteContent.home.heroTitle}
             </h1>
-            <p 
-              className={`text-base md:text-lg text-gray-300 mb-8 max-w-xl transition-all duration-700 delay-200 ${
-                !showLoading ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-              }`}
-            >
+            <p className="text-base md:text-lg text-gray-300 mb-8 max-w-xl">
               {siteContent.home.heroSubtitle}
             </p>
-            <div className={`flex flex-wrap items-center gap-4 transition-all duration-700 delay-400 ${
-                !showLoading ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-              }`}>
+            <div className="flex flex-wrap items-center gap-4">
               <Link to="/products">
                 <Button
                   size="lg"
@@ -322,7 +309,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-      </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 }
