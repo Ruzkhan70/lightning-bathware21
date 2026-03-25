@@ -163,15 +163,15 @@ export default function Home() {
                     style={{ backgroundImage: `url('${category.image}')` }}
                   />
                   <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <div className="bg-black/70 backdrop-blur-md rounded-xl p-4">
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <div className="bg-black/80 backdrop-blur-md rounded-xl p-4">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-[#D4AF37] rounded-lg">
                           <CategoryIcon className="w-6 h-6 text-black" />
                         </div>
-                        <h3 className="text-2xl font-bold">{category.name}</h3>
+                        <h3 className="text-2xl font-bold text-white">{category.name}</h3>
                       </div>
-                      <p className="text-gray-300">{category.count} Products</p>
+                      <p className="text-white">{category.count} Products</p>
                     </div>
                   </div>
                 </Link>
