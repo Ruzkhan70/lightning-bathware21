@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Trash2, Search, CheckSquare, Square, X, Filter } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin } from "../../context/AdminContext";
@@ -21,9 +21,11 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router";
 
 export default function AdminProducts() {
   const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories } = useAdmin();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStock, setFilterStock] = useState("all");
@@ -38,6 +40,16 @@ export default function AdminProducts() {
     description: "",
     image: "",
   });
+
+  // Initialize filter from URL params
+  useEffect(() => {
+    const filterParam = searchParams.get("filter");
+    if (filterParam === "low") {
+      setFilterStock("low");
+    } else if (filterParam === "out") {
+      setFilterStock("out");
+    }
+  }, [searchParams]);
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -134,6 +146,36 @@ export default function AdminProducts() {
         </div>
       </div>
 
+      {/* Low Stock Filter Banner */}
+      {filterStock === "low" && (
+        <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Filter className="w-5 h-5 text-orange-600" />
+            <div>
+              <p className="font-semibold text-orange-800">Low Stock Products</p>
+              <p className="text-sm text-orange-600">
+                Showing products with stock less than 10
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Out of Stock Filter Banner */}
+      {filterStock === "out" && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Filter className="w-5 h-5 text-red-600" />
+            <div>
+              <p className="font-semibold text-red-800">Out of Stock Products</p>
+              <p className="text-sm text-red-600">
+                Showing products with zero stock
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search and Filters */}
       <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
@@ -180,6 +222,7 @@ export default function AdminProducts() {
                 setFilterCategory("all");
                 setFilterStock("all");
                 setSearchQuery("");
+                setSearchParams({});
               }}
             >
               Clear Filters

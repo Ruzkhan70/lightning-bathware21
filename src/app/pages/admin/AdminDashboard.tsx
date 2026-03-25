@@ -108,7 +108,7 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-          <Link to="/admin/products" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
+          <Link to="/admin/products?filter=low" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
             View Products
           </Link>
         </motion.div>
