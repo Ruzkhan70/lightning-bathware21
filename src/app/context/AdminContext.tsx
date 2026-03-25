@@ -482,6 +482,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
   // Firebase real-time sync for orders
   useEffect(() => {
     try {
@@ -491,7 +493,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           const data = doc.data();
           return { ...data, id: data.id || doc.id } as Order;
         });
-        setOrders(firebaseOrders);
+        // Don't overwrite if we're updating a specific order
+        if (!updatingOrderId) {
+          setOrders(firebaseOrders);
+        }
         setFirebaseLoaded(prev => ({ ...prev, orders: true }));
       }, () => {
         setFirebaseLoaded(prev => ({ ...prev, orders: true }));
@@ -501,7 +506,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Firebase orders sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, orders: true }));
     }
-  }, []);
+  }, [updatingOrderId]);
+
+  // Clear updatingOrderId after a delay
+  useEffect(() => {
+    if (updatingOrderId) {
+      const timer = setTimeout(() => setUpdatingOrderId(null), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [updatingOrderId]);
 
   // Firebase real-time sync for offers
   useEffect(() => {
@@ -614,11 +627,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Completed") => {
-    setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
+    setUpdatingOrderId(id);
     try {
-      await updateDoc(doc(db, "orders", id), { status });
+      const orderRef = doc(db, "orders", id);
+      await updateDoc(orderRef, { status });
+      setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
     } catch (error) {
       console.error("Error updating order status:", error);
+      setUpdatingOrderId(null);
     }
   };
 
