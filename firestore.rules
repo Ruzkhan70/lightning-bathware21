@@ -12,9 +12,9 @@ service cloud.firestore {
       allow write: if true;
     }
     
-    // Orders - Public create, Auth read/update/delete
+    // Orders - Public create/read, Auth update/delete
     match /orders/{orderId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
       allow update, delete: if isAuthenticated();
     }
