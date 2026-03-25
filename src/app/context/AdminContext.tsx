@@ -393,92 +393,92 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, [firebaseLoaded]);
 
-  // Firebase sync for storeProfile
+  // Firebase real-time sync for storeProfile
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const profileRef = doc(db, "storeData", "profile");
-        const profileSnap = await getDoc(profileRef);
-        
-        if (profileSnap.exists()) {
-          setStoreProfile(profileSnap.data() as StoreProfile);
+    try {
+      const profileRef = doc(db, "storeData", "profile");
+      const unsubscribe = onSnapshot(profileRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setStoreProfile(docSnap.data() as StoreProfile);
         } else {
-          await setDoc(profileRef, DEFAULT_STORE_PROFILE);
+          setDoc(profileRef, DEFAULT_STORE_PROFILE);
         }
         setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
-      } catch (error) {
-        console.error("Error loading storeProfile:", error);
+      }, () => {
         setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
-      }
-    };
-    loadData();
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error loading storeProfile:", error);
+      setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
+    }
   }, []);
 
-  // Firebase sync for storeAssets
+  // Firebase real-time sync for storeAssets
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const assetsRef = doc(db, "storeData", "assets");
-        const assetsSnap = await getDoc(assetsRef);
-        
-        if (assetsSnap.exists()) {
-          setStoreAssets(assetsSnap.data() as StoreAssets);
+    try {
+      const assetsRef = doc(db, "storeData", "assets");
+      const unsubscribe = onSnapshot(assetsRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setStoreAssets(docSnap.data() as StoreAssets);
         } else {
-          await setDoc(assetsRef, DEFAULT_STORE_ASSETS);
+          setDoc(assetsRef, DEFAULT_STORE_ASSETS);
         }
         setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
-      } catch (error) {
-        console.error("Error loading storeAssets:", error);
+      }, () => {
         setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
-      }
-    };
-    loadData();
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error loading storeAssets:", error);
+      setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
+    }
   }, []);
 
-  // Firebase sync for siteContent
+  // Firebase real-time sync for siteContent
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const contentRef = doc(db, "storeData", "siteContent");
-        const contentSnap = await getDoc(contentRef);
-        
-        if (contentSnap.exists()) {
-          const data = contentSnap.data() as SiteContent;
+    try {
+      const contentRef = doc(db, "storeData", "siteContent");
+      const unsubscribe = onSnapshot(contentRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as SiteContent;
           setSiteContent({ ...DEFAULT_SITE_CONTENT, ...data });
         } else {
-          await setDoc(contentRef, DEFAULT_SITE_CONTENT);
+          setDoc(contentRef, DEFAULT_SITE_CONTENT);
         }
         setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
-      } catch (error) {
-        console.error("Error loading siteContent:", error);
+      }, () => {
         setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
-      }
-    };
-    loadData();
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error loading siteContent:", error);
+      setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
+    }
   }, []);
 
-  // Firebase sync for categories
+  // Firebase real-time sync for categories
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const catRef = doc(db, "storeData", "categories");
-        const catSnap = await getDoc(catRef);
-        
-        if (catSnap.exists()) {
-          const data = catSnap.data();
+    try {
+      const catRef = doc(db, "storeData", "categories");
+      const unsubscribe = onSnapshot(catRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
           if (data.categories && Array.isArray(data.categories)) {
             setCategories(data.categories);
           }
         } else {
-          await setDoc(catRef, { categories: DEFAULT_CATEGORIES });
+          setDoc(catRef, { categories: DEFAULT_CATEGORIES });
         }
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
-      } catch (error) {
-        console.error("Error loading categories:", error);
+      }, () => {
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
-      }
-    };
-    loadData();
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error loading categories:", error);
+      setFirebaseLoaded(prev => ({ ...prev, categories: true }));
+    }
   }, []);
 
   // Firebase real-time sync for orders
