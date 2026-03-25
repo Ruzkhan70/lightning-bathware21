@@ -1,5 +1,54 @@
+import { useState, useEffect, useRef } from "react";
 import { Target, Eye, Users, Award } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
+
+function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number;
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      setCount(Math.floor(progress * end));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [isVisible, end, duration]);
+
+  return (
+    <div ref={ref} className="inline-block">
+      <span className="tabular-nums">{count.toLocaleString()}</span>
+      {suffix}
+    </div>
+  );
+}
 
 export default function About() {
   const { storeAssets, siteContent } = useAdmin();
@@ -122,32 +171,39 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 bg-black text-white">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-black text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 25% 25%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 75% 75%, #D4AF37 1px, transparent 1px)',
+            backgroundSize: '50px 50px'
+          }}></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-[#D4AF37] mb-2">
-                10+
+            <div className="group">
+              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
+                <AnimatedCounter end={10} suffix="+" duration={1500} />
               </div>
-              <div className="text-gray-300">Years of Experience</div>
+              <div className="text-gray-300 text-lg font-medium">Years of Experience</div>
             </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-[#D4AF37] mb-2">
-                350+
+            <div className="group">
+              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
+                <AnimatedCounter end={350} suffix="+" duration={2000} />
               </div>
-              <div className="text-gray-300">Products</div>
+              <div className="text-gray-300 text-lg font-medium">Products</div>
             </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-[#D4AF37] mb-2">
-                5000+
+            <div className="group">
+              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
+                <AnimatedCounter end={5000} suffix="+" duration={2500} />
               </div>
-              <div className="text-gray-300">Happy Customers</div>
+              <div className="text-gray-300 text-lg font-medium">Happy Customers</div>
             </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-[#D4AF37] mb-2">
-                100%
+            <div className="group">
+              <div className="text-5xl md:text-6xl font-bold text-[#D4AF37] mb-3 transform group-hover:scale-110 transition-transform duration-500">
+                <AnimatedCounter end={100} suffix="%" duration={1500} />
               </div>
-              <div className="text-gray-300">Authentic Products</div>
+              <div className="text-gray-300 text-lg font-medium">Authentic Products</div>
             </div>
           </div>
         </div>
