@@ -12,6 +12,7 @@ import {
   List,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
+import ScrollToTop from "./ScrollToTop";
 
 export default function AdminLayout() {
   const { isAdminLoggedIn, logout } = useAdmin();
@@ -78,6 +79,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
+      <ScrollToTop />
       {/* Sidebar */}
       <aside className="w-64 bg-black text-white flex-shrink-0">
         <div className="p-6 border-b border-gray-800">
