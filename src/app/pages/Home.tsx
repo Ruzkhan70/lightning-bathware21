@@ -105,7 +105,7 @@ export default function Home() {
               <Link to="/categories">
                 <Button
                   size="lg"
-                  className="bg-white/30 backdrop-blur-md text-black hover:bg-white/50 px-8 py-7 text-lg rounded-lg shadow-lg font-bold border-0 transition-all duration-300"
+                  className="bg-black text-white hover:bg-gray-800 px-8 py-7 text-lg rounded-lg shadow-lg font-bold border-0 transition-all duration-300"
                 >
                   {siteContent.home.heroButtonText}
                 </Button>
@@ -142,7 +142,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Our Categories
+              Shop by Category
             </h2>
             <p className="text-gray-600 text-lg">
               Explore our wide range of premium products
@@ -159,20 +159,18 @@ export default function Home() {
                   className="group relative h-64 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
                 >
                   <div
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500 grayscale group-hover:grayscale-0"
+                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
                     style={{ backgroundImage: `url('${category.image}')` }}
                   />
-                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <div className="bg-black/70 backdrop-blur-md rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-[#D4AF37] rounded-lg">
-                          <CategoryIcon className="w-6 h-6 text-black" />
-                        </div>
-                        <h3 className="text-2xl font-bold">{category.name}</h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-[#D4AF37] rounded-lg">
+                        <CategoryIcon className="w-6 h-6 text-black" />
                       </div>
-                      <p className="text-gray-300">{category.count} Products</p>
+                      <h3 className="text-2xl font-bold">{category.name}</h3>
                     </div>
+                    <p className="text-gray-300">{category.count} Products</p>
                   </div>
                 </Link>
               );
