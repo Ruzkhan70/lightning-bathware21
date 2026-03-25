@@ -40,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+      <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
         {/* Image */}
         <div 
           className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer"
@@ -57,7 +57,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               onClick={() => setShowModal(true)}
               size="sm"
-              className="bg-white text-black hover:bg-[#D4AF37] hover:text-white"
+              className="bg-white text-black hover:bg-[#D4AF37] hover:text-white transform hover:scale-110 transition-all"
             >
               <Eye className="w-4 h-4 mr-1" />
               Quick View
@@ -70,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               e.stopPropagation();
               handleWishlist();
             }}
-            className="absolute top-3 right-3 p-2 bg-white rounded-full hover:bg-[#D4AF37] transition-colors group/heart z-10"
+            className="absolute top-3 right-3 p-2 bg-white rounded-full hover:bg-[#D4AF37] hover:scale-110 transition-all group/heart z-10"
           >
             <Heart
               className={`w-5 h-5 ${

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import {
   Lightbulb,
@@ -15,11 +16,17 @@ import {
 import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
+import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Home() {
   const { products, getActiveOffers, storeAssets, siteContent, categories } = useAdmin();
+  const [isLoaded, setIsLoaded] = useState(false);
   const featuredProducts = products.slice(0, 8);
   const activeOffers = getActiveOffers();
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const activeCategories = categories
     .filter((c) => c.isActive)
@@ -77,17 +84,27 @@ export default function Home() {
 
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-7xl font-bold mb-4 leading-tight">
+            <h1 
+              className={`text-4xl md:text-7xl font-bold mb-4 leading-tight transition-all duration-700 ${
+                isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              }`}
+            >
               {siteContent.home.heroTitle}
             </h1>
-            <p className="text-base md:text-lg text-gray-300 mb-8 max-w-xl">
+            <p 
+              className={`text-base md:text-lg text-gray-300 mb-8 max-w-xl transition-all duration-700 delay-200 ${
+                isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              }`}
+            >
               {siteContent.home.heroSubtitle}
             </p>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className={`flex flex-wrap items-center gap-4 transition-all duration-700 delay-400 ${
+                isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              }`}>
               <Link to="/products">
                 <Button
                   size="lg"
-                  className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold px-8 py-7 text-lg rounded-lg shadow-lg"
+                  className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold px-8 py-7 text-lg rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300"
                 >
                   Shop Now
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -97,7 +114,7 @@ export default function Home() {
               <Link to="/categories">
                 <Button
                   size="lg"
-                  className="bg-black text-white hover:bg-gray-800 px-8 py-7 text-lg rounded-lg shadow-lg font-bold border-0 transition-all duration-300"
+                  className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-7 text-lg rounded-lg shadow-lg font-bold border-0 transition-all duration-300"
                 >
                   {siteContent.home.heroButtonText}
                 </Button>
@@ -112,18 +129,17 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-4 p-6 bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 group"
-              >
-                <div className="p-3 bg-[#D4AF37] rounded-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                  <feature.icon className="w-6 h-6 text-black" />
+              <ScrollAnimation key={index} animation="slideUp" delay={index * 100}>
+                <div className="flex items-start gap-4 p-6 bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                  <div className="p-3 bg-[#D4AF37] rounded-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <feature.icon className="w-6 h-6 text-black" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">{feature.title}</h3>
+                    <p className="text-gray-600 text-sm">{feature.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-1">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm">{feature.description}</p>
-                </div>
-              </div>
+              </ScrollAnimation>
             ))}
           </div>
         </div>
@@ -132,49 +148,52 @@ export default function Home() {
       {/* Categories */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Shop by Category
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Explore our wide range of premium products
-            </p>
-            <div className="w-24 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
-          </div>
+          <ScrollAnimation animation="slideUp">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+                Shop by Category
+              </h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                Explore our wide range of premium products
+              </p>
+              <div className="w-24 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
+            </div>
+          </ScrollAnimation>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {activeCategories.map((category, index) => {
               const CategoryIcon = category.icon;
               return (
-                <Link
-                  key={category.id || index}
-                  to={`/products?category=${encodeURIComponent(category.name)}`}
-                  className="group relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
-                    style={{ backgroundImage: `url('${category.image}')` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-                  
-                  <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-                    <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
-                          <CategoryIcon className="w-7 h-7 text-black" />
+                <ScrollAnimation key={category.id || index} animation="slideUp" delay={index * 100}>
+                  <Link
+                    to={`/products?category=${encodeURIComponent(category.name)}`}
+                    className="group relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                  >
+                    <div
+                      className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
+                      style={{ backgroundImage: `url('${category.image}')` }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                    
+                    <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+                      <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
+                            <CategoryIcon className="w-7 h-7 text-black" />
+                          </div>
                         </div>
+                        <h3 className="text-xl font-bold mb-1 group-hover:text-[#D4AF37] transition-colors duration-300">
+                          {category.name}
+                        </h3>
+                        <p className="text-gray-300 text-sm font-medium">
+                          {category.count} Products
+                        </p>
                       </div>
-                      <h3 className="text-xl font-bold mb-1 group-hover:text-[#D4AF37] transition-colors duration-300">
-                        {category.name}
-                      </h3>
-                      <p className="text-gray-300 text-sm font-medium">
-                        {category.count} Products
-                      </p>
                     </div>
-                  </div>
 
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#D4AF37] rounded-2xl transition-all duration-300"></div>
-                </Link>
+                    <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#D4AF37] rounded-2xl transition-all duration-300"></div>
+                  </Link>
+                </ScrollAnimation>
               );
             })}
           </div>
@@ -248,18 +267,22 @@ export default function Home() {
       {/* Featured Products */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Featured Products
-            </h2>
-            <p className="text-gray-600 text-lg">
-              Discover our most popular items
-            </p>
-          </div>
+          <ScrollAnimation animation="slideUp">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Featured Products
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Discover our most popular items
+              </p>
+            </div>
+          </ScrollAnimation>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {featuredProducts.map((product, index) => (
+              <ScrollAnimation key={product.id} animation="slideUp" delay={index * 100}>
+                <ProductCard product={product} />
+              </ScrollAnimation>
             ))}
           </div>
 
