@@ -187,7 +187,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   facebookUrl: "#",
   instagramUrl: "#",
   twitterUrl: "#",
-  adminShortcut: "5212",
+  adminShortcut: "Ctrl+Shift+A",
 };
 
 const DEFAULT_STORE_ASSETS: StoreAssets = {
