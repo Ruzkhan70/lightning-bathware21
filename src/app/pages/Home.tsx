@@ -138,40 +138,50 @@ export default function Home() {
       </section>
 
       {/* Categories */}
-      <section className="py-16">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
               Shop by Category
             </h2>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
               Explore our wide range of premium products
             </p>
+            <div className="w-24 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {activeCategories.map((category, index) => {
               const CategoryIcon = category.icon;
               return (
                 <Link
                   key={category.id || index}
                   to={`/products?category=${encodeURIComponent(category.name)}`}
-                  className="group relative h-64 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                  className="group relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
                   <div
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
+                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
                     style={{ backgroundImage: `url('${category.image}')` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-[#D4AF37] rounded-lg">
-                        <CategoryIcon className="w-6 h-6 text-black" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                  
+                  <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+                    <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
+                          <CategoryIcon className="w-7 h-7 text-black" />
+                        </div>
                       </div>
-                      <h3 className="text-2xl font-bold">{category.name}</h3>
+                      <h3 className="text-xl font-bold mb-1 group-hover:text-[#D4AF37] transition-colors duration-300">
+                        {category.name}
+                      </h3>
+                      <p className="text-gray-300 text-sm font-medium">
+                        {category.count} Products
+                      </p>
                     </div>
-                    <p className="text-gray-300">{category.count} Products</p>
                   </div>
+
+                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#D4AF37] rounded-2xl transition-all duration-300"></div>
                 </Link>
               );
             })}
