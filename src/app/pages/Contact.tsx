@@ -241,8 +241,7 @@ export default function Contact() {
                   Do you offer technical support?
                 </h3>
                 <p className="text-gray-600">
-                  Yes, our expert team provides comprehensive technical support and
-                  product guidance to help you choose the right products for your needs.
+                  We do not provide installation or technical support services. However, we're always available to assist you with product details and recommendations to ensure you make the right choice.
                 </p>
               </div>
               <div className="border-b pb-6">
