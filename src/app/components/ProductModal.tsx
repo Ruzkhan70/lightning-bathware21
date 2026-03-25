@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, ShoppingCart, Minus, Plus, Truck, Package } from "lucide-react";
 import { Product } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductModalProps {
   product: Product;
@@ -14,6 +14,13 @@ interface ProductModalProps {
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -37,7 +44,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -53,12 +65,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto z-10"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+            className="absolute top-4 right-4 z-20 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -184,7 +196,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             </div>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }
