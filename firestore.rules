@@ -12,6 +12,37 @@ service cloud.firestore {
       allow write: if true;
     }
     
+    // Orders - Public read/create, Auth update/delete
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
+      allow update, delete: if isAuthenticated();
+    }
+    
+    // Users - Own data only
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Wishlist - Own data only
+    match /wishlist/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Offers - Public read/write
+    match /offers/{offerId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
+    
+    // Store data - Public read/write (admin portal saves here)
+    match /storeData/{document} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
     // Orders - Public create/read, Auth update/delete
     match /orders/{orderId} {
       allow read: if true;
