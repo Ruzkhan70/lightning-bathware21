@@ -3,6 +3,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import ShortcutManager from "./admin/ShortcutManager";
 import ScrollToTop from "./ScrollToTop";
+import PageTransition from "./PageTransition";
 
 export default function Layout() {
   return (
@@ -11,7 +12,9 @@ export default function Layout() {
       <ShortcutManager />
       <Header />
       <main className="flex-1">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
       <Footer />
     </div>

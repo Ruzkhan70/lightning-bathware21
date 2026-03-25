@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
+import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Categories() {
   const { products, categories } = useAdmin();
@@ -52,48 +53,47 @@ export default function Categories() {
               const productCount = products.filter((p) => p.category === category.name).length;
               
               return (
-                <div
-                  key={category.id || index}
-                  className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300"
-                >
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className={`p-3 ${category.color} rounded-lg`}>
-                          <CategoryIcon className="w-6 h-6 text-white" />
+                <ScrollAnimation key={category.id || index} animation="slideUp" delay={index * 100}>
+                  <div className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                    <div className="relative h-64 overflow-hidden">
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`p-3 ${category.color} rounded-lg`}>
+                            <CategoryIcon className="w-6 h-6 text-white" />
+                          </div>
+                          <h2 className="text-2xl font-bold text-white">
+                            {category.name}
+                          </h2>
                         </div>
-                        <h2 className="text-2xl font-bold text-white">
-                          {category.name}
-                        </h2>
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-4">{category.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-500">
+                          {productCount} Products Available
+                        </span>
+                        <Link
+                          to={`/products?category=${encodeURIComponent(
+                            category.name
+                          )}`}
+                        >
+                          <Button className="bg-black hover:bg-[#D4AF37] text-white">
+                            Browse Products
+                            <ArrowRight className="ml-2 w-4 h-4" />
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
-
-                  <div className="p-6">
-                    <p className="text-gray-600 mb-4">{category.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        {productCount} Products Available
-                      </span>
-                      <Link
-                        to={`/products?category=${encodeURIComponent(
-                          category.name
-                        )}`}
-                      >
-                        <Button className="bg-black hover:bg-[#D4AF37] text-white">
-                          Browse Products
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                </ScrollAnimation>
               );
             })}
           </div>
@@ -101,25 +101,27 @@ export default function Categories() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-black text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Can't Find What You're Looking For?
-          </h2>
-          <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Contact our expert team for personalized recommendations and bulk
-            orders
-          </p>
-          <Link to="/contact">
-            <Button
-              size="lg"
-              className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold"
-            >
-              Contact Us
-            </Button>
-          </Link>
-        </div>
-      </section>
+      <ScrollAnimation animation="slideUp">
+        <section className="py-16 bg-black text-white">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Can't Find What You're Looking For?
+            </h2>
+            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+              Contact our expert team for personalized recommendations and bulk
+              orders
+            </p>
+            <Link to="/contact">
+              <Button
+                size="lg"
+                className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold"
+              >
+                Contact Us
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </ScrollAnimation>
     </div>
   );
 }

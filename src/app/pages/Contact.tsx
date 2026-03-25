@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
+import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Contact() {
   const { siteContent } = useAdmin();
@@ -92,28 +93,28 @@ export default function Contact() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {contactInfo.map((info, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow"
-              >
-                <div className="w-16 h-16 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <info.icon className="w-8 h-8 text-black" />
+              <ScrollAnimation key={index} animation="slideUp" delay={index * 100}>
+                <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
+                  <div className="w-16 h-16 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <info.icon className="w-8 h-8 text-black" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-3">{info.title}</h3>
+                  {info.details.map((detail, idx) => (
+                    <p key={idx} className="text-gray-600 text-sm">
+                      {detail}
+                    </p>
+                  ))}
                 </div>
-                <h3 className="font-bold text-lg mb-3">{info.title}</h3>
-                {info.details.map((detail, idx) => (
-                  <p key={idx} className="text-gray-600 text-sm">
-                    {detail}
-                  </p>
-                ))}
-              </div>
+              </ScrollAnimation>
             ))}
           </div>
 
           {/* Contact Form & Map */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
+            <ScrollAnimation animation="slideUp">
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <Label htmlFor="name">
@@ -190,40 +191,43 @@ export default function Contact() {
                   <Send className="w-5 h-5 mr-2" />
                   Send Message
                 </Button>
-              </form>
-            </div>
+                </form>
+              </div>
+            </ScrollAnimation>
 
             {/* Map */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold mb-6">Find Us</h2>
-              <div className="aspect-video bg-gray-200 rounded-lg mb-6 overflow-hidden">
-                <iframe
-                  src={siteContent.contact.mapUrl}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Store Location"
-                />
-              </div>
+            <ScrollAnimation animation="slideUp" delay={100}>
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-2xl font-bold mb-6">Find Us</h2>
+                <div className="aspect-video bg-gray-200 rounded-lg mb-6 overflow-hidden">
+                  <iframe
+                    src={siteContent.contact.mapUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Store Location"
+                  />
+                </div>
 
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg">Store Location</h3>
-                <p className="text-gray-600">
-                  Visit our showroom to explore our full range of products.
-                  Our friendly staff will be happy to assist you with product
-                  selection and technical advice.
-                </p>
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-2">Parking Available</h4>
-                  <p className="text-sm text-gray-600">
-                    Free parking available for customers
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg">Store Location</h3>
+                  <p className="text-gray-600">
+                    Visit our showroom to explore our full range of products.
+                    Our friendly staff will be happy to assist you with product
+                    selection and technical advice.
                   </p>
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-2">Parking Available</h4>
+                    <p className="text-sm text-gray-600">
+                      Free parking available for customers
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </ScrollAnimation>
           </div>
         </div>
       </section>
@@ -231,23 +235,27 @@ export default function Contact() {
       {/* FAQ Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              {siteContent.faq.title}
-            </h2>
-            <div className="space-y-6">
-              {siteContent.faq.items.map((item, index) => (
-                <div key={index} className={index < siteContent.faq.items.length - 1 ? "border-b pb-6" : "pb-6"}>
-                  <h3 className="font-bold text-lg mb-2">
-                    {item.question}
-                  </h3>
-                  <p className="text-gray-600">
-                    {item.answer}
-                  </p>
-                </div>
-              ))}
+          <ScrollAnimation animation="slideUp">
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold text-center mb-12">
+                {siteContent.faq.title}
+              </h2>
+              <div className="space-y-6">
+                {siteContent.faq.items.map((item, index) => (
+                  <ScrollAnimation key={index} animation="slideUp" delay={index * 100}>
+                    <div className={index < siteContent.faq.items.length - 1 ? "border-b pb-6" : "pb-6"}>
+                      <h3 className="font-bold text-lg mb-2">
+                        {item.question}
+                      </h3>
+                      <p className="text-gray-600">
+                        {item.answer}
+                      </p>
+                    </div>
+                  </ScrollAnimation>
+                ))}
+              </div>
             </div>
-          </div>
+          </ScrollAnimation>
         </div>
       </section>
     </div>
