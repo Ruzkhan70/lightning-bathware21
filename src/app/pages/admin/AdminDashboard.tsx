@@ -1,13 +1,25 @@
-import { Package, ShoppingCart, Clock, DollarSign, Tag } from "lucide-react";
+import { Package, ShoppingCart, Clock, DollarSign, Tag, AlertTriangle, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
-  const { products, orders, offers, getActiveOffers } = useAdmin();
+  const { products, orders, offers, getActiveOffers, lowStockProducts, topSellingProducts, totalRevenue, isDataLoaded } = useAdmin();
 
   const pendingOrders = orders.filter((o) => o.status === "Pending").length;
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const activeOffers = getActiveOffers();
+  const processingOrders = orders.filter((o) => o.status === "Processing").length;
+  const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
+
+  if (!isDataLoaded) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const stats = [
     {
@@ -42,17 +54,17 @@ export default function AdminDashboard() {
     },
   ];
 
-  const recentOrders = orders.slice(-5).reverse();
+  const recentOrders = orders.slice(0, 5);
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Dashboard Overview</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening.</p>
+        <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         {stats.map((stat, index) => (
           <motion.div
             key={index}
@@ -62,163 +74,223 @@ export default function AdminDashboard() {
             className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
           >
             <div className="flex items-center justify-between mb-4">
-              <div
-                className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}
-              >
+              <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
                 <stat.icon className="w-6 h-6 text-white" />
               </div>
+              {stat.label === "Total Revenue" && (
+                <span className="text-green-500 text-xs font-semibold flex items-center">
+                  <ArrowUp className="w-3 h-3 mr-1" /> Growing
+                </span>
+              )}
             </div>
-            <div className="text-3xl font-bold mb-1">{stat.value}</div>
+            <div className="text-2xl xl:text-3xl font-bold mb-1">{stat.value}</div>
             <div className="text-gray-600 text-sm">{stat.label}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Recent Orders */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-6">Recent Orders</h2>
+      {/* Low Stock Alert Banner */}
+      {lowStockProducts.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-100 rounded-full">
+              <AlertTriangle className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-orange-800">Low Stock Alert</p>
+              <p className="text-sm text-orange-600">
+                {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''} running low on stock
+              </p>
+            </div>
+          </div>
+          <a href="/admin/products?filter=low-stock" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
+            View Products
+          </a>
+        </motion.div>
+      )}
 
-        {recentOrders.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Order ID</th>
-                  <th className="text-left py-3 px-4">Customer</th>
-                  <th className="text-left py-3 px-4">Total</th>
-                  <th className="text-left py-3 px-4">Status</th>
-                  <th className="text-left py-3 px-4">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4 font-mono text-sm">
-                      #{order.id.slice(-6)}
-                    </td>
-                    <td className="py-3 px-4">{order.customerName}</td>
-                    <td className="py-3 px-4 font-semibold">
-                      Rs. {order.total.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          order.status === "Pending"
-                            ? "bg-orange-100 text-orange-700"
-                            : order.status === "Processing"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      {new Date(order.date).toLocaleDateString()}
-                    </td>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Recent Orders */}
+        <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5 text-[#D4AF37]" />
+            Recent Orders
+          </h2>
+
+          {recentOrders.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Order ID</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Customer</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Items</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Total</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <p>No orders yet</p>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {recentOrders.map((order) => (
+                    <tr key={order.id} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-4 font-mono text-sm">#{order.id.slice(-6)}</td>
+                      <td className="py-3 px-4">{order.customerName}</td>
+                      <td className="py-3 px-4 text-sm text-gray-600">{order.products.length} items</td>
+                      <td className="py-3 px-4 font-semibold">Rs. {order.total.toLocaleString()}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          order.status === "Pending" ? "bg-orange-100 text-orange-700" :
+                          order.status === "Processing" ? "bg-blue-100 text-blue-700" :
+                          "bg-green-100 text-green-700"
+                        }`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600">
+                        {new Date(order.date).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <p>No orders yet</p>
+              <p className="text-sm">Orders will appear here when customers place them</p>
+            </div>
+          )}
+        </div>
+
+        {/* Top Selling Products */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
+            Top Selling
+          </h2>
+
+          {topSellingProducts.length > 0 ? (
+            <div className="space-y-4">
+              {topSellingProducts.slice(0, 5).map((item, index) => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) return null;
+                return (
+                  <div key={item.productId} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                      index === 0 ? "bg-[#D4AF37] text-black" :
+                      index === 1 ? "bg-gray-300 text-gray-700" :
+                      index === 2 ? "bg-orange-300 text-orange-800" :
+                      "bg-gray-100 text-gray-600"
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-gray-500">{item.totalSold} sold</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm">No sales data yet</p>
+              <p className="text-xs">Top products will appear here</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="font-semibold text-gray-600 mb-2">
+          <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
+            <Package className="w-4 h-4 text-[#D4AF37]" />
             Products by Category
           </h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm">Lighting</span>
-              <span className="font-semibold">
-                {products.filter((p) => p.category === "Lighting").length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Bathroom Fittings</span>
-              <span className="font-semibold">
-                {
-                  products.filter((p) => p.category === "Bathroom Fittings")
-                    .length
-                }
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Plumbing</span>
-              <span className="font-semibold">
-                {products.filter((p) => p.category === "Plumbing").length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Electrical Hardware</span>
-              <span className="font-semibold">
-                {
-                  products.filter((p) => p.category === "Electrical Hardware")
-                    .length
-                }
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Construction Tools</span>
-              <span className="font-semibold">
-                {
-                  products.filter((p) => p.category === "Construction Tools")
-                    .length
-                }
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="font-semibold text-gray-600 mb-2">Order Status</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm">Pending</span>
-              <span className="font-semibold">
-                {orders.filter((o) => o.status === "Pending").length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Processing</span>
-              <span className="font-semibold">
-                {orders.filter((o) => o.status === "Processing").length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Delivered</span>
-              <span className="font-semibold">
-                {orders.filter((o) => o.status === "Delivered").length}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="font-semibold text-gray-600 mb-2">Low Stock Alert</h3>
-          <div className="space-y-2">
-            {products
-              .filter((p) => p.stock < 10 && p.stock > 0)
-              .slice(0, 5)
-              .map((product) => (
-                <div key={product.id} className="flex justify-between">
-                  <span className="text-sm truncate">{product.name}</span>
-                  <span className="font-semibold text-orange-600">
-                    {product.stock}
-                  </span>
+          <div className="space-y-3">
+            {["Lighting", "Bathroom Fittings", "Plumbing", "Electrical Hardware", "Construction Tools"].map((cat) => {
+              const count = products.filter(p => p.category === cat).length;
+              const total = products.length;
+              const percentage = total > 0 ? (count / total) * 100 : 0;
+              return (
+                <div key={cat}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="truncate">{cat}</span>
+                    <span className="font-semibold">{count}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-[#D4AF37] h-2 rounded-full transition-all" style={{ width: `${percentage}%` }}></div>
+                  </div>
                 </div>
-              ))}
-            {products.filter((p) => p.stock < 10 && p.stock > 0).length ===
-              0 && (
-              <p className="text-sm text-gray-500">All products in stock</p>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4 text-[#D4AF37]" />
+            Order Status
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-orange-600" />
+                <span className="text-sm">Pending</span>
+              </div>
+              <span className="font-bold text-orange-600">{pendingOrders}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-blue-600" />
+                <span className="text-sm">Processing</span>
+              </div>
+              <span className="font-bold text-blue-600">{processingOrders}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <span className="text-sm">Delivered</span>
+              </div>
+              <span className="font-bold text-green-600">{deliveredOrders}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-orange-600" />
+            Low Stock Alert
+          </h3>
+          <div className="space-y-2">
+            {lowStockProducts.slice(0, 5).map((product) => (
+              <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <span className="text-sm truncate flex-1">{product.name}</span>
+                <span className={`font-semibold text-sm ml-2 ${
+                  product.stock === 0 ? "text-red-600" : "text-orange-600"
+                }`}>
+                  {product.stock === 0 ? "Out" : product.stock}
+                </span>
+              </div>
+            ))}
+            {lowStockProducts.length === 0 && (
+              <div className="text-center py-4 text-green-600">
+                <p className="text-sm font-medium">All products in stock!</p>
+              </div>
+            )}
+            {lowStockProducts.length > 5 && (
+              <p className="text-xs text-gray-500 text-center mt-2">
+                +{lowStockProducts.length - 5} more products
+              </p>
             )}
           </div>
         </div>

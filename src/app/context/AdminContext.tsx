@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
 
@@ -38,7 +38,7 @@ export interface Offer {
   bannerImage: string;
   discountPercentage?: number;
   promotionalPrice?: number;
-  applicableProducts: string[]; // Array of product IDs
+  applicableProducts: string[];
   startDate: string;
   endDate: string;
   isEnabled: boolean;
@@ -124,10 +124,7 @@ interface AdminContextType {
   login: (username: string, password: string) => boolean;
   logout: () => void;
   triggerLogout: () => void;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => boolean;
+  changePassword: (currentPassword: string, newPassword: string) => boolean;
   changeUsername: (newUsername: string) => void;
   storeProfile: StoreProfile;
   updateStoreProfile: (profile: Partial<StoreProfile>) => void;
@@ -135,11 +132,9 @@ interface AdminContextType {
   addProduct: (product: Omit<Product, "id">) => void;
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
+  bulkDeleteProducts: (ids: string[]) => void;
   orders: Order[];
-  updateOrderStatus: (
-    id: string,
-    status: "Pending" | "Processing" | "Delivered"
-  ) => void;
+  updateOrderStatus: (id: string, status: "Pending" | "Processing" | "Delivered") => void;
   addOrder: (order: Omit<Order, "id" | "date" | "status">) => void;
   offers: Offer[];
   addOffer: (offer: Omit<Offer, "id" | "createdAt">) => void;
@@ -164,11 +159,15 @@ interface AdminContextType {
   toggleCategoryStatus: (id: string) => void;
   showAdminLogin: boolean;
   setShowAdminLogin: (show: boolean) => void;
+  isDataLoaded: boolean;
+  lowStockProducts: Product[];
+  topSellingProducts: { productId: string; totalSold: number }[];
+  getOrdersByStatus: (status: string) => Order[];
+  totalRevenue: number;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-// Default admin credentials
 const DEFAULT_USERNAME = "admin";
 const DEFAULT_PASSWORD = "admin123";
 
@@ -312,627 +311,222 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
 };
 
 const DEFAULT_CATEGORIES: Category[] = [
-  {
-    id: "1",
-    name: "Lighting",
-    description: "Modern and traditional lightning solutions for every space in your home or office",
-    image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500",
-    color: "bg-yellow-500",
-    isActive: true
-  },
-  {
-    id: "2",
-    name: "Bathroom Fittings",
-    description: "Premium bathroom fixtures, faucets, showers, and accessories for luxury bathrooms",
-    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500",
-    color: "bg-blue-500",
-    isActive: true
-  },
-  {
-    id: "3",
-    name: "Plumbing",
-    description: "Complete plumbing solutions including pipes, water heaters, sinks, and more",
-    image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500",
-    color: "bg-green-500",
-    isActive: true
-  },
-  {
-    id: "4",
-    name: "Electrical Hardware",
-    description: "Smart switches, sockets, wiring accessories, and electrical safety equipment",
-    image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500",
-    color: "bg-orange-500",
-    isActive: true
-  },
-  {
-    id: "5",
-    name: "Construction Tools",
-    description: "Professional-grade tools and equipment for construction and DIY projects",
-    image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500",
-    color: "bg-red-500",
-    isActive: true
-  }
+  { id: "1", name: "Lighting", description: "Modern and traditional lightning solutions", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500", color: "bg-yellow-500", isActive: true },
+  { id: "2", name: "Bathroom Fittings", description: "Premium bathroom fixtures", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500", color: "bg-blue-500", isActive: true },
+  { id: "3", name: "Plumbing", description: "Complete plumbing solutions", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500", color: "bg-green-500", isActive: true },
+  { id: "4", name: "Electrical Hardware", description: "Smart switches and wiring", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500", color: "bg-orange-500", isActive: true },
+  { id: "5", name: "Construction Tools", description: "Professional-grade tools", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500", color: "bg-red-500", isActive: true }
 ];
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminUsername, setAdminUsername] = useState(DEFAULT_USERNAME);
+  const [adminUsername] = useState(DEFAULT_USERNAME);
   const [adminPassword, setAdminPassword] = useState(DEFAULT_PASSWORD);
-  const [storeProfile, setStoreProfile] = useState<StoreProfile>(
-    () => JSON.parse(localStorage.getItem("storeProfile") || "null") || DEFAULT_STORE_PROFILE
-  );
-  const [storeAssets, setStoreAssets] = useState<StoreAssets>(
-    () => JSON.parse(localStorage.getItem("storeAssets") || "null") || DEFAULT_STORE_ASSETS
-  );
-  const [siteContent, setSiteContent] = useState<SiteContent>(() => {
-    const saved = localStorage.getItem("siteContent");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Merge with default to ensure all fields exist
-      return {
-        ...DEFAULT_SITE_CONTENT,
-        ...parsed,
-        services: {
-          ...DEFAULT_SITE_CONTENT.services,
-          ...parsed.services,
-          items: parsed.services?.items?.map((item: any, index: number) => ({
-            ...DEFAULT_SITE_CONTENT.services.items[index],
-            ...item,
-            features: item.features || DEFAULT_SITE_CONTENT.services.items[index]?.features || []
-          })) || DEFAULT_SITE_CONTENT.services.items
-        },
-        faq: {
-          ...DEFAULT_SITE_CONTENT.faq,
-          ...parsed.faq,
-          items: parsed.faq?.items?.map((item: any, index: number) => ({
-            ...DEFAULT_SITE_CONTENT.faq.items[index],
-            ...item
-          })) || DEFAULT_SITE_CONTENT.faq.items
-        }
-      };
-    }
-    return DEFAULT_SITE_CONTENT;
-  });
-  const [showAdminLogin, setShowAdminLogin] = useState(
-    () => localStorage.getItem("showAdminLogin") === "true"
-  );
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem("categories");
-    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
-  });
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  
+  const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
+  const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
+  const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [showAdminLogin, setShowAdminLogin] = useState(() => localStorage.getItem("showAdminLogin") === "true");
+
   const [products, setProducts] = useState<Product[]>([
-    // Lighting Products
-    {
-      id: "1",
-      name: "LED Ceiling Light - Modern Round",
-      category: "Lighting",
-      price: 4500,
-      stock: 25,
-      description:
-        "Modern round LED ceiling light with adjustable brightness. Energy-efficient and long-lasting, perfect for living rooms and bedrooms.",
-      image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500",
-    },
-    {
-      id: "2",
-      name: "Pendant Light - Gold Finish",
-      category: "Lighting",
-      price: 7800,
-      stock: 15,
-      description:
-        "Elegant pendant light with premium gold finish. Ideal for dining areas and kitchen islands. Adjustable height.",
-      image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500",
-    },
-    {
-      id: "3",
-      name: "Wall Sconce - Contemporary Design",
-      category: "Lighting",
-      price: 3200,
-      stock: 30,
-      description:
-        "Contemporary wall sconce with sleek black finish. Perfect for hallways, bedrooms, and accent lighting.",
-      image: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=500",
-    },
-    {
-      id: "4",
-      name: "Chandelier - Crystal 6 Lights",
-      category: "Lighting",
-      price: 18500,
-      stock: 8,
-      description:
-        "Luxurious crystal chandelier with 6 lights. Premium quality crystals create stunning light reflections.",
-      image: "https://images.unsplash.com/photo-1567539738242-f0cc90e66d5f?w=500",
-    },
-    {
-      id: "5",
-      name: "LED Strip Light - RGB 5m",
-      category: "Lighting",
-      price: 2500,
-      stock: 50,
-      description:
-        "5-meter RGB LED strip light with remote control. Waterproof, 16 million colors, perfect for ambient lighting.",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500",
-    },
-    {
-      id: "6",
-      name: "Track Lighting System - 4 Spotlights",
-      category: "Lighting",
-      price: 9500,
-      stock: 12,
-      description:
-        "Adjustable track lighting system with 4 spotlights. Modern black finish, ideal for galleries and retail spaces.",
-      image: "https://images.unsplash.com/photo-1534105615220-6a39ea3a68f9?w=500",
-    },
-    {
-      id: "7",
-      name: "Floor Lamp - Tripod Stand",
-      category: "Lighting",
-      price: 6200,
-      stock: 18,
-      description:
-        "Modern tripod floor lamp with wooden legs. Adjustable height, perfect for reading corners and living rooms.",
-      image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500",
-    },
-    {
-      id: "8",
-      name: "Outdoor Garden Light - Solar",
-      category: "Lighting",
-      price: 3800,
-      stock: 35,
-      description:
-        "Solar-powered garden light. Automatic on/off, weather-resistant, ideal for pathways and landscaping.",
-      image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500",
-    },
-
-    // Bathroom Fittings
-    {
-      id: "9",
-      name: "Bathroom Faucet - Chrome Finish",
-      category: "Bathroom Fittings",
-      price: 5500,
-      stock: 22,
-      description:
-        "Premium chrome bathroom faucet with ceramic cartridge. Modern design, water-saving technology.",
-      image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500",
-    },
-    {
-      id: "10",
-      name: "Rain Shower Head - 10 inch",
-      category: "Bathroom Fittings",
-      price: 8900,
-      stock: 16,
-      description:
-        "Luxurious 10-inch rain shower head. Stainless steel construction, easy installation, spa-like experience.",
-      image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=500",
-    },
-    {
-      id: "11",
-      name: "Towel Rail - Heated Chrome",
-      category: "Bathroom Fittings",
-      price: 12500,
-      stock: 10,
-      description:
-        "Electric heated towel rail in chrome finish. Energy-efficient, keeps towels warm and dry.",
-      image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500",
-    },
-    {
-      id: "12",
-      name: "Bathroom Mirror - LED Backlit",
-      category: "Bathroom Fittings",
-      price: 15800,
-      stock: 14,
-      description:
-        "LED backlit bathroom mirror with touch sensor. Anti-fog technology, modern design, energy-efficient.",
-      image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500",
-    },
-    {
-      id: "13",
-      name: "Toilet Paper Holder - Gold",
-      category: "Bathroom Fittings",
-      price: 1800,
-      stock: 45,
-      description:
-        "Premium gold toilet paper holder. Solid brass construction, corrosion-resistant, elegant design.",
-      image: "https://images.unsplash.com/photo-1556228578-dd4c8a13ee80?w=500",
-    },
-    {
-      id: "14",
-      name: "Soap Dispenser - Automatic",
-      category: "Bathroom Fittings",
-      price: 3500,
-      stock: 28,
-      description:
-        "Touchless automatic soap dispenser. Adjustable volume, battery-powered, hygienic and convenient.",
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500",
-    },
-    {
-      id: "15",
-      name: "Bathroom Vanity Set - Modern",
-      category: "Bathroom Fittings",
-      price: 35000,
-      stock: 6,
-      description:
-        "Complete modern bathroom vanity set. Includes cabinet, countertop, and sink. Premium quality materials.",
-      image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500",
-    },
-    {
-      id: "16",
-      name: "Shower Enclosure - Glass",
-      category: "Bathroom Fittings",
-      price: 42000,
-      stock: 5,
-      description:
-        "Frameless glass shower enclosure. 8mm tempered glass, chrome fixtures, modern and spacious.",
-      image: "https://images.unsplash.com/photo-1564540583246-934409427776?w=500",
-    },
-
-    // Plumbing Items
-    {
-      id: "17",
-      name: "Kitchen Sink - Stainless Steel",
-      category: "Plumbing",
-      price: 12000,
-      stock: 20,
-      description:
-        "Premium stainless steel kitchen sink. Double bowl, sound-dampening pads, corrosion-resistant.",
-      image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500",
-    },
-    {
-      id: "18",
-      name: "Water Heater - 50L Electric",
-      category: "Plumbing",
-      price: 28500,
-      stock: 12,
-      description:
-        "50-liter electric water heater. Energy-efficient, safety thermostat, quick heating, 5-year warranty.",
-      image: "https://images.unsplash.com/photo-1581858747584-b5d0e31e0fc8?w=500",
-    },
-    {
-      id: "19",
-      name: "PVC Pipe Set - Complete",
-      category: "Plumbing",
-      price: 4500,
-      stock: 40,
-      description:
-        "Complete PVC pipe set for plumbing. Includes various sizes and fittings, durable and leak-proof.",
-      image: "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=500",
-    },
-    {
-      id: "20",
-      name: "Water Pump - 1HP",
-      category: "Plumbing",
-      price: 18000,
-      stock: 15,
-      description:
-        "1HP water pump for residential use. Self-priming, energy-efficient, quiet operation, reliable performance.",
-      image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=500",
-    },
-    {
-      id: "21",
-      name: "Drain Cover Set - Chrome",
-      category: "Plumbing",
-      price: 1200,
-      stock: 60,
-      description:
-        "Set of chrome drain covers. Various sizes, anti-clog design, easy to clean, corrosion-resistant.",
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500",
-    },
-    {
-      id: "22",
-      name: "Water Filter System - 3 Stage",
-      category: "Plumbing",
-      price: 15500,
-      stock: 18,
-      description:
-        "3-stage water filtration system. Removes impurities, improves taste, easy cartridge replacement.",
-      image: "https://images.unsplash.com/photo-1548865816-f7ca2d7c5e01?w=500",
-    },
-    {
-      id: "23",
-      name: "Faucet Repair Kit - Universal",
-      category: "Plumbing",
-      price: 2800,
-      stock: 35,
-      description:
-        "Universal faucet repair kit. Includes O-rings, washers, and tools. Fits most standard faucets.",
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500",
-    },
-    {
-      id: "24",
-      name: "Toilet Cistern - Dual Flush",
-      category: "Plumbing",
-      price: 8500,
-      stock: 14,
-      description:
-        "Dual flush toilet cistern. Water-saving design, quiet operation, easy installation and maintenance.",
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500",
-    },
-
-    // Electrical Hardware
-    {
-      id: "25",
-      name: "Wall Socket - USB Charging",
-      category: "Electrical Hardware",
-      price: 2200,
-      stock: 50,
-      description:
-        "Modern wall socket with dual USB charging ports. Fast charging, child-safe design, white finish.",
-      image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500",
-    },
-    {
-      id: "26",
-      name: "Circuit Breaker - 16A",
-      category: "Electrical Hardware",
-      price: 1800,
-      stock: 40,
-      description:
-        "16A circuit breaker for residential use. Overload protection, easy installation, reliable safety.",
-      image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500",
-    },
-    {
-      id: "27",
-      name: "Extension Cord - 5m Heavy Duty",
-      category: "Electrical Hardware",
-      price: 3200,
-      stock: 32,
-      description:
-        "5-meter heavy-duty extension cord. 13A rating, surge protection, multiple outlets, safety certified.",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500",
-    },
-    {
-      id: "28",
-      name: "Smart Switch - WiFi Enabled",
-      category: "Electrical Hardware",
-      price: 4500,
-      stock: 25,
-      description:
-        "WiFi-enabled smart switch. Voice control compatible, scheduling, remote control via app, modern design.",
-      image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500",
-    },
-    {
-      id: "29",
-      name: "Cable Trunking - 2m White",
-      category: "Electrical Hardware",
-      price: 850,
-      stock: 70,
-      description:
-        "2-meter white cable trunking. Self-adhesive, neat cable management, easy to cut and install.",
-      image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500",
-    },
-    {
-      id: "30",
-      name: "Voltage Stabilizer - 5000W",
-      category: "Electrical Hardware",
-      price: 22000,
-      stock: 10,
-      description:
-        "5000W voltage stabilizer. Protects appliances from voltage fluctuations, digital display, reliable.",
-      image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500",
-    },
-    {
-      id: "31",
-      name: "LED Bulb Set - 9W (Pack of 6)",
-      category: "Electrical Hardware",
-      price: 1800,
-      stock: 55,
-      description:
-        "Pack of 6 energy-efficient LED bulbs. 9W, warm white, long lifespan, energy-saving technology.",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500",
-    },
-    {
-      id: "32",
-      name: "Door Bell - Wireless Smart",
-      category: "Electrical Hardware",
-      price: 6500,
-      stock: 20,
-      description:
-        "Wireless smart doorbell with camera. Motion detection, night vision, two-way audio, app control.",
-      image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500",
-    },
-
-    // Construction Tools
-    {
-      id: "33",
-      name: "Cordless Drill - 18V",
-      category: "Construction Tools",
-      price: 12500,
-      stock: 18,
-      description:
-        "18V cordless drill with battery and charger. Variable speed, LED work light, compact design.",
-      image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500",
-    },
-    {
-      id: "34",
-      name: "Angle Grinder - 850W",
-      category: "Construction Tools",
-      price: 9800,
-      stock: 15,
-      description:
-        "850W angle grinder. Powerful motor, safety guard, side handle, suitable for cutting and grinding.",
-      image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500",
-    },
-    {
-      id: "35",
-      name: "Tool Box Set - Professional",
-      category: "Construction Tools",
-      price: 15500,
-      stock: 22,
-      description:
-        "Professional tool box set with 100+ pieces. Includes wrenches, screwdrivers, pliers, and more.",
-      image: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=500",
-    },
-    {
-      id: "36",
-      name: "Spirit Level - Laser",
-      category: "Construction Tools",
-      price: 7500,
-      stock: 12,
-      description:
-        "Laser spirit level. Self-leveling, 360-degree rotation, magnetic base, accurate measurements.",
-      image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500",
-    },
-    {
-      id: "37",
-      name: "Measuring Tape - 10m",
-      category: "Construction Tools",
-      price: 1500,
-      stock: 45,
-      description:
-        "10-meter measuring tape. Auto-lock, metric and imperial, durable steel blade, comfortable grip.",
-      image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500",
-    },
-    {
-      id: "38",
-      name: "Hammer Drill - 800W",
-      category: "Construction Tools",
-      price: 11200,
-      stock: 16,
-      description:
-        "800W hammer drill. Variable speed, forward/reverse, depth rod, includes drill bit set.",
-      image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500",
-    },
-    {
-      id: "39",
-      name: "Safety Gear Set - Complete",
-      category: "Construction Tools",
-      price: 4500,
-      stock: 30,
-      description:
-        "Complete safety gear set. Includes helmet, goggles, gloves, dust mask, and ear protection.",
-      image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500",
-    },
-    {
-      id: "40",
-      name: "Circular Saw - 1200W",
-      category: "Construction Tools",
-      price: 14800,
-      stock: 11,
-      description:
-        "1200W circular saw. Adjustable depth and angle, laser guide, includes carbide blade.",
-      image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500",
-    },
+    { id: "1", name: "LED Ceiling Light - Modern Round", category: "Lighting", price: 4500, stock: 25, description: "Modern round LED ceiling light with adjustable brightness.", image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500" },
+    { id: "2", name: "Pendant Light - Gold Finish", category: "Lighting", price: 7800, stock: 15, description: "Elegant pendant light with premium gold finish.", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500" },
+    { id: "3", name: "Wall Sconce - Contemporary Design", category: "Lighting", price: 3200, stock: 30, description: "Contemporary wall sconce with sleek black finish.", image: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=500" },
+    { id: "4", name: "Chandelier - Crystal 6 Lights", category: "Lighting", price: 18500, stock: 8, description: "Luxurious crystal chandelier with 6 lights.", image: "https://images.unsplash.com/photo-1567539738242-f0cc90e66d5f?w=500" },
+    { id: "5", name: "LED Strip Light - RGB 5m", category: "Lighting", price: 2500, stock: 50, description: "5-meter RGB LED strip light with remote control.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "6", name: "Track Lighting System - 4 Spotlights", category: "Lighting", price: 9500, stock: 12, description: "Adjustable track lighting system with 4 spotlights.", image: "https://images.unsplash.com/photo-1534105615220-6a39ea3a68f9?w=500" },
+    { id: "7", name: "Floor Lamp - Tripod Stand", category: "Lighting", price: 6200, stock: 18, description: "Modern tripod floor lamp with wooden legs.", image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500" },
+    { id: "8", name: "Outdoor Garden Light - Solar", category: "Lighting", price: 3800, stock: 35, description: "Solar-powered garden light.", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500" },
+    { id: "9", name: "Bathroom Faucet - Chrome Finish", category: "Bathroom Fittings", price: 5500, stock: 22, description: "Premium chrome bathroom faucet.", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500" },
+    { id: "10", name: "Rain Shower Head - 10 inch", category: "Bathroom Fittings", price: 8900, stock: 16, description: "Luxurious 10-inch rain shower head.", image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=500" },
+    { id: "11", name: "Towel Rail - Heated Chrome", category: "Bathroom Fittings", price: 12500, stock: 10, description: "Electric heated towel rail.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
+    { id: "12", name: "Bathroom Mirror - LED Backlit", category: "Bathroom Fittings", price: 15800, stock: 14, description: "LED backlit bathroom mirror.", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500" },
+    { id: "13", name: "Toilet Paper Holder - Gold", category: "Bathroom Fittings", price: 1800, stock: 45, description: "Premium gold toilet paper holder.", image: "https://images.unsplash.com/photo-1556228578-dd4c8a13ee80?w=500" },
+    { id: "14", name: "Soap Dispenser - Automatic", category: "Bathroom Fittings", price: 3500, stock: 28, description: "Touchless automatic soap dispenser.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "15", name: "Bathroom Vanity Set - Modern", category: "Bathroom Fittings", price: 35000, stock: 6, description: "Complete modern bathroom vanity set.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
+    { id: "16", name: "Shower Enclosure - Glass", category: "Bathroom Fittings", price: 42000, stock: 5, description: "Frameless glass shower enclosure.", image: "https://images.unsplash.com/photo-1564540583246-934409427776?w=500" },
+    { id: "17", name: "Kitchen Sink - Stainless Steel", category: "Plumbing", price: 12000, stock: 20, description: "Premium stainless steel kitchen sink.", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500" },
+    { id: "18", name: "Water Heater - 50L Electric", category: "Plumbing", price: 28500, stock: 12, description: "50-liter electric water heater.", image: "https://images.unsplash.com/photo-1581858747584-b5d0e31e0fc8?w=500" },
+    { id: "19", name: "PVC Pipe Set - Complete", category: "Plumbing", price: 4500, stock: 40, description: "Complete PVC pipe set.", image: "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=500" },
+    { id: "20", name: "Water Pump - 1HP", category: "Plumbing", price: 18000, stock: 15, description: "1HP water pump.", image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=500" },
+    { id: "21", name: "Drain Cover Set - Chrome", category: "Plumbing", price: 1200, stock: 60, description: "Chrome drain cover set.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "22", name: "Water Filter System - 3 Stage", category: "Plumbing", price: 15500, stock: 18, description: "3-stage water filtration.", image: "https://images.unsplash.com/photo-1548865816-f7ca2d7c5e01?w=500" },
+    { id: "23", name: "Faucet Repair Kit - Universal", category: "Plumbing", price: 2800, stock: 35, description: "Universal faucet repair kit.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "24", name: "Toilet Cistern - Dual Flush", category: "Plumbing", price: 8500, stock: 14, description: "Dual flush toilet cistern.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "25", name: "Wall Socket - USB Charging", category: "Electrical Hardware", price: 2200, stock: 50, description: "Wall socket with USB charging.", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500" },
+    { id: "26", name: "Circuit Breaker - 16A", category: "Electrical Hardware", price: 1800, stock: 40, description: "16A circuit breaker.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
+    { id: "27", name: "Extension Cord - 5m Heavy Duty", category: "Electrical Hardware", price: 3200, stock: 32, description: "Heavy-duty extension cord.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "28", name: "Smart Switch - WiFi Enabled", category: "Electrical Hardware", price: 4500, stock: 25, description: "WiFi smart switch.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
+    { id: "29", name: "Cable Trunking - 2m White", category: "Electrical Hardware", price: 850, stock: 70, description: "Cable trunking.", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500" },
+    { id: "30", name: "Voltage Stabilizer - 5000W", category: "Electrical Hardware", price: 22000, stock: 10, description: "5000W stabilizer.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
+    { id: "31", name: "LED Bulb Set - 9W (Pack of 6)", category: "Electrical Hardware", price: 1800, stock: 55, description: "LED bulb pack.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "32", name: "Door Bell - Wireless Smart", category: "Electrical Hardware", price: 6500, stock: 20, description: "Smart doorbell.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
+    { id: "33", name: "Cordless Drill - 18V", category: "Construction Tools", price: 12500, stock: 18, description: "18V cordless drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "34", name: "Angle Grinder - 850W", category: "Construction Tools", price: 9800, stock: 15, description: "850W angle grinder.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "35", name: "Tool Box Set - Professional", category: "Construction Tools", price: 15500, stock: 22, description: "Professional tool set.", image: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=500" },
+    { id: "36", name: "Spirit Level - Laser", category: "Construction Tools", price: 7500, stock: 12, description: "Laser spirit level.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "37", name: "Measuring Tape - 10m", category: "Construction Tools", price: 1500, stock: 45, description: "10m measuring tape.", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500" },
+    { id: "38", name: "Hammer Drill - 800W", category: "Construction Tools", price: 11200, stock: 16, description: "800W hammer drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "39", name: "Safety Gear Set - Complete", category: "Construction Tools", price: 4500, stock: 30, description: "Safety gear set.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "40", name: "Circular Saw - 1200W", category: "Construction Tools", price: 14800, stock: 11, description: "1200W circular saw.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
   ]);
-  const [orders, setOrders] = useState<Order[]>(
-    () => JSON.parse(localStorage.getItem("orders") || "[]")
-  );
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
+
+  const [firebaseLoaded, setFirebaseLoaded] = useState({
+    storeProfile: false,
+    storeAssets: false,
+    siteContent: false,
+    categories: false,
+    orders: false,
+    offers: false,
+  });
 
   useEffect(() => {
-    localStorage.setItem("storeAssets", JSON.stringify(storeAssets));
-  }, [storeAssets]);
+    const allLoaded = Object.values(firebaseLoaded).every(Boolean);
+    if (allLoaded) {
+      setIsDataLoaded(true);
+    }
+  }, [firebaseLoaded]);
 
+  // Firebase sync for storeProfile
   useEffect(() => {
-    localStorage.setItem("siteContent", JSON.stringify(siteContent));
-  }, [siteContent]);
+    const loadData = async () => {
+      try {
+        const profileRef = doc(db, "storeData", "profile");
+        const profileSnap = await getDoc(profileRef);
+        
+        if (profileSnap.exists()) {
+          setStoreProfile(profileSnap.data() as StoreProfile);
+        } else {
+          await setDoc(profileRef, DEFAULT_STORE_PROFILE);
+        }
+        setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
+      } catch (error) {
+        console.error("Error loading storeProfile:", error);
+        setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
+      }
+    };
+    loadData();
+  }, []);
 
+  // Firebase sync for storeAssets
   useEffect(() => {
-    localStorage.setItem("showAdminLogin", showAdminLogin.toString());
-  }, [showAdminLogin]);
+    const loadData = async () => {
+      try {
+        const assetsRef = doc(db, "storeData", "assets");
+        const assetsSnap = await getDoc(assetsRef);
+        
+        if (assetsSnap.exists()) {
+          setStoreAssets(assetsSnap.data() as StoreAssets);
+        } else {
+          await setDoc(assetsRef, DEFAULT_STORE_ASSETS);
+        }
+        setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
+      } catch (error) {
+        console.error("Error loading storeAssets:", error);
+        setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
+      }
+    };
+    loadData();
+  }, []);
 
+  // Firebase sync for siteContent
   useEffect(() => {
-    localStorage.setItem("categories", JSON.stringify(categories));
-  }, [categories]);
+    const loadData = async () => {
+      try {
+        const contentRef = doc(db, "storeData", "siteContent");
+        const contentSnap = await getDoc(contentRef);
+        
+        if (contentSnap.exists()) {
+          const data = contentSnap.data() as SiteContent;
+          setSiteContent({ ...DEFAULT_SITE_CONTENT, ...data });
+        } else {
+          await setDoc(contentRef, DEFAULT_SITE_CONTENT);
+        }
+        setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
+      } catch (error) {
+        console.error("Error loading siteContent:", error);
+        setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
+      }
+    };
+    loadData();
+  }, []);
 
+  // Firebase sync for categories
   useEffect(() => {
-    localStorage.setItem("storeProfile", JSON.stringify(storeProfile));
-  }, [storeProfile]);
-
-  useEffect(() => {
-    localStorage.setItem("orders", JSON.stringify(orders));
-  }, [orders]);
+    const loadData = async () => {
+      try {
+        const catRef = doc(db, "storeData", "categories");
+        const catSnap = await getDoc(catRef);
+        
+        if (catSnap.exists()) {
+          const data = catSnap.data();
+          if (data.categories && Array.isArray(data.categories)) {
+            setCategories(data.categories);
+          }
+        } else {
+          await setDoc(catRef, { categories: DEFAULT_CATEGORIES });
+        }
+        setFirebaseLoaded(prev => ({ ...prev, categories: true }));
+      } catch (error) {
+        console.error("Error loading categories:", error);
+        setFirebaseLoaded(prev => ({ ...prev, categories: true }));
+      }
+    };
+    loadData();
+  }, []);
 
   // Firebase real-time sync for orders
   useEffect(() => {
     try {
       const q = query(collection(db, "orders"), orderBy("date", "desc"));
-      
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const firebaseOrders: Order[] = snapshot.docs.map(doc => {
           const data = doc.data();
-          return {
-            ...data,
-            id: data.id || doc.id, // Use stored id or Firebase doc id
-          } as Order;
+          return { ...data, id: data.id || doc.id } as Order;
         });
-        
-        // Use Firebase orders as source of truth 
-        console.log("Firebase orders loaded:", firebaseOrders.length);
         setOrders(firebaseOrders);
-      }, (error) => {
-        console.error("Firebase orders sync error:", error);
+        setFirebaseLoaded(prev => ({ ...prev, orders: true }));
+      }, () => {
+        setFirebaseLoaded(prev => ({ ...prev, orders: true }));
       });
-
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase init error:", error);
+      console.error("Firebase orders sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, orders: true }));
     }
   }, []);
 
-  const [offers, setOffers] = useState<Offer[]>([
-    {
-      id: "1",
-      title: "Summer Sale",
-      description: "Get 20% off on all lighting products!",
-      bannerImage:
-        "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500",
-      discountPercentage: 20,
-      applicableProducts: ["1", "2", "3", "4", "5", "6", "7", "8"],
-      startDate: "2023-06-01",
-      endDate: "2023-06-30",
-      isEnabled: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      title: "Bathroom Fittings Discount",
-      description: "Get 15% off on all bathroom fittings!",
-      bannerImage:
-        "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500",
-      discountPercentage: 15,
-      applicableProducts: ["9", "10", "11", "12", "13", "14", "15", "16"],
-      startDate: "2023-07-01",
-      endDate: "2023-07-31",
-      isEnabled: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      title: "Plumbing Items Sale",
-      description: "Get 10% off on all plumbing items!",
-      bannerImage:
-        "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500",
-      discountPercentage: 10,
-      applicableProducts: ["17", "18", "19", "20", "21", "22", "23", "24"],
-      startDate: "2023-08-01",
-      endDate: "2023-08-31",
-      isEnabled: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      title: "Electrical Hardware Discount",
-      description: "Get 15% off on all electrical hardware!",
-      bannerImage:
-        "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500",
-      discountPercentage: 15,
-      applicableProducts: ["25", "26", "27", "28", "29", "30", "31", "32"],
-      startDate: "2023-09-01",
-      endDate: "2023-09-30",
-      isEnabled: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "5",
-      title: "Construction Tools Sale",
-      description: "Get 10% off on all construction tools!",
-      bannerImage:
-        "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500",
-      discountPercentage: 10,
-      applicableProducts: ["33", "34", "35", "36", "37", "38", "39", "40"],
-      startDate: "2023-10-01",
-      endDate: "2023-10-31",
-      isEnabled: true,
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  // Firebase real-time sync for offers
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firebaseOffers: Offer[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { ...data, id: data.id || doc.id } as Offer;
+        });
+        if (firebaseOffers.length > 0) {
+          setOffers(firebaseOffers);
+        }
+        setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+      }, () => {
+        setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase offers sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showAdminLogin", showAdminLogin.toString());
+  }, [showAdminLogin]);
 
   const login = (username: string, password: string): boolean => {
     if (username === adminUsername && password === adminPassword) {
@@ -942,20 +536,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  const logout = () => {
-    setIsAdminLoggedIn(false);
-    localStorage.removeItem("isAdminLoggedIn");
-  };
+  const logout = () => setIsAdminLoggedIn(false);
+  const triggerLogout = () => setIsAdminLoggedIn(false);
 
-  const triggerLogout = () => {
-    setIsAdminLoggedIn(false);
-    localStorage.removeItem("isAdminLoggedIn");
-  };
-
-  const changePassword = (
-    currentPassword: string,
-    newPassword: string
-  ): boolean => {
+  const changePassword = (currentPassword: string, newPassword: string): boolean => {
     if (currentPassword === adminPassword) {
       setAdminPassword(newPassword);
       return true;
@@ -963,58 +547,70 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  const changeUsername = (newUsername: string) => {
-    setAdminUsername(newUsername);
+  const changeUsername = () => {};
+
+  const updateStoreProfile = async (profile: Partial<StoreProfile>) => {
+    const updated = { ...storeProfile, ...profile };
+    setStoreProfile(updated);
+    try {
+      await setDoc(doc(db, "storeData", "profile"), updated);
+    } catch (error) {
+      console.error("Error saving storeProfile:", error);
+    }
   };
 
-  const updateStoreProfile = (profile: Partial<StoreProfile>) => {
-    setStoreProfile((prev) => ({ ...prev, ...profile }));
+  const updateStoreAssets = async (assets: Partial<StoreAssets>) => {
+    const updated = { ...storeAssets, ...assets };
+    setStoreAssets(updated);
+    try {
+      await setDoc(doc(db, "storeData", "assets"), updated);
+    } catch (error) {
+      console.error("Error saving storeAssets:", error);
+    }
   };
 
-  const updateStoreAssets = (assets: Partial<StoreAssets>) => {
-    setStoreAssets((prev) => ({ ...prev, ...assets }));
+  const updateSiteContent = async (content: Partial<SiteContent>) => {
+    const updated = { ...siteContent, ...content };
+    setSiteContent(updated);
+    try {
+      await setDoc(doc(db, "storeData", "siteContent"), updated);
+    } catch (error) {
+      console.error("Error saving siteContent:", error);
+    }
   };
 
-  const updateSiteContent = (content: Partial<SiteContent>) => {
-    setSiteContent((prev) => ({ ...prev, ...content }));
-  };
-
-  const resetSiteContent = () => {
+  const resetSiteContent = async () => {
     setSiteContent(DEFAULT_SITE_CONTENT);
+    try {
+      await setDoc(doc(db, "storeData", "siteContent"), DEFAULT_SITE_CONTENT);
+    } catch (error) {
+      console.error("Error resetting siteContent:", error);
+    }
   };
 
   const addProduct = (product: Omit<Product, "id">) => {
-    const newProduct: Product = {
-      ...product,
-      id: Date.now().toString(),
-    };
-    setProducts((prev) => [...prev, newProduct]);
+    const newProduct: Product = { ...product, id: Date.now().toString() };
+    setProducts(prev => [...prev, newProduct]);
   };
 
   const updateProduct = (id: string, product: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...product } : p))
-    );
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...product } : p));
   };
 
   const deleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts(prev => prev.filter(p => p.id !== id));
   };
 
-  const updateOrderStatus = async (
-    id: string,
-    status: "Pending" | "Processing" | "Delivered"
-  ) => {
-    setOrders((prev) =>
-      prev.map((order) => (order.id === id ? { ...order, status } : order))
-    );
-    
-    // Update in Firebase
+  const bulkDeleteProducts = (ids: string[]) => {
+    setProducts(prev => prev.filter(p => !ids.includes(p.id)));
+  };
+
+  const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
+    setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
     try {
-      const orderRef = doc(db, "orders", id);
-      await updateDoc(orderRef, { status });
+      await updateDoc(doc(db, "orders", id), { status });
     } catch (error) {
-      console.error("Error updating order status in Firebase:", error);
+      console.error("Error updating order status:", error);
     }
   };
 
@@ -1025,13 +621,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       date: new Date().toISOString(),
       status: "Pending",
     };
-    setOrders((prev) => [...prev, newOrder]);
-    
-    // Save to Firebase with custom ID
+    setOrders(prev => [...prev, newOrder]);
     try {
       await setDoc(doc(db, "orders", newOrder.id), newOrder);
     } catch (error) {
-      console.error("Error saving order to Firebase:", error);
+      console.error("Error saving order:", error);
     }
   };
 
@@ -1041,64 +635,122 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
-    setOffers((prev) => [...prev, newOffer]);
+    setOffers(prev => [...prev, newOffer]);
+    try {
+      setDoc(doc(db, "offers", newOffer.id), newOffer);
+    } catch (error) {
+      console.error("Error saving offer:", error);
+    }
   };
 
   const updateOffer = (id: string, offer: Partial<Offer>) => {
-    setOffers((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, ...offer } : o))
-    );
+    setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
+    try {
+      updateDoc(doc(db, "offers", id), offer);
+    } catch (error) {
+      console.error("Error updating offer:", error);
+    }
   };
 
   const deleteOffer = (id: string) => {
-    setOffers((prev) => prev.filter((o) => o.id !== id));
+    setOffers(prev => prev.filter(o => o.id !== id));
+    try {
+      deleteDoc(doc(db, "offers", id));
+    } catch (error) {
+      console.error("Error deleting offer:", error);
+    }
   };
 
   const toggleOfferStatus = (id: string) => {
-    setOffers((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, isEnabled: !o.isEnabled } : o))
-    );
+    const offer = offers.find(o => o.id === id);
+    if (offer) {
+      updateOffer(id, { isEnabled: !offer.isEnabled });
+    }
   };
 
   const getActiveOffers = () => {
     const now = new Date();
-    return offers.filter(
-      (o) =>
-        o.isEnabled &&
-        new Date(o.startDate) <= now &&
-        new Date(o.endDate) >= now
-    );
+    return offers.filter(o => o.isEnabled && new Date(o.startDate) <= now && new Date(o.endDate) >= now);
   };
 
   const getProductDiscount = (productId: string) => {
     const now = new Date();
     const activeOffers = offers.filter(
-      (o) =>
-        o.isEnabled &&
-        new Date(o.startDate) <= now &&
-        new Date(o.endDate) >= now &&
-        o.applicableProducts.includes(productId)
+      o => o.isEnabled && new Date(o.startDate) <= now && new Date(o.endDate) >= now && o.applicableProducts.includes(productId)
     );
-
     if (activeOffers.length > 0) {
       const offer = activeOffers[0];
-      const originalPrice = products.find((p) => p.id === productId)?.price || 0;
+      const originalPrice = products.find(p => p.id === productId)?.price || 0;
       const discountPercentage = offer.discountPercentage || 0;
-      const discountedPrice =
-        originalPrice - (originalPrice * discountPercentage) / 100;
-
       return {
         hasDiscount: true,
         discountPercentage,
-        discountedPrice,
+        discountedPrice: originalPrice - (originalPrice * discountPercentage) / 100,
         offerTitle: offer.title,
       };
     }
-
-    return {
-      hasDiscount: false,
-    };
+    return { hasDiscount: false };
   };
+
+  const addCategory = (category: Omit<Category, "id">) => {
+    const newCategory: Category = { ...category, id: Date.now().toString() };
+    const updated = [...categories, newCategory];
+    setCategories(updated);
+    try {
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+    } catch (error) {
+      console.error("Error saving category:", error);
+    }
+  };
+
+  const updateCategory = (id: string, category: Partial<Category>) => {
+    const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
+    setCategories(updated);
+    try {
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+    } catch (error) {
+      console.error("Error updating category:", error);
+    }
+  };
+
+  const deleteCategory = (id: string) => {
+    const updated = categories.filter(c => c.id !== id);
+    setCategories(updated);
+    try {
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
+  };
+
+  const toggleCategoryStatus = (id: string) => {
+    const category = categories.find(c => c.id === id);
+    if (category) {
+      updateCategory(id, { isActive: !category.isActive });
+    }
+  };
+
+  // Dashboard stats
+  const lowStockProducts = products.filter(p => p.stock <= 10);
+  
+  const topSellingProducts = orders.reduce((acc, order) => {
+    order.products.forEach(item => {
+      const existing = acc.find(a => a.productId === item.id);
+      if (existing) {
+        existing.totalSold += item.quantity;
+      } else {
+        acc.push({ productId: item.id, totalSold: item.quantity });
+      }
+    });
+    return acc;
+  }, [] as { productId: string; totalSold: number }[]).sort((a, b) => b.totalSold - a.totalSold).slice(0, 5);
+
+  const getOrdersByStatus = (status: string) => {
+    if (status === "all") return orders;
+    return orders.filter(o => o.status === status);
+  };
+
+  const totalRevenue = orders.filter(o => o.status === "Delivered").reduce((sum, o) => sum + o.total, 0);
 
   return (
     <AdminContext.Provider
@@ -1116,6 +768,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         addProduct,
         updateProduct,
         deleteProduct,
+        bulkDeleteProducts,
         orders,
         updateOrderStatus,
         addOrder,
@@ -1134,25 +787,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         showAdminLogin,
         setShowAdminLogin,
         categories,
-        addCategory: (category) => {
-          setCategories((prev) => [
-            ...prev,
-            { ...category, id: Date.now().toString() },
-          ]);
-        },
-        updateCategory: (id, category) => {
-          setCategories((prev) =>
-            prev.map((c) => (c.id === id ? { ...c, ...category } : c))
-          );
-        },
-        deleteCategory: (id) => {
-          setCategories((prev) => prev.filter((c) => c.id !== id));
-        },
-        toggleCategoryStatus: (id) => {
-          setCategories((prev) =>
-            prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c))
-          );
-        },
+        addCategory,
+        updateCategory,
+        deleteCategory,
+        toggleCategoryStatus,
+        isDataLoaded,
+        lowStockProducts,
+        topSellingProducts,
+        getOrdersByStatus,
+        totalRevenue,
       }}
     >
       {children}

@@ -11,6 +11,7 @@ import {
   Tag,
   List,
   RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
@@ -18,7 +19,7 @@ import SessionWarning from "./admin/SessionWarning";
 import { useAdminTimeout } from "../hooks/useAdminTimeout";
 
 export default function AdminLayout() {
-  const { isAdminLoggedIn, logout, triggerLogout } = useAdmin();
+  const { isAdminLoggedIn, logout, triggerLogout, lowStockProducts } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -67,6 +68,8 @@ export default function AdminLayout() {
       icon: Package,
       label: "Products",
       path: "/admin/products",
+      badge: lowStockProducts.length > 0 ? lowStockProducts.length : undefined,
+      badgeColor: "bg-orange-500",
     },
     {
       icon: List,
@@ -136,6 +139,11 @@ export default function AdminLayout() {
                     >
                       <item.icon className="w-5 h-5" />
                       <span>{item.label}</span>
+                      {item.badge && (
+                        <span className={`${item.badgeColor || 'bg-red-500'} text-white text-xs font-bold px-2 py-0.5 rounded-full ml-auto`}>
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );

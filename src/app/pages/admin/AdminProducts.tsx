@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Trash2, Search } from "lucide-react";
+import { Edit, Trash2, Search, CheckSquare, Square, X, Filter } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -23,8 +23,12 @@ import {
 import { toast } from "sonner";
 
 export default function AdminProducts() {
-  const { products, updateProduct, deleteProduct, categories } = useAdmin();
+  const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories } = useAdmin();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStock, setFilterStock] = useState("all");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -35,11 +39,41 @@ export default function AdminProducts() {
     image: "",
   });
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === "all" || p.category === filterCategory;
+    const matchesStock = filterStock === "all" ||
+      (filterStock === "low" && p.stock < 10 && p.stock > 0) ||
+      (filterStock === "out" && p.stock === 0) ||
+      (filterStock === "in" && p.stock >= 10);
+    return matchesSearch && matchesCategory && matchesStock;
+  });
+
+  const handleSelectAll = () => {
+    if (selectedProducts.length === filteredProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const handleSelectProduct = (productId: string) => {
+    setSelectedProducts(prev =>
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    if (confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) {
+      bulkDeleteProducts(selectedProducts);
+      toast.success(`${selectedProducts.length} products deleted!`);
+      setSelectedProducts([]);
+      setShowBulkActions(false);
+    }
+  };
 
   const handleEdit = (productId: string) => {
     const product = products.find((p) => p.id === productId);
@@ -76,7 +110,6 @@ export default function AdminProducts() {
     }
   };
 
-
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -84,13 +117,25 @@ export default function AdminProducts() {
           <h1 className="text-3xl font-bold mb-2">Products Management</h1>
           <p className="text-gray-600">Manage your product inventory</p>
         </div>
-        <div className="text-2xl font-bold text-[#D4AF37]">
-          {products.length} Products
+        <div className="flex items-center gap-4">
+          <div className="text-2xl font-bold text-[#D4AF37]">
+            {products.length} Products
+          </div>
+          {selectedProducts.length > 0 && (
+            <Button
+              onClick={() => setShowBulkActions(true)}
+              variant="outline"
+              className="border-[#D4AF37] text-[#D4AF37]"
+            >
+              <CheckSquare className="w-4 h-4 mr-2" />
+              {selectedProducts.length} Selected
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Filters */}
+      <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
@@ -101,7 +146,79 @@ export default function AdminProducts() {
             className="pl-10"
           />
         </div>
+        <div className="flex flex-wrap gap-4">
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-48">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterStock} onValueChange={setFilterStock}>
+            <SelectTrigger className="w-48">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Stock Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stock</SelectItem>
+              <SelectItem value="low">Low Stock (&lt;10)</SelectItem>
+              <SelectItem value="out">Out of Stock</SelectItem>
+              <SelectItem value="in">In Stock (&gt;=10)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {(filterCategory !== "all" || filterStock !== "all" || searchQuery) && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setFilterCategory("all");
+                setFilterStock("all");
+                setSearchQuery("");
+              }}
+            >
+              Clear Filters
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Bulk Actions Bar */}
+      {showBulkActions && selectedProducts.length > 0 && (
+        <div className="mb-6 bg-[#D4AF37] text-black rounded-lg p-4 flex items-center justify-between">
+          <span className="font-semibold">
+            {selectedProducts.length} products selected
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedProducts([]);
+                setShowBulkActions(false);
+              }}
+              className="bg-white border-black text-black hover:bg-gray-100"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Products Table */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -109,6 +226,18 @@ export default function AdminProducts() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
+                <th className="py-4 px-4 w-12">
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-gray-600 hover:text-[#D4AF37] transition-colors"
+                  >
+                    {selectedProducts.length === filteredProducts.length && filteredProducts.length > 0 ? (
+                      <CheckSquare className="w-5 h-5" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                </th>
                 <th className="text-left py-4 px-4 font-semibold">Image</th>
                 <th className="text-left py-4 px-4 font-semibold">Name</th>
                 <th className="text-left py-4 px-4 font-semibold">Category</th>
@@ -119,7 +248,19 @@ export default function AdminProducts() {
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="border-b hover:bg-gray-50">
+                <tr key={product.id} className={`border-b hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
+                  <td className="py-3 px-4">
+                    <button
+                      onClick={() => handleSelectProduct(product.id)}
+                      className="text-gray-600 hover:text-[#D4AF37] transition-colors"
+                    >
+                      {selectedProducts.includes(product.id) ? (
+                        <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                  </td>
                   <td className="py-3 px-4">
                     <img
                       src={product.image}
@@ -142,15 +283,18 @@ export default function AdminProducts() {
                     Rs. {product.price.toLocaleString()}
                   </td>
                   <td className="py-3 px-4">
-                    <span
-                      className={`font-semibold ${
-                        product.stock < 10
-                          ? "text-orange-600"
-                          : "text-green-600"
-                      }`}
-                    >
+                    <span className={`font-semibold ${
+                      product.stock === 0 ? "text-red-600" :
+                      product.stock < 10 ? "text-orange-600" : "text-green-600"
+                    }`}>
                       {product.stock}
                     </span>
+                    {product.stock === 0 && (
+                      <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">Out</span>
+                    )}
+                    {product.stock < 10 && product.stock > 0 && (
+                      <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">Low</span>
+                    )}
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex gap-2">
@@ -165,7 +309,7 @@ export default function AdminProducts() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(product.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -176,6 +320,11 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            <p>No products found matching your criteria</p>
+          </div>
+        )}
       </div>
 
       {/* Edit Dialog */}
