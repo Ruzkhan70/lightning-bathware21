@@ -31,6 +31,7 @@ export default function Account() {
   const [forgotNewPassword, setForgotNewPassword] = useState("");
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
   const [showForgotPasswordField, setShowForgotPasswordField] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
 
   // Login form state
@@ -190,7 +191,7 @@ export default function Account() {
       return;
     }
 
-    if (verificationCode === code) {
+    if (verificationCode.trim() === code) {
       setForgotStep("reset");
       setShowForgotPasswordField(true);
       toast.success("Code verified! Set your new password.");
@@ -209,14 +210,16 @@ export default function Account() {
       toast.error("Password must be at least 6 characters");
       return;
     }
-    const success = await resetPassword(forgotEmail, forgotNewPassword);
-    if (success) {
+    const result = await resetPassword(forgotEmail, forgotNewPassword);
+    if (result.success) {
       toast.success("Password reset successfully! Please login.");
       localStorage.removeItem("resetCode");
       closeForgotPassword();
       setIsLoginMode(true);
+    } else if (result.error === "email_not_found") {
+      toast.error("No account found with this email");
     } else {
-      toast.error("Something went wrong");
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
@@ -229,6 +232,7 @@ export default function Account() {
     setForgotNewPassword("");
     setForgotConfirmPassword("");
     setShowForgotPasswordField(false);
+    setShowResetPassword(false);
   };
 
   const handleLogout = () => {
@@ -760,7 +764,7 @@ export default function Account() {
               )}
 
               {/* Step 3: Reset Password */}
-              {forgotStep === "reset" && showForgotPasswordField && (
+              {forgotStep === "reset" && (
                 <>
                   <div className="flex items-center mb-4">
                     <button
@@ -779,7 +783,7 @@ export default function Account() {
                       <label className="block text-sm font-medium mb-2">New Password</label>
                       <div className="relative">
                         <Input
-                          type={showForgotPasswordField ? "text" : "password"}
+                          type={showResetPassword ? "text" : "password"}
                           value={forgotNewPassword}
                           onChange={(e) => setForgotNewPassword(e.target.value)}
                           placeholder="••••••••"
@@ -789,10 +793,10 @@ export default function Account() {
                         />
                         <button
                           type="button"
-                          onClick={() => setShowForgotPasswordField(!showForgotPasswordField)}
+                          onClick={() => setShowResetPassword(!showResetPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         >
-                          {showForgotPasswordField ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          {showResetPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
                     </div>

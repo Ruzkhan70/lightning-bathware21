@@ -23,7 +23,7 @@ interface UserContextType {
   ) => Promise<boolean>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<void>;
-  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
+  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -140,22 +140,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const resetPassword = async (email: string, newPassword: string): Promise<boolean> => {
+  const resetPassword = async (email: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        return false;
+        return { success: false, error: "email_not_found" };
       }
 
       const userDoc = querySnapshot.docs[0];
       await updateDoc(doc(db, "users", userDoc.id), { password: newPassword });
-      return true;
+      return { success: true };
     } catch (error) {
       console.error("Reset password error:", error);
-      return false;
+      return { success: false, error: "unknown" };
     }
   };
 

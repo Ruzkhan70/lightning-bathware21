@@ -2,11 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    // Store data - Public read/write (admin portal saves here)
+    // Store data - Public read/write (images, content, categories, profile)
     match /storeData/{document} {
       allow read: if true;
       allow write: if true;
@@ -16,46 +12,19 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
-      allow update, delete: if isAuthenticated();
+      allow update, delete: if true;
     }
     
-    // Users - Own data only
+    // Users - Auth required + Password reset without auth
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId
+              || request.auth == null;
+      allow update: if (request.auth != null && request.auth.uid == userId) 
+                || (request.auth == null && request.resource.data.diff().affectedKeys().hasOnly(['password']));
+      allow create, delete: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Wishlist - Own data only
-    match /wishlist/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Offers - Public read/write
-    match /offers/{offerId} {
-      allow read: if true;
-      allow write: if true;
-    }
-  }
-}
-    
-    // Store data - Public read/write (admin portal saves here)
-    match /storeData/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    // Orders - Public create/read, Auth update/delete
-    match /orders/{orderId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
-      allow update, delete: if isAuthenticated();
-    }
-    
-    // Users - Own data only
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Wishlist - Own data only
+    // Wishlist - Auth required
     match /wishlist/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
