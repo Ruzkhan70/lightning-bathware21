@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
@@ -416,6 +416,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem("adminPassword") || DEFAULT_PASSWORD);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   
+  // Use refs to track initialization and prevent overwrites
+  const isInitialized = useRef({
+    storeProfile: false,
+    storeAssets: false,
+    siteContent: false,
+    categories: false,
+    products: false,
+  });
+  
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
@@ -535,17 +544,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const profileRef = doc(db, "storeData", "profile");
       const unsubscribe = onSnapshot(profileRef, (docSnap) => {
         if (docSnap.exists()) {
-          setStoreProfile({ ...DEFAULT_STORE_PROFILE, ...docSnap.data() } as StoreProfile);
-        } else {
+          const data = docSnap.data();
+          setStoreProfile({ ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile);
+        } else if (!isInitialized.current.storeProfile) {
           setDoc(profileRef, DEFAULT_STORE_PROFILE);
         }
+        isInitialized.current.storeProfile = true;
         setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
       }, () => {
+        isInitialized.current.storeProfile = true;
         setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Error loading storeProfile:", error);
+      isInitialized.current.storeProfile = true;
       setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
     }
   }, []);
@@ -557,16 +570,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const unsubscribe = onSnapshot(assetsRef, (docSnap) => {
         if (docSnap.exists()) {
           setStoreAssets(docSnap.data() as StoreAssets);
-        } else {
+        } else if (!isInitialized.current.storeAssets) {
           setDoc(assetsRef, DEFAULT_STORE_ASSETS);
         }
+        isInitialized.current.storeAssets = true;
         setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
       }, () => {
+        isInitialized.current.storeAssets = true;
         setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Error loading storeAssets:", error);
+      isInitialized.current.storeAssets = true;
       setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
     }
   }, []);
@@ -579,16 +595,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data() as SiteContent;
           setSiteContent({ ...DEFAULT_SITE_CONTENT, ...data });
-        } else {
+        } else if (!isInitialized.current.siteContent) {
           setDoc(contentRef, DEFAULT_SITE_CONTENT);
         }
+        isInitialized.current.siteContent = true;
         setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
       }, () => {
+        isInitialized.current.siteContent = true;
         setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Error loading siteContent:", error);
+      isInitialized.current.siteContent = true;
       setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
     }
   }, []);
@@ -603,16 +622,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           if (data.categories && Array.isArray(data.categories)) {
             setCategories(data.categories);
           }
-        } else {
+        } else if (!isInitialized.current.categories) {
           setDoc(catRef, { categories: DEFAULT_CATEGORIES });
         }
+        isInitialized.current.categories = true;
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
       }, () => {
+        isInitialized.current.categories = true;
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Error loading categories:", error);
+      isInitialized.current.categories = true;
       setFirebaseLoaded(prev => ({ ...prev, categories: true }));
     }
   }, []);

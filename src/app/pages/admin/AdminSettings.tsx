@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
@@ -21,6 +21,23 @@ export default function AdminSettings() {
   const [profileForm, setProfileForm] = useState({ ...storeProfile });
   const [assetsForm, setAssetsForm] = useState({ ...storeAssets });
   const [contentForm, setContentForm] = useState({ ...siteContent });
+
+  // Sync form states when context data changes (after Firebase loads)
+  useEffect(() => {
+    setProfileForm({ ...storeProfile });
+  }, [storeProfile]);
+
+  useEffect(() => {
+    setAssetsForm({ ...storeAssets });
+  }, [storeAssets]);
+
+  useEffect(() => {
+    setContentForm({ ...siteContent });
+  }, [siteContent]);
+
+  useEffect(() => {
+    setUsernameForm({ newUsername: adminUsername });
+  }, [adminUsername]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
