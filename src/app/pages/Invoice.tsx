@@ -280,6 +280,14 @@ export default function Invoice() {
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-2">Scan to verify authenticity</p>
+                    <Button
+                      onClick={() => window.open(verificationUrl, "_blank")}
+                      variant="outline"
+                      size="sm"
+                      className="mt-3 w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                    >
+                      Open Verification Link
+                    </Button>
                   </div>
 
                   <div className="space-y-2 min-w-[250px]">

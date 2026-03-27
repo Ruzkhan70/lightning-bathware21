@@ -824,7 +824,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const getInvoiceById = (id: string) => {
-    return invoices.find(inv => inv.id === id || inv.invoiceNumber === id);
+    return invoices.find(inv => 
+      inv.id === id || 
+      inv.invoiceNumber === id ||
+      inv.id === id.replace(/-/g, '') ||
+      inv.id.replace(/-/g, '') === id.replace(/-/g, '')
+    );
   };
 
   useEffect(() => {

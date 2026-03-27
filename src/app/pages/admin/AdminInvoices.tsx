@@ -552,6 +552,14 @@ export default function AdminInvoices() {
                       level="H"
                     />
                   </div>
+                  <Button
+                    onClick={() => window.open(`https://lightning-bathware.vercel.app/#/verify/${selectedInvoice.id}`, "_blank")}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white text-xs"
+                  >
+                    Open Verification
+                  </Button>
                 </div>
                 <div className="text-right space-y-1">
                   <p>Subtotal: Rs. {selectedInvoice.subtotal.toLocaleString()}</p>
