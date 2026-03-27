@@ -1011,11 +1011,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteOrder = async (id: string) => {
-    setOrders(prev => prev.filter(order => order.id !== id));
     try {
+      const invoice = invoices.find(inv => inv.orderId === id);
+      
+      setOrders(prev => prev.filter(order => order.id !== id));
+      setInvoices(prev => prev.filter(inv => inv.orderId !== id));
+      
       await deleteDoc(doc(db, "orders", id));
+      
+      if (invoice) {
+        await deleteDoc(doc(db, "invoices", invoice.id));
+      }
+      
+      toast.success("Order and associated invoice deleted");
     } catch (error) {
       console.error("Error deleting order:", error);
+      toast.error("Failed to delete order");
     }
   };
 
