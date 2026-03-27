@@ -166,11 +166,13 @@ export interface SiteContent {
 interface AdminContextType {
   isAdminLoggedIn: boolean;
   adminUsername: string;
+  adminCredentials: { username: string; password: string };
+  isAdminDataLoaded: boolean;
   login: (username: string, password: string) => boolean;
   logout: () => void;
   triggerLogout: () => void;
-  changePassword: (currentPassword: string, newPassword: string) => boolean;
-  changeUsername: (newUsername: string) => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  changeUsername: (newUsername: string) => Promise<boolean>;
   storeProfile: StoreProfile;
   updateStoreProfile: (profile: Partial<StoreProfile>) => void;
   products: Product[];
@@ -412,12 +414,16 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminUsername, setAdminUsername] = useState(() => localStorage.getItem("adminUsername") || DEFAULT_USERNAME);
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem("adminPassword") || DEFAULT_PASSWORD);
+  const [adminCredentials, setAdminCredentials] = useState<{username: string; password: string}>({
+    username: DEFAULT_USERNAME,
+    password: DEFAULT_PASSWORD,
+  });
+  const [isAdminDataLoaded, setIsAdminDataLoaded] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   
   // Use refs to track initialization and prevent overwrites
   const isInitialized = useRef({
+    adminCredentials: false,
     storeProfile: false,
     storeAssets: false,
     siteContent: false,
@@ -429,7 +435,41 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
-  const [showAdminLogin, setShowAdminLogin] = useState(() => localStorage.getItem("showAdminLogin") === "true");
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+
+  // Firebase real-time sync for admin credentials
+  useEffect(() => {
+    try {
+      const credentialsRef = doc(db, "adminCredentials", "main");
+      const unsubscribe = onSnapshot(credentialsRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setAdminCredentials({
+            username: data.username || DEFAULT_USERNAME,
+            password: data.password || DEFAULT_PASSWORD,
+          });
+        } else if (!isInitialized.current.adminCredentials) {
+          // Initialize with default credentials on first run
+          setDoc(credentialsRef, {
+            username: DEFAULT_USERNAME,
+            password: DEFAULT_PASSWORD,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+        isInitialized.current.adminCredentials = true;
+        setIsAdminDataLoaded(true);
+      }, (error) => {
+        console.error("Error loading admin credentials:", error);
+        isInitialized.current.adminCredentials = true;
+        setIsAdminDataLoaded(true);
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error loading admin credentials:", error);
+      isInitialized.current.adminCredentials = true;
+      setIsAdminDataLoaded(true);
+    }
+  }, []);
 
   const [products, setProducts] = useState<Product[]>([
     { id: "1", name: "LED Ceiling Light - Modern Round", category: "Lighting", price: 4500, isAvailable: true, description: "Modern round LED ceiling light with adjustable brightness.", image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500" },
@@ -900,12 +940,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  useEffect(() => {
-    localStorage.setItem("showAdminLogin", showAdminLogin.toString());
-  }, [showAdminLogin]);
-
   const login = (username: string, password: string): boolean => {
-    if (username === adminUsername && password === adminPassword) {
+    if (username === adminCredentials.username && password === adminCredentials.password) {
       setIsAdminLoggedIn(true);
       return true;
     }
@@ -915,22 +951,48 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const logout = () => setIsAdminLoggedIn(false);
   const triggerLogout = () => setIsAdminLoggedIn(false);
 
-  const changePassword = (currentPassword: string, newPassword: string): boolean => {
-    if (currentPassword === adminPassword) {
-      setAdminPassword(newPassword);
-      localStorage.setItem("adminPassword", newPassword);
-      return true;
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (currentPassword !== adminCredentials.password) {
+      return false;
     }
-    return false;
+    
+    try {
+      const credentialsRef = doc(db, "adminCredentials", "main");
+      await setDoc(credentialsRef, {
+        username: adminCredentials.username,
+        password: newPassword,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+      
+      setAdminCredentials(prev => ({ ...prev, password: newPassword }));
+      return true;
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error("Failed to change password");
+      return false;
+    }
   };
 
-  const changeUsername = (newUsername: string): boolean => {
-    if (newUsername && newUsername.trim().length >= 3) {
-      setAdminUsername(newUsername.trim());
-      localStorage.setItem("adminUsername", newUsername.trim());
-      return true;
+  const changeUsername = async (newUsername: string): Promise<boolean> => {
+    if (!newUsername || newUsername.trim().length < 3) {
+      return false;
     }
-    return false;
+    
+    try {
+      const credentialsRef = doc(db, "adminCredentials", "main");
+      await setDoc(credentialsRef, {
+        username: newUsername.trim(),
+        password: adminCredentials.password,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+      
+      setAdminCredentials(prev => ({ ...prev, username: newUsername.trim() }));
+      return true;
+    } catch (error) {
+      console.error("Error changing username:", error);
+      toast.error("Failed to change username");
+      return false;
+    }
   };
 
   const updateStoreProfile = async (profile: Partial<StoreProfile>) => {
@@ -1202,7 +1264,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     <AdminContext.Provider
       value={{
         isAdminLoggedIn,
-        adminUsername,
+        adminUsername: adminCredentials.username,
+        adminCredentials,
+        isAdminDataLoaded,
         login,
         logout,
         triggerLogout,

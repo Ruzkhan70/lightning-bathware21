@@ -2,6 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Admin credentials - Public read (for login), write protected
+    match /adminCredentials/{document} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
     // Store data - Public read/write
     match /storeData/{document} {
       allow read: if true;

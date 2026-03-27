@@ -105,7 +105,7 @@ export default function AdminSettings() {
     });
   };
 
-  const handleUsernameChange = (e: React.FormEvent) => {
+  const handleUsernameChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!usernameForm.newUsername) {
@@ -118,7 +118,7 @@ export default function AdminSettings() {
       return;
     }
 
-    const success = changeUsername(usernameForm.newUsername);
+    const success = await changeUsername(usernameForm.newUsername);
     if (success) {
       toast.success("Username updated successfully!");
     } else {
@@ -126,7 +126,7 @@ export default function AdminSettings() {
     }
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -148,7 +148,7 @@ export default function AdminSettings() {
       return;
     }
 
-    const success = changePassword(
+    const success = await changePassword(
       passwordForm.currentPassword,
       passwordForm.newPassword
     );
