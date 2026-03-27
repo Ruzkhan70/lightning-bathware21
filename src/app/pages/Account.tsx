@@ -247,8 +247,10 @@ export default function Account() {
     ? orders.filter((order) => order.phone === user?.phone)
     : [];
 
+  const normalizePhone = (phone: string) => phone.replace(/[\s\-\+\(\)]/g, "");
+
   const userInvoices = isLoggedIn
-    ? invoices.filter((inv) => inv.customerPhone === user?.phone)
+    ? invoices.filter((inv) => normalizePhone(inv.customerPhone) === normalizePhone(user?.phone || ""))
     : [];
 
   if (isLoggedIn && user) {
