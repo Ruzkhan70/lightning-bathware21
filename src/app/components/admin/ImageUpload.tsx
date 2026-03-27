@@ -1,7 +1,5 @@
 import { useState, useCallback, useRef } from "react";
 import { Upload, X } from "lucide-react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../../../firebase";
 import { toast } from "sonner";
 
 interface ImageUploadProps {
@@ -12,23 +10,10 @@ interface ImageUploadProps {
 
 export default function ImageUpload({ value, onChange, label }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadToFirebaseStorage = async (file: File): Promise<string> => {
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const storageRef = ref(storage, `images/${fileName}`);
-    
-    // Compress before uploading
-    const compressedBlob = await compressImageToBlob(file);
-    await uploadBytes(storageRef, compressedBlob);
-    
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
-  };
-
-  const compressImageToBlob = (file: File): Promise<Blob> => {
+  const compressImage = async (file: File, maxWidth = 1920, quality = 0.8): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -36,7 +21,6 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
         img.onload = () => {
           const canvas = document.createElement("canvas");
           let { width, height } = img;
-          const maxWidth = 1920;
 
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
@@ -54,17 +38,20 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
 
           ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                reject(new Error("Failed to create blob"));
-              }
-            },
-            "image/jpeg",
-            0.8
-          );
+          let dataUrl = canvas.toDataURL("image/jpeg", quality);
+          
+          if (dataUrl.length > 900 * 1024) {
+            dataUrl = canvas.toDataURL("image/jpeg", 0.5);
+          }
+          
+          if (dataUrl.length > 900 * 1024) {
+            canvas.width = width * 0.5;
+            canvas.height = height * 0.5;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+          }
+
+          resolve(dataUrl);
         };
         img.onerror = () => reject(new Error("Failed to load image"));
         img.src = e.target?.result as string;
@@ -85,18 +72,26 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
       return;
     }
 
-    setIsUploading(true);
-    toast.info("Uploading image to Firebase...");
+    setIsCompressing(true);
+    toast.info("Compressing image...");
 
     try {
-      const imageUrl = await uploadToFirebaseStorage(file);
-      onChange(imageUrl);
-      toast.success("Image uploaded and saved!");
+      const compressedDataUrl = await compressImage(file);
+      
+      const sizeInMB = (compressedDataUrl.length * 3) / 4 / 1024 / 1024;
+      if (sizeInMB > 0.9) {
+        toast.error("Image is too large even after compression. Please use a smaller image or an image URL instead.");
+        setIsCompressing(false);
+        return;
+      }
+
+      onChange(compressedDataUrl);
+      toast.success("Image compressed and saved!");
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image. Please try again.");
+      console.error("Error compressing image:", error);
+      toast.error("Failed to process image. Please try a different image.");
     } finally {
-      setIsUploading(false);
+      setIsCompressing(false);
     }
   };
 
@@ -126,17 +121,6 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
     }
   };
 
-  const handleUrlInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      const input = e.target as HTMLInputElement;
-      const url = input.value.trim();
-      if (url) {
-        onChange(url);
-        toast.success("Image URL saved!");
-      }
-    }
-  };
-
   return (
     <div className="space-y-2">
       {label && <label className="text-sm font-medium">{label}</label>}
@@ -145,11 +129,11 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        onClick={() => !isUploading && fileInputRef.current?.click()}
+        onClick={() => !isCompressing && fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-lg p-4 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[150px]
           ${isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-gray-300 hover:border-[#D4AF37]"}
           ${value ? "bg-gray-50" : "bg-white"}
-          ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
+          ${isCompressing ? "opacity-50 pointer-events-none" : ""}`}
       >
         <input
           type="file"
@@ -159,16 +143,16 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
           className="hidden"
         />
 
-        {isUploading && (
+        {isCompressing && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
             <div className="text-center">
               <div className="w-10 h-10 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Uploading to Firebase...</p>
+              <p className="text-sm text-gray-600">Compressing...</p>
             </div>
           </div>
         )}
 
-        {value && !isUploading ? (
+        {value && !isCompressing ? (
           <div className="relative w-full aspect-video rounded-md overflow-hidden bg-white flex items-center justify-center shadow-sm">
             <img src={value} alt="Preview" className="max-w-full max-h-full object-contain" />
             <button
@@ -182,33 +166,25 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
               <X className="w-4 h-4" />
             </button>
           </div>
-        ) : !isUploading ? (
+        ) : !isCompressing ? (
           <div className="text-center">
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Upload className="w-6 h-6 text-gray-500" />
             </div>
             <p className="text-sm font-medium text-gray-700">Drag & drop or click to upload</p>
-            <p className="text-xs text-gray-500 mt-1">Images are stored in Firebase Storage</p>
+            <p className="text-xs text-gray-500 mt-1">Images will be compressed automatically</p>
           </div>
         ) : null}
       </div>
       
-      {value && (
-        <p className="text-[10px] text-gray-400 truncate">
-          Stored in Firebase: {value.length > 50 ? `${value.substring(0, 50)}...` : value}
-        </p>
+      {value && !value.startsWith('data:') && (
+         <p className="text-[10px] text-gray-400 truncate">Current URL: {value}</p>
       )}
       
-      {!value && (
-        <div className="mt-2">
-          <p className="text-xs text-gray-500 mb-1">Or paste an image URL:</p>
-          <input
-            type="url"
-            placeholder="https://example.com/image.jpg"
-            onKeyDown={handleUrlInput}
-            className="w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-          />
-        </div>
+      {value && value.startsWith('data:') && (
+        <p className="text-[10px] text-gray-400">
+          Image stored as compressed data. For best results, use images under 1MB or use URL instead.
+        </p>
       )}
     </div>
   );
