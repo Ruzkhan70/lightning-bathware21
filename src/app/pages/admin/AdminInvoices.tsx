@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -34,23 +34,29 @@ export default function AdminInvoices() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showFilters, setShowFilters] = useState(false);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
+    if (hasInitializedRef.current) return;
+    if (invoices.length === 0 || orders.length === 0) return;
+    
+    hasInitializedRef.current = true;
+    
     const generateMissingInvoices = async () => {
-      if (orders.length > 0) {
-        for (const order of orders) {
-          const hasInvoice = invoices.some(inv => inv.orderId === order.id);
-          if (!hasInvoice) {
-            await createInvoice(order);
+      for (const order of orders) {
+        const hasInvoice = invoices.some(inv => inv.orderId === order.id);
+        if (!hasInvoice) {
+          try {
+            await createInvoice(order, undefined, true);
+          } catch (e) {
+            console.error("Failed to create invoice for order:", order.id);
           }
         }
       }
     };
     
-    if (invoices.length === 0 && orders.length > 0) {
-      generateMissingInvoices();
-    }
-  }, [orders.length]);
+    generateMissingInvoices();
+  }, [orders.length, invoices.length]);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
