@@ -769,7 +769,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return `INV-${year}${month}-${random}`;
   };
 
-  const createInvoice = async (order: Order, customerEmail: string = "") => {
+  const createInvoice = async (order: Order, customerEmail: string = "", silent: boolean = false) => {
+    // Check if invoice already exists for this order
+    const existingInvoice = invoices.find(inv => inv.orderId === order.id);
+    if (existingInvoice) {
+      return existingInvoice;
+    }
+    
     const invoiceNumber = generateInvoiceNumber();
     const products = order.products.map(p => ({
       id: p.id,
@@ -801,38 +807,42 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setInvoices(prev => [invoice, ...prev]);
     try {
       await setDoc(doc(db, "invoices", invoiceId), invoice);
-      toast.success(`Invoice ${invoiceNumber} created!`);
+      if (!silent) {
+        toast.success(`Invoice ${invoiceNumber} created!`);
+      }
     } catch (error) {
       console.error("Error creating invoice:", error);
-      toast.error("Failed to create invoice");
+      if (!silent) {
+        toast.error("Failed to create invoice");
+      }
     }
     return invoice;
   };
 
   const updateInvoicePaymentStatus = async (id: string, status: "Paid" | "Pending") => {
-    // First update local state
+    // Find the invoice to get the correct ID
+    const invoice = invoices.find(inv => inv.id === id || inv.id === id.replace(/-/g, ""));
+    
+    if (!invoice) {
+      toast.error("Invoice not found");
+      return;
+    }
+    
+    // Update local state with correct ID
+    const correctId = invoice.id;
     setInvoices(prev => prev.map(inv => {
-      if (inv.id === id || inv.id === id.replace(/-/g, "")) {
+      if (inv.id === correctId) {
         return { ...inv, paymentStatus: status };
       }
       return inv;
     }));
     
     try {
-      // Try with original ID
-      const cleanId = id.replace(/-/g, "");
-      await setDoc(doc(db, "invoices", cleanId), { paymentStatus: status }, { merge: true });
+      await setDoc(doc(db, "invoices", correctId), { paymentStatus: status }, { merge: true });
       toast.success(`Status updated to ${status}`);
     } catch (error) {
       console.error("Error updating invoice status:", error);
-      // Try with original ID
-      try {
-        await setDoc(doc(db, "invoices", id), { paymentStatus: status }, { merge: true });
-        toast.success(`Status updated to ${status}`);
-      } catch (error2) {
-        console.error("Error updating invoice with original ID:", error2);
-        toast.error("Failed to update status");
-      }
+      toast.error("Failed to update status");
     }
   };
 

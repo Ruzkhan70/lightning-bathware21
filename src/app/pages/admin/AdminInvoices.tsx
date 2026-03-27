@@ -36,12 +36,21 @@ export default function AdminInvoices() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
+    const generateMissingInvoices = async () => {
+      if (orders.length > 0) {
+        for (const order of orders) {
+          const hasInvoice = invoices.some(inv => inv.orderId === order.id);
+          if (!hasInvoice) {
+            await createInvoice(order);
+          }
+        }
+      }
+    };
+    
     if (invoices.length === 0 && orders.length > 0) {
-      orders.forEach(order => {
-        createInvoice(order);
-      });
+      generateMissingInvoices();
     }
-  }, [orders, invoices.length]);
+  }, [orders.length]);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
