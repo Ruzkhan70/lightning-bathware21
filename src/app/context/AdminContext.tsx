@@ -731,16 +731,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           if (data.products && Array.isArray(data.products)) {
             setProducts(data.products);
           }
-        } else {
+        } else if (!isInitialized.current.products) {
+          // Initialize with default products only on first run
           setDoc(productsRef, { products: DEFAULT_PRODUCTS });
         }
+        isInitialized.current.products = true;
         setFirebaseLoaded(prev => ({ ...prev, products: true }));
       }, () => {
+        isInitialized.current.products = true;
         setFirebaseLoaded(prev => ({ ...prev, products: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Firebase products sync error:", error);
+      isInitialized.current.products = true;
       setFirebaseLoaded(prev => ({ ...prev, products: true }));
     }
   }, []);
