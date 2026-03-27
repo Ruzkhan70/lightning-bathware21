@@ -810,12 +810,29 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateInvoicePaymentStatus = async (id: string, status: "Paid" | "Pending") => {
-    setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, paymentStatus: status } : inv));
+    // First update local state
+    setInvoices(prev => prev.map(inv => {
+      if (inv.id === id || inv.id === id.replace(/-/g, "")) {
+        return { ...inv, paymentStatus: status };
+      }
+      return inv;
+    }));
+    
     try {
-      await updateDoc(doc(db, "invoices", id), { paymentStatus: status });
+      // Try with original ID
+      const cleanId = id.replace(/-/g, "");
+      await setDoc(doc(db, "invoices", cleanId), { paymentStatus: status }, { merge: true });
+      toast.success(`Status updated to ${status}`);
     } catch (error) {
       console.error("Error updating invoice status:", error);
-      toast.error("Failed to update status");
+      // Try with original ID
+      try {
+        await setDoc(doc(db, "invoices", id), { paymentStatus: status }, { merge: true });
+        toast.success(`Status updated to ${status}`);
+      } catch (error2) {
+        console.error("Error updating invoice with original ID:", error2);
+        toast.error("Failed to update status");
+      }
     }
   };
 
