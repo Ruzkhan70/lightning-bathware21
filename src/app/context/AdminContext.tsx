@@ -779,8 +779,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       total: p.price * p.quantity,
     }));
     const subtotal = products.reduce((sum, p) => sum + p.total, 0);
+    const invoiceId = `INV${Date.now()}`;
     const invoice: Invoice = {
-      id: `INV-${Date.now()}`,
+      id: invoiceId,
       invoiceNumber,
       orderId: order.id,
       customerName: order.customerName,
@@ -799,7 +800,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     };
     setInvoices(prev => [invoice, ...prev]);
     try {
-      await setDoc(doc(db, "invoices", invoice.id), invoice);
+      await setDoc(doc(db, "invoices", invoiceId), invoice);
       toast.success(`Invoice ${invoiceNumber} created!`);
     } catch (error) {
       console.error("Error creating invoice:", error);
