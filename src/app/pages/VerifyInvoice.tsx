@@ -4,20 +4,61 @@ import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { 
   CheckCircle, XCircle, FileText, Zap, Phone, MapPin, 
-  Calendar, User, Clock, DollarSign, Package
+  Calendar, User, Clock, DollarSign, Package, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase";
 
 export default function VerifyInvoice() {
   const { id } = useParams();
-  const { getInvoiceById, invoices, storeProfile } = useAdmin();
+  const { getInvoiceById, invoices, storeProfile, isDataLoaded } = useAdmin();
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"loading" | "found" | "not_found">("loading");
 
   useEffect(() => {
-    if (id) {
-      const foundInvoice = getInvoiceById(id);
+    const findInvoice = async () => {
+      if (!id) {
+        setStatus("not_found");
+        setLoading(false);
+        return;
+      }
+
+      // First try local lookup
+      let foundInvoice = getInvoiceById(id);
+      
+      // If not found locally, try Firebase directly
+      if (!foundInvoice) {
+        try {
+          const docRef = doc(db, "invoices", id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            foundInvoice = { ...docSnap.data(), id: docSnap.id };
+          }
+        } catch (error) {
+          console.error("Error fetching invoice from Firebase:", error);
+        }
+      }
+
+      // Also try with hyphens removed
+      if (!foundInvoice) {
+        const cleanId = id.replace(/-/g, "");
+        foundInvoice = getInvoiceById(cleanId);
+        
+        if (!foundInvoice) {
+          try {
+            const docRef = doc(db, "invoices", cleanId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              foundInvoice = { ...docSnap.data(), id: docSnap.id };
+            }
+          } catch (error) {
+            console.error("Error fetching invoice:", error);
+          }
+        }
+      }
+
       if (foundInvoice) {
         setInvoice(foundInvoice);
         setStatus("found");
@@ -25,8 +66,13 @@ export default function VerifyInvoice() {
         setStatus("not_found");
       }
       setLoading(false);
-    }
-  }, [id, invoices]);
+    };
+
+    // Wait a bit for Firebase to sync, then find
+    const timeout = setTimeout(findInvoice, 1000);
+    
+    return () => clearTimeout(timeout);
+  }, [id, invoices, isDataLoaded]);
 
   if (loading) {
     return (

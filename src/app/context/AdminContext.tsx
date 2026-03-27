@@ -824,11 +824,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const getInvoiceById = (id: string) => {
+    const cleanId = id.replace(/-/g, "");
     return invoices.find(inv => 
       inv.id === id || 
+      inv.id === cleanId ||
       inv.invoiceNumber === id ||
-      inv.id === id.replace(/-/g, '') ||
-      inv.id.replace(/-/g, '') === id.replace(/-/g, '')
+      inv.invoiceNumber === cleanId ||
+      inv.invoiceNumber.replace(/-/g, "") === cleanId
     );
   };
 
