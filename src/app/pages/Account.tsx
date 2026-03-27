@@ -250,7 +250,10 @@ export default function Account() {
   const normalizePhone = (phone: string) => phone.replace(/[\s\-\+\(\)]/g, "");
 
   const userInvoices = isLoggedIn
-    ? invoices.filter((inv) => normalizePhone(inv.customerPhone) === normalizePhone(user?.phone || ""))
+    ? invoices.filter((inv) => 
+        normalizePhone(inv.customerPhone) === normalizePhone(user?.phone || "") ||
+        inv.customerName.toLowerCase() === user?.name.toLowerCase()
+      )
     : [];
 
   if (isLoggedIn && user) {
