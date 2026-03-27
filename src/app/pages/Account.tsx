@@ -5,7 +5,7 @@ import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
-import emailjs from "emailjs-com";
+import emailjs from "@emailjs/browser";
 import { db } from "../../firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Order } from "../context/AdminContext";
