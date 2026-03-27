@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag } from "lucide-react";
+import { useNavigate } from "react-router";
+import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText, CheckCircle, Clock } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
@@ -8,17 +9,18 @@ import { toast } from "sonner";
 import emailjs from "@emailjs/browser";
 import { db } from "../../firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
-import { Order } from "../context/AdminContext";
+import { Order, Invoice } from "../context/AdminContext";
 
 const EMAILJS_PUBLIC_KEY = "z0LSWDMbKOfljQUzp";
 const EMAILJS_SERVICE_ID = "service_vd0s4n8";
 const EMAILJS_TEMPLATE_ID = "template_njxm8mi";
 
 export default function Account() {
+  const navigate = useNavigate();
   const { user, isLoggedIn, login, register, logout, resetPassword } = useUser();
-  const { orders, storeProfile } = useAdmin();
+  const { orders, invoices, storeProfile } = useAdmin();
+  const [activeTab, setActiveTab] = useState<"orders" | "invoices">("orders");
   const safeOrders = orders || [];
-  const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -245,6 +247,10 @@ export default function Account() {
     ? orders.filter((order) => order.phone === user?.phone)
     : [];
 
+  const userInvoices = isLoggedIn
+    ? invoices.filter((inv) => inv.customerPhone === user?.phone)
+    : [];
+
   if (isLoggedIn && user) {
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -297,69 +303,190 @@ export default function Account() {
               </div>
             </div>
 
-            {/* Orders Section */}
+            {/* Orders & Invoices Section */}
             <div className="bg-white rounded-xl shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <Package className="w-6 h-6 text-[#D4AF37]" />
-                <h2 className="text-2xl font-bold">My Orders</h2>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Package className="w-6 h-6 text-[#D4AF37]" />
+                  <h2 className="text-2xl font-bold">My Orders & Invoices</h2>
+                </div>
               </div>
 
-              {userOrders.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-600">No orders yet</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {userOrders.map((order) => (
-                    <div
-                      key={order.id}
-                      onClick={() => setSelectedOrder(order)}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="font-bold text-lg">
-                            Order #{order.id}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(order.date).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === "Delivered"
-                              ? "bg-green-100 text-green-700"
-                              : order.status === "Processing"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
+              {/* Tabs */}
+              <div className="flex gap-2 mb-6 border-b">
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+                    activeTab === "orders"
+                      ? "border-[#D4AF37] text-[#D4AF37]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Orders ({userOrders.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("invoices")}
+                  className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+                    activeTab === "invoices"
+                      ? "border-[#D4AF37] text-[#D4AF37]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Invoices ({userInvoices.length})
+                </button>
+              </div>
 
-                      <div className="border-t border-gray-200 pt-3">
-                        <p className="text-sm text-gray-600 mb-2">
-                          {order.products.length} item
-                          {order.products.length > 1 ? "s" : ""}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <p className="font-bold text-xl text-[#D4AF37]">
-                            Rs. {order.total.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-[#D4AF37] font-medium hover:underline">
-                            View Details →
-                          </p>
-                        </div>
-                      </div>
+              {/* Orders Tab */}
+              {activeTab === "orders" && (
+                <>
+                  {userOrders.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                      <p className="text-gray-600">No orders yet</p>
+                      <Button
+                        onClick={() => navigate("/products")}
+                        className="mt-4 bg-black hover:bg-[#D4AF37] text-white"
+                      >
+                        Browse Products
+                      </Button>
                     </div>
-                  ))}
-                </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {userOrders.map((order) => (
+                        <div
+                          key={order.id}
+                          onClick={() => setSelectedOrder(order)}
+                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <p className="font-bold text-lg">
+                                Order #{order.id}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(order.date).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                order.status === "Delivered"
+                                  ? "bg-green-100 text-green-700"
+                                  : order.status === "Processing"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
+                          </div>
+
+                          <div className="border-t border-gray-200 pt-3">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {order.products.length} item
+                              {order.products.length > 1 ? "s" : ""}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-xl text-[#D4AF37]">
+                                Rs. {order.total.toLocaleString()}
+                              </p>
+                              <p className="text-sm text-[#D4AF37] font-medium hover:underline">
+                                View Details →
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Invoices Tab */}
+              {activeTab === "invoices" && (
+                <>
+                  {userInvoices.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                      <p className="text-gray-600">No invoices yet</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Invoices will appear here after you complete a purchase
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {userInvoices.map((invoice) => (
+                        <div
+                          key={invoice.id}
+                          onClick={() => navigate(`/invoice/${invoice.id}`)}
+                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <p className="font-bold text-lg">
+                                {invoice.invoiceNumber}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(invoice.date).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
+                                  invoice.paymentStatus === "Paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                                }`}
+                              >
+                                {invoice.paymentStatus === "Paid" ? (
+                                  <CheckCircle className="w-3 h-3" />
+                                ) : (
+                                  <Clock className="w-3 h-3" />
+                                )}
+                                {invoice.paymentStatus}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-gray-200 pt-3">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {invoice.products.length} item
+                              {invoice.products.length > 1 ? "s" : ""}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-xl text-[#D4AF37]">
+                                Rs. {invoice.grandTotal.toLocaleString()}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/invoice/${invoice.id}`);
+                                  }}
+                                  className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
