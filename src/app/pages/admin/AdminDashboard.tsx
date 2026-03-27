@@ -4,12 +4,17 @@ import { useAdmin } from "../../context/AdminContext";
 import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
-  const { products, orders, offers, getActiveOffers, lowStockProducts, topSellingProducts, totalRevenue, isDataLoaded } = useAdmin();
+  const { products, orders, offers, getActiveOffers, topSellingProducts, totalRevenue, isDataLoaded } = useAdmin();
 
-  const pendingOrders = orders.filter((o) => o.status === "Pending").length;
-  const activeOffers = getActiveOffers();
-  const processingOrders = orders.filter((o) => o.status === "Processing").length;
-  const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
+  const safeProducts = products || [];
+  const safeOrders = orders || [];
+
+  const unavailableProducts = safeProducts.filter(p => !p.isAvailable);
+
+  const pendingOrders = safeOrders.filter((o) => o.status === "Pending").length;
+  const activeOffers = getActiveOffers() || [];
+  const processingOrders = safeOrders.filter((o) => o.status === "Processing").length;
+  const deliveredOrders = safeOrders.filter((o) => o.status === "Delivered").length;
 
   if (!isDataLoaded) {
     return (
@@ -26,13 +31,13 @@ export default function AdminDashboard() {
     {
       icon: Package,
       label: "Total Products",
-      value: products.length,
+      value: safeProducts.length,
       color: "bg-blue-500",
     },
     {
       icon: ShoppingCart,
       label: "Total Orders",
-      value: orders.length,
+      value: safeOrders.length,
       color: "bg-green-500",
     },
     {
@@ -50,12 +55,12 @@ export default function AdminDashboard() {
     {
       icon: DollarSign,
       label: "Total Revenue",
-      value: `Rs. ${totalRevenue.toLocaleString()}`,
+      value: `Rs. ${(totalRevenue || 0).toLocaleString()}`,
       color: "bg-[#D4AF37]",
     },
   ];
 
-  const recentOrders = orders.slice(0, 5);
+  const recentOrders = safeOrders.slice(0, 5);
 
   return (
     <div>
@@ -90,25 +95,25 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Low Stock Alert Banner */}
-      {lowStockProducts.length > 0 && (
+      {/* Unavailable Products Alert Banner */}
+      {unavailableProducts.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8 flex items-center justify-between"
+          className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 flex items-center justify-between"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-100 rounded-full">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
+            <div className="p-2 bg-red-100 rounded-full">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="font-semibold text-orange-800">Low Stock Alert</p>
-              <p className="text-sm text-orange-600">
-                {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''} running low on stock
+              <p className="font-semibold text-red-800">Unavailable Products</p>
+              <p className="text-sm text-red-600">
+                {unavailableProducts.length} product{unavailableProducts.length > 1 ? 's' : ''} not available
               </p>
             </div>
           </div>
-          <Link to="/admin/products?filter=low" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors">
+          <Link to="/admin/products?filter=unavailable" className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition-colors">
             View Products
           </Link>
         </motion.div>
@@ -179,7 +184,7 @@ export default function AdminDashboard() {
           {topSellingProducts.length > 0 ? (
             <div className="space-y-4">
               {topSellingProducts.slice(0, 5).map((item, index) => {
-                const product = products.find(p => p.id === item.productId);
+                const product = safeProducts.find(p => p.id === item.productId);
                 if (!product) return null;
                 return (
                   <div key={item.productId} className="flex items-center gap-3">
@@ -219,8 +224,8 @@ export default function AdminDashboard() {
           </h3>
           <div className="space-y-3">
             {["Lighting", "Bathroom Fittings", "Plumbing", "Electrical Hardware", "Construction Tools"].map((cat) => {
-              const count = products.filter(p => p.category === cat).length;
-              const total = products.length;
+              const count = safeProducts.filter(p => p.category === cat).length;
+              const total = safeProducts.length;
               const percentage = total > 0 ? (count / total) * 100 : 0;
               return (
                 <div key={cat}>
@@ -269,28 +274,26 @@ export default function AdminDashboard() {
 
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-orange-600" />
-            Low Stock Alert
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            Unavailable Products
           </h3>
           <div className="space-y-2">
-            {lowStockProducts.slice(0, 5).map((product) => (
+            {unavailableProducts.slice(0, 5).map((product) => (
               <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <span className="text-sm truncate flex-1">{product.name}</span>
-                <span className={`font-semibold text-sm ml-2 ${
-                  product.stock === 0 ? "text-red-600" : "text-orange-600"
-                }`}>
-                  {product.stock === 0 ? "Out" : product.stock}
+                <span className="font-semibold text-sm ml-2 text-red-600">
+                  Not Available
                 </span>
               </div>
             ))}
-            {lowStockProducts.length === 0 && (
+            {unavailableProducts.length === 0 && (
               <div className="text-center py-4 text-green-600">
-                <p className="text-sm font-medium">All products in stock!</p>
+                <p className="text-sm font-medium">All products available!</p>
               </div>
             )}
-            {lowStockProducts.length > 5 && (
+            {unavailableProducts.length > 5 && (
               <p className="text-xs text-gray-500 text-center mt-2">
-                +{lowStockProducts.length - 5} more products
+                +{unavailableProducts.length - 5} more products
               </p>
             )}
           </div>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface CartItem {
   id: string;
@@ -6,7 +6,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
-  stock: number;
+  isAvailable: boolean;
 }
 
 interface CartContextType {
@@ -22,7 +22,22 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    const saved = localStorage.getItem("cartItems");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map((item: any) => ({
+        ...item,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+      }));
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const addToCart = (product: Omit<CartItem, "quantity">) => {
     setCartItems((prev) => {
@@ -30,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existing) {
         return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
@@ -46,7 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems((prev) =>
       prev.map((item) =>
         item.id === id
-          ? { ...item, quantity: Math.min(Math.max(1, quantity), item.stock) }
+          ? { ...item, quantity: Math.max(1, quantity) }
           : item
       )
     );

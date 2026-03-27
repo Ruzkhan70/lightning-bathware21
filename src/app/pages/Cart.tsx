@@ -78,8 +78,7 @@ export default function Cart() {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
-                          disabled={item.quantity >= item.stock}
-                          className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 hover:bg-gray-100 transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>

@@ -60,7 +60,7 @@ export default function Services() {
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Why Choose Lightning Bathware?
+                Why Choose {storeProfile.storeName} {storeProfile.storeNameAccent}?
               </h2>
               <p className="text-gray-600 text-lg max-w-2xl mx-auto">
                 Your trusted partner for quality hardware solutions in Sri Lanka

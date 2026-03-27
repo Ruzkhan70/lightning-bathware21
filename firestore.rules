@@ -2,26 +2,25 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Store data - Public read/write (images, content, categories, profile)
+    // Store data - Public read/write
     match /storeData/{document} {
       allow read: if true;
       allow write: if true;
     }
     
-    // Orders - Public read/create, Auth update/delete
+    // Orders - Public read/create
     match /orders/{orderId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
       allow update, delete: if true;
     }
     
-    // Users - Auth required + Password reset without auth
+    // Users - Allow registration and password reset without auth
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId
-              || request.auth == null;
-      allow update: if (request.auth != null && request.auth.uid == userId) 
-                || (request.auth == null && request.resource.data.diff().affectedKeys().hasOnly(['password']));
-      allow create, delete: if request.auth != null && request.auth.uid == userId;
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
     
     // Wishlist - Auth required

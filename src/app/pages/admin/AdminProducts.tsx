@@ -25,7 +25,7 @@ import { useSearchParams } from "react-router";
 
 export default function AdminProducts() {
   const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories } = useAdmin();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStock, setFilterStock] = useState("all");
@@ -36,30 +36,32 @@ export default function AdminProducts() {
     name: "",
     category: "",
     price: 0,
-    stock: 0,
+    isAvailable: true,
     description: "",
     image: "",
   });
 
-  // Initialize filter from URL params
+  const safeProducts = products || [];
+  const safeCategories = categories || [];
+
+  // Handle URL params for filtering
   useEffect(() => {
     const filterParam = searchParams.get("filter");
-    if (filterParam === "low") {
-      setFilterStock("low");
-    } else if (filterParam === "out") {
-      setFilterStock("out");
+    if (filterParam === "unavailable") {
+      setFilterStock("unavailable");
+    } else if (filterParam === "available") {
+      setFilterStock("available");
     }
   }, [searchParams]);
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = safeProducts.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === "all" || p.category === filterCategory;
-    const matchesStock = filterStock === "all" ||
-      (filterStock === "low" && p.stock <= 10) ||
-      (filterStock === "out" && p.stock === 0) ||
-      (filterStock === "in" && p.stock >= 10);
-    return matchesSearch && matchesCategory && matchesStock;
+    const matchesAvailability = filterStock === "all" ||
+      (filterStock === "available" && p.isAvailable) ||
+      (filterStock === "unavailable" && !p.isAvailable);
+    return matchesSearch && matchesCategory && matchesAvailability;
   });
 
   const handleSelectAll = () => {
@@ -88,13 +90,13 @@ export default function AdminProducts() {
   };
 
   const handleEdit = (productId: string) => {
-    const product = products.find((p) => p.id === productId);
+    const product = safeProducts.find((p) => p.id === productId);
     if (product) {
       setFormData({
         name: product.name,
         category: product.category,
         price: product.price,
-        stock: product.stock,
+        isAvailable: product.isAvailable,
         description: product.description,
         image: product.image,
       });
@@ -146,30 +148,15 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Low Stock Filter Banner */}
-      {filterStock === "low" && (
-        <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Filter className="w-5 h-5 text-orange-600" />
-            <div>
-              <p className="font-semibold text-orange-800">Low Stock Products</p>
-              <p className="text-sm text-orange-600">
-                Showing products with stock 10 or less (including out of stock)
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Out of Stock Filter Banner */}
-      {filterStock === "out" && (
+      {/* Unavailable Filter Banner */}
+      {filterStock === "unavailable" && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Filter className="w-5 h-5 text-red-600" />
             <div>
-              <p className="font-semibold text-red-800">Out of Stock Products</p>
+              <p className="font-semibold text-red-800">Unavailable Products</p>
               <p className="text-sm text-red-600">
-                Showing products with zero stock
+                Showing unavailable products
               </p>
             </div>
           </div>
@@ -196,7 +183,7 @@ export default function AdminProducts() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
+              {safeCategories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
               ))}
             </SelectContent>
@@ -205,13 +192,12 @@ export default function AdminProducts() {
           <Select value={filterStock} onValueChange={setFilterStock}>
             <SelectTrigger className="w-48">
               <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Stock Status" />
+              <SelectValue placeholder="Availability" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Stock</SelectItem>
-              <SelectItem value="low">Low Stock (&lt;10)</SelectItem>
-              <SelectItem value="out">Out of Stock</SelectItem>
-              <SelectItem value="in">In Stock (&gt;=10)</SelectItem>
+              <SelectItem value="all">All Products</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="unavailable">Not Available</SelectItem>
             </SelectContent>
           </Select>
 
@@ -222,7 +208,6 @@ export default function AdminProducts() {
                 setFilterCategory("all");
                 setFilterStock("all");
                 setSearchQuery("");
-                setSearchParams({});
               }}
             >
               Clear Filters
@@ -326,18 +311,13 @@ export default function AdminProducts() {
                     Rs. {product.price.toLocaleString()}
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`font-semibold ${
-                      product.stock === 0 ? "text-red-600" :
-                      product.stock < 10 ? "text-orange-600" : "text-green-600"
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      product.isAvailable
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
                     }`}>
-                      {product.stock}
+                      {product.isAvailable ? "Available" : "Not Available"}
                     </span>
-                    {product.stock === 0 && (
-                      <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">Out</span>
-                    )}
-                    {product.stock < 10 && product.stock > 0 && (
-                      <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">Low</span>
-                    )}
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex gap-2">
@@ -422,15 +402,31 @@ export default function AdminProducts() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-stock">Stock</Label>
-                <Input
-                  id="edit-stock"
-                  type="number"
-                  value={formData.stock}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stock: Number(e.target.value) })
-                  }
-                />
+                <Label>Availability</Label>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isAvailable: true })}
+                    className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
+                      formData.isAvailable
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-gray-200 text-gray-500"
+                    }`}
+                  >
+                    Available
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isAvailable: false })}
+                    className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
+                      !formData.isAvailable
+                        ? "border-red-500 bg-red-50 text-red-700"
+                        : "border-gray-200 text-gray-500"
+                    }`}
+                  >
+                    Not Available
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -10,7 +10,8 @@ import {
 import { useAdmin } from "../context/AdminContext";
 
 export default function Footer() {
-  const { storeProfile } = useAdmin();
+  const { storeProfile, categories } = useAdmin();
+  const activeCategories = categories.filter(c => c.isActive).slice(0, 5);
 
   return (
     <footer className="bg-black text-white border-t border-gray-800">
@@ -29,19 +30,25 @@ export default function Footer() {
             </p>
             <div className="flex gap-4">
               <a
-                href="#"
+                href={storeProfile.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-[#D4AF37] transition-colors"
               >
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href={storeProfile.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-[#D4AF37] transition-colors"
               >
                 <Instagram className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href={storeProfile.twitterUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-[#D4AF37] transition-colors"
               >
                 <Twitter className="w-5 h-5" />
@@ -104,11 +111,13 @@ export default function Footer() {
               Categories
             </h3>
             <ul className="space-y-2 text-gray-400">
-              <li>Light Products</li>
-              <li>Bathroom Fittings</li>
-              <li>Plumbing Items</li>
-              <li>Electrical Hardware</li>
-              <li>Construction Tools</li>
+              {activeCategories.map((category) => (
+                <li key={category.id}>
+                  <Link to={`/products?category=${encodeURIComponent(category.name)}`} className="hover:text-[#D4AF37] transition-colors">
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -142,7 +151,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
           <p>
-            &copy; {new Date().getFullYear()} Lightning Bathware. All rights
+            &copy; {new Date().getFullYear()} {storeProfile.storeName} {storeProfile.storeNameAccent}. All rights
             reserved.
           </p>
         </div>

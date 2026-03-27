@@ -11,7 +11,8 @@ export default function Wishlist() {
   const { products } = useAdmin();
   const { addToCart } = useCart();
 
-  const wishlistProducts = products.filter((product) =>
+  const safeProducts = products || [];
+  const wishlistProducts = safeProducts.filter((product) =>
     wishlist.includes(product.id)
   );
 
@@ -80,10 +81,10 @@ export default function Wishlist() {
                 >
                   <X className="w-5 h-5" />
                 </button>
-                {product.stock === 0 && (
+                {!product.isAvailable && (
                   <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
                     <span className="text-white font-bold text-lg">
-                      Out of Stock
+                      Not Available
                     </span>
                   </div>
                 )}
@@ -108,18 +109,18 @@ export default function Wishlist() {
                       Rs. {product.price.toLocaleString()}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    Stock: {product.stock}
+                  <div className={`text-sm font-semibold ${product.isAvailable ? "text-green-600" : "text-red-600"}`}>
+                    {product.isAvailable ? "Available" : "Not Available"}
                   </div>
                 </div>
 
                 <Button
                   onClick={() => handleAddToCart(product.id, product.name)}
-                  disabled={product.stock === 0}
+                  disabled={!product.isAvailable}
                   className="w-full bg-black hover:bg-[#D4AF37] text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
-                  {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                  {product.isAvailable ? "Add to Cart" : "Not Available"}
                 </Button>
               </div>
             </div>

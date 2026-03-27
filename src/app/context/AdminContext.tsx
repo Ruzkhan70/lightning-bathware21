@@ -8,7 +8,7 @@ export interface Product {
   name: string;
   category: string;
   price: number;
-  stock: number;
+  isAvailable: boolean;
   description: string;
   image: string;
 }
@@ -44,6 +44,7 @@ export interface Offer {
   endDate: string;
   isEnabled: boolean;
   createdAt: string;
+  order: number;
 }
 
 export interface Category {
@@ -58,6 +59,7 @@ export interface Category {
 export interface StoreProfile {
   storeName: string;
   storeNameAccent: string;
+  storeLogo: string;
   phone: string;
   secondaryPhone: string;
   email: string;
@@ -73,6 +75,12 @@ export interface StoreProfile {
   instagramUrl: string;
   twitterUrl: string;
   adminShortcut: string;
+  deliveryColomboPrice: number;
+  deliveryIslandwidePrice: number;
+  statsYearsExperience: string;
+  statsProducts: string;
+  statsCustomers: string;
+  statsAuthentic: string;
 }
 
 export interface StoreAssets {
@@ -116,6 +124,17 @@ export interface SiteContent {
       question: string;
       answer: string;
     }[];
+  };
+  terms: {
+    introduction: string;
+    generalTerms: string[];
+    ordersAndPayment: string[];
+    delivery: string[];
+    returnsAndRefunds: string[];
+    warranty: string[];
+    privacy: string;
+    contactInfo: string;
+    updatesToTerms: string;
   };
 }
 
@@ -162,7 +181,6 @@ interface AdminContextType {
   showAdminLogin: boolean;
   setShowAdminLogin: (show: boolean) => void;
   isDataLoaded: boolean;
-  lowStockProducts: Product[];
   topSellingProducts: { productId: string; totalSold: number }[];
   getOrdersByStatus: (status: string) => Order[];
   totalRevenue: number;
@@ -176,6 +194,7 @@ const DEFAULT_PASSWORD = "admin123";
 const DEFAULT_STORE_PROFILE: StoreProfile = {
   storeName: "Lighting",
   storeNameAccent: "Bathware",
+  storeLogo: "",
   phone: "+94 11 234 5678",
   secondaryPhone: "+94 77 123 4567",
   email: "info@lightingbathware.lk",
@@ -191,6 +210,12 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   instagramUrl: "#",
   twitterUrl: "#",
   adminShortcut: "5212",
+  deliveryColomboPrice: 500,
+  deliveryIslandwidePrice: 1000,
+  statsYearsExperience: "10+",
+  statsProducts: "350+",
+  statsCustomers: "5,000+",
+  statsAuthentic: "100%",
 };
 
 const DEFAULT_STORE_ASSETS: StoreAssets = {
@@ -310,6 +335,41 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       },
     ],
   },
+  terms: {
+    introduction: "Welcome to [Store Name]. By accessing and using our website, you agree to be bound by these Terms and Conditions.",
+    generalTerms: [
+      "All prices are in Sri Lankan Rupees (LKR) and include applicable taxes.",
+      "Product images are for illustration purposes only. Actual colors may vary.",
+      "We reserve the right to change prices without prior notice.",
+      "All orders are subject to availability."
+    ],
+    ordersAndPayment: [
+      "Orders are confirmed only upon receipt of payment.",
+      "We accept cash on delivery and online payment methods.",
+      "We reserve the right to cancel any order without prior notice.",
+      "Order confirmation will be sent via email/SMS."
+    ],
+    delivery: [
+      "Delivery charges vary based on location.",
+      "Estimated delivery times are 1-5 business days.",
+      "Risk of loss transfers upon delivery confirmation.",
+      "Delivery to remote areas may take longer."
+    ],
+    returnsAndRefunds: [
+      "Returns accepted within 7 days of delivery.",
+      "Products must be unused and in original packaging.",
+      "Refunds processed within 7-14 business days.",
+      "Shipping charges are non-refundable."
+    ],
+    warranty: [
+      "Products are covered by manufacturer warranty where applicable.",
+      "Warranty does not cover damage from misuse or improper installation.",
+      "Keep original receipt for warranty claims."
+    ],
+    privacy: "We collect and use your personal information solely for order processing and customer service. We never share your data with third parties for marketing purposes.",
+    contactInfo: "For any questions regarding these terms, please contact us via phone, email, or visit our store location.",
+    updatesToTerms: "We reserve the right to update these terms at any time. Continued use of the website constitutes acceptance of updated terms."
+  },
 };
 
 const DEFAULT_CATEGORIES: Category[] = [
@@ -322,8 +382,8 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminUsername] = useState(DEFAULT_USERNAME);
-  const [adminPassword, setAdminPassword] = useState(DEFAULT_PASSWORD);
+  const [adminUsername, setAdminUsername] = useState(() => localStorage.getItem("adminUsername") || DEFAULT_USERNAME);
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem("adminPassword") || DEFAULT_PASSWORD);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
@@ -333,50 +393,92 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [showAdminLogin, setShowAdminLogin] = useState(() => localStorage.getItem("showAdminLogin") === "true");
 
   const [products, setProducts] = useState<Product[]>([
-    { id: "1", name: "LED Ceiling Light - Modern Round", category: "Lighting", price: 4500, stock: 25, description: "Modern round LED ceiling light with adjustable brightness.", image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500" },
-    { id: "2", name: "Pendant Light - Gold Finish", category: "Lighting", price: 7800, stock: 15, description: "Elegant pendant light with premium gold finish.", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500" },
-    { id: "3", name: "Wall Sconce - Contemporary Design", category: "Lighting", price: 3200, stock: 30, description: "Contemporary wall sconce with sleek black finish.", image: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=500" },
-    { id: "4", name: "Chandelier - Crystal 6 Lights", category: "Lighting", price: 18500, stock: 8, description: "Luxurious crystal chandelier with 6 lights.", image: "https://images.unsplash.com/photo-1567539738242-f0cc90e66d5f?w=500" },
-    { id: "5", name: "LED Strip Light - RGB 5m", category: "Lighting", price: 2500, stock: 50, description: "5-meter RGB LED strip light with remote control.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
-    { id: "6", name: "Track Lighting System - 4 Spotlights", category: "Lighting", price: 9500, stock: 12, description: "Adjustable track lighting system with 4 spotlights.", image: "https://images.unsplash.com/photo-1534105615220-6a39ea3a68f9?w=500" },
-    { id: "7", name: "Floor Lamp - Tripod Stand", category: "Lighting", price: 6200, stock: 18, description: "Modern tripod floor lamp with wooden legs.", image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500" },
-    { id: "8", name: "Outdoor Garden Light - Solar", category: "Lighting", price: 3800, stock: 35, description: "Solar-powered garden light.", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500" },
-    { id: "9", name: "Bathroom Faucet - Chrome Finish", category: "Bathroom Fittings", price: 5500, stock: 22, description: "Premium chrome bathroom faucet.", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500" },
-    { id: "10", name: "Rain Shower Head - 10 inch", category: "Bathroom Fittings", price: 8900, stock: 16, description: "Luxurious 10-inch rain shower head.", image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=500" },
-    { id: "11", name: "Towel Rail - Heated Chrome", category: "Bathroom Fittings", price: 12500, stock: 10, description: "Electric heated towel rail.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
-    { id: "12", name: "Bathroom Mirror - LED Backlit", category: "Bathroom Fittings", price: 15800, stock: 14, description: "LED backlit bathroom mirror.", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500" },
-    { id: "13", name: "Toilet Paper Holder - Gold", category: "Bathroom Fittings", price: 1800, stock: 45, description: "Premium gold toilet paper holder.", image: "https://images.unsplash.com/photo-1556228578-dd4c8a13ee80?w=500" },
-    { id: "14", name: "Soap Dispenser - Automatic", category: "Bathroom Fittings", price: 3500, stock: 28, description: "Touchless automatic soap dispenser.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
-    { id: "15", name: "Bathroom Vanity Set - Modern", category: "Bathroom Fittings", price: 35000, stock: 6, description: "Complete modern bathroom vanity set.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
-    { id: "16", name: "Shower Enclosure - Glass", category: "Bathroom Fittings", price: 42000, stock: 5, description: "Frameless glass shower enclosure.", image: "https://images.unsplash.com/photo-1564540583246-934409427776?w=500" },
-    { id: "17", name: "Kitchen Sink - Stainless Steel", category: "Plumbing", price: 12000, stock: 20, description: "Premium stainless steel kitchen sink.", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500" },
-    { id: "18", name: "Water Heater - 50L Electric", category: "Plumbing", price: 28500, stock: 12, description: "50-liter electric water heater.", image: "https://images.unsplash.com/photo-1581858747584-b5d0e31e0fc8?w=500" },
-    { id: "19", name: "PVC Pipe Set - Complete", category: "Plumbing", price: 4500, stock: 40, description: "Complete PVC pipe set.", image: "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=500" },
-    { id: "20", name: "Water Pump - 1HP", category: "Plumbing", price: 18000, stock: 15, description: "1HP water pump.", image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=500" },
-    { id: "21", name: "Drain Cover Set - Chrome", category: "Plumbing", price: 1200, stock: 60, description: "Chrome drain cover set.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
-    { id: "22", name: "Water Filter System - 3 Stage", category: "Plumbing", price: 15500, stock: 18, description: "3-stage water filtration.", image: "https://images.unsplash.com/photo-1548865816-f7ca2d7c5e01?w=500" },
-    { id: "23", name: "Faucet Repair Kit - Universal", category: "Plumbing", price: 2800, stock: 35, description: "Universal faucet repair kit.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
-    { id: "24", name: "Toilet Cistern - Dual Flush", category: "Plumbing", price: 8500, stock: 14, description: "Dual flush toilet cistern.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
-    { id: "25", name: "Wall Socket - USB Charging", category: "Electrical Hardware", price: 2200, stock: 50, description: "Wall socket with USB charging.", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500" },
-    { id: "26", name: "Circuit Breaker - 16A", category: "Electrical Hardware", price: 1800, stock: 40, description: "16A circuit breaker.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
-    { id: "27", name: "Extension Cord - 5m Heavy Duty", category: "Electrical Hardware", price: 3200, stock: 32, description: "Heavy-duty extension cord.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
-    { id: "28", name: "Smart Switch - WiFi Enabled", category: "Electrical Hardware", price: 4500, stock: 25, description: "WiFi smart switch.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
-    { id: "29", name: "Cable Trunking - 2m White", category: "Electrical Hardware", price: 850, stock: 70, description: "Cable trunking.", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500" },
-    { id: "30", name: "Voltage Stabilizer - 5000W", category: "Electrical Hardware", price: 22000, stock: 10, description: "5000W stabilizer.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
-    { id: "31", name: "LED Bulb Set - 9W (Pack of 6)", category: "Electrical Hardware", price: 1800, stock: 55, description: "LED bulb pack.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
-    { id: "32", name: "Door Bell - Wireless Smart", category: "Electrical Hardware", price: 6500, stock: 20, description: "Smart doorbell.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
-    { id: "33", name: "Cordless Drill - 18V", category: "Construction Tools", price: 12500, stock: 18, description: "18V cordless drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
-    { id: "34", name: "Angle Grinder - 850W", category: "Construction Tools", price: 9800, stock: 15, description: "850W angle grinder.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
-    { id: "35", name: "Tool Box Set - Professional", category: "Construction Tools", price: 15500, stock: 22, description: "Professional tool set.", image: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=500" },
-    { id: "36", name: "Spirit Level - Laser", category: "Construction Tools", price: 7500, stock: 12, description: "Laser spirit level.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
-    { id: "37", name: "Measuring Tape - 10m", category: "Construction Tools", price: 1500, stock: 45, description: "10m measuring tape.", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500" },
-    { id: "38", name: "Hammer Drill - 800W", category: "Construction Tools", price: 11200, stock: 16, description: "800W hammer drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
-    { id: "39", name: "Safety Gear Set - Complete", category: "Construction Tools", price: 4500, stock: 30, description: "Safety gear set.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
-    { id: "40", name: "Circular Saw - 1200W", category: "Construction Tools", price: 14800, stock: 11, description: "1200W circular saw.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "1", name: "LED Ceiling Light - Modern Round", category: "Lighting", price: 4500, isAvailable: true, description: "Modern round LED ceiling light with adjustable brightness.", image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500" },
+    { id: "2", name: "Pendant Light - Gold Finish", category: "Lighting", price: 7800, isAvailable: true, description: "Elegant pendant light with premium gold finish.", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500" },
+    { id: "3", name: "Wall Sconce - Contemporary Design", category: "Lighting", price: 3200, isAvailable: true, description: "Contemporary wall sconce with sleek black finish.", image: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=500" },
+    { id: "4", name: "Chandelier - Crystal 6 Lights", category: "Lighting", price: 18500, isAvailable: true, description: "Luxurious crystal chandelier with 6 lights.", image: "https://images.unsplash.com/photo-1567539738242-f0cc90e66d5f?w=500" },
+    { id: "5", name: "LED Strip Light - RGB 5m", category: "Lighting", price: 2500, isAvailable: true, description: "5-meter RGB LED strip light with remote control.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "6", name: "Track Lighting System - 4 Spotlights", category: "Lighting", price: 9500, isAvailable: true, description: "Adjustable track lighting system with 4 spotlights.", image: "https://images.unsplash.com/photo-1534105615220-6a39ea3a68f9?w=500" },
+    { id: "7", name: "Floor Lamp - Tripod Stand", category: "Lighting", price: 6200, isAvailable: true, description: "Modern tripod floor lamp with wooden legs.", image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500" },
+    { id: "8", name: "Outdoor Garden Light - Solar", category: "Lighting", price: 3800, isAvailable: true, description: "Solar-powered garden light.", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500" },
+    { id: "9", name: "Bathroom Faucet - Chrome Finish", category: "Bathroom Fittings", price: 5500, isAvailable: true, description: "Premium chrome bathroom faucet.", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500" },
+    { id: "10", name: "Rain Shower Head - 10 inch", category: "Bathroom Fittings", price: 8900, isAvailable: true, description: "Luxurious 10-inch rain shower head.", image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=500" },
+    { id: "11", name: "Towel Rail - Heated Chrome", category: "Bathroom Fittings", price: 12500, isAvailable: true, description: "Electric heated towel rail.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
+    { id: "12", name: "Bathroom Mirror - LED Backlit", category: "Bathroom Fittings", price: 15800, isAvailable: true, description: "LED backlit bathroom mirror.", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500" },
+    { id: "13", name: "Toilet Paper Holder - Gold", category: "Bathroom Fittings", price: 1800, isAvailable: true, description: "Premium gold toilet paper holder.", image: "https://images.unsplash.com/photo-1556228578-dd4c8a13ee80?w=500" },
+    { id: "14", name: "Soap Dispenser - Automatic", category: "Bathroom Fittings", price: 3500, isAvailable: true, description: "Touchless automatic soap dispenser.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "15", name: "Bathroom Vanity Set - Modern", category: "Bathroom Fittings", price: 35000, isAvailable: true, description: "Complete modern bathroom vanity set.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
+    { id: "16", name: "Shower Enclosure - Glass", category: "Bathroom Fittings", price: 42000, isAvailable: true, description: "Frameless glass shower enclosure.", image: "https://images.unsplash.com/photo-1564540583246-934409427776?w=500" },
+    { id: "17", name: "Kitchen Sink - Stainless Steel", category: "Plumbing", price: 12000, isAvailable: true, description: "Premium stainless steel kitchen sink.", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500" },
+    { id: "18", name: "Water Heater - 50L Electric", category: "Plumbing", price: 28500, isAvailable: true, description: "50-liter electric water heater.", image: "https://images.unsplash.com/photo-1581858747584-b5d0e31e0fc8?w=500" },
+    { id: "19", name: "PVC Pipe Set - Complete", category: "Plumbing", price: 4500, isAvailable: true, description: "Complete PVC pipe set.", image: "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=500" },
+    { id: "20", name: "Water Pump - 1HP", category: "Plumbing", price: 18000, isAvailable: true, description: "1HP water pump.", image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=500" },
+    { id: "21", name: "Drain Cover Set - Chrome", category: "Plumbing", price: 1200, isAvailable: true, description: "Chrome drain cover set.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "22", name: "Water Filter System - 3 Stage", category: "Plumbing", price: 15500, isAvailable: true, description: "3-stage water filtration.", image: "https://images.unsplash.com/photo-1548865816-f7ca2d7c5e01?w=500" },
+    { id: "23", name: "Faucet Repair Kit - Universal", category: "Plumbing", price: 2800, isAvailable: true, description: "Universal faucet repair kit.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "24", name: "Toilet Cistern - Dual Flush", category: "Plumbing", price: 8500, isAvailable: true, description: "Dual flush toilet cistern.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "25", name: "Wall Socket - USB Charging", category: "Electrical Hardware", price: 2200, isAvailable: true, description: "Wall socket with USB charging.", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500" },
+    { id: "26", name: "Circuit Breaker - 16A", category: "Electrical Hardware", price: 1800, isAvailable: true, description: "16A circuit breaker.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
+    { id: "27", name: "Extension Cord - 5m Heavy Duty", category: "Electrical Hardware", price: 3200, isAvailable: true, description: "Heavy-duty extension cord.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "28", name: "Smart Switch - WiFi Enabled", category: "Electrical Hardware", price: 4500, isAvailable: true, description: "WiFi smart switch.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
+    { id: "29", name: "Cable Trunking - 2m White", category: "Electrical Hardware", price: 850, isAvailable: true, description: "Cable trunking.", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500" },
+    { id: "30", name: "Voltage Stabilizer - 5000W", category: "Electrical Hardware", price: 22000, isAvailable: true, description: "5000W stabilizer.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
+    { id: "31", name: "LED Bulb Set - 9W (Pack of 6)", category: "Electrical Hardware", price: 1800, isAvailable: true, description: "LED bulb pack.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "32", name: "Door Bell - Wireless Smart", category: "Electrical Hardware", price: 6500, isAvailable: true, description: "Smart doorbell.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
+    { id: "33", name: "Cordless Drill - 18V", category: "Construction Tools", price: 12500, isAvailable: true, description: "18V cordless drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "34", name: "Angle Grinder - 850W", category: "Construction Tools", price: 9800, isAvailable: true, description: "850W angle grinder.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "35", name: "Tool Box Set - Professional", category: "Construction Tools", price: 15500, isAvailable: true, description: "Professional tool set.", image: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=500" },
+    { id: "36", name: "Spirit Level - Laser", category: "Construction Tools", price: 7500, isAvailable: true, description: "Laser spirit level.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "37", name: "Measuring Tape - 10m", category: "Construction Tools", price: 1500, isAvailable: true, description: "10m measuring tape.", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500" },
+    { id: "38", name: "Hammer Drill - 800W", category: "Construction Tools", price: 11200, isAvailable: true, description: "800W hammer drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "39", name: "Safety Gear Set - Complete", category: "Construction Tools", price: 4500, isAvailable: true, description: "Safety gear set.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "40", name: "Circular Saw - 1200W", category: "Construction Tools", price: 14800, isAvailable: true, description: "1200W circular saw.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
   ]);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
+
+  const DEMO_OFFERS: Offer[] = [
+    {
+      id: "demo1",
+      title: "Summer Sale - 20% Off",
+      description: "Get 20% off on all bathroom fittings this summer! Limited time offer.",
+      bannerImage: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800",
+      discountPercentage: 20,
+      applicableProducts: [],
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      isEnabled: true,
+      createdAt: new Date().toISOString(),
+      order: 0,
+    },
+    {
+      id: "demo2",
+      title: "Lighting Discount",
+      description: "Special discount on premium lighting fixtures.",
+      bannerImage: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=800",
+      discountPercentage: 15,
+      applicableProducts: [],
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
+      isEnabled: false,
+      createdAt: new Date().toISOString(),
+      order: 1,
+    },
+    {
+      id: "demo3",
+      title: "Plumbing Essentials",
+      description: "Up to 30% off on plumbing supplies and tools.",
+      bannerImage: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=800",
+      discountPercentage: 30,
+      applicableProducts: [],
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+      isEnabled: true,
+      createdAt: new Date().toISOString(),
+      order: 2,
+    },
+  ];
 
   const [firebaseLoaded, setFirebaseLoaded] = useState({
     storeProfile: false,
@@ -385,6 +487,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     categories: false,
     orders: false,
     offers: false,
+    products: false,
   });
 
   useEffect(() => {
@@ -400,7 +503,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const profileRef = doc(db, "storeData", "profile");
       const unsubscribe = onSnapshot(profileRef, (docSnap) => {
         if (docSnap.exists()) {
-          setStoreProfile(docSnap.data() as StoreProfile);
+          setStoreProfile({ ...DEFAULT_STORE_PROFILE, ...docSnap.data() } as StoreProfile);
         } else {
           setDoc(profileRef, DEFAULT_STORE_PROFILE);
         }
@@ -503,16 +606,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      const unsubscribe = onSnapshot(q, async (snapshot) => {
         const firebaseOffers: Offer[] = snapshot.docs.map(doc => {
           const data = doc.data();
           return { ...data, id: data.id || doc.id } as Offer;
         });
         if (firebaseOffers.length > 0) {
           setOffers(firebaseOffers);
+        } else {
+          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
         }
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
-      }, () => {
+      }, async () => {
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
       });
       return () => unsubscribe();
@@ -521,6 +626,86 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setFirebaseLoaded(prev => ({ ...prev, offers: true }));
     }
   }, []);
+
+  // Firebase real-time sync for products
+  useEffect(() => {
+    try {
+      const productsRef = doc(db, "storeData", "products");
+      const unsubscribe = onSnapshot(productsRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.products && Array.isArray(data.products)) {
+            setProducts(data.products);
+          }
+        } else {
+          setDoc(productsRef, { products: DEFAULT_PRODUCTS });
+        }
+        setFirebaseLoaded(prev => ({ ...prev, products: true }));
+      }, () => {
+        setFirebaseLoaded(prev => ({ ...prev, products: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase products sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, products: true }));
+    }
+  }, []);
+
+  // Reference to default products array
+  const DEFAULT_PRODUCTS: Product[] = [
+    { id: "1", name: "LED Ceiling Light - Modern Round", category: "Lighting", price: 4500, isAvailable: true, description: "Modern round LED ceiling light with adjustable brightness.", image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500" },
+    { id: "2", name: "Pendant Light - Gold Finish", category: "Lighting", price: 7800, isAvailable: true, description: "Elegant pendant light with premium gold finish.", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500" },
+    { id: "3", name: "Wall Sconce - Contemporary Design", category: "Lighting", price: 3200, isAvailable: true, description: "Contemporary wall sconce with sleek black finish.", image: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=500" },
+    { id: "4", name: "Chandelier - Crystal 6 Lights", category: "Lighting", price: 18500, isAvailable: true, description: "Luxurious crystal chandelier with 6 lights.", image: "https://images.unsplash.com/photo-1567539738242-f0cc90e66d5f?w=500" },
+    { id: "5", name: "LED Strip Light - RGB 5m", category: "Lighting", price: 2500, isAvailable: true, description: "5-meter RGB LED strip light with remote control.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "6", name: "Track Lighting System - 4 Spotlights", category: "Lighting", price: 9500, isAvailable: true, description: "Adjustable track lighting system with 4 spotlights.", image: "https://images.unsplash.com/photo-1534105615220-6a39ea3a68f9?w=500" },
+    { id: "7", name: "Floor Lamp - Tripod Stand", category: "Lighting", price: 6200, isAvailable: true, description: "Modern tripod floor lamp with wooden legs.", image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500" },
+    { id: "8", name: "Outdoor Garden Light - Solar", category: "Lighting", price: 3800, isAvailable: true, description: "Solar-powered garden light.", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500" },
+    { id: "9", name: "Bathroom Faucet - Chrome Finish", category: "Bathroom Fittings", price: 5500, isAvailable: true, description: "Premium chrome bathroom faucet.", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500" },
+    { id: "10", name: "Rain Shower Head - 10 inch", category: "Bathroom Fittings", price: 8900, isAvailable: true, description: "Luxurious 10-inch rain shower head.", image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=500" },
+    { id: "11", name: "Towel Rail - Heated Chrome", category: "Bathroom Fittings", price: 12500, isAvailable: true, description: "Electric heated towel rail.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
+    { id: "12", name: "Bathroom Mirror - LED Backlit", category: "Bathroom Fittings", price: 15800, isAvailable: true, description: "LED backlit bathroom mirror.", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500" },
+    { id: "13", name: "Toilet Paper Holder - Gold", category: "Bathroom Fittings", price: 1800, isAvailable: true, description: "Premium gold toilet paper holder.", image: "https://images.unsplash.com/photo-1556228578-dd4c8a13ee80?w=500" },
+    { id: "14", name: "Soap Dispenser - Automatic", category: "Bathroom Fittings", price: 3500, isAvailable: true, description: "Touchless automatic soap dispenser.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "15", name: "Bathroom Vanity Set - Modern", category: "Bathroom Fittings", price: 35000, isAvailable: true, description: "Complete modern bathroom vanity set.", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500" },
+    { id: "16", name: "Shower Enclosure - Glass", category: "Bathroom Fittings", price: 42000, isAvailable: true, description: "Frameless glass shower enclosure.", image: "https://images.unsplash.com/photo-1564540583246-934409427776?w=500" },
+    { id: "17", name: "Kitchen Sink - Stainless Steel", category: "Plumbing", price: 12000, isAvailable: true, description: "Premium stainless steel kitchen sink.", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500" },
+    { id: "18", name: "Water Heater - 50L Electric", category: "Plumbing", price: 28500, isAvailable: true, description: "50-liter electric water heater.", image: "https://images.unsplash.com/photo-1581858747584-b5d0e31e0fc8?w=500" },
+    { id: "19", name: "PVC Pipe Set - Complete", category: "Plumbing", price: 4500, isAvailable: true, description: "Complete PVC pipe set.", image: "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=500" },
+    { id: "20", name: "Water Pump - 1HP", category: "Plumbing", price: 18000, isAvailable: true, description: "1HP water pump.", image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=500" },
+    { id: "21", name: "Drain Cover Set - Chrome", category: "Plumbing", price: 1200, isAvailable: true, description: "Chrome drain cover set.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "22", name: "Water Filter System - 3 Stage", category: "Plumbing", price: 15500, isAvailable: true, description: "3-stage water filtration.", image: "https://images.unsplash.com/photo-1548865816-f7ca2d7c5e01?w=500" },
+    { id: "23", name: "Faucet Repair Kit - Universal", category: "Plumbing", price: 2800, isAvailable: true, description: "Universal faucet repair kit.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "24", name: "Toilet Cistern - Dual Flush", category: "Plumbing", price: 8500, isAvailable: true, description: "Dual flush toilet cistern.", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500" },
+    { id: "25", name: "Wall Socket - USB Charging", category: "Electrical Hardware", price: 2200, isAvailable: true, description: "Wall socket with USB charging.", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500" },
+    { id: "26", name: "Circuit Breaker - 16A", category: "Electrical Hardware", price: 1800, isAvailable: true, description: "16A circuit breaker.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
+    { id: "27", name: "Extension Cord - 5m Heavy Duty", category: "Electrical Hardware", price: 3200, isAvailable: true, description: "Heavy-duty extension cord.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "28", name: "Smart Switch - WiFi Enabled", category: "Electrical Hardware", price: 4500, isAvailable: true, description: "WiFi smart switch.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
+    { id: "29", name: "Cable Trunking - 2m White", category: "Electrical Hardware", price: 850, isAvailable: true, description: "Cable trunking.", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500" },
+    { id: "30", name: "Voltage Stabilizer - 5000W", category: "Electrical Hardware", price: 22000, isAvailable: true, description: "5000W stabilizer.", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500" },
+    { id: "31", name: "LED Bulb Set - 9W (Pack of 6)", category: "Electrical Hardware", price: 1800, isAvailable: true, description: "LED bulb pack.", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500" },
+    { id: "32", name: "Door Bell - Wireless Smart", category: "Electrical Hardware", price: 6500, isAvailable: true, description: "Smart doorbell.", image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500" },
+    { id: "33", name: "Cordless Drill - 18V", category: "Construction Tools", price: 12500, isAvailable: true, description: "18V cordless drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "34", name: "Angle Grinder - 850W", category: "Construction Tools", price: 9800, isAvailable: true, description: "850W angle grinder.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "35", name: "Tool Box Set - Professional", category: "Construction Tools", price: 15500, isAvailable: true, description: "Professional tool set.", image: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=500" },
+    { id: "36", name: "Spirit Level - Laser", category: "Construction Tools", price: 7500, isAvailable: true, description: "Laser spirit level.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "37", name: "Measuring Tape - 10m", category: "Construction Tools", price: 1500, isAvailable: true, description: "10m measuring tape.", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500" },
+    { id: "38", name: "Hammer Drill - 800W", category: "Construction Tools", price: 11200, isAvailable: true, description: "800W hammer drill.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+    { id: "39", name: "Safety Gear Set - Complete", category: "Construction Tools", price: 4500, isAvailable: true, description: "Safety gear set.", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500" },
+    { id: "40", name: "Circular Saw - 1200W", category: "Construction Tools", price: 14800, isAvailable: true, description: "1200W circular saw.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
+  ];
+
+  const addDemoOffers = async () => {
+    try {
+      for (const offer of DEMO_OFFERS) {
+        await setDoc(doc(db, "offers", offer.id), offer);
+      }
+      toast.success("Demo offers added!");
+    } catch (error) {
+      console.error("Error adding demo offers:", error);
+      toast.error("Failed to add demo offers");
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("showAdminLogin", showAdminLogin.toString());
@@ -540,12 +725,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const changePassword = (currentPassword: string, newPassword: string): boolean => {
     if (currentPassword === adminPassword) {
       setAdminPassword(newPassword);
+      localStorage.setItem("adminPassword", newPassword);
       return true;
     }
     return false;
   };
 
-  const changeUsername = () => {};
+  const changeUsername = (newUsername: string): boolean => {
+    if (newUsername && newUsername.trim().length >= 3) {
+      setAdminUsername(newUsername.trim());
+      localStorage.setItem("adminUsername", newUsername.trim());
+      return true;
+    }
+    return false;
+  };
 
   const updateStoreProfile = async (profile: Partial<StoreProfile>) => {
     const updated = { ...storeProfile, ...profile };
@@ -592,21 +785,45 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addProduct = (product: Omit<Product, "id">) => {
+  const addProduct = async (product: Omit<Product, "id">) => {
     const newProduct: Product = { ...product, id: Date.now().toString() };
-    setProducts(prev => [...prev, newProduct]);
+    const updated = [...products, newProduct];
+    setProducts(updated);
+    try {
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
+    } catch (error) {
+      console.error("Error adding product to Firebase:", error);
+    }
   };
 
-  const updateProduct = (id: string, product: Partial<Product>) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...product } : p));
+  const updateProduct = async (id: string, product: Partial<Product>) => {
+    const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
+    setProducts(updated);
+    try {
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
+    } catch (error) {
+      console.error("Error updating product in Firebase:", error);
+    }
   };
 
   const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+    const updated = products.filter(p => p.id !== id);
+    setProducts(updated);
+    try {
+      setDoc(doc(db, "storeData", "products"), { products: updated });
+    } catch (error) {
+      console.error("Error deleting product from Firebase:", error);
+    }
   };
 
   const bulkDeleteProducts = (ids: string[]) => {
-    setProducts(prev => prev.filter(p => !ids.includes(p.id)));
+    const updated = products.filter(p => !ids.includes(p.id));
+    setProducts(updated);
+    try {
+      setDoc(doc(db, "storeData", "products"), { products: updated });
+    } catch (error) {
+      console.error("Error bulk deleting products from Firebase:", error);
+    }
   };
 
   const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
@@ -693,7 +910,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const getProductDiscount = (productId: string) => {
     const now = new Date();
     const activeOffers = offers.filter(
-      o => o.isEnabled && new Date(o.startDate) <= now && new Date(o.endDate) >= now && o.applicableProducts.includes(productId)
+      o => o.isEnabled && 
+           new Date(o.startDate) <= now && 
+           new Date(o.endDate) >= now && 
+           (o.applicableProducts.length === 0 || o.applicableProducts.includes(productId))
     );
     if (activeOffers.length > 0) {
       const offer = activeOffers[0];
@@ -733,8 +953,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const deleteCategory = (id: string) => {
     const updated = categories.filter(c => c.id !== id);
     setCategories(updated);
+    const updatedProducts = products.map(p => 
+      p.category === categories.find(c => c.id === id)?.name 
+        ? { ...p, category: updated[0]?.name || "Uncategorized" }
+        : p
+    );
+    setProducts(updatedProducts);
     try {
       setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      setDoc(doc(db, "storeData", "products"), { products: updatedProducts });
     } catch (error) {
       console.error("Error deleting category:", error);
     }
@@ -748,8 +975,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   // Dashboard stats
-  const lowStockProducts = products.filter(p => p.stock <= 10);
-  
   const topSellingProducts = orders.reduce((acc, order) => {
     order.products.forEach(item => {
       const existing = acc.find(a => a.productId === item.id);
@@ -795,6 +1020,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         updateOffer,
         deleteOffer,
         toggleOfferStatus,
+        addDemoOffers,
         getActiveOffers,
         getProductDiscount,
         storeAssets,
@@ -810,7 +1036,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         deleteCategory,
         toggleCategoryStatus,
         isDataLoaded,
-        lowStockProducts,
         topSellingProducts,
         getOrdersByStatus,
         totalRevenue,

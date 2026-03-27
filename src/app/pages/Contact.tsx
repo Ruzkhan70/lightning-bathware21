@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Contact() {
-  const { siteContent } = useAdmin();
+  const { siteContent, storeProfile } = useAdmin();
   
   const [formData, setFormData] = useState({
     name: "",
@@ -45,8 +45,6 @@ export default function Contact() {
       message: "",
     });
   };
-
-  const { storeProfile } = useAdmin();
 
   const contactInfo = [
     {

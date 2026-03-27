@@ -15,10 +15,12 @@ import { toast } from "sonner";
 
 export default function AdminOffers() {
   const navigate = useNavigate();
-  const { offers, deleteOffer, toggleOfferStatus } = useAdmin();
+  const { offers, deleteOffer, toggleOfferStatus, addDemoOffers } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredOffers = offers.filter((offer) =>
+  const safeOffers = offers || [];
+
+  const filteredOffers = safeOffers.filter((offer) =>
     offer.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -37,6 +39,7 @@ export default function AdminOffers() {
   };
 
   const isOfferActive = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return false;
     const now = new Date();
     return new Date(startDate) <= now && new Date(endDate) >= now;
   };
@@ -78,13 +81,23 @@ export default function AdminOffers() {
             {searchTerm ? "No offers found" : "No offers yet"}
           </p>
           {!searchTerm && (
-            <Button
-              onClick={() => navigate("/admin/add-offer")}
-              className="bg-black hover:bg-[#D4AF37] text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Offer
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={() => navigate("/admin/add-offer")}
+                className="bg-black hover:bg-[#D4AF37] text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Offer
+              </Button>
+              <Button
+                onClick={addDemoOffers}
+                variant="outline"
+                className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Demo Offers
+              </Button>
+            </div>
           )}
         </div>
       ) : (

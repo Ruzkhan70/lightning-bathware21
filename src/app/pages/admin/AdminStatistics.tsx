@@ -11,77 +11,46 @@ import {
 export default function AdminStatistics() {
   const { products, orders } = useAdmin();
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const pendingOrders = orders.filter((o) => o.status === "Pending").length;
-  const processingOrders = orders.filter(
+  const safeProducts = products || [];
+  const safeOrders = orders || [];
+
+  const totalRevenue = safeOrders.reduce((sum, order) => sum + order.total, 0);
+  const pendingOrders = safeOrders.filter((o) => o.status === "Pending").length;
+  const processingOrders = safeOrders.filter(
     (o) => o.status === "Processing"
   ).length;
-  const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
+  const deliveredOrders = safeOrders.filter((o) => o.status === "Delivered").length;
 
-  const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+  const averageOrderValue = safeOrders.length > 0 ? totalRevenue / safeOrders.length : 0;
+
+  const productCategoryMap = new Map(safeProducts.map(p => [p.id, p.category]));
+  
+  const getCategoryOrders = (categoryName: string) => {
+    let count = 0;
+    for (const order of safeOrders) {
+      for (const item of order.products) {
+        if (productCategoryMap.get(item.id) === categoryName) {
+          count++;
+          break;
+        }
+      }
+    }
+    return count;
+  };
 
   const categoryStats = [
-    {
-      name: "Lighting",
-      products: products.filter((p) => p.category === "Lighting").length,
-      orders: orders.filter((o) =>
-        o.products.some((p) => {
-          const product = products.find((pr) => pr.id === p.id);
-          return product?.category === "Lighting";
-        })
-      ).length,
-    },
-    {
-      name: "Bathroom Fittings",
-      products: products.filter((p) => p.category === "Bathroom Fittings")
-        .length,
-      orders: orders.filter((o) =>
-        o.products.some((p) => {
-          const product = products.find((pr) => pr.id === p.id);
-          return product?.category === "Bathroom Fittings";
-        })
-      ).length,
-    },
-    {
-      name: "Plumbing",
-      products: products.filter((p) => p.category === "Plumbing").length,
-      orders: orders.filter((o) =>
-        o.products.some((p) => {
-          const product = products.find((pr) => pr.id === p.id);
-          return product?.category === "Plumbing";
-        })
-      ).length,
-    },
-    {
-      name: "Electrical Hardware",
-      products: products.filter((p) => p.category === "Electrical Hardware")
-        .length,
-      orders: orders.filter((o) =>
-        o.products.some((p) => {
-          const product = products.find((pr) => pr.id === p.id);
-          return product?.category === "Electrical Hardware";
-        })
-      ).length,
-    },
-    {
-      name: "Construction Tools",
-      products: products.filter((p) => p.category === "Construction Tools")
-        .length,
-      orders: orders.filter((o) =>
-        o.products.some((p) => {
-          const product = products.find((pr) => pr.id === p.id);
-          return product?.category === "Construction Tools";
-        })
-      ).length,
-    },
+    { name: "Lighting", products: safeProducts.filter((p) => p.category === "Lighting").length, orders: getCategoryOrders("Lighting") },
+    { name: "Bathroom Fittings", products: safeProducts.filter((p) => p.category === "Bathroom Fittings").length, orders: getCategoryOrders("Bathroom Fittings") },
+    { name: "Plumbing", products: safeProducts.filter((p) => p.category === "Plumbing").length, orders: getCategoryOrders("Plumbing") },
+    { name: "Electrical Hardware", products: safeProducts.filter((p) => p.category === "Electrical Hardware").length, orders: getCategoryOrders("Electrical Hardware") },
+    { name: "Construction Tools", products: safeProducts.filter((p) => p.category === "Construction Tools").length, orders: getCategoryOrders("Construction Tools") },
   ];
 
-  const lowStockProducts = products.filter((p) => p.stock < 10 && p.stock > 0);
-  const outOfStockProducts = products.filter((p) => p.stock === 0);
+  const unavailableProducts = safeProducts.filter((p) => !p.isAvailable);
 
-  const topSellingProducts = products
+  const topSellingProducts = safeProducts
     .map((product) => {
-      const totalSold = orders.reduce((sum, order) => {
+      const totalSold = safeOrders.reduce((sum, order) => {
         const orderProduct = order.products.find((p) => p.id === product.id);
         return sum + (orderProduct?.quantity || 0);
       }, 0);
@@ -109,7 +78,7 @@ export default function AdminStatistics() {
             </div>
             <TrendingUp className="w-6 h-6 text-green-500" />
           </div>
-          <div className="text-3xl font-bold mb-1">{products.length}</div>
+          <div className="text-3xl font-bold mb-1">{safeProducts.length}</div>
           <div className="text-gray-600">Total Products</div>
         </div>
 
@@ -120,7 +89,7 @@ export default function AdminStatistics() {
             </div>
             <TrendingUp className="w-6 h-6 text-green-500" />
           </div>
-          <div className="text-3xl font-bold mb-1">{orders.length}</div>
+          <div className="text-3xl font-bold mb-1">{safeOrders.length}</div>
           <div className="text-gray-600">Total Orders</div>
         </div>
 
@@ -254,64 +223,30 @@ export default function AdminStatistics() {
         </div>
       )}
 
-      {/* Stock Alerts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Low Stock */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 text-orange-600">
-            Low Stock Alert
-          </h2>
-          {lowStockProducts.length > 0 ? (
-            <div className="space-y-2">
-              {lowStockProducts.slice(0, 5).map((product) => (
-                <div
-                  key={product.id}
-                  className="flex justify-between items-center p-3 bg-orange-50 rounded"
-                >
-                  <span className="text-sm font-semibold truncate">
-                    {product.name}
-                  </span>
-                  <span className="font-bold text-orange-600">
-                    {product.stock}
-                  </span>
-                </div>
-              ))}
-              {lowStockProducts.length > 5 && (
-                <p className="text-sm text-gray-600 text-center pt-2">
-                  +{lowStockProducts.length - 5} more products
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-gray-500">No low stock products</p>
-          )}
-        </div>
-
-        {/* Out of Stock */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 text-red-600">
-            Out of Stock
-          </h2>
-          {outOfStockProducts.length > 0 ? (
-            <div className="space-y-2">
-              {outOfStockProducts.slice(0, 5).map((product) => (
-                <div
-                  key={product.id}
-                  className="p-3 bg-red-50 rounded text-sm font-semibold truncate"
-                >
-                  {product.name}
-                </div>
-              ))}
-              {outOfStockProducts.length > 5 && (
-                <p className="text-sm text-gray-600 text-center pt-2">
-                  +{outOfStockProducts.length - 5} more products
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-gray-500">All products in stock</p>
-          )}
-        </div>
+      {/* Availability Status */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-bold mb-4 text-red-600">
+          Unavailable Products
+        </h2>
+        {unavailableProducts.length > 0 ? (
+          <div className="space-y-2">
+            {unavailableProducts.slice(0, 5).map((product) => (
+              <div
+                key={product.id}
+                className="p-3 bg-red-50 rounded text-sm font-semibold truncate"
+              >
+                {product.name}
+              </div>
+            ))}
+            {unavailableProducts.length > 5 && (
+              <p className="text-sm text-gray-600 text-center pt-2">
+                +{unavailableProducts.length - 5} more products
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-green-600 font-medium">All products are available!</p>
+        )}
       </div>
     </div>
   );

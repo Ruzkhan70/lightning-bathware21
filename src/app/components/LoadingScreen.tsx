@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
+import { useAdmin } from "../context/AdminContext";
 
 interface LoadingScreenProps {
   onComplete?: () => void;
 }
 
 export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
+  const { storeProfile } = useAdmin();
+  
   return (
     <motion.div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-white overflow-hidden"
@@ -57,8 +60,8 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           className="mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            <span className="text-black">Lightning</span>
-            <span className="text-[#D4AF37]"> Bathware</span>
+            <span className="text-black">{storeProfile.storeName}</span>
+            <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
           </h1>
         </motion.div>
 

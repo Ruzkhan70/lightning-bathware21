@@ -89,16 +89,10 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Stock Badge */}
-          {!discount.hasDiscount && product.stock < 10 && product.stock > 0 && (
-            <div className="absolute top-3 left-3 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-              Only {product.stock} left!
-            </div>
-          )}
-
-          {product.stock === 0 && (
+          {/* Availability Badge */}
+          {!product.isAvailable && (
             <div className="absolute top-3 left-3 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold">
-              Out of Stock
+              Not Available
             </div>
           )}
         </div>
@@ -143,11 +137,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Add to Cart Button */}
           <Button
             onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className="w-full bg-black hover:bg-[#D4AF37] text-white transition-colors"
+            disabled={!product.isAvailable}
+            className="w-full bg-black hover:bg-[#D4AF37] text-white transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            Add to Cart
+            {product.isAvailable ? "Add to Cart" : "Not Available"}
           </Button>
         </div>
       </div>

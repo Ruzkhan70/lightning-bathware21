@@ -6,17 +6,15 @@ function easeOutQuart(t: number): number {
   return 1 - Math.pow(1 - t, 4);
 }
 
-function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+function AnimatedCounter({ value }: { value: string }) {
+  const [displayValue, setDisplayValue] = useState("0");
+  const ref = useRef<HTMLSpanElement>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated) {
-          setIsVisible(true);
           setHasAnimated(true);
         }
       },
@@ -31,45 +29,47 @@ function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number; d
   }, [hasAnimated]);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!hasAnimated) return;
 
-    let startTime: number;
-    let animationFrame: number;
+    const match = value.match(/^([\d,]+)(.*)$/);
+    if (!match) {
+      setDisplayValue(value);
+      return;
+    }
 
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeOutQuart(progress);
+    const targetNum = parseInt(match[1].replace(/,/g, ''));
+    const suffix = match[2];
+    const duration = 2000;
+    const steps = 60;
+    const stepDuration = duration / steps;
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += 1;
+      const progress = current / steps;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentNum = Math.round(targetNum * eased);
       
-      setCount(Math.floor(easedProgress * end));
+      setDisplayValue(currentNum.toLocaleString() + suffix);
       
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      } else {
-        setCount(end);
+      if (current >= steps) {
+        clearInterval(timer);
+        setDisplayValue(targetNum.toLocaleString() + suffix);
       }
-    };
+    }, stepDuration);
 
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
-    };
-  }, [isVisible, end, duration]);
+    return () => clearInterval(timer);
+  }, [hasAnimated, value]);
 
   return (
-    <div ref={ref} className="inline-block">
-      <span className="tabular-nums">{count.toLocaleString()}</span>
-      {suffix}
-    </div>
+    <span ref={ref} className="inline-block tabular-nums">
+      {displayValue}
+    </span>
   );
 }
 
 export default function About() {
-  const { storeAssets, siteContent } = useAdmin();
+  const { storeAssets, siteContent, storeProfile } = useAdmin();
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -203,7 +203,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={10} suffix="+" duration={2500} />
+                  <AnimatedCounter value={storeProfile.statsYearsExperience} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
@@ -212,7 +212,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={350} suffix="+" duration={3000} />
+                  <AnimatedCounter value={storeProfile.statsProducts} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
@@ -221,7 +221,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={5000} suffix="+" duration={3500} />
+                  <AnimatedCounter value={storeProfile.statsCustomers} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
@@ -230,7 +230,7 @@ export default function About() {
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                 <span className="relative z-10">
-                  <AnimatedCounter end={100} suffix="%" duration={2500} />
+                  <AnimatedCounter value={storeProfile.statsAuthentic} />
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>

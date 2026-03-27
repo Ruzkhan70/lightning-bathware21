@@ -15,8 +15,11 @@ import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Categories() {
   const { products, categories } = useAdmin();
+  
+  const safeProducts = products || [];
+  const safeCategories = categories || [];
 
-  const activeCategories = categories.filter(c => c.isActive);
+  const activeCategories = safeCategories.filter(c => c.isActive);
 
   // Map icon names/categories to Lucide icons
   const getIcon = (name: string) => {
@@ -51,7 +54,7 @@ export default function Categories() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {activeCategories.map((category, index) => {
               const CategoryIcon = getIcon(category.name);
-              const productCount = products.filter((p) => p.category === category.name).length;
+              const productCount = safeProducts.filter((p) => p.category === category.name).length;
               
               return (
                 <ScrollAnimation key={category.id || index} animation="slideUp" delay={index * 100}>

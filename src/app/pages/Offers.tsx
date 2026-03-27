@@ -6,7 +6,8 @@ import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Offers() {
   const { getActiveOffers, products } = useAdmin();
-  const activeOffers = getActiveOffers();
+  const safeProducts = products || [];
+  const activeOffers = getActiveOffers() || [];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -43,7 +44,7 @@ export default function Offers() {
         ) : (
           <div className="space-y-8">
             {activeOffers.map((offer, index) => {
-              const offerProducts = products.filter((p) =>
+              const offerProducts = safeProducts.filter((p) =>
                 offer.applicableProducts.includes(p.id)
               );
 

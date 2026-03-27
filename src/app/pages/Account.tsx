@@ -16,7 +16,8 @@ const EMAILJS_TEMPLATE_ID = "template_njxm8mi";
 
 export default function Account() {
   const { user, isLoggedIn, login, register, logout, resetPassword } = useUser();
-  const { orders } = useAdmin();
+  const { orders, storeProfile } = useAdmin();
+  const safeOrders = orders || [];
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
@@ -152,7 +153,7 @@ export default function Account() {
         {
           to_email: forgotEmail,
           verification_code: code,
-          app_name: "Lightning Bathware",
+          app_name: `${storeProfile.storeName} ${storeProfile.storeNameAccent}`,
         },
         EMAILJS_PUBLIC_KEY
       );
@@ -219,7 +220,7 @@ export default function Account() {
     } else if (result.error === "email_not_found") {
       toast.error("No account found with this email");
     } else {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(`Error: ${result.error || "Please check Firebase rules"}`);
     }
   };
 

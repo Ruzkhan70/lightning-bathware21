@@ -15,6 +15,8 @@ export default function AdminCategories() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
+  const safeCategories = categories || [];
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -100,7 +102,7 @@ export default function AdminCategories() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category) => (
+        {safeCategories.map((category) => (
           <div key={category.id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col">
             <div className="relative h-40">
               <img 

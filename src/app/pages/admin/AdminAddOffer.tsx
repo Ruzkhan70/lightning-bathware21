@@ -15,8 +15,11 @@ export default function AdminAddOffer() {
   const { id } = useParams();
   const { products, offers, addOffer, updateOffer } = useAdmin();
   
+  const safeProducts = products || [];
+  const safeOffers = offers || [];
+  
   const isEditMode = !!id;
-  const existingOffer = offers.find((o) => o.id === id);
+  const existingOffer = safeOffers.find((o) => o.id === id);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -68,9 +71,9 @@ export default function AdminAddOffer() {
     setFormData((prev) => ({
       ...prev,
       applicableProducts:
-        prev.applicableProducts.length === products.length
+        prev.applicableProducts.length === safeProducts.length
           ? []
-          : products.map((p) => p.id),
+          : safeProducts.map((p) => p.id),
     }));
   };
 
@@ -140,7 +143,7 @@ export default function AdminAddOffer() {
   };
 
   // Group products by category
-  const productsByCategory = products.reduce((acc, product) => {
+  const productsByCategory = safeProducts.reduce((acc, product) => {
     if (!acc[product.category]) {
       acc[product.category] = [];
     }
@@ -305,7 +308,7 @@ export default function AdminAddOffer() {
                 variant="outline"
                 size="sm"
               >
-                {formData.applicableProducts.length === products.length
+                {formData.applicableProducts.length === safeProducts.length
                   ? "Deselect All"
                   : "Select All"}
               </Button>

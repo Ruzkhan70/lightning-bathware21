@@ -15,7 +15,8 @@ import {
 export default function Products() {
   const [searchParams] = useSearchParams();
   const { products } = useAdmin();
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const safeProducts = products || [];
+  const [filteredProducts, setFilteredProducts] = useState(safeProducts);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
@@ -39,7 +40,7 @@ export default function Products() {
   ];
 
   useEffect(() => {
-    let result = [...products];
+    let result = [...safeProducts];
 
     // Search filter from URL params
     const searchQuery = searchParams.get("search");
@@ -84,7 +85,7 @@ export default function Products() {
     }
 
     setFilteredProducts(result);
-  }, [products, searchParams, selectedCategory, sortBy, priceRange]);
+  }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
 
   const clearFilters = () => {
     setSelectedCategory("all");
@@ -101,7 +102,7 @@ export default function Products() {
             Our Products
           </h1>
           <p className="text-gray-600">
-            Showing {filteredProducts.length} of {products.length} products
+            Showing {filteredProducts.length} of {safeProducts.length} products
           </p>
         </div>
 

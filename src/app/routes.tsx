@@ -10,6 +10,7 @@ import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
 import Account from "./pages/Account";
 import Offers from "./pages/Offers";
+import Terms from "./pages/Terms";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -39,6 +40,7 @@ export const router = createHashRouter([
       { path: "checkout", element: <Checkout /> },
       { path: "wishlist", element: <Wishlist /> },
       { path: "account", element: <Account /> },
+      { path: "terms", element: <Terms /> },
     ],
   },
   { path: "/admin/login", element: <AdminLogin /> },

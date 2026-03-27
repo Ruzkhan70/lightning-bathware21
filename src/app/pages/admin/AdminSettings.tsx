@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw } from "lucide-react";
+import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin, DEFAULT_SITE_CONTENT } from "../../context/AdminContext";
@@ -23,7 +23,9 @@ export default function AdminSettings() {
   const [contentForm, setContentForm] = useState({ ...siteContent });
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    const newValue = type === "number" ? parseFloat(value) || 0 : value;
+    setProfileForm({ ...profileForm, [name]: newValue });
   };
 
   const handleProfileSave = (e: React.FormEvent) => {
@@ -60,11 +62,15 @@ export default function AdminSettings() {
     toast.success("Site content updated successfully!");
   };
 
-  const handleResetToDefault = () => {
+  const handleResetToDefault = async () => {
     if (window.confirm("Are you sure you want to reset all page content to default? This action cannot be undone.")) {
-      resetSiteContent();
-      setContentForm(DEFAULT_SITE_CONTENT);
-      toast.success("Site content has been reset to default!");
+      try {
+        await resetSiteContent();
+        setContentForm(DEFAULT_SITE_CONTENT);
+        toast.success("Site content has been reset to default!");
+      } catch (error) {
+        toast.error("Failed to reset site content. Please try again.");
+      }
     }
   };
 
@@ -90,8 +96,17 @@ export default function AdminSettings() {
       return;
     }
 
-    changeUsername(usernameForm.newUsername);
-    toast.success("Username updated successfully!");
+    if (usernameForm.newUsername.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+
+    const success = changeUsername(usernameForm.newUsername);
+    if (success) {
+      toast.success("Username updated successfully!");
+    } else {
+      toast.error("Failed to update username");
+    }
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {
@@ -181,6 +196,17 @@ export default function AdminSettings() {
                     onChange={handleProfileChange}
                     placeholder="e.g. Bathware"
                   />
+                </div>
+                <div className="col-span-1">
+                  <Label>Logo Image</Label>
+                  <div className="mt-1">
+                    <ImageUpload
+                      value={profileForm.storeLogo}
+                      onChange={(value) => setProfileForm({ ...profileForm, storeLogo: value })}
+                      label=""
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Leave empty to use text</p>
                 </div>
               </div>
             </div>
@@ -425,6 +451,96 @@ export default function AdminSettings() {
                    </Button>
                 </div>
               </div>
+            </div>
+
+            {/* Delivery Prices */}
+            <div className="border-b pb-4">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Truck className="w-4 h-4" /> Delivery Prices
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="deliveryColomboPrice">Colombo Delivery (Rs.)</Label>
+                  <Input
+                    id="deliveryColomboPrice"
+                    name="deliveryColomboPrice"
+                    type="number"
+                    min="0"
+                    value={profileForm.deliveryColomboPrice}
+                    onChange={handleProfileChange}
+                    placeholder="500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Set to 0 for FREE delivery</p>
+                </div>
+                <div>
+                  <Label htmlFor="deliveryIslandwidePrice">Islandwide Delivery (Rs.)</Label>
+                  <Input
+                    id="deliveryIslandwidePrice"
+                    name="deliveryIslandwidePrice"
+                    type="number"
+                    min="0"
+                    value={profileForm.deliveryIslandwidePrice}
+                    onChange={handleProfileChange}
+                    placeholder="1000"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Set to 0 for FREE delivery</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Set delivery prices for Colombo and islandwide. Set amount to 0 to offer free delivery.
+              </p>
+            </div>
+
+            {/* Home Page Stats */}
+            <div className="border-b pb-4">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Award className="w-4 h-4" /> Home Page Stats
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="statsYearsExperience">Years of Experience</Label>
+                  <Input
+                    id="statsYearsExperience"
+                    name="statsYearsExperience"
+                    value={profileForm.statsYearsExperience}
+                    onChange={handleProfileChange}
+                    placeholder="10+"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="statsProducts">Products</Label>
+                  <Input
+                    id="statsProducts"
+                    name="statsProducts"
+                    value={profileForm.statsProducts}
+                    onChange={handleProfileChange}
+                    placeholder="350+"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="statsCustomers">Happy Customers</Label>
+                  <Input
+                    id="statsCustomers"
+                    name="statsCustomers"
+                    value={profileForm.statsCustomers}
+                    onChange={handleProfileChange}
+                    placeholder="5,000+"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="statsAuthentic">Authentic Products</Label>
+                  <Input
+                    id="statsAuthentic"
+                    name="statsAuthentic"
+                    value={profileForm.statsAuthentic}
+                    onChange={handleProfileChange}
+                    placeholder="100%"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Edit the statistics shown on the home page. Include suffixes like +, %, or ,000.
+              </p>
             </div>
 
             <Button
@@ -787,6 +903,135 @@ export default function AdminSettings() {
                       />
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Terms and Conditions Section */}
+            <div className="border-b pb-6">
+              <h3 className="font-bold text-gray-800 mb-4">Terms and Conditions</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Introduction</Label>
+                  <Textarea 
+                    value={contentForm.terms.introduction}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, introduction: e.target.value }
+                    })}
+                    placeholder="Introduction text..."
+                    rows={2}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Use [Store Name] as placeholder for your store name</p>
+                </div>
+                
+                <div>
+                  <Label>General Terms (one per line)</Label>
+                  <Textarea 
+                    value={contentForm.terms.generalTerms.join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, generalTerms: e.target.value.split('\n').filter(t => t.trim()) }
+                    })}
+                    placeholder="Term 1&#10;Term 2&#10;Term 3"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label>Orders and Payment (one per line)</Label>
+                  <Textarea 
+                    value={contentForm.terms.ordersAndPayment.join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, ordersAndPayment: e.target.value.split('\n').filter(t => t.trim()) }
+                    })}
+                    placeholder="Term 1&#10;Term 2"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label>Delivery Terms (one per line)</Label>
+                  <Textarea 
+                    value={contentForm.terms.delivery.join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, delivery: e.target.value.split('\n').filter(t => t.trim()) }
+                    })}
+                    placeholder="Term 1&#10;Term 2"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label>Returns and Refunds (one per line)</Label>
+                  <Textarea 
+                    value={contentForm.terms.returnsAndRefunds.join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, returnsAndRefunds: e.target.value.split('\n').filter(t => t.trim()) }
+                    })}
+                    placeholder="Term 1&#10;Term 2"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label>Warranty Terms (one per line)</Label>
+                  <Textarea 
+                    value={contentForm.terms.warranty.join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, warranty: e.target.value.split('\n').filter(t => t.trim()) }
+                    })}
+                    placeholder="Term 1&#10;Term 2"
+                    rows={3}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label>Privacy Policy</Label>
+                  <Textarea 
+                    value={contentForm.terms.privacy}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, privacy: e.target.value }
+                    })}
+                    placeholder="Privacy policy text..."
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label>Contact Info Text</Label>
+                  <Textarea 
+                    value={contentForm.terms.contactInfo}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, contactInfo: e.target.value }
+                    })}
+                    placeholder="Contact information text..."
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label>Updates to Terms</Label>
+                  <Textarea 
+                    value={contentForm.terms.updatesToTerms}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      terms: { ...contentForm.terms, updatesToTerms: e.target.value }
+                    })}
+                    placeholder="Policy on updates text..."
+                    rows={2}
+                  />
                 </div>
               </div>
             </div>

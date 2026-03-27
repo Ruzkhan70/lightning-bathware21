@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import {
   Lightbulb,
   Bath,
@@ -17,13 +17,58 @@ import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
+import { useState, useEffect, useRef } from "react";
+
+function AnimatedCounter({ value }: { value: string }) {
+  const [displayValue, setDisplayValue] = useState("0");
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    const match = value.match(/^([\d,]+)(.*)$/);
+    if (!match) {
+      setDisplayValue(value);
+      return;
+    }
+
+    const targetNum = parseInt(match[1].replace(/,/g, ''));
+    const suffix = match[2];
+    const duration = 2000;
+    const steps = 60;
+    const stepDuration = duration / steps;
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += 1;
+      const progress = current / steps;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentNum = Math.round(targetNum * eased);
+      
+      setDisplayValue(currentNum.toLocaleString() + suffix);
+      
+      if (current >= steps) {
+        clearInterval(timer);
+        setDisplayValue(targetNum.toLocaleString() + suffix);
+      }
+    }, stepDuration);
+
+    return () => clearInterval(timer);
+  }, [isInView, value]);
+
+  return <span ref={ref}>{displayValue}</span>;
+}
 
 export default function Home() {
-  const { products, getActiveOffers, storeAssets, siteContent, categories } = useAdmin();
-  const featuredProducts = products.slice(0, 8);
-  const activeOffers = getActiveOffers();
+  const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile } = useAdmin();
+  const safeProducts = products || [];
+  const safeCategories = categories || [];
+  
+  const featuredProducts = safeProducts.slice(0, 8);
+  const activeOffers = getActiveOffers() || [];
 
-  const activeCategories = categories
+  const activeCategories = safeCategories
     .filter((c) => c.isActive)
     .map((c) => ({
       ...c,
@@ -39,7 +84,7 @@ export default function Home() {
           : c.name === "Construction Tools"
           ? HardHat
           : Lightbulb,
-      count: products.filter((p) => p.category === c.name).length,
+      count: safeProducts.filter((p) => p.category === c.name).length,
     }));
 
   const features = [
@@ -64,6 +109,15 @@ export default function Home() {
       description: "Competitive pricing on premium products",
     },
   ];
+
+  const stats = [
+    { value: storeProfile.statsYearsExperience, label: "Years of Experience" },
+    { value: storeProfile.statsProducts, label: "Products" },
+    { value: storeProfile.statsCustomers, label: "Happy Customers" },
+    { value: storeProfile.statsAuthentic, label: "Authentic Products" },
+  ];
+
+  const statsRef = useRef(null);
 
   return (
     <motion.div 
@@ -127,6 +181,26 @@ export default function Home() {
                   <div>
                     <h3 className="font-bold text-lg mb-1">{feature.title}</h3>
                     <p className="text-gray-600 text-sm">{feature.description}</p>
+                  </div>
+                </div>
+              </ScrollAnimation>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-black text-white" ref={statsRef}>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <ScrollAnimation key={index} animation="fadeIn" delay={index * 100}>
+                <div className="text-center">
+                  <div className="text-4xl md:text-5xl font-bold text-[#D4AF37] mb-2">
+                    <AnimatedCounter value={stat.value} />
+                  </div>
+                  <div className="text-gray-300 text-sm md:text-base">
+                    {stat.label}
                   </div>
                 </div>
               </ScrollAnimation>

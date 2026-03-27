@@ -51,7 +51,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email), where("password", "==", password));
+      const q = query(usersRef, where("email", "==", email.toLowerCase()), where("password", "==", password));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -83,7 +83,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   ): Promise<boolean> => {
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email));
+      const q = query(usersRef, where("email", "==", email.toLowerCase()));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -92,7 +92,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       const newUser = {
         name,
-        email,
+        email: email.toLowerCase(),
         phone,
         address,
         password,
@@ -143,7 +143,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email));
+      const q = query(usersRef, where("email", "==", email.toLowerCase()));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -153,9 +153,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const userDoc = querySnapshot.docs[0];
       await updateDoc(doc(db, "users", userDoc.id), { password: newPassword });
       return { success: true };
-    } catch (error) {
-      console.error("Reset password error:", error);
-      return { success: false, error: "unknown" };
+    } catch (error: any) {
+      console.error("Reset password error:", error?.message || error);
+      return { success: false, error: error?.message || "unknown" };
     }
   };
 

@@ -31,9 +31,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   };
 
   const incrementQuantity = () => {
-    if (quantity < product.stock) {
-      setQuantity(quantity + 1);
-    }
+    setQuantity(quantity + 1);
   };
 
   const decrementQuantity = () => {
@@ -86,10 +84,10 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 />
               </div>
 
-              {/* Stock Badge */}
-              {product.stock < 10 && product.stock > 0 && (
-                <div className="absolute top-4 left-4 bg-orange-500 text-white px-4 py-2 rounded-full font-bold">
-                  Only {product.stock} left!
+              {/* Availability Badge */}
+              {!product.isAvailable && (
+                <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold">
+                  Not Available
                 </div>
               )}
             </div>
@@ -119,20 +117,18 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </p>
               </div>
 
-              {/* Stock Availability */}
+              {/* Availability Status */}
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-5 h-5 text-[#D4AF37]" />
-                  <span className="font-semibold">Stock Availability:</span>
+                  <span className="font-semibold">Availability:</span>
                 </div>
                 <div
                   className={`font-bold ${
-                    product.stock > 0 ? "text-green-600" : "text-red-600"
+                    product.isAvailable ? "text-green-600" : "text-red-600"
                   }`}
                 >
-                  {product.stock > 0
-                    ? `${product.stock} units available`
-                    : "Out of Stock"}
+                  {product.isAvailable ? "Available" : "Not Available"}
                 </div>
               </div>
 
@@ -155,7 +151,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
 
               {/* Quantity Selector */}
-              {product.stock > 0 && (
+              {product.isAvailable && (
                 <div className="mb-6">
                   <label className="block font-semibold mb-3">Quantity:</label>
                   <div className="flex items-center gap-4">
@@ -170,14 +166,10 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                       <span className="px-6 font-bold text-xl">{quantity}</span>
                       <button
                         onClick={incrementQuantity}
-                        disabled={quantity >= product.stock}
-                        className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="p-3 hover:bg-gray-100 transition-colors"
                       >
                         <Plus className="w-5 h-5" />
                       </button>
-                    </div>
-                    <div className="text-gray-600">
-                      Max: {product.stock} units
                     </div>
                   </div>
                 </div>
@@ -186,12 +178,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               {/* Add to Cart Button */}
               <Button
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className="w-full py-6 text-lg bg-black hover:bg-[#D4AF37] text-white transition-colors"
+                disabled={!product.isAvailable}
+                className="w-full py-6 text-lg bg-black hover:bg-[#D4AF37] text-white transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                Add to Cart - Rs.{" "}
-                {(product.price * quantity).toLocaleString()}
+                {product.isAvailable ? `Add to Cart - Rs. ${(product.price * quantity).toLocaleString()}` : "Not Available"}
               </Button>
             </div>
           </div>

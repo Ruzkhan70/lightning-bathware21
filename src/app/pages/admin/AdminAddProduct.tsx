@@ -21,15 +21,17 @@ export default function AdminAddProduct() {
     name: "",
     category: "",
     price: 0,
-    stock: 0,
+    isAvailable: true,
     description: "",
     image: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const safeCategories = categories || [];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.category || formData.price <= 0 || formData.stock < 0) {
+    if (!formData.name || !formData.category || formData.price < 0) {
       toast.error("Please fill in all required fields correctly");
       return;
     }
@@ -39,7 +41,7 @@ export default function AdminAddProduct() {
       return;
     }
 
-    addProduct(formData);
+    await addProduct(formData);
     toast.success("Product added successfully!");
 
     // Reset form
@@ -47,7 +49,7 @@ export default function AdminAddProduct() {
       name: "",
       category: "",
       price: 0,
-      stock: 0,
+      isAvailable: true,
       description: "",
       image: "",
     });
@@ -91,7 +93,7 @@ export default function AdminAddProduct() {
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
+                {safeCategories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.name}>
                     {cat.name}
                   </SelectItem>
@@ -120,20 +122,33 @@ export default function AdminAddProduct() {
             </div>
 
             <div>
-              <Label htmlFor="stock">
-                Stock Quantity <span className="text-red-500">*</span>
+              <Label htmlFor="isAvailable">
+                Availability
               </Label>
-              <Input
-                id="stock"
-                type="number"
-                min="0"
-                value={formData.stock || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock: Number(e.target.value) })
-                }
-                placeholder="0"
-                required
-              />
+              <div className="flex items-center gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, isAvailable: true })}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    formData.isAvailable
+                      ? "border-green-500 bg-green-50 text-green-700"
+                      : "border-gray-200 text-gray-500"
+                  }`}
+                >
+                  Available
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, isAvailable: false })}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    !formData.isAvailable
+                      ? "border-red-500 bg-red-50 text-red-700"
+                      : "border-gray-200 text-gray-500"
+                  }`}
+                >
+                  Not Available
+                </button>
+              </div>
             </div>
           </div>
 
@@ -179,7 +194,7 @@ export default function AdminAddProduct() {
                   name: "",
                   category: "",
                   price: 0,
-                  stock: 0,
+                  isAvailable: true,
                   description: "",
                   image: "",
                 })
@@ -211,7 +226,7 @@ export default function AdminAddProduct() {
               • Use high-quality images with good lighting and clear product
               visibility
             </li>
-            <li>• Keep stock quantities updated to avoid overselling</li>
+            <li>• Keep availability status updated to manage product visibility</li>
           </ul>
         </div>
       </div>

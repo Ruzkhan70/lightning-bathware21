@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { useCart } from "../context/CartContext";
 import { useAdmin } from "../context/AdminContext";
 import { useUser } from "../context/UserContext";
@@ -14,7 +14,7 @@ import { ShoppingBag, Truck } from "lucide-react";
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
-  const { addOrder } = useAdmin();
+  const { addOrder, storeProfile } = useAdmin();
   const { user, isLoggedIn } = useUser();
 
   const [formData, setFormData] = useState({
@@ -41,15 +41,15 @@ export default function Checkout() {
   }, [user]);
 
   const deliveryOptions = [
-    { value: "colombo", label: "Delivery within Colombo", cost: 500 },
-    { value: "islandwide", label: "Islandwide delivery", cost: 1000 },
+    { value: "colombo", label: "Delivery within Colombo", cost: Number(storeProfile.deliveryColomboPrice) },
+    { value: "islandwide", label: "Islandwide delivery", cost: Number(storeProfile.deliveryIslandwidePrice) },
   ];
 
   const selectedDelivery = deliveryOptions.find(
     (opt) => opt.value === formData.deliveryOption
   );
-  const deliveryCost = selectedDelivery?.cost || 0;
-  const grandTotal = cartTotal + deliveryCost;
+  const deliveryCost = Number(selectedDelivery?.cost) || 0;
+  const grandTotal = Number(cartTotal) + deliveryCost;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -260,37 +260,38 @@ export default function Checkout() {
               {/* Delivery Options */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-bold mb-6">Delivery Options</h2>
-                <RadioGroup
-                  value={formData.deliveryOption}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, deliveryOption: value })
-                  }
-                >
+                <div className="space-y-3">
                   {deliveryOptions.map((option) => (
                     <div
                       key={option.value}
-                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setFormData({ ...formData, deliveryOption: option.value })}
+                      className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        formData.deliveryOption === option.value
+                          ? "border-[#D4AF37] bg-[#D4AF37]/5"
+                          : "border-gray-200 hover:border-[#D4AF37]/50"
+                      }`}
                     >
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label
-                        htmlFor={option.value}
-                        className="flex-1 cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Truck className="w-5 h-5 text-[#D4AF37]" />
-                            <span className="font-semibold">
-                              {option.label}
-                            </span>
-                          </div>
-                          <span className="font-bold">
-                            Rs. {option.cost.toLocaleString()}
-                          </span>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          formData.deliveryOption === option.value
+                            ? "border-[#D4AF37] bg-[#D4AF37]"
+                            : "border-gray-300"
+                        }`}>
+                          {formData.deliveryOption === option.value && (
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          )}
                         </div>
-                      </Label>
+                        <Truck className="w-5 h-5 text-[#D4AF37]" />
+                        <span className="font-semibold">
+                          {option.label}
+                        </span>
+                      </div>
+                      <span className="font-bold">
+                        {option.cost === 0 ? "FREE" : `Rs. ${option.cost.toLocaleString()}`}
+                      </span>
                     </div>
                   ))}
-                </RadioGroup>
+                </div>
               </div>
             </div>
 
@@ -334,7 +335,7 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Delivery</span>
                     <span className="font-semibold">
-                      Rs. {deliveryCost.toLocaleString()}
+                      {deliveryCost === 0 ? "FREE" : `Rs. ${deliveryCost.toLocaleString()}`}
                     </span>
                   </div>
                 </div>
@@ -355,7 +356,10 @@ export default function Checkout() {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center mt-4">
-                  By placing your order, you agree to our terms and conditions
+                  By placing your order, you agree to our{" "}
+                  <Link to="/terms" className="text-[#D4AF37] hover:underline">
+                    terms and conditions
+                  </Link>
                 </p>
               </div>
             </div>

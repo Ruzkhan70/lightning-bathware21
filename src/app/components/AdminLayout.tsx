@@ -19,7 +19,7 @@ import SessionWarning from "./admin/SessionWarning";
 import { useAdminTimeout } from "../hooks/useAdminTimeout";
 
 export default function AdminLayout() {
-  const { isAdminLoggedIn, logout, triggerLogout, lowStockProducts } = useAdmin();
+  const { isAdminLoggedIn, logout, triggerLogout, products } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -28,6 +28,8 @@ export default function AdminLayout() {
     isAdminLoggedIn,
     triggerLogout
   );
+
+  const unavailableProducts = (products || []).filter(p => !p.isAvailable);
 
   useEffect(() => {
     if (!isAdminLoggedIn) {
@@ -68,8 +70,8 @@ export default function AdminLayout() {
       icon: Package,
       label: "Products",
       path: "/admin/products",
-      badge: lowStockProducts.length > 0 ? lowStockProducts.length : undefined,
-      badgeColor: "bg-orange-500",
+      badge: unavailableProducts.length > 0 ? unavailableProducts.length : undefined,
+      badgeColor: "bg-red-500",
     },
     {
       icon: List,

@@ -24,14 +24,16 @@ export default function AdminOrders() {
   const [viewingOrder, setViewingOrder] = useState<string | null>(null);
   const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
 
-  const filteredOrders = orders.filter(
+  const safeOrders = orders || [];
+
+  const filteredOrders = safeOrders.filter(
     (o) =>
       o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       o.phone.includes(searchQuery) ||
       o.id.includes(searchQuery)
   );
 
-  const currentOrder = orders.find((o) => o.id === viewingOrder);
+  const currentOrder = safeOrders.find((o) => o.id === viewingOrder);
 
   const handleStatusChange = (orderId: string, status: "Pending" | "Processing" | "Delivered") => {
     updateOrderStatus(orderId, status);
@@ -44,9 +46,9 @@ export default function AdminOrders() {
     setDeletingOrder(null);
   };
 
-  const pendingCount = orders.filter(o => o.status === "Pending").length;
-  const processingCount = orders.filter(o => o.status === "Processing").length;
-  const completedCount = orders.filter(o => o.status === "Delivered").length;
+  const pendingCount = safeOrders.filter(o => o.status === "Pending").length;
+  const processingCount = safeOrders.filter(o => o.status === "Processing").length;
+  const completedCount = safeOrders.filter(o => o.status === "Delivered").length;
 
   return (
     <div>

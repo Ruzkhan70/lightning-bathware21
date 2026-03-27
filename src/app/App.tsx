@@ -89,7 +89,7 @@ function AppContent() {
             <WishlistProvider>
               <DataLoader>
                 <RouterProvider router={router} />
-                <Toaster position="top-right" />
+                <Toaster position="top-right" draggable />
               </DataLoader>
             </WishlistProvider>
           </CartProvider>

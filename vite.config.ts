@@ -13,6 +13,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: "/lightning-bathware21",
+  base: process.env.VERCEL ? '/' : '/lightning-bathware21',
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

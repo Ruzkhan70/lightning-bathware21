@@ -14,24 +14,31 @@ export default function Header() {
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const { isLoggedIn } = useUser();
-  const { products } = useAdmin();
+  const { products, storeProfile } = useAdmin();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const safeProducts = products || [];
+
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setShowSuggestions(value.length > 0);
-    if (value.trim()) {
-      navigate(`/products?search=${encodeURIComponent(value)}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     } else {
       navigate(`/products`);
     }
+    setShowSuggestions(false);
   };
 
   const suggestions = searchQuery.trim()
-    ? products.filter(p => 
+    ? safeProducts.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.category.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 5)
@@ -69,16 +76,30 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="text-2xl md:text-3xl font-bold">
-              <span className="text-white">Lightning</span>
-              <span className="text-[#D4AF37]"> Bathware</span>
-            </div>
+          <Link to="/" className="flex items-center gap-3">
+            {storeProfile.storeLogo ? (
+              <>
+                <img 
+                  src={storeProfile.storeLogo} 
+                  alt={`${storeProfile.storeName} ${storeProfile.storeNameAccent}`}
+                  className="h-10 md:h-12 w-auto object-contain"
+                />
+                <div className="text-xl md:text-2xl font-bold hidden sm:block">
+                  <span className="text-white">{storeProfile.storeName}</span>
+                  <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+                </div>
+              </>
+            ) : (
+              <div className="text-2xl md:text-3xl font-bold">
+                <span className="text-white">{storeProfile.storeName}</span>
+                <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+              </div>
+            )}
           </Link>
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-2xl relative" ref={searchRef}>
-            <div className="relative w-full">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
               <Input
                 type="text"
                 placeholder="Search for products..."
@@ -101,7 +122,7 @@ export default function Header() {
                   ))}
                 </div>
               )}
-            </div>
+            </form>
           </div>
 
           {/* Icons */}
