@@ -11,6 +11,8 @@ import Wishlist from "./pages/Wishlist";
 import Account from "./pages/Account";
 import Offers from "./pages/Offers";
 import Terms from "./pages/Terms";
+import Invoice from "./pages/Invoice";
+import VerifyInvoice from "./pages/VerifyInvoice";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -21,6 +23,7 @@ import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import AdminStatistics from "./pages/admin/AdminStatistics";
 import AdminOffers from "./pages/admin/AdminOffers";
 import AdminAddOffer from "./pages/admin/AdminAddOffer";
+import AdminInvoices from "./pages/admin/AdminInvoices";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 
@@ -41,6 +44,8 @@ export const router = createHashRouter([
       { path: "wishlist", element: <Wishlist /> },
       { path: "account", element: <Account /> },
       { path: "terms", element: <Terms /> },
+      { path: "invoice/:id", element: <Invoice /> },
+      { path: "verify/:id", element: <VerifyInvoice /> },
     ],
   },
   { path: "/admin/login", element: <AdminLogin /> },
@@ -58,6 +63,7 @@ export const router = createHashRouter([
       { path: "add-product", element: <AdminAddProduct /> },
       { path: "statistics", element: <AdminStatistics /> },
       { path: "settings", element: <AdminSettings /> },
+      { path: "invoices", element: <AdminInvoices /> },
     ],
   },
 ]);

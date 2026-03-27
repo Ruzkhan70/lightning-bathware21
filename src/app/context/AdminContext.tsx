@@ -32,6 +32,31 @@ export interface Order {
   deliveryCost: number;
 }
 
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  address: string;
+  products: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  deliveryCost: number;
+  grandTotal: number;
+  paymentStatus: "Paid" | "Pending";
+  date: string;
+  createdAt: string;
+}
+
 export interface Offer {
   id: string;
   title: string;
@@ -184,6 +209,11 @@ interface AdminContextType {
   topSellingProducts: { productId: string; totalSold: number }[];
   getOrdersByStatus: (status: string) => Order[];
   totalRevenue: number;
+  invoices: Invoice[];
+  createInvoice: (order: Order, customerEmail?: string) => Promise<Invoice>;
+  updateInvoicePaymentStatus: (id: string, status: "Paid" | "Pending") => void;
+  getInvoiceByOrderId: (orderId: string) => Invoice | undefined;
+  getInvoiceById: (id: string) => Invoice | undefined;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -437,6 +467,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const DEMO_OFFERS: Offer[] = [
     {
@@ -488,6 +519,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     orders: false,
     offers: false,
     products: false,
+    invoices: false,
   });
 
   useEffect(() => {
@@ -651,6 +683,28 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Firebase real-time sync for invoices
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "invoices"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firebaseInvoices: Invoice[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { ...data, id: data.id || doc.id } as Invoice;
+        });
+        setInvoices(firebaseInvoices);
+        setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
+      }, (error) => {
+        console.error("Firebase invoices sync error:", error);
+        setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase invoices sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
+    }
+  }, []);
+
   // Reference to default products array
   const DEFAULT_PRODUCTS: Product[] = [
     { id: "1", name: "LED Ceiling Light - Modern Round", category: "Lighting", price: 4500, isAvailable: true, description: "Modern round LED ceiling light with adjustable brightness.", image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=500" },
@@ -705,6 +759,71 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Error adding demo offers:", error);
       toast.error("Failed to add demo offers");
     }
+  };
+
+  const generateInvoiceNumber = () => {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+    return `INV-${year}${month}-${random}`;
+  };
+
+  const createInvoice = async (order: Order, customerEmail: string = "") => {
+    const invoiceNumber = generateInvoiceNumber();
+    const products = order.products.map(p => ({
+      id: p.id,
+      name: p.name,
+      quantity: p.quantity,
+      unitPrice: p.price,
+      total: p.price * p.quantity,
+    }));
+    const subtotal = products.reduce((sum, p) => sum + p.total, 0);
+    const invoice: Invoice = {
+      id: `INV-${Date.now()}`,
+      invoiceNumber,
+      orderId: order.id,
+      customerName: order.customerName,
+      customerPhone: order.phone,
+      customerEmail,
+      address: order.address,
+      products,
+      subtotal,
+      discount: 0,
+      tax: 0,
+      deliveryCost: order.deliveryCost,
+      grandTotal: order.total,
+      paymentStatus: "Pending",
+      date: order.date,
+      createdAt: new Date().toISOString(),
+    };
+    setInvoices(prev => [invoice, ...prev]);
+    try {
+      await setDoc(doc(db, "invoices", invoice.id), invoice);
+      toast.success(`Invoice ${invoiceNumber} created!`);
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      toast.error("Failed to create invoice");
+    }
+    return invoice;
+  };
+
+  const updateInvoicePaymentStatus = async (id: string, status: "Paid" | "Pending") => {
+    setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, paymentStatus: status } : inv));
+    try {
+      await updateDoc(doc(db, "invoices", id), { paymentStatus: status });
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const getInvoiceByOrderId = (orderId: string) => {
+    return invoices.find(inv => inv.orderId === orderId);
+  };
+
+  const getInvoiceById = (id: string) => {
+    return invoices.find(inv => inv.id === id || inv.invoiceNumber === id);
   };
 
   useEffect(() => {
@@ -1039,6 +1158,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         topSellingProducts,
         getOrdersByStatus,
         totalRevenue,
+        invoices,
+        createInvoice,
+        updateInvoicePaymentStatus,
+        getInvoiceByOrderId,
+        getInvoiceById,
       }}
     >
       {children}

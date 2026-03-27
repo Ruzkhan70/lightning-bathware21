@@ -12,6 +12,7 @@ import {
   List,
   RefreshCw,
   AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
@@ -82,6 +83,11 @@ export default function AdminLayout() {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
+    },
+    {
+      icon: FileText,
+      label: "Invoices",
+      path: "/admin/invoices",
     },
     {
       icon: Tag,

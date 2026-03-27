@@ -1,0 +1,606 @@
+import { useState, useEffect, useMemo } from "react";
+import { useAdmin } from "../../context/AdminContext";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Badge } from "../../components/ui/badge";
+import { 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
+} from "../../components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "../../components/ui/dialog";
+import { 
+  FileText, Search, Filter, Download, Eye, CheckCircle, 
+  Clock, X, Calendar, User, Phone, Mail, MapPin, Package,
+  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet
+} from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { toast } from "sonner";
+import { format, startOfDay, endOfDay } from "date-fns";
+
+export default function AdminInvoices() {
+  const { invoices, updateInvoicePaymentStatus, orders, createInvoice, storeProfile } = useAdmin();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "Paid" | "Pending">("all");
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    if (invoices.length === 0 && orders.length > 0) {
+      orders.forEach(order => {
+        createInvoice(order);
+      });
+    }
+  }, [orders, invoices.length]);
+
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((invoice) => {
+      const matchesSearch =
+        invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.customerPhone.includes(searchTerm);
+
+      const matchesStatus = statusFilter === "all" || invoice.paymentStatus === statusFilter;
+
+      let matchesDate = true;
+      if (dateRange.start) {
+        const invoiceDate = new Date(invoice.date);
+        const start = startOfDay(new Date(dateRange.start));
+        matchesDate = invoiceDate >= start;
+      }
+      if (dateRange.end) {
+        const invoiceDate = new Date(invoice.date);
+        const end = endOfDay(new Date(dateRange.end));
+        matchesDate = matchesDate && invoiceDate <= end;
+      }
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [invoices, searchTerm, statusFilter, dateRange]);
+
+  const paginatedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredInvoices.slice(start, start + itemsPerPage);
+  }, [filteredInvoices, currentPage]);
+
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+
+  const generatePDF = (invoice: any, single: boolean = true) => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("INVOICE", 105, 25, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent}`, 105, 35, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(`${storeProfile.addressStreet}, ${storeProfile.addressCity}`, 105, 42, { align: "center" });
+    doc.text(`Phone: ${storeProfile.phone} | Email: ${storeProfile.email}`, 105, 48, { align: "center" });
+    
+    doc.line(15, 55, 195, 55);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Invoice Details", 15, 65);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 15, 72);
+    doc.text(`Date: ${format(new Date(invoice.date), "PPP HH:mm")}`, 15, 78);
+    doc.text(`Payment Status: ${invoice.paymentStatus}`, 15, 84);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("Customer Details", 120, 65);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${invoice.customerName}`, 120, 72);
+    doc.text(`Phone: ${invoice.customerPhone}`, 120, 78);
+    if (invoice.customerEmail) {
+      doc.text(`Email: ${invoice.customerEmail}`, 120, 84);
+    }
+    doc.text(`Address: ${invoice.address}`, 120, 90);
+    
+    doc.line(15, 98, 195, 98);
+    
+    const tableData = invoice.products.map((product: any) => [
+      product.name,
+      product.quantity.toString(),
+      `Rs. ${product.unitPrice.toLocaleString()}`,
+      `Rs. ${product.total.toLocaleString()}`,
+    ]);
+    
+    autoTable(doc, {
+      startY: 102,
+      head: [["Product", "Quantity", "Unit Price", "Total"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: { fillColor: [44, 62, 80] },
+      styles: { fontSize: 9 },
+    });
+    
+    const finalY = (doc as any).lastAutoTable?.finalY || 130;
+    
+    doc.setFontSize(10);
+    doc.text(`Subtotal: Rs. ${invoice.subtotal.toLocaleString()}`, 140, finalY + 15);
+    if (invoice.discount > 0) {
+      doc.text(`Discount: Rs. ${invoice.discount.toLocaleString()}`, 140, finalY + 22);
+    }
+    doc.text(`Delivery: Rs. ${invoice.deliveryCost.toLocaleString()}`, 140, finalY + 29);
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`Grand Total: Rs. ${invoice.grandTotal.toLocaleString()}`, 140, finalY + 40);
+    
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("Powered by Lightning Bathware - Official Invoice", 105, 285, { align: "center" });
+    
+    if (single) {
+      doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      toast.success("Invoice downloaded!");
+    } else {
+      return doc;
+    }
+  };
+
+  const exportCSV = () => {
+    const headers = ["Invoice Number", "Customer Name", "Phone", "Date", "Total", "Payment Status"];
+    const rows = filteredInvoices.map((inv) => [
+      inv.invoiceNumber,
+      inv.customerName,
+      inv.customerPhone,
+      format(new Date(inv.date), "yyyy-MM-dd HH:mm"),
+      inv.grandTotal.toString(),
+      inv.paymentStatus,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `invoices-export-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+    toast.success("CSV exported!");
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Invoices Report", 105, 20, { align: "center" });
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated: ${format(new Date(), "PPP")}`, 105, 28, { align: "center" });
+    doc.text(`Total Invoices: ${filteredInvoices.length}`, 105, 34, { align: "center" });
+    
+    const tableData = filteredInvoices.map((inv) => [
+      inv.invoiceNumber,
+      inv.customerName,
+      format(new Date(inv.date), "dd/MM/yyyy"),
+      `Rs. ${inv.grandTotal.toLocaleString()}`,
+      inv.paymentStatus,
+    ]);
+    
+    autoTable(doc, {
+      startY: 42,
+      head: [["Invoice #", "Customer", "Date", "Total", "Status"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: { fillColor: [44, 62, 80] },
+      styles: { fontSize: 8 },
+    });
+    
+    doc.save(`invoices-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("PDF report exported!");
+  };
+
+  const viewInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setShowInvoiceModal(true);
+  };
+
+  const togglePaymentStatus = (invoice: any) => {
+    const newStatus = invoice.paymentStatus === "Paid" ? "Pending" : "Paid";
+    updateInvoicePaymentStatus(invoice.id, newStatus);
+    toast.success(`Payment status updated to ${newStatus}`);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDateRange({ start: "", end: "" });
+  };
+
+  const hasFilters = searchTerm || statusFilter !== "all" || dateRange.start || dateRange.end;
+
+  const totalRevenue = filteredInvoices
+    .filter((inv) => inv.paymentStatus === "Paid")
+    .reduce((sum, inv) => sum + inv.grandTotal, 0);
+
+  const pendingAmount = filteredInvoices
+    .filter((inv) => inv.paymentStatus === "Pending")
+    .reduce((sum, inv) => sum + inv.grandTotal, 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <FileText className="w-8 h-8 text-[#D4AF37]" />
+            Invoices
+          </h1>
+          <p className="text-gray-500 mt-1">Manage and track all invoices</p>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            onClick={exportCSV}
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button
+            onClick={exportPDF}
+            variant="outline"
+            className="border-red-600 text-red-600 hover:bg-red-50"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export PDF
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <p className="text-sm text-gray-500">Total Invoices</p>
+          <p className="text-2xl font-bold">{filteredInvoices.length}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <p className="text-sm text-gray-500">Total Revenue (Paid)</p>
+          <p className="text-2xl font-bold text-green-600">Rs. {totalRevenue.toLocaleString()}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <p className="text-sm text-gray-500">Pending Amount</p>
+          <p className="text-2xl font-bold text-yellow-600">Rs. {pendingAmount.toLocaleString()}</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-4 border-b flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search by invoice number, customer name, or phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="outline"
+            className={showFilters ? "bg-[#D4AF37]/10 border-[#D4AF37]" : ""}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
+          </Button>
+          {hasFilters && (
+            <Button onClick={clearFilters} variant="ghost" size="icon">
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="p-4 border-b bg-gray-50 flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="border rounded px-3 py-1.5 text-sm"
+              >
+                <option value="all">All</option>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">From:</label>
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                className="border rounded px-3 py-1.5 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">To:</label>
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                className="border rounded px-3 py-1.5 text-sm"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Invoice #</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedInvoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    No invoices found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedInvoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-semibold">{invoice.invoiceNumber}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{invoice.customerName}</p>
+                        <p className="text-sm text-gray-500">{invoice.customerPhone}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{format(new Date(invoice.date), "dd MMM yyyy")}</TableCell>
+                    <TableCell className="text-right font-semibold">
+                      Rs. {invoice.grandTotal.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={
+                          invoice.paymentStatus === "Paid"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }
+                      >
+                        {invoice.paymentStatus === "Paid" ? (
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                        ) : (
+                          <Clock className="w-3 h-3 mr-1" />
+                        )}
+                        {invoice.paymentStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => viewInvoice(invoice)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => generatePDF(invoice)}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => togglePaymentStatus(invoice)}
+                          className={
+                            invoice.paymentStatus === "Paid"
+                              ? "text-yellow-600 hover:text-yellow-700"
+                              : "text-green-600 hover:text-green-700"
+                          }
+                        >
+                          {invoice.paymentStatus === "Paid" ? (
+                            <Clock className="w-4 h-4" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="p-4 border-t flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+              {Math.min(currentPage * itemsPerPage, filteredInvoices.length)} of{" "}
+              {filteredInvoices.length} invoices
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="px-4 py-2 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Dialog open={showInvoiceModal} onOpenChange={setShowInvoiceModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-[#D4AF37]" />
+              Invoice {selectedInvoice?.invoiceNumber}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedInvoice && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Customer</p>
+                  <p className="font-semibold flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    {selectedInvoice.customerName}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Phone</p>
+                  <p className="font-semibold flex items-center gap-1">
+                    <Phone className="w-3 h-3" />
+                    {selectedInvoice.customerPhone}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Email</p>
+                  <p className="font-semibold flex items-center gap-1">
+                    <Mail className="w-3 h-3" />
+                    {selectedInvoice.customerEmail || "N/A"}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Date</p>
+                  <p className="font-semibold flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {format(new Date(selectedInvoice.date), "dd MMM yyyy HH:mm")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs text-gray-500 mb-1">Delivery Address</p>
+                <p className="font-semibold flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {selectedInvoice.address}
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2 flex items-center gap-1">
+                  <Package className="w-4 h-4" />
+                  Products
+                </h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Product</th>
+                        <th className="px-3 py-2 text-center">Qty</th>
+                        <th className="px-3 py-2 text-right">Price</th>
+                        <th className="px-3 py-2 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedInvoice.products.map((product: any, i: number) => (
+                        <tr key={i} className="border-t">
+                          <td className="px-3 py-2">{product.name}</td>
+                          <td className="px-3 py-2 text-center">{product.quantity}</td>
+                          <td className="px-3 py-2 text-right">Rs. {product.unitPrice.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right">Rs. {product.total.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex justify-between">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">QR Code</p>
+                  <div className="bg-white p-2 rounded inline-block">
+                    <QRCodeSVG
+                      value={`https://lightning-bathware.vercel.app/#/verify/${selectedInvoice.id}`}
+                      size={80}
+                      level="H"
+                    />
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <p>Subtotal: Rs. {selectedInvoice.subtotal.toLocaleString()}</p>
+                  {selectedInvoice.discount > 0 && (
+                    <p className="text-green-600">Discount: -Rs. {selectedInvoice.discount.toLocaleString()}</p>
+                  )}
+                  <p>Delivery: Rs. {selectedInvoice.deliveryCost.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-[#D4AF37]">
+                    Total: Rs. {selectedInvoice.grandTotal.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Badge
+                  className={
+                    selectedInvoice.paymentStatus === "Paid"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }
+                >
+                  {selectedInvoice.paymentStatus}
+                </Badge>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => generatePDF(selectedInvoice)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button
+                    onClick={() => togglePaymentStatus(selectedInvoice)}
+                    size="sm"
+                    className={
+                      selectedInvoice.paymentStatus === "Paid"
+                        ? "bg-yellow-600 hover:bg-yellow-700"
+                        : "bg-green-600 hover:bg-green-700"
+                    }
+                  >
+                    {selectedInvoice.paymentStatus === "Paid" ? "Mark Pending" : "Mark Paid"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

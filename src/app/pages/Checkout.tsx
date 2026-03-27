@@ -14,7 +14,7 @@ import { ShoppingBag, Truck } from "lucide-react";
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
-  const { addOrder, storeProfile } = useAdmin();
+  const { addOrder, createInvoice, storeProfile } = useAdmin();
   const { user, isLoggedIn } = useUser();
 
   const [formData, setFormData] = useState({
@@ -60,7 +60,7 @@ export default function Checkout() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (cartItems.length === 0) {
@@ -78,8 +78,7 @@ export default function Checkout() {
       return;
     }
 
-    // Create order
-    addOrder({
+    const orderData = {
       customerName: formData.customerName,
       phone: formData.phone,
       address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,
@@ -93,11 +92,22 @@ export default function Checkout() {
       total: grandTotal,
       deliveryOption: selectedDelivery?.label || "",
       deliveryCost: deliveryCost,
-    });
+    };
+
+    await addOrder(orderData);
+    
+    const tempOrder = {
+      ...orderData,
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      status: "Pending" as const,
+    };
+    
+    const invoice = await createInvoice(tempOrder, formData.email);
 
     clearCart();
-    toast.success("Order placed successfully!");
-    navigate("/");
+    toast.success("Order placed successfully! Invoice generated.");
+    navigate(`/invoice/${invoice.id}`);
   };
 
   if (!isLoggedIn) {
