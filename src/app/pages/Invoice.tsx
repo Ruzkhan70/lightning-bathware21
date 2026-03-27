@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
@@ -8,191 +8,266 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
   Download, Printer, ArrowLeft, FileText, CheckCircle, 
-  Clock, MapPin, Phone, Mail, Package, Zap 
+  Clock, MapPin, Phone, Mail, Package, Zap, AlertCircle 
 } from "lucide-react";
 
+interface InvoiceProduct {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+interface InvoiceData {
+  id: string;
+  invoiceNumber: string;
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  address: string;
+  products: InvoiceProduct[];
+  subtotal: number;
+  discount: number;
+  tax: number;
+  deliveryCost: number;
+  grandTotal: number;
+  paymentStatus: "Paid" | "Pending";
+  date: string;
+}
+
 export default function Invoice() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getInvoiceById, storeProfile, invoices } = useAdmin();
-  const [invoice, setInvoice] = useState<any>(null);
+  const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
-  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
+    if (!id) {
+      setError("Invalid invoice ID");
+      setLoading(false);
+      return;
+    }
+
+    try {
       const foundInvoice = getInvoiceById(id);
       if (foundInvoice) {
-        setInvoice(foundInvoice);
+        const validatedInvoice: InvoiceData = {
+          id: foundInvoice.id || "",
+          invoiceNumber: foundInvoice.invoiceNumber || "",
+          orderId: foundInvoice.orderId || "",
+          customerName: foundInvoice.customerName || "Unknown",
+          customerPhone: foundInvoice.customerPhone || "",
+          customerEmail: foundInvoice.customerEmail,
+          address: foundInvoice.address || "",
+          products: (foundInvoice.products || []).map((p: any) => ({
+            id: p.id || "",
+            name: p.name || "Unknown Product",
+            quantity: p.quantity || 0,
+            unitPrice: p.unitPrice || p.price || 0,
+            total: p.total || (p.unitPrice || p.price || 0) * (p.quantity || 1),
+          })),
+          subtotal: foundInvoice.subtotal || 0,
+          discount: foundInvoice.discount || 0,
+          tax: foundInvoice.tax || 0,
+          deliveryCost: foundInvoice.deliveryCost || 0,
+          grandTotal: foundInvoice.grandTotal || 0,
+          paymentStatus: foundInvoice.paymentStatus === "Paid" ? "Paid" : "Pending",
+          date: foundInvoice.date || foundInvoice.createdAt || new Date().toISOString(),
+        };
+        setInvoice(validatedInvoice);
       } else {
-        toast.error("Invoice not found");
+        setError("Invoice not found");
       }
-      setLoading(false);
+    } catch (err) {
+      console.error("Error loading invoice:", err);
+      setError("Failed to load invoice");
     }
-  }, [id, invoices]);
+    setLoading(false);
+  }, [id, invoices, getInvoiceById]);
 
   const verificationUrl = `https://lightning-bathware.vercel.app/#/verify/${id}`;
+
+  const formatPrice = (price: number) => {
+    return `Rs. ${(price || 0).toLocaleString()}`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", { 
+        year: "numeric", 
+        month: "long", 
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    } catch {
+      return "Invalid Date";
+    }
+  };
 
   const downloadPDF = () => {
     if (!invoice) return;
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    
-    const goldColor = [212, 175, 55];
-    const darkColor = [26, 26, 26];
-    const grayColor = [100, 100, 100];
-    
-    doc.setFillColor(...darkColor);
-    doc.rect(0, 0, pageWidth, 45, "F");
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
-    doc.setFont("helvetica", "bold");
-    doc.text("INVOICE", pageWidth / 2, 22, { align: "center" });
-    
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent}`, pageWidth / 2, 33, { align: "center" });
-    
-    doc.setTextColor(...goldColor);
-    doc.setFontSize(10);
-    doc.text(`${storeProfile.addressStreet}, ${storeProfile.addressCity}`, pageWidth / 2, 40, { align: "center" });
-    
-    doc.setFillColor(...goldColor);
-    doc.rect(0, 45, pageWidth, 3, "F");
-    
-    doc.setTextColor(...darkColor);
-    doc.setFontSize(9);
-    doc.text(`Phone: ${storeProfile.phone}  |  Email: ${storeProfile.email}`, pageWidth / 2, 54, { align: "center" });
-    
-    let yPos = 65;
-    
-    doc.setFillColor(245, 245, 245);
-    doc.roundedRect(10, yPos, 90, 35, 2, 2, "F");
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Invoice Details", 15, yPos + 7);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 15, yPos + 15);
-    doc.text(`Date: ${new Date(invoice.date).toLocaleDateString("en-US", { 
-      year: "numeric", month: "long", day: "numeric" 
-    })}`, 15, yPos + 22);
-    doc.text(`Time: ${new Date(invoice.date).toLocaleTimeString("en-US", { 
-      hour: "2-digit", minute: "2-digit" 
-    })}`, 15, yPos + 29);
-    
-    const statusColor = invoice.paymentStatus === "Paid" ? [34, 139, 34] : [255, 165, 0];
-    doc.setTextColor(...statusColor);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Status: ${invoice.paymentStatus}`, 15, yPos + 38);
-    
-    doc.setFillColor(245, 245, 245);
-    doc.roundedRect(105, yPos, 90, 35, 2, 2, "F");
-    doc.setTextColor(...darkColor);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bill To", 110, yPos + 7);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text(invoice.customerName, 110, yPos + 15);
-    doc.text(invoice.customerPhone, 110, yPos + 22);
-    if (invoice.customerEmail) {
-      doc.text(invoice.customerEmail, 110, yPos + 29);
-    }
-    
-    const addressLines = doc.splitTextToSize(invoice.address, 80);
-    doc.text(addressLines[0], 110, yPos + 36);
-    
-    yPos = 110;
-    
-    const tableData = invoice.products.map((product: any) => [
-      product.name,
-      product.quantity.toString(),
-      `Rs. ${product.unitPrice.toLocaleString()}`,
-      `Rs. ${product.total.toLocaleString()}`,
-    ]);
-    
-    autoTable(doc, {
-      startY: yPos,
-      head: [["Product Name", "Qty", "Unit Price", "Total"]],
-      body: tableData,
-      theme: "striped",
-      headStyles: {
-        fillColor: darkColor,
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-        fontSize: 10,
-        halign: "center",
-      },
-      bodyStyles: {
-        fontSize: 9,
-      },
-      columnStyles: {
-        0: { cellWidth: 90 },
-        1: { cellWidth: 20, halign: "center" },
-        2: { cellWidth: 35, halign: "right" },
-        3: { cellWidth: 35, halign: "right" },
-      },
-      alternateRowStyles: {
-        fillColor: [250, 250, 250],
-      },
-      margin: { left: 15, right: 15 },
-    });
-    
-    yPos = (doc as any).lastAutoTable?.finalY + 10 || 170;
-    
-    doc.setFillColor(250, 250, 250);
-    doc.roundedRect(105, yPos - 5, 90, 50, 2, 2, "F");
-    
-    doc.setFontSize(10);
-    doc.setTextColor(...grayColor);
-    doc.text("Subtotal", 190, yPos + 5, { align: "right" });
-    doc.setTextColor(...darkColor);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Rs. ${invoice.subtotal.toLocaleString()}`, 190, yPos + 12, { align: "right" });
-    
-    if (invoice.discount > 0) {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      const goldColor = [212, 175, 55];
+      const darkColor = [26, 26, 26];
+      const grayColor = [100, 100, 100];
+      
+      doc.setFillColor(...darkColor);
+      doc.rect(0, 0, pageWidth, 45, "F");
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(28);
+      doc.setFont("helvetica", "bold");
+      doc.text("INVOICE", pageWidth / 2, 22, { align: "center" });
+      
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent}`, pageWidth / 2, 33, { align: "center" });
+      
+      doc.setTextColor(...goldColor);
+      doc.setFontSize(10);
+      doc.text(`${storeProfile.addressStreet}, ${storeProfile.addressCity}`, pageWidth / 2, 40, { align: "center" });
+      
+      doc.setFillColor(...goldColor);
+      doc.rect(0, 45, pageWidth, 3, "F");
+      
+      doc.setTextColor(...darkColor);
+      doc.setFontSize(9);
+      doc.text(`Phone: ${storeProfile.phone}  |  Email: ${storeProfile.email}`, pageWidth / 2, 54, { align: "center" });
+      
+      let yPos = 65;
+      
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(10, yPos, 90, 35, 2, 2, "F");
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Invoice Details", 15, yPos + 7);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Invoice #: ${invoice.invoiceNumber}`, 15, yPos + 15);
+      doc.text(`Date: ${formatDate(invoice.date).split(",")[0]}`, 15, yPos + 22);
+      
+      const statusColor = invoice.paymentStatus === "Paid" ? [34, 139, 34] : [255, 165, 0];
+      doc.setTextColor(...statusColor);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Status: ${invoice.paymentStatus}`, 15, yPos + 32);
+      
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(105, yPos, 90, 35, 2, 2, "F");
+      doc.setTextColor(...darkColor);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Bill To", 110, yPos + 7);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(invoice.customerName || "Unknown", 110, yPos + 15);
+      doc.text(invoice.customerPhone || "N/A", 110, yPos + 22);
+      if (invoice.customerEmail) {
+        doc.text(invoice.customerEmail, 110, yPos + 29);
+      }
+      
+      doc.text(invoice.address || "N/A", 110, yPos + 36);
+      
+      yPos = 110;
+      
+      const tableData = invoice.products.map((product) => [
+        product.name || "Unknown",
+        String(product.quantity || 0),
+        formatPrice(product.unitPrice || 0),
+        formatPrice(product.total || 0),
+      ]);
+      
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Product Name", "Qty", "Unit Price", "Total"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: {
+          fillColor: darkColor,
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 10,
+          halign: "center",
+        },
+        bodyStyles: {
+          fontSize: 9,
+        },
+        columnStyles: {
+          0: { cellWidth: 90 },
+          1: { cellWidth: 20, halign: "center" },
+          2: { cellWidth: 35, halign: "right" },
+          3: { cellWidth: 35, halign: "right" },
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250],
+        },
+        margin: { left: 15, right: 15 },
+      });
+      
+      yPos = (doc as any).lastAutoTable?.finalY + 10 || 170;
+      
+      doc.setFillColor(250, 250, 250);
+      doc.roundedRect(105, yPos - 5, 90, 50, 2, 2, "F");
+      
+      doc.setFontSize(10);
+      doc.setTextColor(...grayColor);
+      doc.text("Subtotal", 190, yPos + 5, { align: "right" });
+      doc.setTextColor(...darkColor);
+      doc.setFont("helvetica", "bold");
+      doc.text(formatPrice(invoice.subtotal || 0), 190, yPos + 12, { align: "right" });
+      
+      if ((invoice.discount || 0) > 0) {
+        doc.setTextColor(...grayColor);
+        doc.setFont("helvetica", "normal");
+        doc.text("Discount", 190, yPos + 20, { align: "right" });
+        doc.setTextColor(34, 139, 34);
+        doc.text(`-${formatPrice(invoice.discount || 0)}`, 190, yPos + 27, { align: "right" });
+      }
+      
       doc.setTextColor(...grayColor);
       doc.setFont("helvetica", "normal");
-      doc.text("Discount", 190, yPos + 20, { align: "right" });
-      doc.setTextColor(34, 139, 34);
-      doc.text(`-Rs. ${invoice.discount.toLocaleString()}`, 190, yPos + 27, { align: "right" });
+      doc.text("Delivery", 190, yPos + ((invoice.discount || 0) > 0 ? 35 : 20), { align: "right" });
+      doc.setTextColor(...darkColor);
+      doc.setFont("helvetica", "bold");
+      doc.text(formatPrice(invoice.deliveryCost || 0), 190, yPos + ((invoice.discount || 0) > 0 ? 42 : 27), { align: "right" });
+      
+      yPos = yPos + ((invoice.discount || 0) > 0 ? 50 : 35);
+      
+      doc.setFillColor(...goldColor);
+      doc.roundedRect(105, yPos, 90, 18, 2, 2, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("TOTAL", 110, yPos + 7);
+      doc.text(formatPrice(invoice.grandTotal || 0), 190, yPos + 13, { align: "right" });
+      
+      doc.setDrawColor(...goldColor);
+      doc.setLineWidth(0.5);
+      doc.line(15, 260, pageWidth - 15, 260);
+      
+      doc.setTextColor(...grayColor);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.text("This is an electronically generated invoice.", pageWidth / 2, 268, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent} - Official Invoice`, pageWidth / 2, 275, { align: "center" });
+      doc.text(`${storeProfile.addressCity}, Sri Lanka`, pageWidth / 2, 282, { align: "center" });
+      
+      doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      toast.success("Invoice downloaded!");
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+      toast.error("Failed to generate PDF");
     }
-    
-    doc.setTextColor(...grayColor);
-    doc.setFont("helvetica", "normal");
-    doc.text("Delivery", 190, yPos + (invoice.discount > 0 ? 35 : 20), { align: "right" });
-    doc.setTextColor(...darkColor);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Rs. ${invoice.deliveryCost.toLocaleString()}`, 190, yPos + (invoice.discount > 0 ? 42 : 27), { align: "right" });
-    
-    yPos = yPos + (invoice.discount > 0 ? 50 : 35);
-    
-    doc.setFillColor(...goldColor);
-    doc.roundedRect(105, yPos, 90, 18, 2, 2, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("TOTAL", 110, yPos + 7);
-    doc.text(`Rs. ${invoice.grandTotal.toLocaleString()}`, 190, yPos + 13, { align: "right" });
-    
-    doc.setDrawColor(...goldColor);
-    doc.setLineWidth(0.5);
-    doc.line(15, 260, pageWidth - 15, 260);
-    
-    doc.setTextColor(...grayColor);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "italic");
-    doc.text("This is an electronically generated invoice.", pageWidth / 2, 268, { align: "center" });
-    doc.setFont("helvetica", "normal");
-    doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent} - Official Invoice`, pageWidth / 2, 275, { align: "center" });
-    doc.text(`${storeProfile.addressCity}, Sri Lanka`, pageWidth / 2, 282, { align: "center" });
-    
-    doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
-    toast.success("Invoice downloaded!");
   };
 
   const printInvoice = () => {
@@ -207,16 +282,25 @@ export default function Invoice() {
     );
   }
 
-  if (!invoice) {
+  if (error || !invoice) {
     return (
       <div className="min-h-screen bg-gray-50 py-16">
         <div className="container mx-auto px-4 text-center">
-          <FileText className="w-24 h-24 mx-auto text-gray-300 mb-6" />
-          <h2 className="text-2xl font-bold mb-4">Invoice Not Found</h2>
-          <p className="text-gray-600 mb-8">The invoice you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate("/")} className="bg-black hover:bg-[#D4AF37] text-white">
-            Go to Home
-          </Button>
+          <AlertCircle className="w-24 h-24 mx-auto text-red-400 mb-6" />
+          <h2 className="text-2xl font-bold mb-4">{error || "Invoice Not Found"}</h2>
+          <p className="text-gray-600 mb-8">
+            {error === "Invoice not found" 
+              ? "The invoice you're looking for doesn't exist or may have been removed."
+              : "Something went wrong while loading the invoice."}
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={() => navigate("/")} className="bg-black hover:bg-[#D4AF37] text-white">
+              Go to Home
+            </Button>
+            <Button onClick={() => navigate(-1)} variant="outline">
+              Go Back
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -239,7 +323,7 @@ export default function Invoice() {
 
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm overflow-hidden print:shadow-none">
-            <div ref={invoiceRef} className="relative p-8 md:p-12">
+            <div className="relative p-8 md:p-12">
               <div className="absolute inset-0 opacity-5 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center transform rotate-[-30deg] scale-[3]">
@@ -305,13 +389,13 @@ export default function Invoice() {
                       Order Information
                     </h4>
                     <p className="text-sm text-gray-600">
-                      <strong>Date:</strong> {new Date(invoice.date).toLocaleDateString("en-US", { 
-                        year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" 
-                      })}
+                      <strong>Date:</strong> {formatDate(invoice.date)}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      <strong>Order ID:</strong> {invoice.orderId}
-                    </p>
+                    {invoice.orderId && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        <strong>Order ID:</strong> {invoice.orderId}
+                      </p>
+                    )}
                   </div>
 
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -339,13 +423,13 @@ export default function Invoice() {
                       </tr>
                     </thead>
                     <tbody>
-                      {invoice.products.map((product: any, index: number) => (
-                        <tr key={index} className="border-b">
+                      {invoice.products.map((product, index) => (
+                        <tr key={product.id || index} className="border-b">
                           <td className="px-4 py-3 text-sm">{product.name}</td>
                           <td className="px-4 py-3 text-sm text-center">{product.quantity}</td>
-                          <td className="px-4 py-3 text-sm text-right">Rs. {product.unitPrice.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-sm text-right">{formatPrice(product.unitPrice)}</td>
                           <td className="px-4 py-3 text-sm text-right font-semibold">
-                            Rs. {product.total.toLocaleString()}
+                            {formatPrice(product.total)}
                           </td>
                         </tr>
                       ))}
@@ -378,27 +462,27 @@ export default function Invoice() {
                   <div className="space-y-2 min-w-[250px]">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal</span>
-                      <span>Rs. {invoice.subtotal.toLocaleString()}</span>
+                      <span>{formatPrice(invoice.subtotal)}</span>
                     </div>
-                    {invoice.discount > 0 && (
+                    {(invoice.discount || 0) > 0 && (
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Discount</span>
-                        <span>-Rs. {invoice.discount.toLocaleString()}</span>
+                        <span>-{formatPrice(invoice.discount)}</span>
                       </div>
                     )}
-                    {invoice.tax > 0 && (
+                    {(invoice.tax || 0) > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Tax</span>
-                        <span>Rs. {invoice.tax.toLocaleString()}</span>
+                        <span>{formatPrice(invoice.tax)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery</span>
-                      <span>Rs. {invoice.deliveryCost.toLocaleString()}</span>
+                      <span>{formatPrice(invoice.deliveryCost)}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                       <span>Grand Total</span>
-                      <span className="text-[#D4AF37]">Rs. {invoice.grandTotal.toLocaleString()}</span>
+                      <span className="text-[#D4AF37]">{formatPrice(invoice.grandTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -447,14 +531,6 @@ export default function Invoice() {
           }
           .print\\:hidden {
             display: none !important;
-          }
-          #invoice-print-area, #invoice-print-area * {
-            visibility: visible;
-          }
-          #invoice-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
           }
         }
       `}</style>

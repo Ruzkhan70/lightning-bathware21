@@ -12,7 +12,7 @@ import {
 import { 
   FileText, Search, Filter, Download, Eye, CheckCircle, 
   Clock, X, Calendar, User, Phone, Mail, MapPin, Package,
-  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet
+  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet, AlertCircle
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import jsPDF from "jspdf";
@@ -43,38 +43,44 @@ export default function AdminInvoices() {
     hasInitializedRef.current = true;
     
     const generateMissingInvoices = async () => {
+      const currentInvoices = invoices;
+      
       for (const order of orders) {
-        const hasInvoice = invoices.some(inv => inv.orderId === order.id);
+        if (!order || !order.id) continue;
+        
+        const hasInvoice = currentInvoices.some(inv => inv && inv.orderId === order.id);
         if (!hasInvoice) {
           try {
             await createInvoice(order, undefined, true);
           } catch (e) {
-            console.error("Failed to create invoice for order:", order.id);
+            console.error("Failed to create invoice for order:", order.id, e);
           }
         }
       }
     };
     
     generateMissingInvoices();
-  }, [orders.length, invoices.length]);
+  }, [orders.length, invoices.length, createInvoice]);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
+      if (!invoice) return false;
+      
       const matchesSearch =
-        invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.customerPhone.includes(searchTerm);
+        (invoice.invoiceNumber || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (invoice.customerName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (invoice.customerPhone || "").includes(searchTerm);
 
       const matchesStatus = statusFilter === "all" || invoice.paymentStatus === statusFilter;
 
       let matchesDate = true;
       if (dateRange.start) {
-        const invoiceDate = new Date(invoice.date);
+        const invoiceDate = new Date(invoice.date || Date.now());
         const start = startOfDay(new Date(dateRange.start));
         matchesDate = invoiceDate >= start;
       }
       if (dateRange.end) {
-        const invoiceDate = new Date(invoice.date);
+        const invoiceDate = new Date(invoice.date || Date.now());
         const end = endOfDay(new Date(dateRange.end));
         matchesDate = matchesDate && invoiceDate <= end;
       }
@@ -91,12 +97,38 @@ export default function AdminInvoices() {
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
   const generatePDF = (invoice: any, single: boolean = true) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    
-    const goldColor = [212, 175, 55];
-    const darkColor = [26, 26, 26];
-    const grayColor = [100, 100, 100];
+    try {
+      if (!invoice) {
+        toast.error("Invoice data is missing");
+        return;
+      }
+      
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      const goldColor = [212, 175, 55];
+      const darkColor = [26, 26, 26];
+      const grayColor = [100, 100, 100];
+      
+      const safeInvoice = {
+        invoiceNumber: invoice.invoiceNumber || "N/A",
+        date: invoice.date || new Date().toISOString(),
+        paymentStatus: invoice.paymentStatus || "Pending",
+        customerName: invoice.customerName || "Unknown",
+        customerPhone: invoice.customerPhone || "",
+        customerEmail: invoice.customerEmail || "",
+        address: invoice.address || "",
+        products: (invoice.products || []).map((p: any) => ({
+          name: p.name || "Unknown",
+          quantity: p.quantity || 0,
+          unitPrice: p.unitPrice || p.price || 0,
+          total: p.total || ((p.unitPrice || p.price || 0) * (p.quantity || 1)),
+        })),
+        subtotal: invoice.subtotal || 0,
+        discount: invoice.discount || 0,
+        deliveryCost: invoice.deliveryCost || 0,
+        grandTotal: invoice.grandTotal || 0,
+      };
     
     doc.setFillColor(...darkColor);
     doc.rect(0, 0, pageWidth, 45, "F");
@@ -130,14 +162,14 @@ export default function AdminInvoices() {
     doc.text("Invoice Details", 15, yPos + 7);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 15, yPos + 15);
-    doc.text(`Date: ${format(new Date(invoice.date), "dd MMM yyyy")}`, 15, yPos + 22);
-    doc.text(`Time: ${format(new Date(invoice.date), "HH:mm")}`, 15, yPos + 29);
+    doc.text(`Invoice #: ${safeInvoice.invoiceNumber}`, 15, yPos + 15);
+    doc.text(`Date: ${format(new Date(safeInvoice.date), "dd MMM yyyy")}`, 15, yPos + 22);
+    doc.text(`Time: ${format(new Date(safeInvoice.date), "HH:mm")}`, 15, yPos + 29);
     
-    const statusColor = invoice.paymentStatus === "Paid" ? [34, 139, 34] : [255, 165, 0];
+    const statusColor = safeInvoice.paymentStatus === "Paid" ? [34, 139, 34] : [255, 165, 0];
     doc.setTextColor(...statusColor);
     doc.setFont("helvetica", "bold");
-    doc.text(`Status: ${invoice.paymentStatus}`, 15, yPos + 38);
+    doc.text(`Status: ${safeInvoice.paymentStatus}`, 15, yPos + 38);
     
     doc.setFillColor(245, 245, 245);
     doc.roundedRect(105, yPos, 90, 35, 2, 2, "F");
@@ -147,18 +179,18 @@ export default function AdminInvoices() {
     doc.text("Bill To", 110, yPos + 7);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(invoice.customerName, 110, yPos + 15);
-    doc.text(invoice.customerPhone, 110, yPos + 22);
-    if (invoice.customerEmail) {
-      doc.text(invoice.customerEmail, 110, yPos + 29);
+    doc.text(safeInvoice.customerName, 110, yPos + 15);
+    doc.text(safeInvoice.customerPhone, 110, yPos + 22);
+    if (safeInvoice.customerEmail) {
+      doc.text(safeInvoice.customerEmail, 110, yPos + 29);
     }
     
-    const addressLines = doc.splitTextToSize(invoice.address, 80);
-    doc.text(addressLines[0], 110, yPos + 36);
+    const addressLines = doc.splitTextToSize(safeInvoice.address, 80);
+    doc.text(addressLines[0] || "", 110, yPos + 36);
     
     yPos = 110;
     
-    const tableData = invoice.products.map((product: any) => [
+    const tableData = safeInvoice.products.map((product: any) => [
       product.name,
       product.quantity.toString(),
       `Rs. ${product.unitPrice.toLocaleString()}`,
@@ -202,24 +234,24 @@ export default function AdminInvoices() {
     doc.text("Subtotal", 190, yPos + 5, { align: "right" });
     doc.setTextColor(...darkColor);
     doc.setFont("helvetica", "bold");
-    doc.text(`Rs. ${invoice.subtotal.toLocaleString()}`, 190, yPos + 12, { align: "right" });
+    doc.text(`Rs. ${safeInvoice.subtotal.toLocaleString()}`, 190, yPos + 12, { align: "right" });
     
-    if (invoice.discount > 0) {
+    if (safeInvoice.discount > 0) {
       doc.setTextColor(...grayColor);
       doc.setFont("helvetica", "normal");
       doc.text("Discount", 190, yPos + 20, { align: "right" });
       doc.setTextColor(34, 139, 34);
-      doc.text(`-Rs. ${invoice.discount.toLocaleString()}`, 190, yPos + 27, { align: "right" });
+      doc.text(`-Rs. ${safeInvoice.discount.toLocaleString()}`, 190, yPos + 27, { align: "right" });
     }
     
     doc.setTextColor(...grayColor);
     doc.setFont("helvetica", "normal");
-    doc.text("Delivery", 190, yPos + (invoice.discount > 0 ? 35 : 20), { align: "right" });
+    doc.text("Delivery", 190, yPos + (safeInvoice.discount > 0 ? 35 : 20), { align: "right" });
     doc.setTextColor(...darkColor);
     doc.setFont("helvetica", "bold");
-    doc.text(`Rs. ${invoice.deliveryCost.toLocaleString()}`, 190, yPos + (invoice.discount > 0 ? 42 : 27), { align: "right" });
+    doc.text(`Rs. ${safeInvoice.deliveryCost.toLocaleString()}`, 190, yPos + (safeInvoice.discount > 0 ? 42 : 27), { align: "right" });
     
-    yPos = yPos + (invoice.discount > 0 ? 50 : 35);
+    yPos = yPos + (safeInvoice.discount > 0 ? 50 : 35);
     
     doc.setFillColor(...goldColor);
     doc.roundedRect(105, yPos, 90, 18, 2, 2, "F");
@@ -227,7 +259,7 @@ export default function AdminInvoices() {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text("TOTAL", 110, yPos + 7);
-    doc.text(`Rs. ${invoice.grandTotal.toLocaleString()}`, 190, yPos + 13, { align: "right" });
+    doc.text(`Rs. ${safeInvoice.grandTotal.toLocaleString()}`, 190, yPos + 13, { align: "right" });
     
     doc.setDrawColor(...goldColor);
     doc.setLineWidth(0.5);
@@ -242,23 +274,32 @@ export default function AdminInvoices() {
     doc.text(`${storeProfile.addressCity}, Sri Lanka`, pageWidth / 2, 282, { align: "center" });
     
     if (single) {
-      doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      doc.save(`Invoice-${safeInvoice.invoiceNumber}.pdf`);
       toast.success("Invoice downloaded!");
     } else {
       return doc;
     }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF");
+      if (single) {
+        return;
+      }
+      return null;
+    }
   };
 
   const exportCSV = () => {
-    const headers = ["Invoice Number", "Customer Name", "Phone", "Date", "Total", "Payment Status"];
-    const rows = filteredInvoices.map((inv) => [
-      inv.invoiceNumber,
-      inv.customerName,
-      inv.customerPhone,
-      format(new Date(inv.date), "yyyy-MM-dd HH:mm"),
-      inv.grandTotal.toString(),
-      inv.paymentStatus,
-    ]);
+    try {
+      const headers = ["Invoice Number", "Customer Name", "Phone", "Date", "Total", "Payment Status"];
+      const rows = filteredInvoices.map((inv) => [
+        inv.invoiceNumber || "N/A",
+        inv.customerName || "Unknown",
+        inv.customerPhone || "",
+        format(new Date(inv.date || Date.now()), "yyyy-MM-dd HH:mm"),
+        (inv.grandTotal || 0).toString(),
+        inv.paymentStatus || "Pending",
+      ]);
 
     const csvContent = [headers, ...rows]
       .map((row) => row.map((cell) => `"${cell}"`).join(","))
@@ -270,10 +311,15 @@ export default function AdminInvoices() {
     link.download = `invoices-export-${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
     toast.success("CSV exported!");
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      toast.error("Failed to export CSV");
+    }
   };
 
   const exportPDF = () => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
     
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
@@ -302,17 +348,28 @@ export default function AdminInvoices() {
     
     doc.save(`invoices-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
     toast.success("PDF report exported!");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Failed to export PDF report");
+    }
   };
 
   const viewInvoice = (invoice: any) => {
+    if (!invoice || !invoice.id) {
+      toast.error("Invalid invoice data");
+      return;
+    }
     setSelectedInvoice(invoice);
     setShowInvoiceModal(true);
   };
 
   const togglePaymentStatus = (invoice: any) => {
+    if (!invoice || !invoice.id) {
+      toast.error("Invalid invoice data");
+      return;
+    }
     const newStatus = invoice.paymentStatus === "Paid" ? "Pending" : "Paid";
     updateInvoicePaymentStatus(invoice.id, newStatus);
-    toast.success(`Payment status updated to ${newStatus}`);
   };
 
   const clearFilters = () => {
@@ -324,12 +381,12 @@ export default function AdminInvoices() {
   const hasFilters = searchTerm || statusFilter !== "all" || dateRange.start || dateRange.end;
 
   const totalRevenue = filteredInvoices
-    .filter((inv) => inv.paymentStatus === "Paid")
-    .reduce((sum, inv) => sum + inv.grandTotal, 0);
+    .filter((inv) => inv && inv.paymentStatus === "Paid")
+    .reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
 
   const pendingAmount = filteredInvoices
-    .filter((inv) => inv.paymentStatus === "Pending")
-    .reduce((sum, inv) => sum + inv.grandTotal, 0);
+    .filter((inv) => inv && inv.paymentStatus === "Pending")
+    .reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -565,25 +622,25 @@ export default function AdminInvoices() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-[#D4AF37]" />
-              Invoice {selectedInvoice?.invoiceNumber}
+              Invoice {selectedInvoice?.invoiceNumber || "N/A"}
             </DialogTitle>
           </DialogHeader>
 
-          {selectedInvoice && (
+          {selectedInvoice ? (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">Customer</p>
                   <p className="font-semibold flex items-center gap-1">
                     <User className="w-3 h-3" />
-                    {selectedInvoice.customerName}
+                    {selectedInvoice.customerName || "Unknown"}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">Phone</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Phone className="w-3 h-3" />
-                    {selectedInvoice.customerPhone}
+                    {selectedInvoice.customerPhone || "N/A"}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
@@ -597,7 +654,7 @@ export default function AdminInvoices() {
                   <p className="text-xs text-gray-500 mb-1">Date</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {format(new Date(selectedInvoice.date), "dd MMM yyyy HH:mm")}
+                    {format(new Date(selectedInvoice.date || Date.now()), "dd MMM yyyy HH:mm")}
                   </p>
                 </div>
               </div>
@@ -606,7 +663,7 @@ export default function AdminInvoices() {
                 <p className="text-xs text-gray-500 mb-1">Delivery Address</p>
                 <p className="font-semibold flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
-                  {selectedInvoice.address}
+                  {selectedInvoice.address || "N/A"}
                 </p>
               </div>
 
@@ -626,12 +683,12 @@ export default function AdminInvoices() {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedInvoice.products.map((product: any, i: number) => (
-                        <tr key={i} className="border-t">
-                          <td className="px-3 py-2">{product.name}</td>
-                          <td className="px-3 py-2 text-center">{product.quantity}</td>
-                          <td className="px-3 py-2 text-right">Rs. {product.unitPrice.toLocaleString()}</td>
-                          <td className="px-3 py-2 text-right">Rs. {product.total.toLocaleString()}</td>
+                      {(selectedInvoice.products || []).map((product: any, i: number) => (
+                        <tr key={product.id || i} className="border-t">
+                          <td className="px-3 py-2">{product.name || "Unknown"}</td>
+                          <td className="px-3 py-2 text-center">{product.quantity || 0}</td>
+                          <td className="px-3 py-2 text-right">Rs. {(product.unitPrice || 0).toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right">Rs. {(product.total || 0).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -659,13 +716,13 @@ export default function AdminInvoices() {
                   </Button>
                 </div>
                 <div className="text-right space-y-1">
-                  <p>Subtotal: Rs. {selectedInvoice.subtotal.toLocaleString()}</p>
-                  {selectedInvoice.discount > 0 && (
-                    <p className="text-green-600">Discount: -Rs. {selectedInvoice.discount.toLocaleString()}</p>
+                  <p>Subtotal: Rs. {(selectedInvoice.subtotal || 0).toLocaleString()}</p>
+                  {(selectedInvoice.discount || 0) > 0 && (
+                    <p className="text-green-600">Discount: -Rs. {(selectedInvoice.discount || 0).toLocaleString()}</p>
                   )}
-                  <p>Delivery: Rs. {selectedInvoice.deliveryCost.toLocaleString()}</p>
+                  <p>Delivery: Rs. {(selectedInvoice.deliveryCost || 0).toLocaleString()}</p>
                   <p className="text-xl font-bold text-[#D4AF37]">
-                    Total: Rs. {selectedInvoice.grandTotal.toLocaleString()}
+                    Total: Rs. {(selectedInvoice.grandTotal || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -678,7 +735,7 @@ export default function AdminInvoices() {
                       : "bg-yellow-100 text-yellow-700"
                   }
                 >
-                  {selectedInvoice.paymentStatus}
+                  {selectedInvoice.paymentStatus || "Pending"}
                 </Badge>
                 <div className="flex gap-2">
                   <Button
@@ -702,6 +759,11 @@ export default function AdminInvoices() {
                   </Button>
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+              <p>No invoice data available</p>
             </div>
           )}
         </DialogContent>

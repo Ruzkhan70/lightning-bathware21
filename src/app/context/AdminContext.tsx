@@ -770,76 +770,86 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const createInvoice = async (order: Order, customerEmail: string = "", silent: boolean = false) => {
-    // Check if invoice already exists for this order
-    const existingInvoice = invoices.find(inv => inv.orderId === order.id);
-    if (existingInvoice) {
-      return existingInvoice;
-    }
-    
-    const invoiceNumber = generateInvoiceNumber();
-    const products = order.products.map(p => ({
-      id: p.id,
-      name: p.name,
-      quantity: p.quantity,
-      unitPrice: p.price,
-      total: p.price * p.quantity,
-    }));
-    const subtotal = products.reduce((sum, p) => sum + p.total, 0);
-    const invoiceId = `INV${Date.now()}`;
-    const invoice: Invoice = {
-      id: invoiceId,
-      invoiceNumber,
-      orderId: order.id,
-      customerName: order.customerName,
-      customerPhone: order.phone,
-      customerEmail,
-      address: order.address,
-      products,
-      subtotal,
-      discount: 0,
-      tax: 0,
-      deliveryCost: order.deliveryCost,
-      grandTotal: order.total,
-      paymentStatus: "Pending",
-      date: order.date,
-      createdAt: new Date().toISOString(),
-    };
-    setInvoices(prev => [invoice, ...prev]);
     try {
-      await setDoc(doc(db, "invoices", invoiceId), invoice);
+      const existingInvoice = invoices.find(inv => inv.orderId === order.id);
+      if (existingInvoice) {
+        return existingInvoice;
+      }
+      
+      const invoiceNumber = generateInvoiceNumber();
+      const products = order.products.map(p => ({
+        id: p.id || "",
+        name: p.name || "Unknown Product",
+        quantity: p.quantity || 1,
+        unitPrice: p.price || 0,
+        total: (p.price || 0) * (p.quantity || 1),
+      }));
+      const subtotal = products.reduce((sum, p) => sum + p.total, 0);
+      
+      const invoiceData: Invoice = {
+        id: `INV${Date.now()}`,
+        invoiceNumber,
+        orderId: order.id || "",
+        customerName: order.customerName || "Unknown",
+        customerPhone: order.phone || "",
+        customerEmail: customerEmail || "",
+        address: order.address || "",
+        products,
+        subtotal,
+        discount: 0,
+        tax: 0,
+        deliveryCost: order.deliveryCost || 0,
+        grandTotal: order.total || subtotal,
+        paymentStatus: "Pending",
+        date: order.date || new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+      
+      const docRef = await addDoc(collection(db, "invoices"), invoiceData);
+      const savedInvoice = { ...invoiceData, id: docRef.id };
+      
+      setInvoices(prev => [savedInvoice, ...prev]);
+      
       if (!silent) {
         toast.success(`Invoice ${invoiceNumber} created!`);
       }
+      
+      return savedInvoice;
     } catch (error) {
       console.error("Error creating invoice:", error);
       if (!silent) {
         toast.error("Failed to create invoice");
       }
+      throw error;
     }
-    return invoice;
   };
 
   const updateInvoicePaymentStatus = async (id: string, status: "Paid" | "Pending") => {
-    // Find the invoice to get the correct ID
-    const invoice = invoices.find(inv => inv.id === id || inv.id === id.replace(/-/g, ""));
-    
-    if (!invoice) {
-      toast.error("Invoice not found");
-      return;
-    }
-    
-    // Update local state with correct ID
-    const correctId = invoice.id;
-    setInvoices(prev => prev.map(inv => {
-      if (inv.id === correctId) {
-        return { ...inv, paymentStatus: status };
-      }
-      return inv;
-    }));
-    
     try {
-      await setDoc(doc(db, "invoices", correctId), { paymentStatus: status }, { merge: true });
-      toast.success(`Status updated to ${status}`);
+      const cleanId = id.replace(/-/g, "");
+      const invoice = invoices.find(inv => 
+        inv.id === id || 
+        inv.id === cleanId || 
+        inv.id.endsWith(cleanId)
+      );
+      
+      if (!invoice) {
+        toast.error("Invoice not found");
+        return;
+      }
+      
+      const docId = invoice.id;
+      
+      await setDoc(doc(db, "invoices", docId), { paymentStatus: status }, { merge: true });
+      
+      setInvoices(prev => prev.map(inv => {
+        if (inv.id === docId) {
+          return { ...inv, paymentStatus: status };
+        }
+        return inv;
+      }));
+      
+      toast.success(`Payment status updated to ${status}`);
     } catch (error) {
       console.error("Error updating invoice status:", error);
       toast.error("Failed to update status");
@@ -847,18 +857,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const getInvoiceByOrderId = (orderId: string) => {
+    if (!orderId) return undefined;
     return invoices.find(inv => inv.orderId === orderId);
   };
 
   const getInvoiceById = (id: string) => {
+    if (!id) return undefined;
+    
     const cleanId = id.replace(/-/g, "");
-    return invoices.find(inv => 
-      inv.id === id || 
-      inv.id === cleanId ||
-      inv.invoiceNumber === id ||
-      inv.invoiceNumber === cleanId ||
-      inv.invoiceNumber.replace(/-/g, "") === cleanId
-    );
+    
+    return invoices.find(inv => {
+      if (!inv) return false;
+      return (
+        inv.id === id ||
+        inv.id === cleanId ||
+        inv.id.endsWith(cleanId) ||
+        inv.invoiceNumber === id ||
+        inv.invoiceNumber === cleanId
+      );
+    });
   };
 
   useEffect(() => {
