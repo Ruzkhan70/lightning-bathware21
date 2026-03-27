@@ -37,41 +37,76 @@ export default function Invoice() {
     if (!invoice) return;
 
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     
-    doc.setFontSize(22);
+    const goldColor = [212, 175, 55];
+    const darkColor = [26, 26, 26];
+    const grayColor = [100, 100, 100];
+    
+    doc.setFillColor(...darkColor);
+    doc.rect(0, 0, pageWidth, 45, "F");
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
     doc.setFont("helvetica", "bold");
-    doc.text("INVOICE", 105, 25, { align: "center" });
+    doc.text("INVOICE", pageWidth / 2, 22, { align: "center" });
     
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.setFont("helvetica", "normal");
-    doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent}`, 105, 35, { align: "center" });
+    doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent}`, pageWidth / 2, 33, { align: "center" });
+    
+    doc.setTextColor(...goldColor);
+    doc.setFontSize(10);
+    doc.text(`${storeProfile.addressStreet}, ${storeProfile.addressCity}`, pageWidth / 2, 40, { align: "center" });
+    
+    doc.setFillColor(...goldColor);
+    doc.rect(0, 45, pageWidth, 3, "F");
+    
+    doc.setTextColor(...darkColor);
     doc.setFontSize(9);
-    doc.text(`${storeProfile.addressStreet}, ${storeProfile.addressCity}`, 105, 42, { align: "center" });
-    doc.text(`Phone: ${storeProfile.phone} | Email: ${storeProfile.email}`, 105, 48, { align: "center" });
+    doc.text(`Phone: ${storeProfile.phone}  |  Email: ${storeProfile.email}`, pageWidth / 2, 54, { align: "center" });
     
-    doc.line(15, 55, 195, 55);
+    let yPos = 65;
     
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(10, yPos, 90, 35, 2, 2, "F");
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text("Invoice Details", 15, 65);
+    doc.text("Invoice Details", 15, yPos + 7);
     doc.setFont("helvetica", "normal");
-    doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 15, 72);
+    doc.setFontSize(9);
+    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 15, yPos + 15);
     doc.text(`Date: ${new Date(invoice.date).toLocaleDateString("en-US", { 
-      year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" 
-    })}`, 15, 78);
-    doc.text(`Payment Status: ${invoice.paymentStatus}`, 15, 84);
+      year: "numeric", month: "long", day: "numeric" 
+    })}`, 15, yPos + 22);
+    doc.text(`Time: ${new Date(invoice.date).toLocaleTimeString("en-US", { 
+      hour: "2-digit", minute: "2-digit" 
+    })}`, 15, yPos + 29);
     
+    const statusColor = invoice.paymentStatus === "Paid" ? [34, 139, 34] : [255, 165, 0];
+    doc.setTextColor(...statusColor);
     doc.setFont("helvetica", "bold");
-    doc.text("Customer Details", 120, 65);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${invoice.customerName}`, 120, 72);
-    doc.text(`Phone: ${invoice.customerPhone}`, 120, 78);
-    if (invoice.customerEmail) {
-      doc.text(`Email: ${invoice.customerEmail}`, 120, 84);
-    }
-    doc.text(`Address: ${invoice.address}`, 120, 90);
+    doc.text(`Status: ${invoice.paymentStatus}`, 15, yPos + 38);
     
-    doc.line(15, 98, 195, 98);
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(105, yPos, 90, 35, 2, 2, "F");
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Bill To", 110, yPos + 7);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(invoice.customerName, 110, yPos + 15);
+    doc.text(invoice.customerPhone, 110, yPos + 22);
+    if (invoice.customerEmail) {
+      doc.text(invoice.customerEmail, 110, yPos + 29);
+    }
+    
+    const addressLines = doc.splitTextToSize(invoice.address, 80);
+    doc.text(addressLines[0], 110, yPos + 36);
+    
+    yPos = 110;
     
     const tableData = invoice.products.map((product: any) => [
       product.name,
@@ -81,30 +116,80 @@ export default function Invoice() {
     ]);
     
     autoTable(doc, {
-      startY: 102,
-      head: [["Product", "Quantity", "Unit Price", "Total"]],
+      startY: yPos,
+      head: [["Product Name", "Qty", "Unit Price", "Total"]],
       body: tableData,
       theme: "striped",
-      headStyles: { fillColor: [44, 62, 80] },
-      styles: { fontSize: 9 },
+      headStyles: {
+        fillColor: darkColor,
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 10,
+        halign: "center",
+      },
+      bodyStyles: {
+        fontSize: 9,
+      },
+      columnStyles: {
+        0: { cellWidth: 90 },
+        1: { cellWidth: 20, halign: "center" },
+        2: { cellWidth: 35, halign: "right" },
+        3: { cellWidth: 35, halign: "right" },
+      },
+      alternateRowStyles: {
+        fillColor: [250, 250, 250],
+      },
+      margin: { left: 15, right: 15 },
     });
     
-    const finalY = (doc as any).lastAutoTable?.finalY || 130;
+    yPos = (doc as any).lastAutoTable?.finalY + 10 || 170;
+    
+    doc.setFillColor(250, 250, 250);
+    doc.roundedRect(105, yPos - 5, 90, 50, 2, 2, "F");
     
     doc.setFontSize(10);
-    doc.text(`Subtotal: Rs. ${invoice.subtotal.toLocaleString()}`, 140, finalY + 15);
-    if (invoice.discount > 0) {
-      doc.text(`Discount: Rs. ${invoice.discount.toLocaleString()}`, 140, finalY + 22);
-    }
-    doc.text(`Delivery: Rs. ${invoice.deliveryCost.toLocaleString()}`, 140, finalY + 29);
-    
+    doc.setTextColor(...grayColor);
+    doc.text("Subtotal", 190, yPos + 5, { align: "right" });
+    doc.setTextColor(...darkColor);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(`Grand Total: Rs. ${invoice.grandTotal.toLocaleString()}`, 140, finalY + 40);
+    doc.text(`Rs. ${invoice.subtotal.toLocaleString()}`, 190, yPos + 12, { align: "right" });
     
-    doc.setFontSize(8);
+    if (invoice.discount > 0) {
+      doc.setTextColor(...grayColor);
+      doc.setFont("helvetica", "normal");
+      doc.text("Discount", 190, yPos + 20, { align: "right" });
+      doc.setTextColor(34, 139, 34);
+      doc.text(`-Rs. ${invoice.discount.toLocaleString()}`, 190, yPos + 27, { align: "right" });
+    }
+    
+    doc.setTextColor(...grayColor);
     doc.setFont("helvetica", "normal");
-    doc.text("Powered by Lightning Bathware - Official Invoice", 105, 285, { align: "center" });
+    doc.text("Delivery", 190, yPos + (invoice.discount > 0 ? 35 : 20), { align: "right" });
+    doc.setTextColor(...darkColor);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Rs. ${invoice.deliveryCost.toLocaleString()}`, 190, yPos + (invoice.discount > 0 ? 42 : 27), { align: "right" });
+    
+    yPos = yPos + (invoice.discount > 0 ? 50 : 35);
+    
+    doc.setFillColor(...goldColor);
+    doc.roundedRect(105, yPos, 90, 18, 2, 2, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL", 110, yPos + 7);
+    doc.text(`Rs. ${invoice.grandTotal.toLocaleString()}`, 190, yPos + 13, { align: "right" });
+    
+    doc.setDrawColor(...goldColor);
+    doc.setLineWidth(0.5);
+    doc.line(15, 260, pageWidth - 15, 260);
+    
+    doc.setTextColor(...grayColor);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.text("This is an electronically generated invoice.", pageWidth / 2, 268, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.text(`${storeProfile.storeName} ${storeProfile.storeNameAccent} - Official Invoice`, pageWidth / 2, 275, { align: "center" });
+    doc.text(`${storeProfile.addressCity}, Sri Lanka`, pageWidth / 2, 282, { align: "center" });
     
     doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
     toast.success("Invoice downloaded!");
