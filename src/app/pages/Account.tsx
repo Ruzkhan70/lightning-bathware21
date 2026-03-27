@@ -36,7 +36,8 @@ export default function Account() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
 
-  // Login form state
+  // Login/Register form state
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
