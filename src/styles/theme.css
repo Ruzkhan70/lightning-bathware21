@@ -179,3 +179,113 @@
     line-height: 1.5;
   }
 }
+
+/* Swipe-to-Dismiss Toast Styles */
+.toaster {
+  pointer-events: none !important;
+}
+
+.toaster [data-sonner-toast] {
+  pointer-events: auto !important;
+}
+
+.toast-custom {
+  position: relative;
+  cursor: grab;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  touch-action: pan-y !important;
+  will-change: transform, opacity;
+}
+
+.toast-custom:active {
+  cursor: grabbing;
+}
+
+.toast-custom[data-swipe="move"],
+.toast-custom[data-swipe="cancel"] {
+  transform: translateX(var(--swipe-x, 0));
+  transition: transform 0.1s ease-out;
+}
+
+.toast-custom[data-swipe="dismiss"] {
+  transform: translateX(var(--swipe-x, 0));
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out;
+}
+
+/* Ensure no text selection during interaction */
+[data-sonner-toast] * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Toast animations */
+[data-sonner-toast] {
+  animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+[data-sonner-toast][data-swipe="dismiss"] {
+  animation: toast-out 0.3s ease-out forwards;
+}
+
+@keyframes toast-out {
+  from {
+    transform: translateX(var(--swipe-x, 0));
+    opacity: 1;
+  }
+  to {
+    transform: translateX(calc(var(--swipe-x, 0) + 200px));
+    opacity: 0;
+  }
+}
+
+/* Success toast styling */
+.toast-success {
+  border-left: 4px solid #22c55e;
+}
+
+/* Error toast styling */
+.toast-error {
+  border-left: 4px solid #ef4444;
+}
+
+/* Info toast styling */
+.toast-info {
+  border-left: 4px solid #3b82f6;
+}
+
+/* Warning toast styling */
+.toast-warning {
+  border-left: 4px solid #f59e0b;
+}
+
+/* Prevent text selection on all toast elements */
+[data-sonner-toast],
+[data-sonner-toast] * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Ensure buttons inside toasts don't interfere with swipe */
+[data-sonner-toast] button {
+  pointer-events: auto;
+  cursor: pointer;
+}
