@@ -39,11 +39,18 @@ interface InvoiceData {
   date: string;
 }
 
+interface OrderData {
+  id: string;
+  status: "Pending" | "Processing" | "Delivered";
+  [key: string]: any;
+}
+
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getInvoiceById, storeProfile, invoices } = useAdmin();
+  const { getInvoiceById, storeProfile, invoices, orders } = useAdmin();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+  const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +63,8 @@ export default function Invoice() {
 
     const fetchInvoice = async () => {
       try {
-        // First try to find in local state
         let foundInvoice = getInvoiceById(id);
         
-        // If not found locally, fetch directly from Firebase
         if (!foundInvoice) {
           console.log("Invoice not in local state, fetching from Firebase:", id);
           const invoiceRef = doc(db, "invoices", id);
@@ -95,6 +100,23 @@ export default function Invoice() {
             date: foundInvoice.date || foundInvoice.createdAt || new Date().toISOString(),
           };
           setInvoice(validatedInvoice);
+          
+          // Fetch the associated order for live status
+          const orderId = foundInvoice.orderId;
+          if (orderId) {
+            // First check local orders
+            const localOrder = orders.find(o => o.id === orderId);
+            if (localOrder) {
+              setOrder(localOrder as OrderData);
+            } else {
+              // Fetch from Firebase
+              const orderRef = doc(db, "orders", orderId);
+              const orderSnap = await getDoc(orderRef);
+              if (orderSnap.exists()) {
+                setOrder({ id: orderSnap.id, ...orderSnap.data() } as OrderData);
+              }
+            }
+          }
         } else {
           setError("Invoice not found");
         }
@@ -106,7 +128,7 @@ export default function Invoice() {
     };
 
     fetchInvoice();
-  }, [id, invoices, getInvoiceById]);
+  }, [id, invoices, orders, getInvoiceById]);
 
   const verificationUrl = `https://lightning-bathware.vercel.app/#/verify/${id}`;
 
@@ -412,8 +434,25 @@ export default function Invoice() {
                     </p>
                     {invoice.orderId && (
                       <p className="text-sm text-gray-600 mt-1">
-                        <strong>Order ID:</strong> {invoice.orderId}
+                        <strong>Order ID:</strong> #{invoice.orderId.slice(-8)}
                       </p>
+                    )}
+                    {order && (
+                      <div className="mt-3">
+                        <p className="text-sm text-gray-600">
+                          <strong>Order Status:</strong>
+                        </p>
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold mt-1 ${
+                          order.status === "Delivered" ? "bg-green-100 text-green-700" :
+                          order.status === "Processing" ? "bg-blue-100 text-blue-700" :
+                          "bg-orange-100 text-orange-700"
+                        }`}>
+                          {order.status === "Delivered" && <CheckCircle className="w-4 h-4" />}
+                          {order.status === "Processing" && <Zap className="w-4 h-4" />}
+                          {order.status === "Pending" && <Clock className="w-4 h-4" />}
+                          {order.status}
+                        </span>
+                      </div>
                     )}
                   </div>
 
