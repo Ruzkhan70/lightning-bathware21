@@ -4,6 +4,7 @@ import { useAdmin } from "../context/AdminContext";
 
 export default function Terms() {
   const { siteContent, storeProfile } = useAdmin();
+  const { terms } = siteContent;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -20,81 +21,33 @@ export default function Terms() {
 
         <div className="bg-white rounded-lg shadow-sm p-8 space-y-8">
           <section>
-            <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
+            <h2 className="text-2xl font-bold mb-4">Introduction</h2>
             <p className="text-gray-600">
-              {siteContent.terms.introduction.replace("[Store Name]", `${storeProfile.storeName} ${storeProfile.storeNameAccent}`)}
+              {terms.introduction.replace("[Store Name]", `${storeProfile.storeName} ${storeProfile.storeNameAccent}`)}
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">2. General Terms</h2>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              {siteContent.terms.generalTerms.map((term, index) => (
-                <li key={index}>{term}</li>
-              ))}
-            </ul>
-          </section>
+          {terms.sections && terms.sections.map((section, index) => (
+            <section key={section.id || index}>
+              <h2 className="text-2xl font-bold mb-4">{index + 1}. {section.title}</h2>
+              <div className="text-gray-600 whitespace-pre-line">
+                {section.content}
+              </div>
+            </section>
+          ))}
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">3. Orders and Payment</h2>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              {siteContent.terms.ordersAndPayment.map((term, index) => (
-                <li key={index}>{term}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">4. Delivery</h2>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              {siteContent.terms.delivery.map((term, index) => (
-                <li key={index}>{term}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">5. Returns and Refunds</h2>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              {siteContent.terms.returnsAndRefunds.map((term, index) => (
-                <li key={index}>{term}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">6. Warranty</h2>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              {siteContent.terms.warranty.map((term, index) => (
-                <li key={index}>{term}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">7. Privacy</h2>
-            <p className="text-gray-600">
-              {siteContent.terms.privacy}
+            <h2 className="text-2xl font-bold mb-4">
+              {terms.sections ? terms.sections.length + 1 : 1}. Contact Information
+            </h2>
+            <p className="text-gray-600 mb-4">
+              For any questions regarding these terms, please contact us:
             </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">8. Contact Us</h2>
-            <p className="text-gray-600">
-              {siteContent.terms.contactInfo}
-            </p>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2 mt-2">
+            <ul className="list-disc pl-6 text-gray-600 space-y-2">
               <li>Phone: {storeProfile.phone}</li>
               <li>Email: {storeProfile.email}</li>
               <li>Address: {storeProfile.addressStreet}, {storeProfile.addressCity}</li>
             </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">9. Updates to Terms</h2>
-            <p className="text-gray-600">
-              {siteContent.terms.updatesToTerms}
-            </p>
           </section>
 
           <p className="text-sm text-gray-500 pt-4 border-t">

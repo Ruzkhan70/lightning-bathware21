@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award } from "lucide-react";
+import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award, Plus, Trash2 } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin, DEFAULT_SITE_CONTENT } from "../../context/AdminContext";
@@ -926,7 +926,32 @@ export default function AdminSettings() {
 
             {/* Terms and Conditions Section */}
             <div className="border-b pb-6">
-              <h3 className="font-bold text-gray-800 mb-4">Terms and Conditions</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-800">Terms and Conditions</h3>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const newSection = {
+                      id: `section-${Date.now()}`,
+                      title: "New Section",
+                      content: "Add your content here..."
+                    };
+                    setContentForm({
+                      ...contentForm,
+                      terms: {
+                        ...contentForm.terms,
+                        sections: [...(contentForm.terms.sections || []), newSection]
+                      }
+                    });
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Section
+                </Button>
+              </div>
+              
               <div className="space-y-4">
                 <div>
                   <Label>Introduction</Label>
@@ -942,113 +967,101 @@ export default function AdminSettings() {
                   <p className="text-xs text-gray-500 mt-1">Use [Store Name] as placeholder for your store name</p>
                 </div>
                 
-                <div>
-                  <Label>General Terms (one per line)</Label>
-                  <Textarea 
-                    value={contentForm.terms.generalTerms.join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, generalTerms: e.target.value.split('\n').filter(t => t.trim()) }
-                    })}
-                    placeholder="Term 1&#10;Term 2&#10;Term 3"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label>Orders and Payment (one per line)</Label>
-                  <Textarea 
-                    value={contentForm.terms.ordersAndPayment.join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, ordersAndPayment: e.target.value.split('\n').filter(t => t.trim()) }
-                    })}
-                    placeholder="Term 1&#10;Term 2"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label>Delivery Terms (one per line)</Label>
-                  <Textarea 
-                    value={contentForm.terms.delivery.join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, delivery: e.target.value.split('\n').filter(t => t.trim()) }
-                    })}
-                    placeholder="Term 1&#10;Term 2"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label>Returns and Refunds (one per line)</Label>
-                  <Textarea 
-                    value={contentForm.terms.returnsAndRefunds.join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, returnsAndRefunds: e.target.value.split('\n').filter(t => t.trim()) }
-                    })}
-                    placeholder="Term 1&#10;Term 2"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label>Warranty Terms (one per line)</Label>
-                  <Textarea 
-                    value={contentForm.terms.warranty.join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, warranty: e.target.value.split('\n').filter(t => t.trim()) }
-                    })}
-                    placeholder="Term 1&#10;Term 2"
-                    rows={3}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label>Privacy Policy</Label>
-                  <Textarea 
-                    value={contentForm.terms.privacy}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, privacy: e.target.value }
-                    })}
-                    placeholder="Privacy policy text..."
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label>Contact Info Text</Label>
-                  <Textarea 
-                    value={contentForm.terms.contactInfo}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, contactInfo: e.target.value }
-                    })}
-                    placeholder="Contact information text..."
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label>Updates to Terms</Label>
-                  <Textarea 
-                    value={contentForm.terms.updatesToTerms}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      terms: { ...contentForm.terms, updatesToTerms: e.target.value }
-                    })}
-                    placeholder="Policy on updates text..."
-                    rows={2}
-                  />
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-semibold text-gray-700 mb-3">Sections</h4>
+                  <p className="text-xs text-gray-500 mb-4">Each section has a title and content. You can add, edit, delete, or reorder sections.</p>
+                  
+                  <div className="space-y-4">
+                    {contentForm.terms.sections && contentForm.terms.sections.map((section: any, index: number) => (
+                      <div key={section.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-500">Section {index + 1}</span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setContentForm({
+                                ...contentForm,
+                                terms: {
+                                  ...contentForm.terms,
+                                  sections: contentForm.terms.sections.filter((s: any) => s.id !== section.id)
+                                }
+                              });
+                            }}
+                            className="bg-red-500 hover:bg-red-600 text-white"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <Label>Section Title</Label>
+                            <Input
+                              value={section.title}
+                              onChange={(e) => {
+                                const newSections = [...contentForm.terms.sections];
+                                newSections[index] = { ...section, title: e.target.value };
+                                setContentForm({
+                                  ...contentForm,
+                                  terms: { ...contentForm.terms, sections: newSections }
+                                });
+                              }}
+                              placeholder="e.g., General Terms, Payment Policy, etc."
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label>Section Content</Label>
+                            <Textarea
+                              value={section.content}
+                              onChange={(e) => {
+                                const newSections = [...contentForm.terms.sections];
+                                newSections[index] = { ...section, content: e.target.value };
+                                setContentForm({
+                                  ...contentForm,
+                                  terms: { ...contentForm.terms, sections: newSections }
+                                });
+                              }}
+                              placeholder="Enter the content for this section. Each line will be treated as a separate point."
+                              rows={4}
+                              className="font-mono text-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Each line break creates a new bullet point</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {(!contentForm.terms.sections || contentForm.terms.sections.length === 0) && (
+                      <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <p className="text-gray-500 mb-2">No sections added yet</p>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            const newSection = {
+                              id: `section-${Date.now()}`,
+                              title: "New Section",
+                              content: "Add your content here..."
+                            };
+                            setContentForm({
+                              ...contentForm,
+                              terms: {
+                                ...contentForm.terms,
+                                sections: [...(contentForm.terms.sections || []), newSection]
+                              }
+                            });
+                          }}
+                          className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add First Section
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

@@ -153,14 +153,11 @@ export interface SiteContent {
   };
   terms: {
     introduction: string;
-    generalTerms: string[];
-    ordersAndPayment: string[];
-    delivery: string[];
-    returnsAndRefunds: string[];
-    warranty: string[];
-    privacy: string;
-    contactInfo: string;
-    updatesToTerms: string;
+    sections: Array<{
+      id: string;
+      title: string;
+      content: string;
+    }>;
   };
 }
 
@@ -373,38 +370,48 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   },
   terms: {
     introduction: "Welcome to [Store Name]. By accessing and using our website, you agree to be bound by these Terms and Conditions.",
-    generalTerms: [
-      "All prices are in Sri Lankan Rupees (LKR) and include applicable taxes.",
-      "Product images are for illustration purposes only. Actual colors may vary.",
-      "We reserve the right to change prices without prior notice.",
-      "All orders are subject to availability."
-    ],
-    ordersAndPayment: [
-      "Orders are confirmed only upon receipt of payment.",
-      "We accept cash on delivery and online payment methods.",
-      "We reserve the right to cancel any order without prior notice.",
-      "Order confirmation will be sent via email/SMS."
-    ],
-    delivery: [
-      "Delivery charges vary based on location.",
-      "Estimated delivery times are 1-5 business days.",
-      "Risk of loss transfers upon delivery confirmation.",
-      "Delivery to remote areas may take longer."
-    ],
-    returnsAndRefunds: [
-      "Returns accepted within 7 days of delivery.",
-      "Products must be unused and in original packaging.",
-      "Refunds processed within 7-14 business days.",
-      "Shipping charges are non-refundable."
-    ],
-    warranty: [
-      "Products are covered by manufacturer warranty where applicable.",
-      "Warranty does not cover damage from misuse or improper installation.",
-      "Keep original receipt for warranty claims."
-    ],
-    privacy: "We collect and use your personal information solely for order processing and customer service. We never share your data with third parties for marketing purposes.",
-    contactInfo: "For any questions regarding these terms, please contact us via phone, email, or visit our store location.",
-    updatesToTerms: "We reserve the right to update these terms at any time. Continued use of the website constitutes acceptance of updated terms."
+    sections: [
+      {
+        id: "general-terms",
+        title: "General Terms",
+        content: "All prices are in Sri Lankan Rupees (LKR) and include applicable taxes.\nProduct images are for illustration purposes only. Actual colors may vary.\nWe reserve the right to change prices without prior notice.\nAll orders are subject to availability."
+      },
+      {
+        id: "orders-payment",
+        title: "Orders & Payment",
+        content: "Orders are confirmed only upon receipt of payment.\nWe accept cash on delivery and online payment methods.\nWe reserve the right to cancel any order without prior notice.\nOrder confirmation will be sent via email/SMS."
+      },
+      {
+        id: "delivery",
+        title: "Delivery",
+        content: "Delivery charges vary based on location.\nEstimated delivery times are 1-5 business days.\nRisk of loss transfers upon delivery confirmation.\nDelivery to remote areas may take longer."
+      },
+      {
+        id: "returns-refunds",
+        title: "Returns & Refunds",
+        content: "Returns accepted within 7 days of delivery.\nProducts must be unused and in original packaging.\nRefunds processed within 7-14 business days.\nShipping charges are non-refundable."
+      },
+      {
+        id: "warranty",
+        title: "Warranty",
+        content: "Products are covered by manufacturer warranty where applicable.\nWarranty does not cover damage from misuse or improper installation.\nKeep original receipt for warranty claims."
+      },
+      {
+        id: "privacy",
+        title: "Privacy Policy",
+        content: "We collect and use your personal information solely for order processing and customer service. We never share your data with third parties for marketing purposes."
+      },
+      {
+        id: "contact",
+        title: "Contact Us",
+        content: "For any questions regarding these terms, please contact us via phone, email, or visit our store location."
+      },
+      {
+        id: "updates",
+        title: "Updates to Terms",
+        content: "We reserve the right to update these terms at any time. Continued use of the website constitutes acceptance of updated terms."
+      }
+    ]
   },
 };
 
