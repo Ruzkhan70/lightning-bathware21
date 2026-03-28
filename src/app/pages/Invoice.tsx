@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
@@ -150,8 +149,6 @@ export default function Invoice() {
 
     fetchInvoice();
   }, [id, invoices, orders, getInvoiceById]);
-
-  const verificationUrl = `https://lightning-bathware.vercel.app/#/verify/${id}`;
 
   const formatPrice = (price: number) => {
     return `Rs. ${(price || 0).toLocaleString()}`;
@@ -517,28 +514,7 @@ export default function Invoice() {
                   </table>
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-between gap-8">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-bold mb-2">Verify Invoice</h4>
-                    <div className="bg-white p-2 rounded inline-block">
-                      <QRCodeSVG
-                        value={verificationUrl}
-                        size={100}
-                        level="H"
-                        includeMargin
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Scan to verify authenticity</p>
-                    <Button
-                      onClick={() => window.open(verificationUrl, "_blank")}
-                      variant="outline"
-                      size="sm"
-                      className="mt-3 w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                    >
-                      Open Verification Link
-                    </Button>
-                  </div>
-
+                <div className="flex justify-end">
                   <div className="space-y-2 min-w-[250px]">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal</span>
