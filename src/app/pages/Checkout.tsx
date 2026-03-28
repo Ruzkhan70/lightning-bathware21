@@ -93,17 +93,10 @@ export default function Checkout() {
       deliveryOption: selectedDelivery?.label || "",
       deliveryCost: deliveryCost,
     };
-
-    await addOrder(orderData);
     
-    const tempOrder = {
-      ...orderData,
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      status: "Pending" as const,
-    };
+    const savedOrder = await addOrder(orderData);
     
-    const invoice = await createInvoice(tempOrder, formData.email);
+    const invoice = await createInvoice(savedOrder, formData.email);
 
     clearCart();
     toast.success("Order placed successfully! Invoice generated.");

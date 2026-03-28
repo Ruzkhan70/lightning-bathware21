@@ -1156,7 +1156,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">) => {
+  const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">): Promise<Order> => {
     const newOrder: Order = {
       ...order,
       id: Date.now().toString(),
@@ -1170,6 +1170,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error saving order:", error);
     }
+    return newOrder;
   };
 
   const addOffer = (offer: Omit<Offer, "id" | "createdAt">) => {
