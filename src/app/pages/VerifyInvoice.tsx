@@ -9,6 +9,7 @@ import {
 import { format } from "date-fns";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase";
+import ContentLoader from "../components/ContentLoader";
 
 export default function VerifyInvoice() {
   const { id } = useParams();
@@ -75,14 +76,7 @@ export default function VerifyInvoice() {
   }, [id, invoices, isDataLoaded]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#D4AF37] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying invoice...</p>
-        </div>
-      </div>
-    );
+    return <ContentLoader />;
   }
 
   if (status === "not_found") {

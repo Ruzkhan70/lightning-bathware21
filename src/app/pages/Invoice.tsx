@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import ContentLoader from "../components/ContentLoader";
 
 interface InvoiceProduct {
   id: string;
@@ -316,11 +317,7 @@ export default function Invoice() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
-      </div>
-    );
+    return <ContentLoader />;
   }
 
   if (error || !invoice) {
