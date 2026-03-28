@@ -27,6 +27,7 @@ export interface Order {
   }>;
   total: number;
   status: "Pending" | "Processing" | "Delivered";
+  paymentStatus: "Pending" | "Paid";
   date: string;
   deliveryOption: string;
   deliveryCost: number;
@@ -182,8 +183,9 @@ interface AdminContextType {
   bulkDeleteProducts: (ids: string[]) => void;
   orders: Order[];
   updateOrderStatus: (id: string, status: "Pending" | "Processing" | "Delivered") => void;
+  updatePaymentStatus: (id: string, paymentStatus: "Pending" | "Paid") => void;
   deleteOrder: (id: string) => void;
-  addOrder: (order: Omit<Order, "id" | "date" | "status">) => void;
+  addOrder: (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">) => void;
   offers: Offer[];
   addOffer: (offer: Omit<Offer, "id" | "createdAt">) => void;
   updateOffer: (id: string, offer: Partial<Offer>) => void;
@@ -1149,6 +1151,29 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updatePaymentStatus = async (id: string, paymentStatus: "Pending" | "Paid") => {
+    setOrders(prev => prev.map(order => order.id === id ? { ...order, paymentStatus } : order));
+    
+    // Also update the invoice's payment status
+    const invoice = invoices.find(inv => inv.orderId === id);
+    if (invoice) {
+      setInvoices(prev => prev.map(inv => inv.orderId === id ? { ...inv, paymentStatus } : inv));
+      try {
+        await setDoc(doc(db, "invoices", invoice.id), { paymentStatus }, { merge: true });
+      } catch (error) {
+        console.error("Error updating invoice payment status:", error);
+      }
+    }
+    
+    try {
+      await updateDoc(doc(db, "orders", id), { paymentStatus });
+      toast.success("Payment status updated!");
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      toast.error("Failed to update payment status");
+    }
+  };
+
   const deleteOrder = async (id: string) => {
     try {
       const invoice = invoices.find(inv => inv.orderId === id);
@@ -1169,12 +1194,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addOrder = async (order: Omit<Order, "id" | "date" | "status">) => {
+  const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">) => {
     const newOrder: Order = {
       ...order,
       id: Date.now().toString(),
       date: new Date().toISOString(),
       status: "Pending",
+      paymentStatus: "Pending",
     };
     setOrders(prev => [...prev, newOrder]);
     try {
@@ -1336,6 +1362,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         bulkDeleteProducts,
         orders,
         updateOrderStatus,
+        updatePaymentStatus,
         deleteOrder,
         addOrder,
         offers,

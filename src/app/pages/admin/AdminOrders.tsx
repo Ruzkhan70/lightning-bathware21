@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Search, Trash2, AlertTriangle, FileText } from "lucide-react";
+import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus, deleteOrder, getInvoiceByOrderId, createInvoice } = useAdmin();
+  const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder, getInvoiceByOrderId, createInvoice } = useAdmin();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingOrder, setViewingOrder] = useState<string | null>(null);
@@ -301,9 +301,9 @@ export default function AdminOrders() {
                 </div>
               </div>
 
-              {/* Order Status */}
+              {/* Order & Payment Status */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Order Status</p>
                     <p className={`font-semibold text-lg ${
@@ -313,6 +313,33 @@ export default function AdminOrders() {
                     }`}>
                       {currentOrder.status}
                     </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Payment Status</p>
+                    <Select
+                      value={currentOrder.paymentStatus || "Pending"}
+                      onValueChange={(value) => updatePaymentStatus(currentOrder.id, value as "Pending" | "Paid")}
+                    >
+                      <SelectTrigger className={`font-semibold ${
+                        currentOrder.paymentStatus === "Paid" ? "text-green-600 border-green-300" : "text-orange-600 border-orange-300"
+                      }`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">
+                          <span className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-orange-500" />
+                            Pending
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="Paid">
+                          <span className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            Paid
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Order Date</p>

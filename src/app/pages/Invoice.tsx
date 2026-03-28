@@ -43,6 +43,7 @@ interface InvoiceData {
 interface OrderData {
   id: string;
   status: "Pending" | "Processing" | "Delivered";
+  paymentStatus: "Pending" | "Paid";
   [key: string]: any;
 }
 
@@ -217,10 +218,12 @@ export default function Invoice() {
       doc.text(`Invoice #: ${invoice.invoiceNumber}`, 15, yPos + 15);
       doc.text(`Date: ${formatDate(invoice.date).split(",")[0]}`, 15, yPos + 22);
       
-      const statusColor = invoice.paymentStatus === "Paid" ? [34, 139, 34] : [255, 165, 0];
+      // Use order's payment status (primary source of truth)
+      const paymentStatusForPDF = order?.paymentStatus || invoice.paymentStatus;
+      const statusColor = paymentStatusForPDF === "Paid" ? [34, 139, 34] : [255, 165, 0];
       doc.setTextColor(...statusColor);
       doc.setFont("helvetica", "bold");
-      doc.text(`Status: ${invoice.paymentStatus}`, 15, yPos + 32);
+      doc.text(`Payment: ${paymentStatusForPDF}`, 15, yPos + 32);
       
       doc.setFillColor(245, 245, 245);
       doc.roundedRect(105, yPos, 90, 35, 2, 2, "F");
@@ -424,38 +427,21 @@ export default function Invoice() {
                     <h3 className="text-3xl font-bold text-[#D4AF37] mb-2">INVOICE</h3>
                     <p className="text-lg font-semibold">{invoice.invoiceNumber}</p>
                     
-                    {/* Payment Status */}
+                    {/* Payment Status - Read from Order (Primary Source) */}
                     <div className="mt-3 flex items-center gap-2 justify-end">
                       <span className="text-xs text-gray-500">Payment:</span>
-                      {invoice.paymentStatus === "Paid" ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                      {order?.paymentStatus === "Paid" ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold">
                           <CheckCircle className="w-4 h-4" />
                           Paid
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-full text-sm font-semibold">
                           <Clock className="w-4 h-4" />
                           Pending
                         </span>
                       )}
                     </div>
-                    
-                    {/* Order Status - PROMINENTLY DISPLAYED */}
-                    {order && (
-                      <div className="mt-2 flex items-center gap-2 justify-end">
-                        <span className="text-xs text-gray-500">Order:</span>
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold ${
-                          order.status === "Delivered" ? "bg-green-500 text-white" :
-                          order.status === "Processing" ? "bg-blue-500 text-white" :
-                          "bg-orange-500 text-white"
-                        }`}>
-                          {order.status === "Delivered" && <CheckCircle className="w-4 h-4" />}
-                          {order.status === "Processing" && <Zap className="w-4 h-4" />}
-                          {order.status === "Pending" && <Clock className="w-4 h-4" />}
-                          {order.status}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
