@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { setMetaTags } from "../utils/seo";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
@@ -10,6 +11,13 @@ import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Contact() {
   const { siteContent, storeProfile } = useAdmin();
+
+  useEffect(() => {
+    setMetaTags(
+      "Contact Us | Lightning Bathware - Get in Touch",
+      "Contact the expert team at Lightning Bathware for personalized recommendations, product advice, or bulk orders. Visit our showroom or call us today."
+    );
+  }, []);
   
   const [formData, setFormData] = useState({
     name: "",
