@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router";
-import { ShoppingCart, Heart, Menu, User, X } from "lucide-react";
+import { ShoppingCart, Heart, Menu, User, X, ChevronDown } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useUser } from "../context/UserContext";
@@ -15,11 +15,15 @@ export default function Header() {
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const { isLoggedIn } = useUser();
-  const { products, storeProfile } = useAdmin();
+  const { products, storeProfile, categories } = useAdmin();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const categoriesRef = useRef<HTMLLIElement>(null);
+
+  const safeCategories = categories || [];
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -63,6 +67,9 @@ export default function Header() {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
+        setShowCategoriesDropdown(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -89,18 +96,18 @@ export default function Header() {
               <>
                 <img 
                   src={storeProfile.storeLogo} 
-                  alt={`${storeProfile.storeName} ${storeProfile.storeNameAccent}`}
+                  alt="LIGHTNING BATHWARE"
                   className="h-10 md:h-12 w-auto object-contain"
                 />
                 <div className="text-xl md:text-2xl font-bold hidden sm:block">
-                  <span className="text-white">{storeProfile.storeName}</span>
-                  <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+                  <span className="text-white">LIGHTNING</span>
+                  <span className="text-[#D4AF37]">BATHWARE</span>
                 </div>
               </>
             ) : (
               <div className="text-2xl md:text-3xl font-bold">
-                <span className="text-white">{storeProfile.storeName}</span>
-                <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+                <span className="text-white">LIGHTNING</span>
+                <span className="text-[#D4AF37]">BATHWARE</span>
               </div>
             )}
           </Link>
@@ -212,25 +219,137 @@ export default function Header() {
       <nav className="border-t border-gray-800 hidden md:block">
         <div className="container mx-auto px-4">
           <ul className="flex items-center justify-center gap-8 py-3">
-            {navLinks.map((link) => (
-              <li key={link.path}>
-                <Link
-                  to={link.path}
-                  className={`transition-colors font-medium relative group ${
-                    isActive(link.path)
-                      ? "text-[#D4AF37]"
-                      : "text-white hover:text-[#D4AF37]"
-                  }`}
-                >
-                  {link.name}
-                  <span
-                    className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${
-                      isActive(link.path) ? "w-full" : "w-0 group-hover:w-full"
+            {navLinks.map((link) => {
+              if (link.name === "Categories") {
+                return (
+                  <li 
+                    key={link.path} 
+                    ref={categoriesRef}
+                    className="relative"
+                    onMouseEnter={() => setShowCategoriesDropdown(true)}
+                    onMouseLeave={() => setShowCategoriesDropdown(false)}
+                  >
+                    <button
+                      className={`transition-colors font-medium relative group flex items-center gap-1 ${
+                        isActive(link.path)
+                          ? "text-[#D4AF37]"
+                          : "text-white hover:text-[#D4AF37]"
+                      }`}
+                    >
+                      {link.name}
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
+                      <span
+                        className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${
+                          isActive(link.path) ? "w-full" : "w-0 group-hover:w-full"
+                        }`}
+                      />
+                    </button>
+
+                    {/* Categories Dropdown */}
+                    <div
+                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 origin-top ${
+                        showCategoriesDropdown 
+                          ? "opacity-100 scale-100 pointer-events-auto" 
+                          : "opacity-0 scale-95 pointer-events-none"
+                      }`}
+                    >
+                      <div className="py-2">
+                        {safeCategories.length > 0 ? (
+                          safeCategories.filter(cat => cat.isActive).map((category) => (
+                            <Link
+                              key={category.id}
+                              to={`/products?category=${encodeURIComponent(category.name)}`}
+                              onClick={() => setShowCategoriesDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                            >
+                              {category.image && (
+                                <img 
+                                  src={category.image} 
+                                  alt={category.name}
+                                  className="w-8 h-8 rounded-lg object-cover"
+                                />
+                              )}
+                              <span className="font-medium">{category.name}</span>
+                            </Link>
+                          ))
+                        ) : (
+                          <>
+                            <Link
+                              to="/products?category=Lighting"
+                              onClick={() => setShowCategoriesDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                            >
+                              <span className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold">L</span>
+                              <span className="font-medium">Lighting</span>
+                            </Link>
+                            <Link
+                              to="/products?category=Bathroom+Fittings"
+                              onClick={() => setShowCategoriesDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                            >
+                              <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold">B</span>
+                              <span className="font-medium">Bathroom Fittings</span>
+                            </Link>
+                            <Link
+                              to="/products?category=Plumbing"
+                              onClick={() => setShowCategoriesDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                            >
+                              <span className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-600 font-bold">P</span>
+                              <span className="font-medium">Plumbing</span>
+                            </Link>
+                            <Link
+                              to="/products?category=Electrical+Hardware"
+                              onClick={() => setShowCategoriesDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                            >
+                              <span className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold">E</span>
+                              <span className="font-medium">Electrical Hardware</span>
+                            </Link>
+                            <Link
+                              to="/products?category=Construction+Tools"
+                              onClick={() => setShowCategoriesDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                            >
+                              <span className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold">C</span>
+                              <span className="font-medium">Construction Tools</span>
+                            </Link>
+                          </>
+                        )}
+                      </div>
+                      <div className="border-t border-gray-100 px-4 py-2">
+                        <Link
+                          to="/categories"
+                          onClick={() => setShowCategoriesDropdown(false)}
+                          className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors"
+                        >
+                          View All Categories →
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                );
+              }
+              return (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={`transition-colors font-medium relative group ${
+                      isActive(link.path)
+                        ? "text-[#D4AF37]"
+                        : "text-white hover:text-[#D4AF37]"
                     }`}
-                  />
-                </Link>
-              </li>
-            ))}
+                  >
+                    {link.name}
+                    <span
+                      className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${
+                        isActive(link.path) ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
+                    />
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </nav>
@@ -255,6 +374,46 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+              
+              {/* Mobile Categories */}
+              <li className="pt-2 border-t border-gray-800">
+                <p className="text-gray-400 text-sm mb-2">Categories</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to="/products?category=Lighting"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
+                  >
+                    <span className="w-6 h-6 rounded bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-xs">L</span>
+                    <span>Lighting</span>
+                  </Link>
+                  <Link
+                    to="/products?category=Bathroom+Fittings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
+                  >
+                    <span className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">B</span>
+                    <span>Bathroom</span>
+                  </Link>
+                  <Link
+                    to="/products?category=Plumbing"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
+                  >
+                    <span className="w-6 h-6 rounded bg-green-100 flex items-center justify-center text-green-600 font-bold text-xs">P</span>
+                    <span>Plumbing</span>
+                  </Link>
+                  <Link
+                    to="/products?category=Electrical+Hardware"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
+                  >
+                    <span className="w-6 h-6 rounded bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">E</span>
+                    <span>Electrical</span>
+                  </Link>
+                </div>
+              </li>
+              
               <li>
                 <Link
                   to="/account"

@@ -59,9 +59,9 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            <span className="text-black">{storeProfile.storeName}</span>
-            <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight flex items-center justify-center gap-1">
+            <span className="text-black">LIGHTNING</span>
+            <span className="text-[#D4AF37]">BATHWARE</span>
           </h1>
         </motion.div>
 
@@ -123,33 +123,12 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           </motion.div>
         </motion.div>
 
-        {/* Loading Text with Dots */}
+        {/* Loading Text */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <div className="flex items-center justify-center gap-1">
-            <span className="text-gray-500 text-sm tracking-[0.3em] uppercase font-medium">
-              Loading
-            </span>
-            <div className="flex gap-1 ml-1">
-              {[0, 1, 2].map((i) => (
-                <motion.span
-                  key={i}
-                  className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"
-                  animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                    ease: "easeInOut",
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
           {/* Progress Bar */}
           <div className="mt-4 w-48 h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
             <motion.div

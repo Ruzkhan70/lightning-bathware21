@@ -134,8 +134,8 @@ export default function AdminLayout() {
           )}
         </button>
         <div>
-          <span className="text-white font-bold">Lightning</span>
-          <span className="text-[#D4AF37] font-bold"> Bathware</span>
+          <span className="text-white font-bold">LIGHTNING</span>
+          <span className="text-[#D4AF37] font-bold">BATHWARE</span>
         </div>
         <div className="w-10"></div>
       </div>
@@ -154,9 +154,9 @@ export default function AdminLayout() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-black text-white flex-col">
           <div className="p-6 border-b border-gray-800 flex-shrink-0">
-            <h1 className="text-xl font-bold">
-              <span className="text-white">Lightning</span>
-              <span className="text-[#D4AF37]"> Bathware</span>
+            <h1 className="text-xl font-bold flex items-center gap-1">
+              <span className="text-white">LIGHTNING</span>
+              <span className="text-[#D4AF37]">BATHWARE</span>
             </h1>
             <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
           </div>
@@ -215,9 +215,9 @@ export default function AdminLayout() {
         >
           <div className="p-6 border-b border-gray-800 flex-shrink-0 flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold">
-                <span className="text-white">Lightning</span>
-                <span className="text-[#D4AF37]"> Bathware</span>
+              <h1 className="text-xl font-bold flex items-center gap-1">
+                <span className="text-white">LIGHTNING</span>
+                <span className="text-[#D4AF37]">BATHWARE</span>
               </h1>
               <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
             </div>
