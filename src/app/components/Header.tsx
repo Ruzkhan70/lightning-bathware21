@@ -1,4 +1,4 @@
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router";
 import { ShoppingCart, Heart, Menu, User, X } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -10,6 +10,7 @@ import { useState, useRef, useEffect } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
@@ -19,6 +20,13 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(path);
+  };
 
   const safeProducts = products || [];
 
@@ -208,9 +216,18 @@ export default function Header() {
               <li key={link.path}>
                 <Link
                   to={link.path}
-                  className="hover:text-[#D4AF37] transition-colors font-medium"
+                  className={`transition-colors font-medium relative group ${
+                    isActive(link.path)
+                      ? "text-[#D4AF37]"
+                      : "text-white hover:text-[#D4AF37]"
+                  }`}
                 >
                   {link.name}
+                  <span
+                    className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${
+                      isActive(link.path) ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
               </li>
             ))}
@@ -228,7 +245,11 @@ export default function Header() {
                   <Link
                     to={link.path}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block py-2 hover:text-[#D4AF37] transition-colors font-medium"
+                    className={`block py-2 transition-colors font-medium ${
+                      isActive(link.path)
+                        ? "text-[#D4AF37]"
+                        : "hover:text-[#D4AF37]"
+                    }`}
                   >
                     {link.name}
                   </Link>
@@ -238,7 +259,11 @@ export default function Header() {
                 <Link
                   to="/account"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 py-2 hover:text-[#D4AF37] transition-colors"
+                  className={`flex items-center gap-2 py-2 transition-colors ${
+                    isActive("/account")
+                      ? "text-[#D4AF37]"
+                      : "hover:text-[#D4AF37]"
+                  }`}
                 >
                   <User className="w-5 h-5" />
                   <span>Account</span>
@@ -248,7 +273,11 @@ export default function Header() {
                 <Link
                   to="/wishlist"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 py-2 hover:text-[#D4AF37] transition-colors"
+                  className={`flex items-center gap-2 py-2 transition-colors ${
+                    isActive("/wishlist")
+                      ? "text-[#D4AF37]"
+                      : "hover:text-[#D4AF37]"
+                  }`}
                 >
                   <Heart className="w-5 h-5" />
                   <span>Wishlist ({wishlist.length})</span>

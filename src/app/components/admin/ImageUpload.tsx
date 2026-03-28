@@ -61,7 +61,7 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
     });
   };
 
-  const handleFile = async (file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
@@ -93,7 +93,7 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
     } finally {
       setIsCompressing(false);
     }
-  };
+  }, [onChange]);
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -112,14 +112,14 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
     if (file) {
       handleFile(file);
     }
-  }, []);
+  }, [handleFile]);
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       handleFile(file);
     }
-  };
+  }, [handleFile]);
 
   return (
     <div className="space-y-2">
