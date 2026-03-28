@@ -11,9 +11,9 @@ import { db } from "../../firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Order } from "../context/AdminContext";
 
-const EMAILJS_PUBLIC_KEY = "z0LSWDMbKOfljQUzp";
-const EMAILJS_SERVICE_ID = "service_vd0s4n8";
-const EMAILJS_TEMPLATE_ID = "template_njxm8mi";
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
 
 export default function Account() {
   const navigate = useNavigate();
