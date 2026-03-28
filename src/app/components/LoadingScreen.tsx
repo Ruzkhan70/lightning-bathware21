@@ -123,33 +123,20 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           </motion.div>
         </motion.div>
 
-        {/* Loading Text */}
+        {/* Loading Text with Pulsing Animation */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="mb-8"
         >
-          <p className="text-gray-700 text-base tracking-[0.3em] uppercase font-semibold mb-6">
-            Loading
-          </p>
-
-          {/* Progress Bar */}
-          <div className="w-48 h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-full"
-              initial={{ width: "0%" }}
-              animate={{ width: "100%" }}
-              transition={{
-                duration: 2.5,
-                ease: "easeOut",
-              }}
-              onAnimationComplete={() => {
-                if (onComplete) {
-                  setTimeout(onComplete, 500);
-                }
-              }}
-            />
-          </div>
+          <motion.p
+            className="text-[#D4AF37] text-lg font-bold tracking-[0.4em] uppercase"
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            LOADING
+          </motion.p>
         </motion.div>
       </div>
 
