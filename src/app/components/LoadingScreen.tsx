@@ -129,8 +129,12 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
+          <p className="text-gray-500 text-sm tracking-[0.3em] uppercase font-medium mb-4">
+            Loading
+          </p>
+
           {/* Progress Bar */}
-          <div className="mt-4 w-48 h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
+          <div className="w-48 h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-full"
               initial={{ width: "0%" }}

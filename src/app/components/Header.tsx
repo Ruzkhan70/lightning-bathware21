@@ -4,9 +4,8 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
-import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -21,7 +20,8 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const categoriesRef = useRef<HTMLLIElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const safeCategories = categories || [];
 
@@ -62,6 +62,34 @@ export default function Header() {
     navigate(`/products?search=${encodeURIComponent(productName)}`);
   };
 
+  const handleCategoriesMouseEnter = useCallback(() => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setShowCategoriesDropdown(true);
+  }, []);
+
+  const handleCategoriesMouseLeave = useCallback(() => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setShowCategoriesDropdown(false);
+    }, 150);
+  }, []);
+
+  const handleDropdownMouseEnter = useCallback(() => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setShowCategoriesDropdown(true);
+  }, []);
+
+  const handleDropdownMouseLeave = useCallback(() => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setShowCategoriesDropdown(false);
+    }, 150);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -75,6 +103,14 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Products", path: "/products" },
@@ -84,6 +120,21 @@ export default function Header() {
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
   ];
+
+  const getCategoryColor = (name: string) => {
+    const colors: Record<string, { bg: string; text: string }> = {
+      "Lighting": { bg: "bg-yellow-100", text: "text-yellow-600" },
+      "Bathroom Fittings": { bg: "bg-blue-100", text: "text-blue-600" },
+      "Plumbing": { bg: "bg-green-100", text: "text-green-600" },
+      "Electrical Hardware": { bg: "bg-orange-100", text: "text-orange-600" },
+      "Construction Tools": { bg: "bg-red-100", text: "text-red-600" },
+    };
+    return colors[name] || { bg: "bg-gray-100", text: "text-gray-600" };
+  };
+
+  const getCategoryInitial = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-black text-white shadow-lg">
@@ -215,7 +266,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Desktop */}
       <nav className="border-t border-gray-800 hidden md:block">
         <div className="container mx-auto px-4">
           <ul className="flex items-center justify-center gap-8 py-3">
@@ -224,10 +275,10 @@ export default function Header() {
                 return (
                   <li 
                     key={link.path} 
-                    ref={categoriesRef}
                     className="relative"
-                    onMouseEnter={() => setShowCategoriesDropdown(true)}
-                    onMouseLeave={() => setShowCategoriesDropdown(false)}
+                    ref={categoriesRef as any}
+                    onMouseEnter={handleCategoriesMouseEnter}
+                    onMouseLeave={handleCategoriesMouseLeave}
                   >
                     <button
                       className={`transition-colors font-medium relative group flex items-center gap-1 ${
@@ -245,33 +296,42 @@ export default function Header() {
                       />
                     </button>
 
-                    {/* Categories Dropdown */}
+                    {/* Categories Dropdown - Desktop */}
                     <div
-                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 origin-top ${
+                      className={`absolute top-full left-1/2 -translate-x-1/2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 origin-top z-50 ${
                         showCategoriesDropdown 
-                          ? "opacity-100 scale-100 pointer-events-auto" 
-                          : "opacity-0 scale-95 pointer-events-none"
+                          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto mt-1" 
+                          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                       }`}
+                      onMouseEnter={handleDropdownMouseEnter}
+                      onMouseLeave={handleDropdownMouseLeave}
                     >
                       <div className="py-2">
                         {safeCategories.length > 0 ? (
-                          safeCategories.filter(cat => cat.isActive).map((category) => (
-                            <Link
-                              key={category.id}
-                              to={`/products?category=${encodeURIComponent(category.name)}`}
-                              onClick={() => setShowCategoriesDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                            >
-                              {category.image && (
-                                <img 
-                                  src={category.image} 
-                                  alt={category.name}
-                                  className="w-8 h-8 rounded-lg object-cover"
-                                />
-                              )}
-                              <span className="font-medium">{category.name}</span>
-                            </Link>
-                          ))
+                          safeCategories.filter(cat => cat.isActive).map((category) => {
+                            const color = getCategoryColor(category.name);
+                            return (
+                              <Link
+                                key={category.id}
+                                to={`/products?category=${encodeURIComponent(category.name)}`}
+                                onClick={() => setShowCategoriesDropdown(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                              >
+                                {category.image ? (
+                                  <img 
+                                    src={category.image} 
+                                    alt={category.name}
+                                    className="w-10 h-10 rounded-lg object-cover"
+                                  />
+                                ) : (
+                                  <span className={`w-10 h-10 rounded-lg ${color.bg} flex items-center justify-center ${color.text} font-bold text-lg`}>
+                                    {getCategoryInitial(category.name)}
+                                  </span>
+                                )}
+                                <span className="font-medium">{category.name}</span>
+                              </Link>
+                            );
+                          })
                         ) : (
                           <>
                             <Link
@@ -279,7 +339,7 @@ export default function Header() {
                               onClick={() => setShowCategoriesDropdown(false)}
                               className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                             >
-                              <span className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold">L</span>
+                              <span className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-lg">L</span>
                               <span className="font-medium">Lighting</span>
                             </Link>
                             <Link
@@ -287,7 +347,7 @@ export default function Header() {
                               onClick={() => setShowCategoriesDropdown(false)}
                               className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                             >
-                              <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold">B</span>
+                              <span className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">B</span>
                               <span className="font-medium">Bathroom Fittings</span>
                             </Link>
                             <Link
@@ -295,7 +355,7 @@ export default function Header() {
                               onClick={() => setShowCategoriesDropdown(false)}
                               className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                             >
-                              <span className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-600 font-bold">P</span>
+                              <span className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</span>
                               <span className="font-medium">Plumbing</span>
                             </Link>
                             <Link
@@ -303,7 +363,7 @@ export default function Header() {
                               onClick={() => setShowCategoriesDropdown(false)}
                               className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                             >
-                              <span className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold">E</span>
+                              <span className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">E</span>
                               <span className="font-medium">Electrical Hardware</span>
                             </Link>
                             <Link
@@ -311,19 +371,20 @@ export default function Header() {
                               onClick={() => setShowCategoriesDropdown(false)}
                               className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                             >
-                              <span className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold">C</span>
+                              <span className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">C</span>
                               <span className="font-medium">Construction Tools</span>
                             </Link>
                           </>
                         )}
                       </div>
-                      <div className="border-t border-gray-100 px-4 py-2">
+                      <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
                         <Link
                           to="/categories"
                           onClick={() => setShowCategoriesDropdown(false)}
-                          className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors"
+                          className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors flex items-center gap-1"
                         >
-                          View All Categories →
+                          View All Categories
+                          <span>→</span>
                         </Link>
                       </div>
                     </div>
@@ -375,7 +436,7 @@ export default function Header() {
                 </li>
               ))}
               
-              {/* Mobile Categories */}
+              {/* Mobile Categories Grid */}
               <li className="pt-2 border-t border-gray-800">
                 <p className="text-gray-400 text-sm mb-2">Categories</p>
                 <div className="grid grid-cols-2 gap-2">
