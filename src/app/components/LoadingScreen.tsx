@@ -127,9 +127,9 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ duration: 0.5 }}
         >
-          <p className="text-gray-500 text-sm tracking-[0.3em] uppercase font-medium mb-4">
+          <p className="text-gray-700 text-base tracking-[0.3em] uppercase font-semibold mb-6">
             Loading
           </p>
 
@@ -140,12 +140,12 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{
-                duration: 1.5,
+                duration: 2.5,
                 ease: "easeOut",
               }}
               onAnimationComplete={() => {
                 if (onComplete) {
-                  setTimeout(onComplete, 300);
+                  setTimeout(onComplete, 500);
                 }
               }}
             />
