@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 
 export default function AdminInvoices() {
-  const { invoices, updateInvoicePaymentStatus, updateInvoiceOrderStatus, orders, storeProfile } = useAdmin();
+  const { invoices, updateInvoicePaymentStatus, updateOrderStatus, orders, storeProfile } = useAdmin();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "Paid" | "Pending">("all");
@@ -530,7 +530,7 @@ export default function AdminInvoices() {
                     <TableCell>
                       <Select
                         value={invoice.orderStatus || "Pending"}
-                        onValueChange={(value) => updateInvoiceOrderStatus(invoice.orderId, value as any)}
+                        onValueChange={(value) => updateOrderStatus(invoice.orderId, value as any)}
                       >
                         <SelectTrigger className={`w-28 h-8 text-xs ${
                           invoice.orderStatus === "Pending" ? "border-orange-300 bg-orange-50" :

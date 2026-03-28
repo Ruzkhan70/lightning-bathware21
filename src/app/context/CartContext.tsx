@@ -25,12 +25,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem("cartItems");
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map((item: any) => ({
-        ...item,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-      }));
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((item: any) => ({
+          ...item,
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+        }));
+      } catch {
+        return [];
+      }
     }
     return [];
   });

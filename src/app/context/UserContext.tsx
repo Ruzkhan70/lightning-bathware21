@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { db } from "../../firebase";
-import { collection, addDoc, updateDoc, doc, getDocs, query, where, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc, getDocs, query, where } from "firebase/firestore";
 
 export interface User {
   id: string;
@@ -40,13 +40,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
-      console.log("Users synced from Firebase:", snapshot.size);
-    });
 
-    return () => unsubscribe();
-  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {

@@ -77,7 +77,6 @@ export default function Invoice() {
         let foundInvoice = getInvoiceById(id);
         
         if (!foundInvoice) {
-          console.log("Invoice not in local state, fetching from Firebase:", id);
           const invoiceRef = doc(db, "invoices", id);
           const invoiceSnap = await getDoc(invoiceRef);
           
@@ -114,28 +113,20 @@ export default function Invoice() {
           
           // Fetch the associated order for live status
           const orderId = foundInvoice.orderId;
-          console.log("Fetching order for invoice, orderId:", orderId);
           if (orderId) {
             // First check local orders
             const localOrder = orders.find(o => o.id === orderId);
             if (localOrder) {
-              console.log("Found order in local state:", localOrder.status);
               setOrder(localOrder as OrderData);
             } else {
               // Fetch from Firebase
-              console.log("Fetching order from Firebase:", orderId);
               const orderRef = doc(db, "orders", orderId);
               const orderSnap = await getDoc(orderRef);
               if (orderSnap.exists()) {
                 const orderData = { id: orderSnap.id, ...orderSnap.data() } as OrderData;
-                console.log("Found order in Firebase:", orderData.status);
                 setOrder(orderData);
-              } else {
-                console.log("Order not found in Firebase:", orderId);
               }
             }
-          } else {
-            console.log("No orderId in invoice");
           }
         } else {
           setError("Invoice not found");
