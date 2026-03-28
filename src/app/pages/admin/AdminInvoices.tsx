@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 
 export default function AdminInvoices() {
-  const { invoices, updateInvoicePaymentStatus, orders, createInvoice, storeProfile } = useAdmin();
+  const { invoices, updateInvoicePaymentStatus, orders, storeProfile } = useAdmin();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "Paid" | "Pending">("all");
@@ -34,33 +34,6 @@ export default function AdminInvoices() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showFilters, setShowFilters] = useState(false);
-  const hasInitializedRef = useRef(false);
-
-  useEffect(() => {
-    if (hasInitializedRef.current) return;
-    if (invoices.length === 0 || orders.length === 0) return;
-    
-    hasInitializedRef.current = true;
-    
-    const generateMissingInvoices = async () => {
-      const currentInvoices = invoices;
-      
-      for (const order of orders) {
-        if (!order || !order.id) continue;
-        
-        const hasInvoice = currentInvoices.some(inv => inv && inv.orderId === order.id);
-        if (!hasInvoice) {
-          try {
-            await createInvoice(order, undefined, true);
-          } catch (e) {
-            console.error("Failed to create invoice for order:", order.id, e);
-          }
-        }
-      }
-    };
-    
-    generateMissingInvoices();
-  }, [orders.length, invoices.length, createInvoice]);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
@@ -500,6 +473,7 @@ export default function AdminInvoices() {
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice #</TableHead>
+                <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -510,7 +484,7 @@ export default function AdminInvoices() {
             <TableBody>
               {paginatedInvoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     No invoices found
                   </TableCell>
                 </TableRow>
@@ -518,6 +492,7 @@ export default function AdminInvoices() {
                 paginatedInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-semibold">{invoice.invoiceNumber}</TableCell>
+                    <TableCell className="font-mono text-sm text-gray-500">#{invoice.orderId?.slice(-8) || "N/A"}</TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{invoice.customerName}</p>

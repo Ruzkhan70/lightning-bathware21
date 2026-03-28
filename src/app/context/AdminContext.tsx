@@ -216,6 +216,8 @@ interface AdminContextType {
   updateInvoicePaymentStatus: (id: string, status: "Paid" | "Pending") => void;
   getInvoiceByOrderId: (orderId: string) => Invoice | undefined;
   getInvoiceById: (id: string) => Invoice | undefined;
+  deleteInvoice: (id: string) => Promise<void>;
+  cleanOrphanedInvoices: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -837,8 +839,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const createInvoice = async (order: Order, customerEmail: string = "", silent: boolean = false) => {
     try {
+      // Check if invoice already exists for this order
       const existingInvoice = invoices.find(inv => inv.orderId === order.id);
       if (existingInvoice) {
+        console.log("Invoice already exists for order:", order.id, existingInvoice.id);
         return existingInvoice;
       }
       
@@ -852,8 +856,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }));
       const subtotal = products.reduce((sum, p) => sum + p.total, 0);
       
-      const invoiceData: Invoice = {
-        id: `INV${Date.now()}`,
+      // Create invoice data without id first, let Firebase generate the id
+      const invoiceData = {
         invoiceNumber,
         orderId: order.id || "",
         customerName: order.customerName || "Unknown",
@@ -871,9 +875,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       };
       
+      // Save to Firebase and get the generated ID
       const docRef = await addDoc(collection(db, "invoices"), invoiceData);
-      const savedInvoice = { ...invoiceData, id: docRef.id };
+      const savedInvoice: Invoice = { ...invoiceData, id: docRef.id };
       
+      // Update local state
       setInvoices(prev => [savedInvoice, ...prev]);
       
       if (!silent) {
@@ -942,6 +948,53 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         inv.invoiceNumber === cleanId
       );
     });
+  };
+
+  const deleteInvoice = async (id: string) => {
+    try {
+      // Find the invoice to delete
+      const invoice = invoices.find(inv => inv.id === id);
+      if (!invoice) {
+        toast.error("Invoice not found");
+        return;
+      }
+
+      // Remove from local state
+      setInvoices(prev => prev.filter(inv => inv.id !== id));
+
+      // Delete from Firebase
+      await deleteDoc(doc(db, "invoices", id));
+
+      toast.success("Invoice deleted successfully");
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast.error("Failed to delete invoice");
+    }
+  };
+
+  const cleanOrphanedInvoices = async () => {
+    try {
+      const orderIds = new Set(orders.map(o => o.id));
+      const orphanedInvoices = invoices.filter(inv => inv && !orderIds.has(inv.orderId));
+
+      if (orphanedInvoices.length === 0) {
+        toast.success("No orphaned invoices found");
+        return;
+      }
+
+      // Delete orphaned invoices
+      for (const invoice of orphanedInvoices) {
+        await deleteDoc(doc(db, "invoices", invoice.id));
+      }
+
+      // Update local state
+      setInvoices(prev => prev.filter(inv => inv && orderIds.has(inv.orderId)));
+
+      toast.success(`Cleaned up ${orphanedInvoices.length} orphaned invoice(s)`);
+    } catch (error) {
+      console.error("Error cleaning orphaned invoices:", error);
+      toast.error("Failed to clean orphaned invoices");
+    }
   };
 
   const login = (username: string, password: string): boolean => {

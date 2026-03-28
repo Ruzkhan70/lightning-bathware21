@@ -10,6 +10,8 @@ import {
   Download, Printer, ArrowLeft, FileText, CheckCircle, 
   Clock, MapPin, Phone, Mail, Package, Zap, AlertCircle 
 } from "lucide-react";
+import { db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface InvoiceProduct {
   id: string;
@@ -52,41 +54,58 @@ export default function Invoice() {
       return;
     }
 
-    try {
-      const foundInvoice = getInvoiceById(id);
-      if (foundInvoice) {
-        const validatedInvoice: InvoiceData = {
-          id: foundInvoice.id || "",
-          invoiceNumber: foundInvoice.invoiceNumber || "",
-          orderId: foundInvoice.orderId || "",
-          customerName: foundInvoice.customerName || "Unknown",
-          customerPhone: foundInvoice.customerPhone || "",
-          customerEmail: foundInvoice.customerEmail,
-          address: foundInvoice.address || "",
-          products: (foundInvoice.products || []).map((p: any) => ({
-            id: p.id || "",
-            name: p.name || "Unknown Product",
-            quantity: p.quantity || 0,
-            unitPrice: p.unitPrice || p.price || 0,
-            total: p.total || (p.unitPrice || p.price || 0) * (p.quantity || 1),
-          })),
-          subtotal: foundInvoice.subtotal || 0,
-          discount: foundInvoice.discount || 0,
-          tax: foundInvoice.tax || 0,
-          deliveryCost: foundInvoice.deliveryCost || 0,
-          grandTotal: foundInvoice.grandTotal || 0,
-          paymentStatus: foundInvoice.paymentStatus === "Paid" ? "Paid" : "Pending",
-          date: foundInvoice.date || foundInvoice.createdAt || new Date().toISOString(),
-        };
-        setInvoice(validatedInvoice);
-      } else {
-        setError("Invoice not found");
+    const fetchInvoice = async () => {
+      try {
+        // First try to find in local state
+        let foundInvoice = getInvoiceById(id);
+        
+        // If not found locally, fetch directly from Firebase
+        if (!foundInvoice) {
+          console.log("Invoice not in local state, fetching from Firebase:", id);
+          const invoiceRef = doc(db, "invoices", id);
+          const invoiceSnap = await getDoc(invoiceRef);
+          
+          if (invoiceSnap.exists()) {
+            foundInvoice = { id: invoiceSnap.id, ...invoiceSnap.data() } as any;
+          }
+        }
+
+        if (foundInvoice) {
+          const validatedInvoice: InvoiceData = {
+            id: foundInvoice.id || "",
+            invoiceNumber: foundInvoice.invoiceNumber || "",
+            orderId: foundInvoice.orderId || "",
+            customerName: foundInvoice.customerName || "Unknown",
+            customerPhone: foundInvoice.customerPhone || "",
+            customerEmail: foundInvoice.customerEmail,
+            address: foundInvoice.address || "",
+            products: (foundInvoice.products || []).map((p: any) => ({
+              id: p.id || "",
+              name: p.name || "Unknown Product",
+              quantity: p.quantity || 0,
+              unitPrice: p.unitPrice || p.price || 0,
+              total: p.total || (p.unitPrice || p.price || 0) * (p.quantity || 1),
+            })),
+            subtotal: foundInvoice.subtotal || 0,
+            discount: foundInvoice.discount || 0,
+            tax: foundInvoice.tax || 0,
+            deliveryCost: foundInvoice.deliveryCost || 0,
+            grandTotal: foundInvoice.grandTotal || 0,
+            paymentStatus: foundInvoice.paymentStatus === "Paid" ? "Paid" : "Pending",
+            date: foundInvoice.date || foundInvoice.createdAt || new Date().toISOString(),
+          };
+          setInvoice(validatedInvoice);
+        } else {
+          setError("Invoice not found");
+        }
+      } catch (err) {
+        console.error("Error loading invoice:", err);
+        setError("Failed to load invoice");
       }
-    } catch (err) {
-      console.error("Error loading invoice:", err);
-      setError("Failed to load invoice");
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    fetchInvoice();
   }, [id, invoices, getInvoiceById]);
 
   const verificationUrl = `https://lightning-bathware.vercel.app/#/verify/${id}`;
