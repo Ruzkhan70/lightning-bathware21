@@ -70,26 +70,6 @@ export default function Header() {
     setShowCategoriesDropdown(true);
   }, []);
 
-  const handleCategoriesMouseLeave = useCallback(() => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setShowCategoriesDropdown(false);
-    }, 150);
-  }, []);
-
-  const handleDropdownMouseEnter = useCallback(() => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
-      dropdownTimeoutRef.current = null;
-    }
-    setShowCategoriesDropdown(true);
-  }, []);
-
-  const handleDropdownMouseLeave = useCallback(() => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setShowCategoriesDropdown(false);
-    }, 150);
-  }, []);
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -152,13 +132,13 @@ export default function Header() {
                 />
                 <div className="text-xl md:text-2xl font-bold hidden sm:block">
                   <span className="text-white">LIGHTNING</span>
-                  <span className="text-[#D4AF37]">BATHWARE</span>
+                  <span className="text-[#D4AF37]"> BATHWARE</span>
                 </div>
               </>
             ) : (
               <div className="text-2xl md:text-3xl font-bold">
                 <span className="text-white">LIGHTNING</span>
-                <span className="text-[#D4AF37]">BATHWARE</span>
+                <span className="text-[#D4AF37]"> BATHWARE</span>
               </div>
             )}
           </Link>
@@ -275,117 +255,129 @@ export default function Header() {
                 return (
                   <li 
                     key={link.path} 
-                    className="relative"
+                    className="relative h-full"
                     ref={categoriesRef as any}
-                    onMouseEnter={handleCategoriesMouseEnter}
-                    onMouseLeave={handleCategoriesMouseLeave}
                   >
-                    <button
-                      className={`transition-colors font-medium relative group flex items-center gap-1 ${
-                        isActive(link.path)
-                          ? "text-[#D4AF37]"
-                          : "text-white hover:text-[#D4AF37]"
-                      }`}
+                    {/* Wrapper for hover - includes button and dropdown */}
+                    <div 
+                      className="relative h-full flex items-center"
+                      onMouseEnter={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setShowCategoriesDropdown(true);
+                      }}
+                      onMouseLeave={() => {
+                        dropdownTimeoutRef.current = setTimeout(() => {
+                          setShowCategoriesDropdown(false);
+                        }, 100);
+                      }}
                     >
-                      {link.name}
-                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
-                      <span
-                        className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${
-                          isActive(link.path) ? "w-full" : "w-0 group-hover:w-full"
+                      <button
+                        className={`transition-colors font-medium relative group flex items-center gap-1 h-full py-1 ${
+                          isActive(link.path)
+                            ? "text-[#D4AF37]"
+                            : "text-white hover:text-[#D4AF37]"
                         }`}
-                      />
-                    </button>
+                      >
+                        {link.name}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
+                        <span
+                          className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${
+                            isActive(link.path) ? "w-full" : "w-0 group-hover:w-full"
+                          }`}
+                        />
+                      </button>
 
-                    {/* Categories Dropdown - Desktop */}
-                    <div
-                      className={`absolute top-full left-1/2 -translate-x-1/2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 origin-top z-50 ${
-                        showCategoriesDropdown 
-                          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto mt-1" 
-                          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-                      }`}
-                      onMouseEnter={handleDropdownMouseEnter}
-                      onMouseLeave={handleDropdownMouseLeave}
-                    >
-                      <div className="py-2">
-                        {safeCategories.length > 0 ? (
-                          safeCategories.filter(cat => cat.isActive).map((category) => {
-                            const color = getCategoryColor(category.name);
-                            return (
+                      {/* Categories Dropdown - Desktop - positioned directly below */}
+                      <div
+                        className={`absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 z-50 ${
+                          showCategoriesDropdown 
+                            ? "opacity-100 translate-y-0 pointer-events-auto mt-1" 
+                            : "opacity-0 -translate-y-2 pointer-events-none"
+                        }`}
+                      >
+                        <div className="py-2">
+                          {safeCategories.length > 0 ? (
+                            safeCategories.filter(cat => cat.isActive).map((category) => {
+                              const color = getCategoryColor(category.name);
+                              return (
+                                <Link
+                                  key={category.id}
+                                  to={`/products?category=${encodeURIComponent(category.name)}`}
+                                  onClick={() => setShowCategoriesDropdown(false)}
+                                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                                >
+                                  {category.image ? (
+                                    <img 
+                                      src={category.image} 
+                                      alt={category.name}
+                                      className="w-10 h-10 rounded-lg object-cover"
+                                    />
+                                  ) : (
+                                    <span className={`w-10 h-10 rounded-lg ${color.bg} flex items-center justify-center ${color.text} font-bold text-lg`}>
+                                      {getCategoryInitial(category.name)}
+                                    </span>
+                                  )}
+                                  <span className="font-medium">{category.name}</span>
+                                </Link>
+                              );
+                            })
+                          ) : (
+                            <>
                               <Link
-                                key={category.id}
-                                to={`/products?category=${encodeURIComponent(category.name)}`}
+                                to="/products?category=Lighting"
                                 onClick={() => setShowCategoriesDropdown(false)}
                                 className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                               >
-                                {category.image ? (
-                                  <img 
-                                    src={category.image} 
-                                    alt={category.name}
-                                    className="w-10 h-10 rounded-lg object-cover"
-                                  />
-                                ) : (
-                                  <span className={`w-10 h-10 rounded-lg ${color.bg} flex items-center justify-center ${color.text} font-bold text-lg`}>
-                                    {getCategoryInitial(category.name)}
-                                  </span>
-                                )}
-                                <span className="font-medium">{category.name}</span>
+                                <span className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-lg">L</span>
+                                <span className="font-medium">Lighting</span>
                               </Link>
-                            );
-                          })
-                        ) : (
-                          <>
-                            <Link
-                              to="/products?category=Lighting"
-                              onClick={() => setShowCategoriesDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                            >
-                              <span className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-lg">L</span>
-                              <span className="font-medium">Lighting</span>
-                            </Link>
-                            <Link
-                              to="/products?category=Bathroom+Fittings"
-                              onClick={() => setShowCategoriesDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                            >
-                              <span className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">B</span>
-                              <span className="font-medium">Bathroom Fittings</span>
-                            </Link>
-                            <Link
-                              to="/products?category=Plumbing"
-                              onClick={() => setShowCategoriesDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                            >
-                              <span className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</span>
-                              <span className="font-medium">Plumbing</span>
-                            </Link>
-                            <Link
-                              to="/products?category=Electrical+Hardware"
-                              onClick={() => setShowCategoriesDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                            >
-                              <span className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">E</span>
-                              <span className="font-medium">Electrical Hardware</span>
-                            </Link>
-                            <Link
-                              to="/products?category=Construction+Tools"
-                              onClick={() => setShowCategoriesDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                            >
-                              <span className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">C</span>
-                              <span className="font-medium">Construction Tools</span>
-                            </Link>
-                          </>
-                        )}
-                      </div>
-                      <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                        <Link
-                          to="/categories"
-                          onClick={() => setShowCategoriesDropdown(false)}
-                          className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors flex items-center gap-1"
-                        >
-                          View All Categories
-                          <span>→</span>
-                        </Link>
+                              <Link
+                                to="/products?category=Bathroom+Fittings"
+                                onClick={() => setShowCategoriesDropdown(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                              >
+                                <span className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">B</span>
+                                <span className="font-medium">Bathroom Fittings</span>
+                              </Link>
+                              <Link
+                                to="/products?category=Plumbing"
+                                onClick={() => setShowCategoriesDropdown(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                              >
+                                <span className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</span>
+                                <span className="font-medium">Plumbing</span>
+                              </Link>
+                              <Link
+                                to="/products?category=Electrical+Hardware"
+                                onClick={() => setShowCategoriesDropdown(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                              >
+                                <span className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">E</span>
+                                <span className="font-medium">Electrical Hardware</span>
+                              </Link>
+                              <Link
+                                to="/products?category=Construction+Tools"
+                                onClick={() => setShowCategoriesDropdown(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                              >
+                                <span className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">C</span>
+                                <span className="font-medium">Construction Tools</span>
+                              </Link>
+                            </>
+                          )}
+                        </div>
+                        <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
+                          <Link
+                            to="/categories"
+                            onClick={() => setShowCategoriesDropdown(false)}
+                            className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors flex items-center gap-1"
+                          >
+                            View All Categories
+                            <span>→</span>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </li>
