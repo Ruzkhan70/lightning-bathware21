@@ -9,6 +9,13 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "../../components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { 
   FileText, Search, Filter, Download, Eye, CheckCircle, 
   Clock, X, Calendar, User, Phone, Mail, MapPin, Package,
@@ -21,7 +28,7 @@ import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 
 export default function AdminInvoices() {
-  const { invoices, updateInvoicePaymentStatus, orders, storeProfile } = useAdmin();
+  const { invoices, updateInvoicePaymentStatus, updateInvoiceOrderStatus, orders, storeProfile } = useAdmin();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "Paid" | "Pending">("all");
@@ -477,7 +484,8 @@ export default function AdminInvoices() {
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Order Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -518,6 +526,25 @@ export default function AdminInvoices() {
                         )}
                         {invoice.paymentStatus}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={invoice.orderStatus || "Pending"}
+                        onValueChange={(value) => updateInvoiceOrderStatus(invoice.orderId, value as any)}
+                      >
+                        <SelectTrigger className={`w-28 h-8 text-xs ${
+                          invoice.orderStatus === "Pending" ? "border-orange-300 bg-orange-50" :
+                          invoice.orderStatus === "Processing" ? "border-blue-300 bg-blue-50" :
+                          "border-green-300 bg-green-50"
+                        }`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="Processing">Processing</SelectItem>
+                          <SelectItem value="Delivered">Delivered</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

@@ -53,6 +53,7 @@ export interface Invoice {
   deliveryCost: number;
   grandTotal: number;
   paymentStatus: "Paid" | "Pending";
+  orderStatus: "Pending" | "Processing" | "Delivered";
   date: string;
   createdAt: string;
 }
@@ -214,6 +215,7 @@ interface AdminContextType {
   invoices: Invoice[];
   createInvoice: (order: Order, customerEmail?: string) => Promise<Invoice>;
   updateInvoicePaymentStatus: (id: string, status: "Paid" | "Pending") => void;
+  updateInvoiceOrderStatus: (orderId: string, status: "Pending" | "Processing" | "Delivered") => void;
   getInvoiceByOrderId: (orderId: string) => Invoice | undefined;
   getInvoiceById: (id: string) => Invoice | undefined;
   deleteInvoice: (id: string) => Promise<void>;
@@ -871,6 +873,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         deliveryCost: order.deliveryCost || 0,
         grandTotal: order.total || subtotal,
         paymentStatus: "Pending",
+        orderStatus: order.status || "Pending",
         date: order.date || new Date().toISOString(),
         createdAt: new Date().toISOString(),
       };
@@ -1141,12 +1144,47 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
     // Update local state immediately
     setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
-    // Update Firebase
+    
+    // Find and update associated invoice's orderStatus
+    const invoice = invoices.find(inv => inv.orderId === id);
+    if (invoice) {
+      // Update local state for invoice
+      setInvoices(prev => prev.map(inv => inv.orderId === id ? { ...inv, orderStatus: status } : inv));
+      // Update Firebase for invoice
+      try {
+        await setDoc(doc(db, "invoices", invoice.id), { orderStatus: status }, { merge: true });
+      } catch (error) {
+        console.error("Error updating invoice order status:", error);
+      }
+    }
+    
+    // Update Firebase for order
     try {
       await updateDoc(doc(db, "orders", id), { status });
     } catch (error) {
       console.error("Error updating order status:", error);
-      // Revert on error
+      toast.error("Failed to update status");
+    }
+  };
+
+  const updateInvoiceOrderStatus = async (orderId: string, status: "Pending" | "Processing" | "Delivered") => {
+    // This function updates the invoice's order status and syncs with the order
+    const invoice = invoices.find(inv => inv.orderId === orderId);
+    if (invoice) {
+      setInvoices(prev => prev.map(inv => inv.orderId === orderId ? { ...inv, orderStatus: status } : inv));
+      try {
+        await setDoc(doc(db, "invoices", invoice.id), { orderStatus: status }, { merge: true });
+      } catch (error) {
+        console.error("Error updating invoice order status:", error);
+      }
+    }
+    // Also update the order itself
+    setOrders(prev => prev.map(order => order.id === orderId ? { ...order, status } : order));
+    try {
+      await updateDoc(doc(db, "orders", orderId), { status });
+      toast.success(`Order status updated to ${status}`);
+    } catch (error) {
+      console.error("Error updating order status:", error);
       toast.error("Failed to update status");
     }
   };
@@ -1367,6 +1405,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         invoices,
         createInvoice,
         updateInvoicePaymentStatus,
+        updateInvoiceOrderStatus,
         getInvoiceByOrderId,
         getInvoiceById,
       }}
