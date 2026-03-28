@@ -55,6 +55,16 @@ export default function Invoice() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Separate effect to update order status when orders change
+  useEffect(() => {
+    if (!invoice?.orderId || !orders.length) return;
+    
+    const updatedOrder = orders.find(o => o.id === invoice.orderId);
+    if (updatedOrder && updatedOrder.id !== order?.id) {
+      setOrder(updatedOrder as OrderData);
+    }
+  }, [orders, invoice?.orderId]);
+
   useEffect(() => {
     if (!id) {
       setError("Invalid invoice ID");
@@ -104,19 +114,28 @@ export default function Invoice() {
           
           // Fetch the associated order for live status
           const orderId = foundInvoice.orderId;
+          console.log("Fetching order for invoice, orderId:", orderId);
           if (orderId) {
             // First check local orders
             const localOrder = orders.find(o => o.id === orderId);
             if (localOrder) {
+              console.log("Found order in local state:", localOrder.status);
               setOrder(localOrder as OrderData);
             } else {
               // Fetch from Firebase
+              console.log("Fetching order from Firebase:", orderId);
               const orderRef = doc(db, "orders", orderId);
               const orderSnap = await getDoc(orderRef);
               if (orderSnap.exists()) {
-                setOrder({ id: orderSnap.id, ...orderSnap.data() } as OrderData);
+                const orderData = { id: orderSnap.id, ...orderSnap.data() } as OrderData;
+                console.log("Found order in Firebase:", orderData.status);
+                setOrder(orderData);
+              } else {
+                console.log("Order not found in Firebase:", orderId);
               }
             }
+          } else {
+            console.log("No orderId in invoice");
           }
         } else {
           setError("Invoice not found");
@@ -401,10 +420,13 @@ export default function Invoice() {
                     </div>
                   </div>
 
-                  <div className="mt-6 md:mt-0 text-right">
+                    <div className="mt-6 md:mt-0 text-right">
                     <h3 className="text-3xl font-bold text-[#D4AF37] mb-2">INVOICE</h3>
                     <p className="text-lg font-semibold">{invoice.invoiceNumber}</p>
-                    <div className="mt-4 flex items-center gap-2 justify-end">
+                    
+                    {/* Payment Status */}
+                    <div className="mt-3 flex items-center gap-2 justify-end">
+                      <span className="text-xs text-gray-500">Payment:</span>
                       {invoice.paymentStatus === "Paid" ? (
                         <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
                           <CheckCircle className="w-4 h-4" />
@@ -417,6 +439,23 @@ export default function Invoice() {
                         </span>
                       )}
                     </div>
+                    
+                    {/* Order Status - PROMINENTLY DISPLAYED */}
+                    {order && (
+                      <div className="mt-2 flex items-center gap-2 justify-end">
+                        <span className="text-xs text-gray-500">Order:</span>
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold ${
+                          order.status === "Delivered" ? "bg-green-500 text-white" :
+                          order.status === "Processing" ? "bg-blue-500 text-white" :
+                          "bg-orange-500 text-white"
+                        }`}>
+                          {order.status === "Delivered" && <CheckCircle className="w-4 h-4" />}
+                          {order.status === "Processing" && <Zap className="w-4 h-4" />}
+                          {order.status === "Pending" && <Clock className="w-4 h-4" />}
+                          {order.status}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
