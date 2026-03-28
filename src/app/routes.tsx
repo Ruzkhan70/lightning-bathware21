@@ -2,9 +2,9 @@ import { createHashRouter } from "react-router";
 import { lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
-import LoadingScreen from "./components/LoadingScreen";
+import ContentLoader from "./components/ContentLoader";
 
-// Lazy load all pages
+// Lazy load all pages with optimized loading
 const Home = lazy(() => import("./pages/Home"));
 const Products = lazy(() => import("./pages/Products"));
 const Categories = lazy(() => import("./pages/Categories"));
@@ -30,13 +30,10 @@ const AdminStatistics = lazy(() => import("./pages/admin/AdminStatistics"));
 const AdminOffers = lazy(() => import("./pages/admin/AdminOffers"));
 const AdminAddOffer = lazy(() => import("./pages/admin/AdminAddOffer"));
 
-// Loading fallback component
-const PageLoader = () => (
-  <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div className="text-center">
-      <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading...</p>
-    </div>
+// Content-only loader (NO min-h-screen - only fills parent container)
+const ContentLoaderWrapper = () => (
+  <div className="w-full flex items-center justify-center py-20">
+    <ContentLoader minHeight="min-h-[400px]" />
   </div>
 );
 
@@ -45,37 +42,37 @@ export const router = createHashRouter([
     path: "/",
     element: <Layout />,
     children: [
-      { index: true, element: <Suspense fallback={<PageLoader />}><Home /></Suspense> },
-      { path: "products", element: <Suspense fallback={<PageLoader />}><Products /></Suspense> },
-      { path: "categories", element: <Suspense fallback={<PageLoader />}><Categories /></Suspense> },
-      { path: "offers", element: <Suspense fallback={<PageLoader />}><Offers /></Suspense> },
-      { path: "services", element: <Suspense fallback={<PageLoader />}><Services /></Suspense> },
-      { path: "about", element: <Suspense fallback={<PageLoader />}><About /></Suspense> },
-      { path: "contact", element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
-      { path: "cart", element: <Suspense fallback={<PageLoader />}><Cart /></Suspense> },
-      { path: "checkout", element: <Suspense fallback={<PageLoader />}><Checkout /></Suspense> },
-      { path: "wishlist", element: <Suspense fallback={<PageLoader />}><Wishlist /></Suspense> },
-      { path: "account", element: <Suspense fallback={<PageLoader />}><Account /></Suspense> },
-      { path: "terms", element: <Suspense fallback={<PageLoader />}><Terms /></Suspense> },
-      { path: "invoice/:id", element: <Suspense fallback={<PageLoader />}><Invoice /></Suspense> },
-      { path: "verify/:id", element: <Suspense fallback={<PageLoader />}><VerifyInvoice /></Suspense> },
+      { index: true, element: <Suspense fallback={<ContentLoaderWrapper />}><Home /></Suspense> },
+      { path: "products", element: <Suspense fallback={<ContentLoaderWrapper />}><Products /></Suspense> },
+      { path: "categories", element: <Suspense fallback={<ContentLoaderWrapper />}><Categories /></Suspense> },
+      { path: "offers", element: <Suspense fallback={<ContentLoaderWrapper />}><Offers /></Suspense> },
+      { path: "services", element: <Suspense fallback={<ContentLoaderWrapper />}><Services /></Suspense> },
+      { path: "about", element: <Suspense fallback={<ContentLoaderWrapper />}><About /></Suspense> },
+      { path: "contact", element: <Suspense fallback={<ContentLoaderWrapper />}><Contact /></Suspense> },
+      { path: "cart", element: <Suspense fallback={<ContentLoaderWrapper />}><Cart /></Suspense> },
+      { path: "checkout", element: <Suspense fallback={<ContentLoaderWrapper />}><Checkout /></Suspense> },
+      { path: "wishlist", element: <Suspense fallback={<ContentLoaderWrapper />}><Wishlist /></Suspense> },
+      { path: "account", element: <Suspense fallback={<ContentLoaderWrapper />}><Account /></Suspense> },
+      { path: "terms", element: <Suspense fallback={<ContentLoaderWrapper />}><Terms /></Suspense> },
+      { path: "invoice/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><Invoice /></Suspense> },
+      { path: "verify/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><VerifyInvoice /></Suspense> },
     ],
   },
-  { path: "/admin/login", element: <Suspense fallback={<PageLoader />}><AdminLogin /></Suspense> },
+  { path: "/admin/login", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminLogin /></Suspense> },
   {
     path: "/admin",
     element: <AdminLayout />,
     children: [
-      { index: true, element: <Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense> },
-      { path: "products", element: <Suspense fallback={<PageLoader />}><AdminProducts /></Suspense> },
-      { path: "categories", element: <Suspense fallback={<PageLoader />}><AdminCategories /></Suspense> },
-      { path: "orders", element: <Suspense fallback={<PageLoader />}><AdminOrders /></Suspense> },
-      { path: "offers", element: <Suspense fallback={<PageLoader />}><AdminOffers /></Suspense> },
-      { path: "add-offer", element: <Suspense fallback={<PageLoader />}><AdminAddOffer /></Suspense> },
-      { path: "edit-offer/:id", element: <Suspense fallback={<PageLoader />}><AdminAddOffer /></Suspense> },
-      { path: "add-product", element: <Suspense fallback={<PageLoader />}><AdminAddProduct /></Suspense> },
-      { path: "statistics", element: <Suspense fallback={<PageLoader />}><AdminStatistics /></Suspense> },
-      { path: "settings", element: <Suspense fallback={<PageLoader />}><AdminSettings /></Suspense> },
+      { index: true, element: <Suspense fallback={<ContentLoaderWrapper />}><AdminDashboard /></Suspense> },
+      { path: "products", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminProducts /></Suspense> },
+      { path: "categories", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminCategories /></Suspense> },
+      { path: "orders", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminOrders /></Suspense> },
+      { path: "offers", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminOffers /></Suspense> },
+      { path: "add-offer", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAddOffer /></Suspense> },
+      { path: "edit-offer/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAddOffer /></Suspense> },
+      { path: "add-product", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAddProduct /></Suspense> },
+      { path: "statistics", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminStatistics /></Suspense> },
+      { path: "settings", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminSettings /></Suspense> },
     ],
   },
 ]);

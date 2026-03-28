@@ -37,7 +37,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
           setAnimationClass("");
           isAnimatingRef.current = false;
           previousPathRef.current = location.pathname;
-        }, 350);
+        }, 300);
       }, 50);
     }
   }, [location, displayLocation]);
@@ -51,7 +51,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
       <style>{`
         .transition-container {
           position: relative;
-          min-height: 100vh;
+          width: 100%;
         }
         
         .page-content {
@@ -60,37 +60,37 @@ export default function PageTransition({ children }: { children: React.ReactNode
         
         /* Forward: Enter from right, Exit to left */
         .slide-out-to-left {
-          animation: slideOutLeft 300ms ease-in-out forwards;
+          animation: slideOutLeft 250ms ease-in-out forwards;
         }
         .slide-in-from-right {
-          animation: slideInRight 350ms ease-out forwards;
+          animation: slideInRight 300ms ease-out forwards;
         }
         
         /* Backward: Enter from left, Exit to right */
         .slide-out-to-right {
-          animation: slideOutRight 300ms ease-in-out forwards;
+          animation: slideOutRight 250ms ease-in-out forwards;
         }
         .slide-in-from-left {
-          animation: slideInLeft 350ms ease-out forwards;
+          animation: slideInLeft 300ms ease-out forwards;
         }
         
         @keyframes slideOutLeft {
           from { opacity: 1; transform: translateX(0); }
-          to { opacity: 0; transform: translateX(-100%); }
+          to { opacity: 0; transform: translateX(-30px); }
         }
         
         @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(100%); }
+          from { opacity: 0; transform: translateX(30px); }
           to { opacity: 1; transform: translateX(0); }
         }
         
         @keyframes slideOutRight {
           from { opacity: 1; transform: translateX(0); }
-          to { opacity: 0; transform: translateX(100%); }
+          to { opacity: 0; transform: translateX(30px); }
         }
         
         @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-100%); }
+          from { opacity: 0; transform: translateX(-30px); }
           to { opacity: 1; transform: translateX(0); }
         }
       `}</style>
