@@ -533,12 +533,12 @@ export default function Invoice() {
 
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm overflow-hidden print:shadow-none">
-            <div className="relative p-8 md:p-12">
+            <div className="relative p-6 md:p-10 lg:p-12 overflow-x-hidden">
               <div className="absolute inset-0 opacity-5 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center transform rotate-[-30deg] scale-[3]">
                     <Zap className="w-32 h-32 text-[#D4AF37] mx-auto" />
-                    <p className="text-lg font-bold text-gray-600 mt-4 whitespace-nowrap">
+                    <p className="text-lg font-bold text-gray-600 mt-4 whitespace-nowrap overflow-hidden text-ellipsis">
                       {storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice
                     </p>
                   </div>
@@ -546,12 +546,12 @@ export default function Invoice() {
               </div>
 
               <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-8">
-                  <div>
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <Zap className="w-10 h-10 text-[#D4AF37]" />
-                      <div>
-                        <h2 className="text-2xl font-bold">
+                      <Zap className="w-10 h-10 text-[#D4AF37] shrink-0" />
+                      <div className="min-w-0">
+                        <h2 className="text-2xl font-bold break-words">
                           {storeProfile.storeName} <span className="text-[#D4AF37]">{storeProfile.storeNameAccent}</span>
                         </h2>
                         <p className="text-gray-500 text-sm">Premium Lighting & Bathware</p>
@@ -559,34 +559,34 @@ export default function Invoice() {
                     </div>
                     <div className="text-sm text-gray-600 space-y-1 mt-4">
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>{storeProfile.addressStreet}, {storeProfile.addressCity}</span>
+                        <MapPin className="w-4 h-4 shrink-0" />
+                        <span className="break-words">{storeProfile.addressStreet}, {storeProfile.addressCity}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
+                        <Phone className="w-4 h-4 shrink-0" />
                         <span>{storeProfile.phone}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        <span>{storeProfile.email}</span>
+                        <Mail className="w-4 h-4 shrink-0" />
+                        <span className="break-all">{storeProfile.email}</span>
                       </div>
                     </div>
                   </div>
 
-                    <div className="mt-6 md:mt-0 text-right">
+                  <div className="text-right shrink-0">
                     <h3 className="text-3xl font-bold text-[#D4AF37] mb-2">INVOICE</h3>
-                    <p className="text-lg font-semibold">{invoice.invoiceNumber}</p>
+                    <p className="text-lg font-semibold break-all">{invoice.invoiceNumber}</p>
                     
                     {/* Payment Status - Read from Order (Primary Source) */}
                     <div className="mt-3 flex items-center gap-2 justify-end">
                       <span className="text-xs text-gray-500">Payment:</span>
                       {order?.paymentStatus === "Paid" ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold shrink-0">
                           <CheckCircle className="w-4 h-4" />
                           Paid
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-full text-sm font-semibold">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-full text-sm font-semibold shrink-0">
                           <Clock className="w-4 h-4" />
                           Pending
                         </span>
@@ -595,17 +595,17 @@ export default function Invoice() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+                  <div className="bg-gray-50 p-4 rounded-lg min-w-0">
                     <h4 className="font-bold mb-3 flex items-center gap-2">
-                      <Package className="w-4 h-4 text-[#D4AF37]" />
+                      <Package className="w-4 h-4 text-[#D4AF37] shrink-0" />
                       Order Information
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 break-words">
                       <strong>Date:</strong> {formatDate(invoice.date)}
                     </p>
                     {invoice.orderId && (
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 mt-1 break-all">
                         <strong>Order ID:</strong> #{invoice.orderId.slice(-8)}
                       </p>
                     )}
@@ -614,7 +614,7 @@ export default function Invoice() {
                         <p className="text-sm text-gray-600">
                           <strong>Order Status:</strong>
                         </p>
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold mt-1 ${
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold mt-1 shrink-0 ${
                           order.status === "Delivered" ? "bg-green-100 text-green-700" :
                           order.status === "Processing" ? "bg-blue-100 text-blue-700" :
                           "bg-orange-100 text-orange-700"
@@ -628,37 +628,37 @@ export default function Invoice() {
                     )}
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-gray-50 p-4 rounded-lg min-w-0">
                     <h4 className="font-bold mb-3 flex items-center gap-2">
-                      <span className="text-[#D4AF37]">@</span>
+                      <span className="text-[#D4AF37] shrink-0">@</span>
                       Customer Details
                     </h4>
-                    <p className="text-sm font-semibold">{invoice.customerName}</p>
-                    <p className="text-sm text-gray-600">{invoice.customerPhone}</p>
+                    <p className="text-sm font-semibold break-words">{invoice.customerName}</p>
+                    <p className="text-sm text-gray-600 break-words">{invoice.customerPhone}</p>
                     {invoice.customerEmail && (
-                      <p className="text-sm text-gray-600">{invoice.customerEmail}</p>
+                      <p className="text-sm text-gray-600 break-all">{invoice.customerEmail}</p>
                     )}
-                    <p className="text-sm text-gray-600 mt-1">{invoice.address}</p>
+                    <p className="text-sm text-gray-600 mt-1 break-words leading-relaxed">{invoice.address}</p>
                   </div>
                 </div>
 
                 <div className="overflow-x-auto mb-8">
-                  <table className="w-full">
+                  <table className="w-full table-fixed">
                     <thead>
                       <tr className="bg-gray-100">
-                        <th className="px-4 py-3 text-left text-sm font-bold">Product</th>
-                        <th className="px-4 py-3 text-center text-sm font-bold">Quantity</th>
-                        <th className="px-4 py-3 text-right text-sm font-bold">Unit Price</th>
-                        <th className="px-4 py-3 text-right text-sm font-bold">Total</th>
+                        <th className="px-3 py-3 text-left text-sm font-bold w-1/2">Product</th>
+                        <th className="px-3 py-3 text-center text-sm font-bold w-16">Qty</th>
+                        <th className="px-3 py-3 text-right text-sm font-bold w-28">Unit Price</th>
+                        <th className="px-3 py-3 text-right text-sm font-bold w-28">Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {invoice.products.map((product, index) => (
                         <tr key={product.id || index} className="border-b">
-                          <td className="px-4 py-3 text-sm">{product.name}</td>
-                          <td className="px-4 py-3 text-sm text-center">{product.quantity}</td>
-                          <td className="px-4 py-3 text-sm text-right">{formatPrice(product.unitPrice)}</td>
-                          <td className="px-4 py-3 text-sm text-right font-semibold">
+                          <td className="px-3 py-3 text-sm break-words">{product.name}</td>
+                          <td className="px-3 py-3 text-sm text-center">{product.quantity}</td>
+                          <td className="px-3 py-3 text-sm text-right whitespace-nowrap">{formatPrice(product.unitPrice)}</td>
+                          <td className="px-3 py-3 text-sm text-right font-semibold whitespace-nowrap">
                             {formatPrice(product.total)}
                           </td>
                         </tr>
@@ -668,41 +668,43 @@ export default function Invoice() {
                 </div>
 
                 <div className="flex justify-end">
-                  <div className="space-y-2 min-w-[250px]">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span>{formatPrice(invoice.subtotal)}</span>
-                    </div>
-                    {(invoice.discount || 0) > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Discount</span>
-                        <span>-{formatPrice(invoice.discount)}</span>
+                  <div className="bg-gray-50 p-4 rounded-lg min-w-[280px] max-w-full">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Subtotal</span>
+                        <span className="font-medium">{formatPrice(invoice.subtotal)}</span>
                       </div>
-                    )}
-                    {(invoice.tax || 0) > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tax</span>
-                        <span>{formatPrice(invoice.tax)}</span>
+                      {(invoice.discount || 0) > 0 && (
+                        <div className="flex justify-between items-center text-sm text-green-600">
+                          <span>Discount</span>
+                          <span className="font-medium">-{formatPrice(invoice.discount)}</span>
+                        </div>
+                      )}
+                      {(invoice.tax || 0) > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">Tax</span>
+                          <span className="font-medium">{formatPrice(invoice.tax)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Delivery</span>
+                        <span className="font-medium">{formatPrice(invoice.deliveryCost)}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Delivery</span>
-                      <span>{formatPrice(invoice.deliveryCost)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
-                      <span>Grand Total</span>
-                      <span className="text-[#D4AF37]">{formatPrice(invoice.grandTotal)}</span>
+                      <div className="flex justify-between items-center text-base font-bold border-t border-gray-300 pt-3 mt-2">
+                        <span>Grand Total</span>
+                        <span className="text-[#D4AF37] text-lg">{formatPrice(invoice.grandTotal)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t text-center">
-                  <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
-                    <Zap className="w-4 h-4 text-[#D4AF37]" />
-                    {storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice
-                    <Zap className="w-4 h-4 text-[#D4AF37]" />
+                <div className="mt-8 pt-6 border-t text-center">
+                  <p className="text-sm text-gray-500 flex items-center justify-center gap-2 flex-wrap">
+                    <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                    <span className="break-words">{storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice</span>
+                    <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-400 mt-2 break-words">
                     Powered by {storeProfile.storeName} {storeProfile.storeNameAccent} | {storeProfile.addressCity}, Sri Lanka
                   </p>
                 </div>
@@ -740,6 +742,25 @@ export default function Invoice() {
           }
           .print\\:hidden {
             display: none !important;
+          }
+          /* Invoice specific print styles */
+          .invoice-print-area {
+            visibility: visible !important;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          /* Ensure table doesn't overflow */
+          table {
+            table-layout: fixed;
+            word-wrap: break-word;
+          }
+          /* Ensure text wraps properly */
+          * {
+            max-width: 100% !important;
+            overflow-wrap: break-word !important;
+            word-wrap: break-word !important;
           }
         }
       `}</style>
