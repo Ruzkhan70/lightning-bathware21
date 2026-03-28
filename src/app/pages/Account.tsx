@@ -243,8 +243,8 @@ export default function Account() {
     toast.success("Logged out successfully");
   };
 
-  const userOrders = isLoggedIn
-    ? orders.filter((order) => order.phone === user?.phone)
+  const userOrders = isLoggedIn && user?.phone
+    ? orders.filter((order) => order?.phone === user?.phone)
     : [];
 
   const handleViewInvoice = (orderId: string) => {
@@ -451,19 +451,19 @@ export default function Account() {
                         <h3 className="font-semibold">Ordered Items</h3>
                       </div>
                       <div className="space-y-3">
-                        {selectedOrder.products.map((product, index) => (
-                          <div key={index} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        {(selectedOrder.products || []).map((product: any, index: number) => (
+                          <div key={product.id || index} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                             <img
-                              src={product.image}
-                              alt={product.name}
+                              src={product.image || "/placeholder.png"}
+                              alt={product.name || "Product"}
                               className="w-16 h-16 object-cover rounded-lg"
                             />
                             <div className="flex-1">
-                              <p className="font-medium">{product.name}</p>
-                              <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
+                              <p className="font-medium">{product.name || "Unknown Product"}</p>
+                              <p className="text-sm text-gray-500">Qty: {product.quantity || 1}</p>
                             </div>
                             <p className="font-semibold text-[#D4AF37]">
-                              Rs. {(product.price * product.quantity).toLocaleString()}
+                              Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}
                             </p>
                           </div>
                         ))}
@@ -474,15 +474,15 @@ export default function Account() {
                     <div className="bg-[#D4AF37]/10 rounded-lg p-4 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal</span>
-                        <span>Rs. {(selectedOrder.total - selectedOrder.deliveryCost).toLocaleString()}</span>
+                        <span>Rs. {((selectedOrder.total || 0) - (selectedOrder.deliveryCost || 0)).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Delivery</span>
-                        <span>Rs. {selectedOrder.deliveryCost.toLocaleString()}</span>
+                        <span>Rs. {(selectedOrder.deliveryCost || 0).toLocaleString()}</span>
                       </div>
                       <div className="border-t border-[#D4AF37]/30 pt-2 flex justify-between font-bold text-lg">
                         <span>Total</span>
-                        <span className="text-[#D4AF37]">Rs. {selectedOrder.total.toLocaleString()}</span>
+                        <span className="text-[#D4AF37]">Rs. {(selectedOrder.total || 0).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>

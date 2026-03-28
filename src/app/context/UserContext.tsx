@@ -44,18 +44,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      // Validate required fields
+      if (!email?.trim() || !password?.trim()) {
+        return false;
+      }
+
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email.toLowerCase()), where("password", "==", password));
+      const q = query(usersRef, where("email", "==", email.toLowerCase().trim()), where("password", "==", password));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
         const loggedInUser: User = {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address,
+          id: userData.id || querySnapshot.docs[0].id,
+          name: userData.name || "User",
+          email: userData.email || email,
+          phone: userData.phone || "",
+          address: userData.address || "",
         };
         setUser(loggedInUser);
         localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
@@ -76,6 +81,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
     password: string
   ): Promise<boolean> => {
     try {
+      // Validate required fields
+      if (!name?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !password?.trim()) {
+        console.error("All fields are required");
+        return false;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        console.error("Invalid email format");
+        return false;
+      }
+
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("email", "==", email.toLowerCase()));
       const querySnapshot = await getDocs(q);
@@ -85,10 +103,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       const newUser = {
-        name,
-        email: email.toLowerCase(),
-        phone,
-        address,
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        phone: phone.trim(),
+        address: address.trim(),
         password,
       };
 
@@ -99,10 +117,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       const registeredUser: User = {
         id: docRef.id,
-        name,
-        email,
-        phone,
-        address,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        address: newUser.address,
       };
 
       setUser(registeredUser);

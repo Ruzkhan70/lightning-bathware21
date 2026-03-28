@@ -1062,7 +1062,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const addProduct = async (product: Omit<Product, "id">) => {
-    const newProduct: Product = { ...product, id: Date.now().toString() };
+    const newProduct: Product = { ...product, id: generateUniqueId() };
     const updated = [...products, newProduct];
     setProducts(updated);
     try {
@@ -1156,10 +1156,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const generateUniqueId = (): string => {
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    return `${timestamp}-${randomPart}`;
+  };
+
   const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">): Promise<Order> => {
     const newOrder: Order = {
       ...order,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       date: new Date().toISOString(),
       status: "Pending",
       paymentStatus: "Pending",
@@ -1176,7 +1182,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const addOffer = (offer: Omit<Offer, "id" | "createdAt">) => {
     const newOffer: Offer = {
       ...offer,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       createdAt: new Date().toISOString(),
     };
     setOffers(prev => [...prev, newOffer]);
