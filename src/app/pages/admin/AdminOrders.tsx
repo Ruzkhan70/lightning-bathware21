@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Eye, Search, Trash2, AlertTriangle } from "lucide-react";
+import { Eye, Search, Trash2, AlertTriangle, FileText } from "lucide-react";
+import { useNavigate } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -19,7 +20,8 @@ import {
 import { toast } from "sonner";
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus, deleteOrder } = useAdmin();
+  const { orders, updateOrderStatus, deleteOrder, getInvoiceByOrderId, createInvoice } = useAdmin();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingOrder, setViewingOrder] = useState<string | null>(null);
   const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
@@ -44,6 +46,21 @@ export default function AdminOrders() {
     deleteOrder(orderId);
     toast.success("Order deleted successfully!");
     setDeletingOrder(null);
+  };
+
+  const handleViewInvoice = async (order: any) => {
+    let invoice = getInvoiceByOrderId(order.id);
+    
+    if (!invoice) {
+      invoice = await createInvoice(order);
+    }
+    
+    if (invoice) {
+      setViewingOrder(null);
+      navigate(`/invoice/${invoice.id}`);
+    } else {
+      toast.error("Failed to find or create invoice");
+    }
   };
 
   const pendingCount = safeOrders.filter(o => o.status === "Pending").length;
@@ -304,6 +321,17 @@ export default function AdminOrders() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* View Invoice Button */}
+              <div className="border-t pt-4">
+                <Button
+                  onClick={() => handleViewInvoice(currentOrder)}
+                  className="w-full bg-[#D4AF37] hover:bg-[#B8962F] text-black font-semibold"
+                >
+                  <FileText className="w-5 h-5 mr-2" />
+                  View Invoice for This Order
+                </Button>
               </div>
             </div>
           )}

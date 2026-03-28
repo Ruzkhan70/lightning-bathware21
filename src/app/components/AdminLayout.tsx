@@ -12,7 +12,6 @@ import {
   List,
   RefreshCw,
   AlertTriangle,
-  FileText,
   Menu,
   X,
 } from "lucide-react";
@@ -90,11 +89,6 @@ export default function AdminLayout() {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
-    },
-    {
-      icon: FileText,
-      label: "Invoices",
-      path: "/admin/invoices",
     },
     {
       icon: Tag,

@@ -29,7 +29,6 @@ const AdminAddProduct = lazy(() => import("./pages/admin/AdminAddProduct"));
 const AdminStatistics = lazy(() => import("./pages/admin/AdminStatistics"));
 const AdminOffers = lazy(() => import("./pages/admin/AdminOffers"));
 const AdminAddOffer = lazy(() => import("./pages/admin/AdminAddOffer"));
-const AdminInvoices = lazy(() => import("./pages/admin/AdminInvoices"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -77,7 +76,6 @@ export const router = createHashRouter([
       { path: "add-product", element: <Suspense fallback={<PageLoader />}><AdminAddProduct /></Suspense> },
       { path: "statistics", element: <Suspense fallback={<PageLoader />}><AdminStatistics /></Suspense> },
       { path: "settings", element: <Suspense fallback={<PageLoader />}><AdminSettings /></Suspense> },
-      { path: "invoices", element: <Suspense fallback={<PageLoader />}><AdminInvoices /></Suspense> },
     ],
   },
 ]);
