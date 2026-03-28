@@ -229,7 +229,7 @@ export default function VerifyInvoice() {
             <div className="text-center pt-4 border-t">
               <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
                 <Zap className="w-4 h-4 text-[#D4AF37]" />
-                Verified by Lightning Bathware
+                Verified by {storeProfile.storeName} {storeProfile.storeNameAccent}
                 <Zap className="w-4 h-4 text-[#D4AF37]" />
               </p>
               <p className="text-xs text-gray-400 mt-2">

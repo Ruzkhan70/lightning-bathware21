@@ -127,18 +127,18 @@ export default function Header() {
               <>
                 <img 
                   src={storeProfile.storeLogo} 
-                  alt="LIGHTNING BATHWARE"
+                  alt={`${storeProfile.storeName} ${storeProfile.storeNameAccent}`}
                   className="h-10 md:h-12 w-auto object-contain"
                 />
                 <div className="text-xl md:text-2xl font-bold hidden sm:block">
-                  <span className="text-white">LIGHTNING</span>
-                  <span className="text-[#D4AF37]"> BATHWARE</span>
+                  <span className="text-white">{storeProfile.storeName}</span>
+                  <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
                 </div>
               </>
             ) : (
               <div className="text-2xl md:text-3xl font-bold">
-                <span className="text-white">LIGHTNING</span>
-                <span className="text-[#D4AF37]"> BATHWARE</span>
+                <span className="text-white">{storeProfile.storeName}</span>
+                <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
               </div>
             )}
           </Link>

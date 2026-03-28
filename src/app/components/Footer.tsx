@@ -20,8 +20,8 @@ export default function Footer() {
           {/* About */}
           <div>
             <h3 className="text-xl font-bold mb-4">
-              <span className="text-white">Lightning</span>
-              <span className="text-[#D4AF37]"> Bathware</span>
+              <span className="text-white">{storeProfile.storeName}</span>
+              <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
             </h3>
             <p className="text-gray-400 mb-4">
               Sri Lanka's premier destination for quality lightning products,

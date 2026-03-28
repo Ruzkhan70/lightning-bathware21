@@ -60,8 +60,8 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           className="mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight flex items-center justify-center gap-1">
-            <span className="text-black">LIGHTNING</span>
-            <span className="text-[#D4AF37]">BATHWARE</span>
+            <span className="text-black">{storeProfile.storeName}</span>
+            <span className="text-[#D4AF37]">{storeProfile.storeNameAccent}</span>
           </h1>
         </motion.div>
 

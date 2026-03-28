@@ -539,7 +539,7 @@ export default function Invoice() {
                   <div className="text-center transform rotate-[-30deg] scale-[3]">
                     <Zap className="w-32 h-32 text-[#D4AF37] mx-auto" />
                     <p className="text-lg font-bold text-gray-600 mt-4 whitespace-nowrap">
-                      Lightning Bathware – Official Invoice
+                      {storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice
                     </p>
                   </div>
                 </div>
@@ -699,11 +699,11 @@ export default function Invoice() {
                 <div className="mt-8 pt-8 border-t text-center">
                   <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
                     <Zap className="w-4 h-4 text-[#D4AF37]" />
-                    Lightning Bathware – Official Invoice
+                    {storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice
                     <Zap className="w-4 h-4 text-[#D4AF37]" />
                   </p>
                   <p className="text-xs text-gray-400 mt-2">
-                    Powered by Lightning Bathware | {storeProfile.addressCity}, Sri Lanka
+                    Powered by {storeProfile.storeName} {storeProfile.storeNameAccent} | {storeProfile.addressCity}, Sri Lanka
                   </p>
                 </div>
               </div>

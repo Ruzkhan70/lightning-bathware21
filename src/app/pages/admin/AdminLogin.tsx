@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { login, isAdminLoggedIn } = useAdmin();
+  const { login, isAdminLoggedIn, storeProfile } = useAdmin();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -45,8 +45,8 @@ export default function AdminLogin() {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            <span className="text-white">Lightning</span>
-            <span className="text-[#D4AF37]"> Bathware</span>
+            <span className="text-white">{storeProfile.storeName}</span>
+            <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
           </h1>
           <p className="text-gray-400">Admin Login</p>
         </div>

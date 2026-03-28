@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { CartProvider } from "./context/CartContext";
@@ -71,7 +71,13 @@ class ErrorBoundary extends React.Component<
 }
 
 function DataLoader({ children }: { children: React.ReactNode }) {
-  const { isDataLoaded } = useAdmin();
+  const { isDataLoaded, storeProfile } = useAdmin();
+  
+  useEffect(() => {
+    if (isDataLoaded) {
+      document.title = `${storeProfile.storeName} ${storeProfile.storeNameAccent} - Sri Lanka's Premier Hardware Store`;
+    }
+  }, [isDataLoaded, storeProfile.storeName, storeProfile.storeNameAccent]);
   
   if (!isDataLoaded) {
     return <LoadingScreen />;
