@@ -16,6 +16,9 @@ export default defineConfig({
   base: process.env.VERCEL ? '/' : '/lightning-bathware21',
   assetsInclude: ['**/*.svg', '**/*.csv'],
   optimizeDeps: {
-    include: ['firebase'],
+    include: ['firebase', 'firebase/firestore', 'firebase/app'],
+    esbuildOptions: {
+      keepNames: true,
+    },
   },
 })
