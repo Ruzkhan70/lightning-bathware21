@@ -18,6 +18,7 @@ import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
 import { useState, useEffect, useRef } from "react";
+import { setMetaTags } from "../utils/seo";
 
 function AnimatedCounter({ value }: { value: string }) {
   const [displayValue, setDisplayValue] = useState("0");
@@ -65,6 +66,13 @@ export default function Home() {
   const safeProducts = products || [];
   const safeCategories = categories || [];
   
+  useEffect(() => {
+    setMetaTags(
+      "Home | Lightning Bathware - Sri Lanka's Premier Hardware Store",
+      "Welcome to Lightning Bathware, your one-stop shop for premium lighting, bathroom fittings, plumbing, and electrical hardware in Sri Lanka."
+    );
+  }, []);
+
   const featuredProducts = safeProducts.slice(0, 8);
   const activeOffers = getActiveOffers() || [];
 

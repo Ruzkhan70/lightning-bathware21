@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import { useEffect } from "react";
+import { setMetaTags } from "../utils/seo";
 import { AnimatePresence } from "framer-motion";
 import {
   Lightbulb,
@@ -15,6 +17,13 @@ import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Categories() {
   const { products, categories } = useAdmin();
+
+  useEffect(() => {
+    setMetaTags(
+      "Product Categories | Lightning Bathware",
+      "Explore our comprehensive range of hardware products organized by category, including Lighting, Bathroom Fittings, Plumbing, and more."
+    );
+  }, []);
   
   const safeProducts = products || [];
   const safeCategories = categories || [];

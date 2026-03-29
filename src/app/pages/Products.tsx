@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { setMetaTags } from "../utils/seo";
 import { useSearchParams } from "react-router";
 import { Filter, X } from "lucide-react";
 import ProductCard from "../components/ProductCard";
@@ -86,6 +87,13 @@ export default function Products() {
 
     setFilteredProducts(result);
   }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
+
+  useEffect(() => {
+    setMetaTags(
+      "Our Products | Lightning Bathware",
+      "Browse our extensive collection of premium lighting, bathroom fittings, plumbing, and electrical hardware at Lightning Bathware."
+    );
+  }, []);
 
   const clearFilters = () => {
     setSelectedCategory("all");

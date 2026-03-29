@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { setMetaTags } from "../utils/seo";
 import { Target, Eye, Users, Award } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 
@@ -70,6 +71,13 @@ function AnimatedCounter({ value }: { value: string }) {
 
 export default function About() {
   const { storeAssets, siteContent, storeProfile } = useAdmin();
+
+  useEffect(() => {
+    setMetaTags(
+      "About Us | Lightning Bathware - Our Story & Values",
+      "Learn about Lightning Bathware, Sri Lanka's trusted name in quality hardware and building materials. Discover our mission, vision, and values."
+    );
+  }, []);
   
   return (
     <div className="min-h-screen bg-gray-50">
