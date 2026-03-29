@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
-import { db, app } from "../../firebase";
+import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updatePassword } from "firebase/auth";
 import { toast } from "sonner";
 
 export interface Product {
@@ -451,21 +450,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUid, setAdminUid] = useState<string | null>(null);
 
-  // Monitor Firebase Auth state
+  // Check for existing admin session on load
   useEffect(() => {
-    const unsubscribe = getAuth(app).onAuthStateChanged(async (user: any) => {
-      if (user) {
-        const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-        if (adminDoc.exists() && adminDoc.data().adminUid === user.uid) {
-          setIsAdminLoggedIn(true);
-        } else {
-          setIsAdminLoggedIn(false);
-        }
-      } else {
-        setIsAdminLoggedIn(false);
-      }
-    });
-    return () => unsubscribe();
+    const storedSession = sessionStorage.getItem('adminSession');
+    if (storedSession === 'true') {
+      setIsAdminLoggedIn(true);
+    }
   }, []);
 
   // Firebase real-time sync for admin credentials
@@ -479,7 +469,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             username: data.username || DEFAULT_USERNAME,
             password: data.password || DEFAULT_PASSWORD,
           });
-          setAdminUid(data.adminUid || null);
+          setAdminUid(data.adminUid || true);
         }
         isInitialized.current.adminCredentials = true;
         setIsAdminDataLoaded(true);
@@ -977,94 +967,84 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const userCredential = await signInWithEmailAndPassword(getAuth(app), email, password);
-      const user = userCredential.user;
-      
+      // Check if admin exists in Firestore
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-      if (adminDoc.exists()) {
-        const adminData = adminDoc.data();
-        if (adminData.adminUid === user.uid) {
-          setIsAdminLoggedIn(true);
-          return true;
-        }
+      if (!adminDoc.exists()) {
+        toast.error("No admin account found. Please set up admin first.");
+        return false;
       }
       
-      await signOut(auth);
-      toast.error("Not authorized as admin");
-      return false;
+      const adminData = adminDoc.data();
+      // Verify credentials
+      if (adminData.username === email && adminData.password === password) {
+        sessionStorage.setItem('adminSession', 'true');
+        setIsAdminLoggedIn(true);
+        return true;
+      } else {
+        toast.error("Invalid credentials");
+        return false;
+      }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Invalid credentials");
+      toast.error("Login failed. Please try again.");
       return false;
     }
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    sessionStorage.removeItem('adminSession');
     setIsAdminLoggedIn(false);
   };
   
   const triggerLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    sessionStorage.removeItem('adminSession');
     setIsAdminLoggedIn(false);
   };
 
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log("Creating user with email:", email);
-      const userCredential = await createUserWithEmailAndPassword(getAuth(app), email, password);
-      console.log("User created:", userCredential.user.uid);
-      const user = userCredential.user;
+      // Check if admin already exists
+      const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
+      if (adminDoc.exists() && adminDoc.data().isSetup) {
+        toast.error("Admin already set up. Please login instead.");
+        return false;
+      }
       
+      // Create admin credentials in Firestore
       await setDoc(doc(db, "adminCredentials", "main"), {
-        username: "admin",
-        adminUid: user.uid,
+        username: email,
+        password: password,
+        isSetup: true,
+        adminUid: "admin-" + Date.now(),
         adminEmail: email,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      });
       
-      setAdminUid(user.uid);
+      sessionStorage.setItem('adminSession', 'true');
       setIsAdminLoggedIn(true);
+      setAdminUid("admin-" + Date.now());
       toast.success("Admin account created successfully!");
       return true;
-    } catch (error: unknown) {
-      const err = error as { code?: string; message?: string };
-      console.error("Setup admin error:", err);
-      if (err.code === "auth/email-already-in-use") {
-        toast.error("Email already registered. Please login instead.");
-      } else if (err.code === "auth/operation-not-allowed") {
-        toast.error("Email/Password sign-in is not enabled in Firebase. Please enable it in Firebase Console > Authentication > Sign-in method.");
-      } else if (err.code === "auth/weak-password") {
-        toast.error("Password is too weak. Use at least 6 characters.");
-      } else {
-        toast.error("Failed to create admin account: " + (err.message || err.code));
-      }
+    } catch (error) {
+      console.error("Setup admin error:", error);
+      toast.error("Failed to create admin account");
       return false;
     }
   };
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      const user = getAuth(app).currentUser;
-      
-      if (!user) {
-        toast.error("No user logged in");
+      // Verify current password first
+      const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
+      if (!adminDoc.exists() || adminDoc.data().password !== currentPassword) {
+        toast.error("Current password is incorrect");
         return false;
       }
       
-      await updatePassword(user, newPassword);
-      
-      const credentialsRef = doc(db, "adminCredentials", "main");
-      await setDoc(credentialsRef, {
-        username: adminCredentials.username,
+      // Update password
+      await setDoc(doc(db, "adminCredentials", "main"), {
+        password: newPassword,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
       
