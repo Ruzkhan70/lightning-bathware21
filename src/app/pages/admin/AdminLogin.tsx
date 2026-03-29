@@ -9,13 +9,19 @@ import { toast } from "sonner";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { login, isAdminLoggedIn, storeProfile, setupAdmin, adminUid } = useAdmin();
+  const { login, isAdminLoggedIn, storeProfile, setupAdmin, adminUid, isAdminDataLoaded } = useAdmin();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isSettingUp, setIsSettingUp] = useState(false);
+  const [isSetupMode, setIsSetupMode] = useState(true);
+
+  useEffect(() => {
+    if (isAdminDataLoaded && adminUid) {
+      setIsSetupMode(false);
+    }
+  }, [isAdminDataLoaded, adminUid]);
 
   useEffect(() => {
     if (isAdminLoggedIn) {
@@ -33,37 +39,18 @@ export default function AdminLogin() {
       return;
     }
 
-    const success = await login(formData.email, formData.password);
+    let success: boolean;
+    if (isSetupMode) {
+      success = await setupAdmin(formData.email, formData.password);
+    } else {
+      success = await login(formData.email, formData.password);
+    }
 
     if (success) {
-      toast.success("Login successful!");
+      toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
       navigate("/admin");
     } else {
       toast.error("Invalid credentials or not authorized as admin");
-    }
-    setIsLoading(false);
-  };
-
-  const handleSetup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    if (!formData.email || !formData.password) {
-      toast.error("Please enter email and password");
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      setIsLoading(false);
-      return;
-    }
-
-    const success = await setupAdmin(formData.email, formData.password);
-
-    if (success) {
-      navigate("/admin");
     }
     setIsLoading(false);
   };
@@ -87,16 +74,16 @@ export default function AdminLogin() {
               <Lock className="w-10 h-10 text-black" />
             </div>
             <h2 className="text-2xl font-bold">
-              {adminUid ? "Admin Access" : "Setup Admin"}
+              {isSetupMode ? "Setup Admin" : "Admin Access"}
             </h2>
             <p className="text-gray-600 text-sm mt-2">
-              {adminUid 
-                ? "Enter your credentials to continue"
-                : "Create your admin account to get started"}
+              {isSetupMode 
+                ? "Create your admin account to get started"
+                : "Enter your credentials to continue"}
             </p>
           </div>
 
-          <form onSubmit={adminUid ? handleSubmit : handleSetup} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="email">Email</Label>
               <div className="relative mt-1">
@@ -128,7 +115,7 @@ export default function AdminLogin() {
                   }
                   className="pl-10"
                   placeholder="Enter password"
-                  autoComplete={adminUid ? "current-password" : "new-password"}
+                  autoComplete={isSetupMode ? "new-password" : "current-password"}
                 />
               </div>
             </div>
@@ -141,13 +128,13 @@ export default function AdminLogin() {
             >
               {isLoading 
                 ? "Please wait..." 
-                : adminUid 
-                  ? "Login to Dashboard" 
-                  : "Create Admin Account"}
+                : isSetupMode 
+                  ? "Create Admin Account" 
+                  : "Login to Dashboard"}
             </Button>
           </form>
 
-          {adminUid && (
+          {!isSetupMode && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <p className="text-xs text-gray-600 font-semibold mb-2">
                 Security Notice:

@@ -2,15 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is authenticated as admin
+    // Helper function to check if user is the admin
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      let storedAdminUid = /databases/$(database)/documents/adminCredentials/main/data.adminUid;
+      return request.auth != null && request.auth.uid == storedAdminUid;
     }
     
-    // Admin credentials - Only accessible by authenticated admins
+    // Admin credentials - Anyone can read (for login check)
+    // Write allowed if: no admin exists yet OR user is the admin
     match /adminCredentials/{document} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if true;
+      allow write: if request.auth != null && (
+        resource == null || 
+        resource.data.adminUid == request.auth.uid ||
+        request.auth.uid == resource.data.adminUid
+      );
     }
     
     // Store data (products, categories, profile, etc.) - Public read, admin write
