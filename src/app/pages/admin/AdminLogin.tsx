@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Lock, User } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -9,11 +9,13 @@ import { toast } from "sonner";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { login, isAdminLoggedIn, storeProfile } = useAdmin();
+  const { login, isAdminLoggedIn, storeProfile, setupAdmin, adminUid } = useAdmin();
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
 
   useEffect(() => {
     if (isAdminLoggedIn) {
@@ -21,22 +23,49 @@ export default function AdminLogin() {
     }
   }, [isAdminLoggedIn, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    if (!formData.username || !formData.password) {
-      toast.error("Please enter username and password");
+    if (!formData.email || !formData.password) {
+      toast.error("Please enter email and password");
+      setIsLoading(false);
       return;
     }
 
-    const success = login(formData.username, formData.password);
+    const success = await login(formData.email, formData.password);
 
     if (success) {
       toast.success("Login successful!");
       navigate("/admin");
     } else {
-      toast.error("Invalid username or password");
+      toast.error("Invalid credentials or not authorized as admin");
     }
+    setIsLoading(false);
+  };
+
+  const handleSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    if (!formData.email || !formData.password) {
+      toast.error("Please enter email and password");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      setIsLoading(false);
+      return;
+    }
+
+    const success = await setupAdmin(formData.email, formData.password);
+
+    if (success) {
+      navigate("/admin");
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -57,27 +86,31 @@ export default function AdminLogin() {
             <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-10 h-10 text-black" />
             </div>
-            <h2 className="text-2xl font-bold">Admin Access</h2>
+            <h2 className="text-2xl font-bold">
+              {adminUid ? "Admin Access" : "Setup Admin"}
+            </h2>
             <p className="text-gray-600 text-sm mt-2">
-              Enter your credentials to continue
+              {adminUid 
+                ? "Enter your credentials to continue"
+                : "Create your admin account to get started"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={adminUid ? handleSubmit : handleSetup} className="space-y-6">
             <div>
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative mt-1">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  id="username"
-                  type="text"
-                  value={formData.username}
+                  id="email"
+                  type="email"
+                  value={formData.email}
                   onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
+                    setFormData({ ...formData, email: e.target.value })
                   }
                   className="pl-10"
-                  placeholder="Enter username"
-                  autoComplete="username"
+                  placeholder="admin@example.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -95,7 +128,7 @@ export default function AdminLogin() {
                   }
                   className="pl-10"
                   placeholder="Enter password"
-                  autoComplete="current-password"
+                  autoComplete={adminUid ? "current-password" : "new-password"}
                 />
               </div>
             </div>
@@ -104,19 +137,26 @@ export default function AdminLogin() {
               type="submit"
               size="lg"
               className="w-full bg-black hover:bg-[#D4AF37] text-white"
+              disabled={isLoading}
             >
-              Login to Dashboard
+              {isLoading 
+                ? "Please wait..." 
+                : adminUid 
+                  ? "Login to Dashboard" 
+                  : "Create Admin Account"}
             </Button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-xs text-gray-600 font-semibold mb-2">
-              Demo Credentials:
-            </p>
-            <p className="text-xs text-gray-600">Username: admin</p>
-            <p className="text-xs text-gray-600">Password: admin123</p>
-          </div>
+          {adminUid && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-600 font-semibold mb-2">
+                Security Notice:
+              </p>
+              <p className="text-xs text-gray-600">
+                This admin panel is protected. Only authorized users can access.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Back to Home */}

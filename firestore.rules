@@ -2,48 +2,53 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Admin credentials - Public read (for login), write protected
-    match /adminCredentials/{document} {
-      allow read: if true;
-      allow write: if true;
+    // Helper function to check if user is authenticated as admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
     }
     
-    // Store data - Public read/write
+    // Admin credentials - Only accessible by authenticated admins
+    match /adminCredentials/{document} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Store data (products, categories, profile, etc.) - Public read, admin write
     match /storeData/{document} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
     
-    // Orders - Public read/create
+    // Orders - Customers can create, public can read, only admin can modify
     match /orders/{orderId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
-      allow update, delete: if true;
+      allow update, delete: if isAdmin();
     }
     
-    // Users - Allow registration and password reset without auth
+    // Users - Users can read/write their own data only
     match /users/{userId} {
-      allow read: if true;
+      allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if true;
-      allow update: if true;
+      allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Wishlist - Auth required
+    // Wishlist - Auth required, users can only access their own
     match /wishlist/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Offers - Public read/write
+    // Offers - Public read, admin write
     match /offers/{offerId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
     
-    // Invoices - Public read/write
+    // Invoices - Public read (for verification), admin write
     match /invoices/{invoiceId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
   }
 }
