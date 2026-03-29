@@ -39,20 +39,29 @@ export default function AdminLogin() {
       return;
     }
 
-    let success: boolean;
-    if (isSetupMode) {
-      success = await setupAdmin(formData.email, formData.password);
-    } else {
-      success = await login(formData.email, formData.password);
-    }
+    try {
+      console.log("Starting login, isSetupMode:", isSetupMode);
+      let success: boolean;
+      if (isSetupMode) {
+        success = await setupAdmin(formData.email, formData.password);
+      } else {
+        success = await login(formData.email, formData.password);
+      }
+      console.log("Login result:", success);
 
-    if (success) {
-      toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
-      navigate("/admin");
-    } else {
-      toast.error("Invalid credentials or not authorized as admin");
+      if (success) {
+        toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
+        navigate("/admin");
+      } else {
+        toast.error("Invalid credentials or not authorized as admin");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      console.log("Resetting loading state");
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
