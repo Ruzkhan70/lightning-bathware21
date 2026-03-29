@@ -4,8 +4,6 @@ import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, order
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updatePassword } from "firebase/auth";
 import { toast } from "sonner";
 
-const getFirebaseAuthInstance = () => getAuth(app);
-
 export interface Product {
   id: string;
   name: string;
@@ -455,8 +453,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Monitor Firebase Auth state
   useEffect(() => {
-    const currentAuth = getFirebaseAuthInstance();
-    const unsubscribe = onAuthStateChanged(currentAuth, async (user) => {
+    const unsubscribe = getAuth(app).onAuthStateChanged(async (user: any) => {
       if (user) {
         const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
         if (adminDoc.exists() && adminDoc.data().adminUid === user.uid) {
@@ -980,7 +977,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const userCredential = await signInWithEmailAndPassword(getFirebaseAuthInstance(), email, password);
+      const userCredential = await signInWithEmailAndPassword(getAuth(app), email, password);
       const user = userCredential.user;
       
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
@@ -1023,7 +1020,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
       console.log("Creating user with email:", email);
-      const userCredential = await createUserWithEmailAndPassword(getFirebaseAuthInstance(), email, password);
+      const userCredential = await createUserWithEmailAndPassword(getAuth(app), email, password);
       console.log("User created:", userCredential.user.uid);
       const user = userCredential.user;
       
@@ -1056,7 +1053,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      const user = getFirebaseAuthInstance().currentUser;
+      const user = getAuth(app).currentUser;
       
       if (!user) {
         toast.error("No user logged in");
