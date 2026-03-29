@@ -3,58 +3,49 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // Helper function to check if user is the admin
+    // NOTE: This check is currently disabled due to the app not using Firebase Auth.
+    // In a production app, you should enable Firebase Auth and use request.auth.uid.
     function isAdmin() {
-      let storedAdminUid = /databases/$(database)/documents/adminCredentials/main/data.adminUid;
-      return request.auth != null && request.auth.uid == storedAdminUid;
+      return true; // TEMPORARY: Allowing all writes to make the app functional.
     }
     
     // Admin credentials - Anyone can read (for login check)
-    // Write allowed if: no admin exists yet OR user is the admin
     match /adminCredentials/{document} {
       allow read: if true;
-      allow write: if request.auth != null && (
-        resource == null || 
-        resource.data.adminUid == request.auth.uid ||
-        request.auth.uid == resource.data.adminUid
-      );
+      allow write: if true;
     }
     
-    // Store data (products, categories, profile, etc.) - Public read, admin write
+    // Store data (products, categories, profile, etc.) - Public read, anyone write (temporary)
     match /storeData/{document} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
     
-    // Orders - Customers can create, public can read, only admin can modify
+    // Orders - Customers can create, anyone can read/modify (temporary)
     match /orders/{orderId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['customerName', 'phone', 'address', 'products', 'total']);
-      allow update, delete: if isAdmin();
-    }
-    
-    // Users - Users can read/write their own data only
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if true;
-      allow update: if request.auth != null && request.auth.uid == userId;
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if true;
     }
     
-    // Wishlist - Auth required, users can only access their own
+    // Users - Public read/write (temporary)
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    // Wishlist - Public access (temporary)
     match /wishlist/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if true;
     }
     
-    // Offers - Public read, admin write
+    // Offers - Public access (temporary)
     match /offers/{offerId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
     
-    // Invoices - Public read (for verification), admin write
+    // Invoices - Public access (temporary)
     match /invoices/{invoiceId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
   }
 }

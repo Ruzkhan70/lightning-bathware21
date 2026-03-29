@@ -507,16 +507,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       const credentialsRef = doc(db, "adminCredentials", "main");
       const unsubscribe = onSnapshot(credentialsRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setAdminCredentials({
-            username: data.username || DEFAULT_USERNAME,
-            password: data.password || DEFAULT_PASSWORD,
-          });
-          setAdminUid(data.adminUid || true);
-        }
-        isInitialized.current.adminCredentials = true;
-        setIsAdminDataLoaded(true);
+          if (docSnap.exists() && docSnap.data().isSetup) {
+            const data = docSnap.data();
+            setAdminCredentials({
+              username: data.username || DEFAULT_USERNAME,
+              password: data.password || DEFAULT_PASSWORD,
+            });
+            setAdminUid(data.adminUid || "admin");
+          } else {
+            setAdminUid(null);
+          }
+          isInitialized.current.adminCredentials = true;
+          setIsAdminDataLoaded(true);
       }, (error) => {
         console.error("Error loading admin credentials:", error);
         isInitialized.current.adminCredentials = true;
@@ -970,26 +972,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanPassword = password.trim();
+
       // Check if admin exists in Firestore
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-      if (!adminDoc.exists()) {
+      if (!adminDoc.exists() || !adminDoc.data().isSetup) {
         toast.error("No admin account found. Please set up admin first.");
         return false;
       }
       
       const adminData = adminDoc.data();
+      const storedUsername = (adminData.username || "").trim().toLowerCase();
+      const storedPassword = adminData.password || "";
+
       // Verify credentials
-      if (adminData.username === email && adminData.password === password) {
+      if (storedUsername === cleanEmail && storedPassword === cleanPassword) {
         sessionStorage.setItem('adminSession', 'true');
         setIsAdminLoggedIn(true);
         return true;
       } else {
+        console.warn("Login failed: Credentials mismatch", { entered: cleanEmail, stored: storedUsername });
         toast.error("Invalid credentials");
         return false;
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      toast.error("Login failed. Please check your internet connection.");
       return false;
     }
   };
@@ -1006,10 +1015,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log("Starting setupAdmin...");
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanPassword = password.trim();
+
+      console.log("Starting setupAdmin for:", cleanEmail);
       // Check if admin already exists
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-      console.log("adminDoc exists:", adminDoc.exists());
       
       if (adminDoc.exists() && adminDoc.data().isSetup) {
         toast.error("Admin already set up. Please login instead.");
@@ -1017,13 +1028,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       
       console.log("Creating admin credentials...");
+      const newAdminUid = "admin-" + Date.now();
       // Create admin credentials in Firestore
       await setDoc(doc(db, "adminCredentials", "main"), {
-        username: email,
-        password: password,
+        username: cleanEmail,
+        password: cleanPassword,
         isSetup: true,
-        adminUid: "admin-" + Date.now(),
-        adminEmail: email,
+        adminUid: newAdminUid,
+        adminEmail: cleanEmail,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -1031,13 +1043,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.log("Setting session...");
       sessionStorage.setItem('adminSession', 'true');
       setIsAdminLoggedIn(true);
-      setAdminUid("admin-" + Date.now());
+      setAdminUid(newAdminUid);
       toast.success("Admin account created successfully!");
       return true;
     } catch (error) {
       console.error("Setup admin error:", error);
       const errMsg = error instanceof Error ? error.message : String(error);
-      toast.error("Failed: " + errMsg);
+      if (errMsg.toLowerCase().includes("permission-denied") || errMsg.toLowerCase().includes("permission denied")) {
+        toast.error("Security Error: Firestore rules are blocking setup. Please check your rules.");
+      } else {
+        toast.error("Failed: " + errMsg);
+      }
       return false;
     }
   };
