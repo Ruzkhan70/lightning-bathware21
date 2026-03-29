@@ -1003,13 +1003,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Starting setupAdmin...");
       // Check if admin already exists
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
+      console.log("adminDoc exists:", adminDoc.exists());
+      
       if (adminDoc.exists() && adminDoc.data().isSetup) {
         toast.error("Admin already set up. Please login instead.");
         return false;
       }
       
+      console.log("Creating admin credentials...");
       // Create admin credentials in Firestore
       await setDoc(doc(db, "adminCredentials", "main"), {
         username: email,
@@ -1021,6 +1025,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         updatedAt: new Date().toISOString(),
       });
       
+      console.log("Setting session...");
       sessionStorage.setItem('adminSession', 'true');
       setIsAdminLoggedIn(true);
       setAdminUid("admin-" + Date.now());
@@ -1028,7 +1033,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error("Setup admin error:", error);
-      toast.error("Failed to create admin account");
+      const errMsg = error instanceof Error ? error.message : String(error);
+      toast.error("Failed: " + errMsg);
       return false;
     }
   };
