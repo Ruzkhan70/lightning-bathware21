@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
-import { db, auth } from "../../firebase";
+import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updatePassword } from "firebase/auth";
 import { toast } from "sonner";
 
 export interface Product {
@@ -453,7 +453,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Monitor Firebase Auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const currentAuth = getAuth();
+    const unsubscribe = onAuthStateChanged(currentAuth, async (user) => {
       if (user) {
         const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
         if (adminDoc.exists() && adminDoc.data().adminUid === user.uid) {
@@ -977,7 +978,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(getAuth(), email, password);
       const user = userCredential.user;
       
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
@@ -1020,7 +1021,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
       console.log("Creating user with email:", email);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(getAuth(), email, password);
       console.log("User created:", userCredential.user.uid);
       const user = userCredential.user;
       
@@ -1053,7 +1054,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      const user = auth.currentUser;
+      const user = getAuth().currentUser;
       
       if (!user) {
         toast.error("No user logged in");
