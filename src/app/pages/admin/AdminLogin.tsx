@@ -33,26 +33,45 @@ export default function AdminLogin() {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log("Form submitted, isSetupMode:", isSetupMode);
+
     if (!formData.email || !formData.password) {
       toast.error("Please enter email and password");
       setIsLoading(false);
       return;
     }
 
-    let success: boolean;
-    if (isSetupMode) {
-      success = await setupAdmin(formData.email, formData.password);
-    } else {
-      success = await login(formData.email, formData.password);
-    }
+    // Safety timeout - reset loading after 15 seconds
+    const timeoutId = setTimeout(() => {
+      console.log("Timeout reached, resetting loading state");
+      setIsLoading(false);
+    }, 15000);
 
-    if (success) {
-      toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
-      navigate("/admin");
-    } else {
-      toast.error("Invalid credentials or not authorized as admin");
+    try {
+      let success: boolean;
+      if (isSetupMode) {
+        console.log("Calling setupAdmin...");
+        success = await setupAdmin(formData.email, formData.password);
+        console.log("setupAdmin result:", success);
+      } else {
+        success = await login(formData.email, formData.password);
+      }
+
+      clearTimeout(timeoutId);
+
+      if (success) {
+        toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
+        navigate("/admin");
+      } else {
+        toast.error("Invalid credentials or not authorized as admin");
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.error("Login error:", error);
+      toast.error("An error occurred. Check console for details.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
