@@ -1020,12 +1020,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
       const { createUserWithEmailAndPassword } = await import("firebase/auth");
+      console.log("Creating user with email:", email);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User created:", userCredential.user.uid);
       const user = userCredential.user;
       
       await setDoc(doc(db, "adminCredentials", "main"), {
         username: "admin",
-        password: password,
         adminUid: user.uid,
         adminEmail: email,
         updatedAt: new Date().toISOString(),
@@ -1040,8 +1041,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Setup admin error:", err);
       if (err.code === "auth/email-already-in-use") {
         toast.error("Email already registered. Please login instead.");
+      } else if (err.code === "auth/operation-not-allowed") {
+        toast.error("Email/Password sign-in is not enabled in Firebase. Please enable it in Firebase Console > Authentication > Sign-in method.");
+      } else if (err.code === "auth/weak-password") {
+        toast.error("Password is too weak. Use at least 6 characters.");
       } else {
-        toast.error("Failed to create admin account");
+        toast.error("Failed to create admin account: " + (err.message || err.code));
       }
       return false;
     }
