@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { db, auth } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { toast } from "sonner";
 
 export interface Product {
@@ -1019,7 +1019,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const setupAdmin = async (email: string, password: string): Promise<boolean> => {
     try {
-      const { createUserWithEmailAndPassword } = await import("firebase/auth");
       console.log("Creating user with email:", email);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("User created:", userCredential.user.uid);
@@ -1054,7 +1053,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      const { updatePassword } = await import("firebase/auth");
       const user = auth.currentUser;
       
       if (!user) {
