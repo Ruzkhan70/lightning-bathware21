@@ -47,5 +47,10 @@ service cloud.firestore {
     match /invoices/{invoiceId} {
       allow read, write: if true;
     }
+    
+    // Contact Messages - Public access (temporary)
+    match /contactMessages/{messageId} {
+      allow read, write: if true;
+    }
   }
 }
