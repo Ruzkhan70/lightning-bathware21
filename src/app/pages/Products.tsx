@@ -15,21 +15,18 @@ import {
 
 export default function Products() {
   const [searchParams] = useSearchParams();
-  const { products } = useAdmin();
+  const { products, categories } = useAdmin();
   const safeProducts = products || [];
+  const safeCategories = categories || [];
   const [filteredProducts, setFilteredProducts] = useState(safeProducts);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const categories = [
+  const activeCategories = [
     "All Categories",
-    "Lighting",
-    "Bathroom Fittings",
-    "Plumbing",
-    "Electrical Hardware",
-    "Construction Tools",
+    ...safeCategories.filter(cat => cat.isActive).map(cat => cat.name),
   ];
 
   const priceRanges = [
@@ -132,7 +129,7 @@ export default function Products() {
               <div className="mb-6">
                 <h3 className="font-semibold mb-3">Category</h3>
                 <div className="space-y-2">
-                  {categories.map((category) => (
+                  {activeCategories.map((category) => (
                     <label
                       key={category}
                       className="flex items-center gap-2 cursor-pointer hover:text-[#D4AF37] transition-colors"
@@ -224,7 +221,7 @@ export default function Products() {
                 <div className="mb-6">
                   <h3 className="font-semibold mb-3">Category</h3>
                   <div className="space-y-2">
-                    {categories.map((category) => (
+                  {activeCategories.map((category) => (
                       <label
                         key={category}
                         className="flex items-center gap-2 cursor-pointer"

@@ -432,38 +432,22 @@ export default function Header() {
               <li className="pt-2 border-t border-gray-800">
                 <p className="text-gray-400 text-sm mb-2">Categories</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    to="/products?category=Lighting"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
-                  >
-                    <span className="w-6 h-6 rounded bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-xs">L</span>
-                    <span>Lighting</span>
-                  </Link>
-                  <Link
-                    to="/products?category=Bathroom+Fittings"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
-                  >
-                    <span className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">B</span>
-                    <span>Bathroom</span>
-                  </Link>
-                  <Link
-                    to="/products?category=Plumbing"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
-                  >
-                    <span className="w-6 h-6 rounded bg-green-100 flex items-center justify-center text-green-600 font-bold text-xs">P</span>
-                    <span>Plumbing</span>
-                  </Link>
-                  <Link
-                    to="/products?category=Electrical+Hardware"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
-                  >
-                    <span className="w-6 h-6 rounded bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">E</span>
-                    <span>Electrical</span>
-                  </Link>
+                  {safeCategories.filter(cat => cat.isActive).map((category) => {
+                    const color = getCategoryColor(category.name);
+                    return (
+                      <Link
+                        key={category.id}
+                        to={`/products?category=${encodeURIComponent(category.name)}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 py-2 px-3 bg-gray-800 rounded-lg text-white hover:text-[#D4AF37] transition-colors text-sm"
+                      >
+                        <span className={`w-6 h-6 rounded ${color.bg} flex items-center justify-center ${color.text} font-bold text-xs`}>
+                          {getCategoryInitial(category.name)}
+                        </span>
+                        <span>{category.name}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </li>
               
