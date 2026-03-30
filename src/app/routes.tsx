@@ -29,6 +29,9 @@ const AdminAddProduct = lazy(() => import("./pages/admin/AdminAddProduct"));
 const AdminStatistics = lazy(() => import("./pages/admin/AdminStatistics"));
 const AdminOffers = lazy(() => import("./pages/admin/AdminOffers"));
 const AdminAddOffer = lazy(() => import("./pages/admin/AdminAddOffer"));
+const AdminInvoices = lazy(() => import("./pages/admin/AdminInvoices"));
+const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
+
 
 // Content-only loader (NO min-h-screen - only fills parent container)
 const ContentLoaderWrapper = () => (
@@ -67,12 +70,15 @@ export const router = createHashRouter([
       { path: "products", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminProducts /></Suspense> },
       { path: "categories", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminCategories /></Suspense> },
       { path: "orders", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminOrders /></Suspense> },
+      { path: "messages", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminMessages /></Suspense> },
       { path: "offers", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminOffers /></Suspense> },
       { path: "add-offer", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAddOffer /></Suspense> },
       { path: "edit-offer/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAddOffer /></Suspense> },
       { path: "add-product", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAddProduct /></Suspense> },
       { path: "statistics", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminStatistics /></Suspense> },
       { path: "settings", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminSettings /></Suspense> },
+      { path: "invoices", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminInvoices /></Suspense> },
     ],
   },
 ]);
+

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Contact() {
-  const { siteContent, storeProfile } = useAdmin();
+  const { siteContent, storeProfile, addMessage } = useAdmin();
 
   useEffect(() => {
     setMetaTags(
@@ -36,7 +36,7 @@ export default function Contact() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.message) {
@@ -44,14 +44,24 @@ export default function Contact() {
       return;
     }
 
-    toast.success("Message sent successfully! We'll get back to you soon.");
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
-    });
+    try {
+      await addMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        subject: formData.subject || undefined,
+        message: formData.message,
+      });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+    } catch {
+      toast.error("Failed to send message. Please try again.");
+    }
   };
 
   const contactInfo = [

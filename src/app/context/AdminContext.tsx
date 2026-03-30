@@ -82,6 +82,17 @@ export interface Category {
   isActive: boolean;
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+  status: "new" | "read" | "replied";
+  createdAt: string;
+}
+
 export interface StoreProfile {
   storeName: string;
   storeNameAccent: string;
@@ -537,6 +548,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
 
   const DEMO_OFFERS: Offer[] = [
     {
@@ -589,6 +601,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     offers: false,
     products: false,
     invoices: false,
+    messages: false,
   });
 
   useEffect(() => {
@@ -790,6 +803,99 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
     }
   }, []);
+
+  // Firebase real-time sync for contact messages
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "contactMessages"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firebaseMessages: ContactMessage[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { ...data, id: data.id || doc.id } as ContactMessage;
+        });
+        setMessages(firebaseMessages);
+        setFirebaseLoaded(prev => ({ ...prev, messages: true }));
+      }, (error) => {
+        console.error("Firebase messages sync error:", error);
+        setFirebaseLoaded(prev => ({ ...prev, messages: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase messages sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, messages: true }));
+    }
+  }, []);
+
+  // Add a new contact message
+  const addMessage = async (messageData: Omit<ContactMessage, "id" | "createdAt" | "status">) => {
+    try {
+      const newMessage: Omit<ContactMessage, "id"> = {
+        ...messageData,
+        status: "new",
+        createdAt: new Date().toISOString(),
+      };
+      const docRef = await addDoc(collection(db, "contactMessages"), newMessage);
+      toast.success("Message sent successfully!");
+      return docRef.id;
+    } catch (error) {
+      console.error("Error adding message:", error);
+      toast.error("Failed to send message");
+      throw error;
+    }
+  };
+
+  // Mark message as read
+  const markMessageAsRead = async (id: string) => {
+    try {
+      const messageRef = doc(db, "contactMessages", id);
+      await updateDoc(messageRef, { status: "read" });
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "read" } : m));
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      toast.error("Failed to update message");
+    }
+  };
+
+  // Mark message as replied
+  const markMessageAsReplied = async (id: string) => {
+    try {
+      const messageRef = doc(db, "contactMessages", id);
+      await updateDoc(messageRef, { status: "replied" });
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "replied" } : m));
+    } catch (error) {
+      console.error("Error marking message as replied:", error);
+      toast.error("Failed to update message");
+    }
+  };
+
+  // Mark all messages as read
+  const markAllMessagesAsRead = async () => {
+    try {
+      const unreadMessages = messages.filter(m => m.status === "new");
+      for (const message of unreadMessages) {
+        const messageRef = doc(db, "contactMessages", message.id);
+        await updateDoc(messageRef, { status: "read" });
+      }
+      setMessages(prev => prev.map(m => ({ ...m, status: "read" })));
+      toast.success("All messages marked as read");
+    } catch (error) {
+      console.error("Error marking all messages as read:", error);
+      toast.error("Failed to update messages");
+    }
+  };
+
+  // Delete a message
+  const deleteMessage = async (id: string) => {
+    try {
+      const messageRef = doc(db, "contactMessages", id);
+      await deleteDoc(messageRef);
+      setMessages(prev => prev.filter(m => m.id !== id));
+      toast.success("Message deleted");
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast.error("Failed to delete message");
+    }
+  };
 
   const addDemoOffers = async () => {
     try {
@@ -1456,6 +1562,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         getInvoiceById,
         deleteInvoice,
         cleanOrphanedInvoices,
+        messages,
+        addMessage,
+        markMessageAsRead,
+        markMessageAsReplied,
+        markAllMessagesAsRead,
+        deleteMessage,
       }}
     >
       {children}

@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Menu,
   X,
+  Mail,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
@@ -21,7 +22,7 @@ import SessionWarning from "./admin/SessionWarning";
 import { useAdminTimeout } from "../hooks/useAdminTimeout";
 
 export default function AdminLayout() {
-  const { isAdminLoggedIn, logout, triggerLogout, products, storeProfile } = useAdmin();
+  const { isAdminLoggedIn, logout, triggerLogout, products, storeProfile, messages } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -33,6 +34,7 @@ export default function AdminLayout() {
   );
 
   const unavailableProducts = (products || []).filter(p => !p.isAvailable);
+  const newMessages = (messages || []).filter(m => m.status === "new").length;
 
   useEffect(() => {
     if (!isAdminLoggedIn) {
@@ -89,6 +91,13 @@ export default function AdminLayout() {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
+    },
+    {
+      icon: Mail,
+      label: "Messages",
+      path: "/admin/messages",
+      badge: newMessages > 0 ? newMessages : undefined,
+      badgeColor: "bg-red-500",
     },
     {
       icon: Tag,
