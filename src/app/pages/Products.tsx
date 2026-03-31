@@ -3,6 +3,7 @@ import { setMetaTags } from "../utils/seo";
 import { useSearchParams } from "react-router";
 import { Filter, X } from "lucide-react";
 import ProductCard from "../components/ProductCard";
+import RecentlyViewed from "../components/RecentlyViewed";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import {
@@ -299,6 +300,11 @@ export default function Products() {
                 </Button>
               </div>
             )}
+
+            {/* Recently Viewed Products */}
+            <div className="mt-12">
+              <RecentlyViewed />
+            </div>
           </div>
         </div>
       </div>
