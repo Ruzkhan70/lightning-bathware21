@@ -1266,9 +1266,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = [...products, newProduct];
     setProducts(updated);
     try {
-      await setDoc(doc(db, "storeData", "products"), { products: updated });
+      await updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error adding product to Firebase:", error);
+      // Fallback
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
     }
   };
 
@@ -1276,9 +1278,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
     setProducts(updated);
     try {
-      await setDoc(doc(db, "storeData", "products"), { products: updated });
+      await updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error updating product in Firebase:", error);
+      // Fallback
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
     }
   };
 
@@ -1286,9 +1290,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
     try {
-      setDoc(doc(db, "storeData", "products"), { products: updated });
+      updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error deleting product from Firebase:", error);
+      // Fallback
+      setDoc(doc(db, "storeData", "products"), { products: updated });
     }
   };
 
@@ -1296,9 +1302,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = products.filter(p => !ids.includes(p.id));
     setProducts(updated);
     try {
-      setDoc(doc(db, "storeData", "products"), { products: updated });
+      updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error bulk deleting products from Firebase:", error);
+      // Fallback
+      setDoc(doc(db, "storeData", "products"), { products: updated });
     }
   };
 
@@ -1453,9 +1461,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = [...categories, newCategory];
     setCategories(updated);
     try {
-      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      updateDoc(doc(db, "storeData", "categories"), { categories: updated });
     } catch (error) {
       console.error("Error saving category:", error);
+      // Fallback
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
     }
   };
 
@@ -1463,9 +1473,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
     setCategories(updated);
     try {
-      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      updateDoc(doc(db, "storeData", "categories"), { categories: updated });
     } catch (error) {
       console.error("Error updating category:", error);
+      // Fallback to setDoc if updateDoc fails
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
     }
   };
 
@@ -1479,10 +1491,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     );
     setProducts(updatedProducts);
     try {
-      setDoc(doc(db, "storeData", "categories"), { categories: updated });
-      setDoc(doc(db, "storeData", "products"), { products: updatedProducts });
+      updateDoc(doc(db, "storeData", "categories"), { categories: updated });
+      updateDoc(doc(db, "storeData", "products"), { products: updatedProducts });
     } catch (error) {
       console.error("Error deleting category:", error);
+      // Fallback
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      setDoc(doc(db, "storeData", "products"), { products: updatedProducts });
     }
   };
 

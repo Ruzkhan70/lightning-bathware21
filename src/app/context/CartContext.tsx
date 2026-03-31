@@ -159,6 +159,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setCartItems([]);
+    // Also clear Firebase cart if user is logged in
+    const currentUser = localStorage.getItem("currentUser");
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        if (user?.id) {
+          const cartRef = doc(db, "carts", user.id);
+          setDoc(cartRef, { items: [], updatedAt: new Date().toISOString() }, { merge: true });
+        }
+      } catch (error) {
+        console.error("Error clearing Firebase cart:", error);
+      }
+    }
   };
 
   const cartTotal = cartItems.reduce(
