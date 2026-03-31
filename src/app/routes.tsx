@@ -61,6 +61,7 @@ export const router = createHashRouter([
       { path: "terms", element: <Suspense fallback={<ContentLoaderWrapper />}><Terms /></Suspense> },
       { path: "invoice/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><Invoice /></Suspense> },
       { path: "verify/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><VerifyInvoice /></Suspense> },
+      { path: "track", element: <Suspense fallback={<ContentLoaderWrapper />}><TrackOrder /></Suspense> },
       { path: "track/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><TrackOrder /></Suspense> },
     ],
   },

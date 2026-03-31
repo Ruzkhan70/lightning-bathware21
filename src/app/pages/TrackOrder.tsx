@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, ArrowLeft, ExternalLink } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, ArrowLeft, ExternalLink, Search } from "lucide-react";
 import { db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { Skeleton } from "../components/Skeleton";
 import { setMetaTags } from "../utils/seo";
 
@@ -40,9 +41,11 @@ const statusSteps = [
 
 export default function TrackOrder() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [order, setOrder] = useState<TrackedOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [searchId, setSearchId] = useState("");
 
   useEffect(() => {
     setMetaTags("Track Your Order | Lightning Bathware", "Track your order status and delivery information.");
@@ -50,7 +53,10 @@ export default function TrackOrder() {
 
   useEffect(() => {
     const fetchOrder = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -70,6 +76,13 @@ export default function TrackOrder() {
 
     fetchOrder();
   }, [id]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchId.trim()) {
+      navigate(`/track/${searchId.trim()}`);
+    }
+  };
 
   const getStepStatus = (stepKey: string) => {
     if (!order) return "pending";
@@ -95,13 +108,53 @@ export default function TrackOrder() {
     );
   }
 
+  if (!id) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-12">
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Package className="w-10 h-10 text-[#D4AF37]" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Track Your Order</h1>
+          <p className="text-gray-600 mb-6">
+            Enter your Order ID to check your order status and delivery information.
+          </p>
+          <form onSubmit={handleSearch} className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Enter your Order ID"
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              className="text-center text-lg py-6"
+            />
+            <Button 
+              type="submit" 
+              className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black py-6 text-lg"
+            >
+              <Search className="w-5 h-5 mr-2" />
+              Track Order
+            </Button>
+          </form>
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg text-left">
+            <p className="text-sm text-gray-500 mb-2">
+              <strong>Where to find your Order ID?</strong>
+            </p>
+            <p className="text-sm text-gray-500">
+              Your Order ID was sent to your email after checkout. Check your email inbox or SMS.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (notFound || !order) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <Link to="/">
+      <div className="max-w-md mx-auto px-4 py-12">
+        <Link to="/track">
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            Back to Search
           </Button>
         </Link>
         <div className="bg-white rounded-xl shadow-lg p-12 text-center">
@@ -112,8 +165,23 @@ export default function TrackOrder() {
           <p className="text-gray-600 mb-6">
             We couldn't find an order with this ID. Please check your order ID and try again.
           </p>
-          <Link to="/account">
-            <Button className="bg-[#D4AF37] hover:bg-[#C5A028] text-black">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Enter your Order ID"
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              className="text-center"
+            />
+            <Button 
+              type="submit" 
+              className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+            >
+              Try Again
+            </Button>
+          </form>
+          <Link to="/account" className="block mt-4">
+            <Button variant="outline" className="w-full">
               Go to My Account
             </Button>
           </Link>

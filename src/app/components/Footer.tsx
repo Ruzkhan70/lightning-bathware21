@@ -102,6 +102,14 @@ export default function Footer() {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/track"
+                  className="text-gray-400 hover:text-[#D4AF37] transition-colors"
+                >
+                  Track Order
+                </Link>
+              </li>
             </ul>
           </div>
 
