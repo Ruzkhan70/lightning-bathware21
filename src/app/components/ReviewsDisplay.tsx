@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star, ThumbsUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Star, ThumbsUp } from "lucide-react";
 import { useAdmin, Review } from "../context/AdminContext";
 import ReviewSubmission from "./ReviewSubmission";
 import { Button } from "./ui/button";
@@ -19,11 +19,18 @@ interface ReviewsDisplayProps {
 export default function ReviewsDisplay({ productId, productName }: ReviewsDisplayProps) {
   const { getApprovedReviewsByProduct, getAverageRating } = useAdmin();
   const [showForm, setShowForm] = useState(false);
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "highest" | "lowest">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "highest">("newest");
   const [showCount, setShowCount] = useState(5);
 
-  const reviews = getApprovedReviewsByProduct(productId);
-  const { average, count } = getAverageRating(productId);
+  const allReviews = getApprovedReviewsByProduct(productId);
+  const positiveReviews = allReviews.filter(r => r.rating >= 4);
+  const { average: allAverage, count: allCount } = getAverageRating(productId);
+  
+  const reviews = positiveReviews;
+  const positiveCount = positiveReviews.length;
+  const positiveAverage = positiveReviews.length > 0
+    ? positiveReviews.reduce((sum, r) => sum + r.rating, 0) / positiveReviews.length
+    : 0;
 
   const sortedReviews = [...reviews].sort((a, b) => {
     switch (sortBy) {
@@ -33,8 +40,6 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case "highest":
         return b.rating - a.rating;
-      case "lowest":
-        return a.rating - b.rating;
       default:
         return 0;
     }
@@ -69,11 +74,11 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
   );
 
   const renderRatingBars = () => {
-    const ratingCounts = [5, 4, 3, 2, 1].map(rating => ({
+    const ratingCounts = [5, 4].map(rating => ({
       rating,
-      count: reviews.filter(r => r.rating === rating).length,
-      percentage: reviews.length > 0 
-        ? (reviews.filter(r => r.rating === rating).length / reviews.length) * 100 
+      count: positiveReviews.filter(r => r.rating === rating).length,
+      percentage: positiveReviews.length > 0 
+        ? (positiveReviews.filter(r => r.rating === rating).length / positiveReviews.length) * 100 
         : 0,
     }));
 
@@ -126,18 +131,18 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
 
   return (
     <div className="border-t pt-8">
-      <h3 className="text-lg font-semibold mb-4">Customer Reviews ({count})</h3>
+      <h3 className="text-lg font-semibold mb-4">Customer Reviews ({positiveCount})</h3>
       
       <div className="grid md:grid-cols-3 gap-6 mb-6">
         <div className="text-center p-6 bg-[#D4AF37]/10 rounded-lg">
           <p className="text-5xl font-bold text-[#D4AF37] mb-2">
-            {average.toFixed(1)}
+            {positiveAverage.toFixed(1)}
           </p>
           <div className="flex justify-center mb-2">
-            {renderStars(Math.round(average), "md")}
+            {renderStars(Math.round(positiveAverage), "md")}
           </div>
           <p className="text-sm text-gray-600">
-            Based on {count} review{count !== 1 ? "s" : ""}
+            Based on {positiveCount} positive review{positiveCount !== 1 ? "s" : ""}
           </p>
         </div>
         
@@ -155,7 +160,6 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
             <SelectItem value="newest">Newest First</SelectItem>
             <SelectItem value="oldest">Oldest First</SelectItem>
             <SelectItem value="highest">Highest Rated</SelectItem>
-            <SelectItem value="lowest">Lowest Rated</SelectItem>
           </SelectContent>
         </Select>
         
