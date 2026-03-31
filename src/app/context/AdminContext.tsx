@@ -1112,6 +1112,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const seedDemoReviews = async () => {
+    console.log("Starting to seed reviews...", products.length, "products");
+    
     const DEMO_REVIEWERS = [
       { name: "Samantha Wickramasinghe", email: "samantha.w@example.lk" },
       { name: "Ranjith Perera", email: "ranjith.p@example.lk" },
@@ -1170,10 +1172,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return date.toISOString();
     };
 
+    if (products.length === 0) {
+      toast.error("No products found. Cannot seed reviews.");
+      return;
+    }
+
     let reviewsAdded = 0;
+    let errorsCount = 0;
     
     for (const product of products) {
       const numReviews = Math.floor(Math.random() * 6) + 20;
+      console.log(`Adding ${numReviews} reviews for product:`, product.name);
       
       for (let i = 0; i < numReviews; i++) {
         const reviewer = DEMO_REVIEWERS[Math.floor(Math.random() * DEMO_REVIEWERS.length)];
@@ -1205,13 +1214,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         try {
           await addDoc(collection(db, "reviews"), reviewData);
           reviewsAdded++;
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error adding review for product ${product.id}:`, error);
+          errorsCount++;
         }
       }
     }
     
-    toast.success(`Successfully added ${reviewsAdded} demo reviews with varied ratings!`);
+    console.log("Seeding complete:", reviewsAdded, "added,", errorsCount, "errors");
+    
+    if (reviewsAdded > 0) {
+      toast.success(`Successfully added ${reviewsAdded} demo reviews!`);
+    } else if (errorsCount > 0) {
+      toast.error(`Failed to add reviews. Check Firebase rules.`);
+    } else {
+      toast.error("No products available to add reviews.");
+    }
   };
 
   const addDemoOffers = async () => {

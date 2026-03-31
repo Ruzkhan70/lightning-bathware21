@@ -142,17 +142,22 @@ export default function AdminReviews() {
   };
 
   const handleSeedReviews = async () => {
+    console.log("handleSeedReviews called, products:", products.length);
+    
     if (products.length === 0) {
       toast.error("No products found. Please add products first.");
       return;
     }
     
     setIsSeeding(true);
+    console.log("Starting seeding...");
     
     try {
       await seedDemoReviews();
+      console.log("Seeding completed");
     } catch (error) {
       console.error("Seeding failed:", error);
+      toast.error("Failed to seed reviews. Check console for errors.");
     } finally {
       setIsSeeding(false);
     }
