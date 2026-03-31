@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award, Plus, Trash2 } from "lucide-react";
+import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award, Plus, Trash2, CreditCard, ToggleLeft, ToggleRight } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin, DEFAULT_SITE_CONTENT } from "../../context/AdminContext";
@@ -506,6 +506,54 @@ export default function AdminSettings() {
               <p className="text-xs text-gray-500 mt-2">
                 Set delivery prices for Colombo and islandwide. Set amount to 0 to offer free delivery.
               </p>
+            </div>
+
+            {/* Online Payment Settings */}
+            <div className="border-b pb-4">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <CreditCard className="w-4 h-4" /> Online Payment Settings
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${profileForm.enableOnlinePayment ? 'bg-green-100' : 'bg-gray-200'}`}>
+                      <CreditCard className={`w-5 h-5 ${profileForm.enableOnlinePayment ? 'text-green-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <Label htmlFor="enableOnlinePayment" className="text-base font-semibold cursor-pointer">
+                        Enable Online Payment
+                      </Label>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Allow customers to pay online using Payhere (card/e-wallet)
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProfileForm({ ...profileForm, enableOnlinePayment: !profileForm.enableOnlinePayment })}
+                    className="focus:outline-none"
+                  >
+                    {profileForm.enableOnlinePayment ? (
+                      <ToggleRight className="w-12 h-12 text-green-600" />
+                    ) : (
+                      <ToggleLeft className="w-12 h-12 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                
+                {profileForm.enableOnlinePayment && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <p className="text-sm text-amber-800">
+                      <strong>Note:</strong> To enable online payments, you need to add your Payhere credentials to the <code className="bg-amber-100 px-1 rounded">.env</code> file:
+                    </p>
+                    <ul className="text-xs text-amber-700 mt-2 space-y-1 list-disc list-inside">
+                      <li><code className="bg-amber-100 px-1 rounded">VITE_PAYHERE_MERCHANT_ID</code></li>
+                      <li><code className="bg-amber-100 px-1 rounded">VITE_PAYHERE_MERCHANT_SECRET</code></li>
+                      <li><code className="bg-amber-100 px-1 rounded">VITE_PAYHERE_SANDBOX</code> (set to "false" for production)</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Home Page Stats */}

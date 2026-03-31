@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAj9l_KjnAlTIkSmv5p_zoYO9dqz0pMIHQ",
-  authDomain: "lightningbathware.firebaseapp.com",
-  projectId: "lightningbathware",
-  storageBucket: "lightningbathware.firebasestorage.app",
-  messagingSenderId: "267352723728",
-  appId: "1:267352723728:web:69f322d8128dd9b04cd595"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, updateDoc, doc, getDocs, query, where } from "firebase/firestore";
 
@@ -8,6 +8,22 @@ export interface User {
   email: string;
   phone: string;
   address: string;
+}
+
+interface UserContextType {
+  user: User | null;
+  isLoggedIn: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; shouldSyncCart?: boolean }>;
+  register: (
+    name: string,
+    email: string,
+    phone: string,
+    address: string,
+    password: string
+  ) => Promise<boolean>;
+  logout: () => void;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
+  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 interface UserContextType {
@@ -42,11 +58,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
 
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; shouldSyncCart?: boolean }> => {
     try {
-      // Validate required fields
       if (!email?.trim() || !password?.trim()) {
-        return false;
+        return { success: false };
       }
 
       const usersRef = collection(db, "users");
@@ -62,14 +77,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
           phone: userData.phone || "",
           address: userData.address || "",
         };
+
+        const hasExistingCart = userData.hasCart || false;
+        
         setUser(loggedInUser);
         localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
-        return true;
+        
+        return { success: true, shouldSyncCart: hasExistingCart };
       }
-      return false;
+      return { success: false };
     } catch (error) {
       console.error("Login error:", error);
-      return false;
+      return { success: false };
     }
   };
 

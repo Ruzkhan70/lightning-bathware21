@@ -12,6 +12,7 @@ import {
   Shield,
   Award,
   Search,
+  PartyPopper,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
@@ -278,8 +279,9 @@ export default function Home() {
         <section className="py-16 bg-gradient-to-r from-red-600 via-red-500 to-orange-500">
           <div className="container mx-auto px-4">
             <div className="text-center text-white mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                🎉 Special Offers & Promotions
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center gap-2">
+                <PartyPopper className="w-8 h-8 text-yellow-300" />
+                Special Offers & Promotions
               </h2>
               <p className="text-lg md:text-xl mb-6">
                 Don't miss out on our amazing deals!

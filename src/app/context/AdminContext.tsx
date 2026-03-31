@@ -118,6 +118,7 @@ export interface StoreProfile {
   statsProducts: string;
   statsCustomers: string;
   statsAuthentic: string;
+  enableOnlinePayment: boolean;
 }
 
 export interface StoreAssets {
@@ -262,6 +263,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   statsProducts: "350+",
   statsCustomers: "5,000+",
   statsAuthentic: "100%",
+  enableOnlinePayment: false,
 };
 
 const DEFAULT_STORE_ASSETS: StoreAssets = {

@@ -9,13 +9,18 @@ import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import { ShoppingBag, Truck } from "lucide-react";
+import { ShoppingBag, Truck, CreditCard } from "lucide-react";
+import { loadPayhereScript, initiatePayherePayment, onPayhereCompleted, onPayhereClosed, isPayhereConfigured } from "../../lib/payhere";
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
   const { addOrder, createInvoice, storeProfile } = useAdmin();
   const { user, isLoggedIn } = useUser();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
+
+  const isOnlinePaymentEnabled = storeProfile.enableOnlinePayment && isPayhereConfigured();
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -78,29 +83,65 @@ export default function Checkout() {
       return;
     }
 
-    const orderData = {
-      customerName: formData.customerName,
-      phone: formData.phone,
-      address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,
-      products: cartItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        image: item.image,
-      })),
-      total: grandTotal,
-      deliveryOption: selectedDelivery?.label || "",
-      deliveryCost: deliveryCost,
-    };
-    
-    const savedOrder = await addOrder(orderData);
-    
-    const invoice = await createInvoice(savedOrder, formData.email);
+    setIsSubmitting(true);
 
-    clearCart();
-    toast.success("Order placed successfully! Invoice generated.");
-    navigate(`/invoice/${invoice.id}`);
+    try {
+      const orderData = {
+        customerName: formData.customerName,
+        phone: formData.phone,
+        address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,
+        products: cartItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+        })),
+        total: grandTotal,
+        deliveryOption: selectedDelivery?.label || "",
+        deliveryCost: deliveryCost,
+      };
+      
+      const savedOrder = await addOrder(orderData);
+      
+      if (paymentMethod === "online" && isOnlinePaymentEnabled) {
+        await loadPayhereScript();
+        
+        initiatePayherePayment({
+          orderId: savedOrder.id || `ORD-${Date.now()}`,
+          items: `${cartItems.length} item(s) from Lightning Bathware`,
+          amount: grandTotal,
+          currency: "LKR",
+          customerName: formData.customerName,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+        });
+
+        onPayhereCompleted(async (orderId) => {
+          const invoice = await createInvoice(savedOrder, formData.email);
+          clearCart();
+          setIsSubmitting(false);
+          toast.success("Payment successful! Order confirmed.");
+          navigate(`/invoice/${invoice.id}`);
+        });
+
+        onPayhereClosed(() => {
+          setIsSubmitting(false);
+          toast.info("Payment cancelled. Your order is saved.");
+        });
+      } else {
+        const invoice = await createInvoice(savedOrder, formData.email);
+        clearCart();
+        setIsSubmitting(false);
+        toast.success("Order placed successfully! Invoice generated.");
+        navigate(`/invoice/${invoice.id}`);
+      }
+    } catch (error) {
+      setIsSubmitting(false);
+      toast.error("Failed to place order. Please try again.");
+    }
   };
 
   if (!isLoggedIn) {
@@ -296,6 +337,65 @@ export default function Checkout() {
                   ))}
                 </div>
               </div>
+
+              {/* Payment Options */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-bold mb-6">Payment Method</h2>
+                <div className="space-y-3">
+                  <div
+                    onClick={() => setPaymentMethod("cod")}
+                    className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      paymentMethod === "cod"
+                        ? "border-[#D4AF37] bg-[#D4AF37]/5"
+                        : "border-gray-200 hover:border-[#D4AF37]/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        paymentMethod === "cod"
+                          ? "border-[#D4AF37] bg-[#D4AF37]"
+                          : "border-gray-300"
+                      }`}>
+                        {paymentMethod === "cod" && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-semibold block">Cash on Delivery</span>
+                        <span className="text-sm text-gray-500">Pay when you receive your order</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {isOnlinePaymentEnabled && (
+                    <div
+                      onClick={() => setPaymentMethod("online")}
+                      className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        paymentMethod === "online"
+                          ? "border-[#D4AF37] bg-[#D4AF37]/5"
+                          : "border-gray-200 hover:border-[#D4AF37]/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          paymentMethod === "online"
+                            ? "border-[#D4AF37] bg-[#D4AF37]"
+                            : "border-gray-300"
+                        }`}>
+                          {paymentMethod === "online" && (
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-semibold block">Pay Online (Payhere)</span>
+                          <span className="text-sm text-gray-500">Pay securely with card or e-Wallet</span>
+                        </div>
+                      </div>
+                      <CreditCard className="w-5 h-5 text-[#D4AF37]" />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Order Summary */}
@@ -353,9 +453,14 @@ export default function Checkout() {
                 <Button
                   type="submit"
                   size="lg"
+                  disabled={isSubmitting}
                   className="w-full bg-black hover:bg-[#D4AF37] text-white"
                 >
-                  Place Order
+                  {isSubmitting 
+                    ? "Processing..." 
+                    : paymentMethod === "online" 
+                      ? "Proceed to Payment" 
+                      : "Place Order (Cash on Delivery)"}
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center mt-4">

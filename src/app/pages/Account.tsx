@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText } from "lucide-react";
+import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText, RefreshCw } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
+import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import emailjs from "@emailjs/browser";
 import { db } from "../../firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Order } from "../context/AdminContext";
+import { cn } from "../../lib/utils";
 
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
@@ -19,6 +21,7 @@ export default function Account() {
   const navigate = useNavigate();
   const { user, isLoggedIn, login, register, logout, resetPassword } = useUser();
   const { orders, invoices, storeProfile, getInvoiceByOrderId } = useAdmin();
+  const { syncCartWithFirebase, isSyncing } = useCart();
   const safeOrders = orders || [];
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
@@ -99,11 +102,15 @@ export default function Account() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(loginEmail, loginPassword);
-    if (success) {
+    const result = await login(loginEmail, loginPassword);
+    if (result.success) {
       toast.success("Welcome back!");
       setLoginEmail("");
       setLoginPassword("");
+      if (result.shouldSyncCart && user?.id) {
+        await syncCartWithFirebase(user.id);
+        toast.success("Your cart has been synced!");
+      }
     } else {
       toast.error("Invalid email or password");
     }
@@ -243,6 +250,13 @@ export default function Account() {
     toast.success("Logged out successfully");
   };
 
+  const handleSyncCart = async () => {
+    if (user?.id) {
+      await syncCartWithFirebase(user.id);
+      toast.success("Cart synced successfully!");
+    }
+  };
+
   const userOrders = isLoggedIn && user?.phone
     ? orders.filter((order) => order?.phone === user?.phone)
     : [];
@@ -280,6 +294,15 @@ export default function Account() {
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
+                </Button>
+                <Button
+                  onClick={handleSyncCart}
+                  variant="outline"
+                  disabled={isSyncing}
+                  className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                >
+                  <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
+                  {isSyncing ? "Syncing..." : "Sync Cart"}
                 </Button>
               </div>
 
