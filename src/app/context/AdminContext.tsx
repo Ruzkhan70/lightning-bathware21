@@ -268,6 +268,7 @@ interface AdminContextType {
   rejectReview: (id: string) => Promise<void>;
   getApprovedReviewsByProduct: (productId: string) => Review[];
   getAverageRating: (productId: string) => { average: number; count: number };
+  seedDemoReviews: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -1110,6 +1111,115 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  const seedDemoReviews = async () => {
+    try {
+      const DEMO_REVIEWERS = [
+        { name: "Samantha Wickramasinghe", email: "samantha.w@example.lk" },
+        { name: "Ranjith Perera", email: "ranjith.p@example.lk" },
+        { name: "Dilini Fernando", email: "dilini.f@example.lk" },
+        { name: "Chamara Jayawardena", email: "chamara.j@example.lk" },
+        { name: "Nimali Gunasekara", email: "nimali.g@example.lk" },
+        { name: "Kamal Silva", email: "kamal.s@example.lk" },
+        { name: "Isuri Dissanayake", email: "isuri.d@example.lk" },
+        { name: "Buddhika Rathnayake", email: "buddhika.r@example.lk" },
+        { name: "Anusha Liyanage", email: "anusha.l@example.lk" },
+        { name: "Sunil Banda", email: "sunil.b@example.lk" },
+        { name: "Kavindi Seneviratne", email: "kavindi.s@example.lk" },
+        { name: "Pradeep Kumara", email: "pradeep.k@example.lk" },
+        { name: "Madhawa Herath", email: "madhawa.h@example.lk" },
+        { name: "Tharushi Peris", email: "tharushi.p@example.lk" },
+        { name: "Asela Jayasinghe", email: "asela.j@example.lk" },
+      ];
+
+      const REVIEW_COMMENTS = {
+        5: [
+          "Absolutely excellent product! The quality exceeded my expectations. Highly recommend!",
+          "Best purchase I've made. The craftsmanship is outstanding.",
+          "Superb quality and fast delivery. Very satisfied!",
+          "Outstanding product! Worth every rupee.",
+          "Fantastic quality for the price. Works perfectly.",
+          "I'm extremely happy with this. The design is modern.",
+          "This product has transformed my space.",
+          "Five stars! Well-made and great customer service.",
+          "Perfect addition to my home. Quality is top-notch.",
+          "Wonderful product! Easy to install.",
+        ],
+        4: [
+          "Very good quality. Minor packaging issue but overall excellent.",
+          "Great value for money. The design is elegant.",
+          "Impressed with the product. The finish is smooth.",
+          "Good product overall. Delivery was quick.",
+          "Nice product with good quality. Would recommend.",
+          "Satisfied with this purchase. The quality is solid.",
+          "Good quality for the price. Arrived in perfect condition.",
+          "Very nice product. Easy to use.",
+          "Happy with this buy. Well-crafted and looks elegant.",
+          "Solid product with good design.",
+        ],
+        3: [
+          "Decent product for the price. Quality is okay.",
+          "Average quality. Does the job but not exceptional.",
+          "Product is okay but delivery took longer than expected.",
+          "Fair quality. Some parts felt a bit flimsy.",
+          "Not bad, not great. Okay for basic needs.",
+        ],
+      };
+
+      const generateDate = (daysAgo: number) => {
+        const date = new Date();
+        date.setDate(date.getDate() - daysAgo);
+        return date.toISOString();
+      };
+
+      let reviewsAdded = 0;
+      
+      for (const product of products) {
+        const numReviews = Math.floor(Math.random() * 6) + 20;
+        
+        for (let i = 0; i < numReviews; i++) {
+          const reviewer = DEMO_REVIEWERS[Math.floor(Math.random() * DEMO_REVIEWERS.length)];
+          
+          // Generate varied ratings for each product - some products have higher avg, some lower
+          const productSeed = product.id.charCodeAt(0) + product.id.charCodeAt(1);
+          const ratingRandom = Math.random() + (productSeed % 10) / 20;
+          let rating: number;
+          if (ratingRandom < 0.4) rating = 5;
+          else if (ratingRandom < 0.7) rating = 4;
+          else if (ratingRandom < 0.9) rating = 3;
+          else if (ratingRandom < 0.95) rating = 2;
+          else rating = 1;
+          
+          const comments = REVIEW_COMMENTS[rating as keyof typeof REVIEW_COMMENTS];
+          const comment = comments[Math.floor(Math.random() * comments.length)];
+          const daysAgo = Math.floor(Math.random() * 90);
+          
+          const reviewData = {
+            productId: product.id,
+            productName: product.name,
+            userName: reviewer.name,
+            userEmail: reviewer.email,
+            rating,
+            comment,
+            status: "approved",
+            createdAt: generateDate(daysAgo),
+          };
+          
+          try {
+            await addDoc(collection(db, "reviews"), reviewData);
+            reviewsAdded++;
+          } catch (error) {
+            console.error(`Error adding review for product ${product.id}:`, error);
+          }
+        }
+      }
+      
+      toast.success(`Successfully added ${reviewsAdded} demo reviews with varied ratings!`);
+    } catch (error) {
+      console.error("Error seeding demo reviews:", error);
+      toast.error("Failed to seed demo reviews");
+    }
+  };
+
   const addDemoOffers = async () => {
     try {
       pendingUpdates.current.offers = true;
@@ -1864,6 +1974,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         rejectReview,
         getApprovedReviewsByProduct,
         getAverageRating,
+        seedDemoReviews,
       }}
     >
       {children}

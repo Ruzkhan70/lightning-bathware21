@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star, Check, X, Trash2, Edit2, Search, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Star, Check, X, Trash2, Edit2, Search, CheckCircle, XCircle, Clock, Database, RefreshCw } from "lucide-react";
 import { useAdmin, Review } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -26,13 +26,15 @@ export default function AdminReviews() {
     updateReview, 
     deleteReview, 
     approveReview, 
-    rejectReview 
+    rejectReview,
+    seedDemoReviews
   } = useAdmin();
   
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
   const [editForm, setEditForm] = useState({
     userName: "",
     rating: 5,
@@ -111,6 +113,20 @@ export default function AdminReviews() {
       await rejectReview(reviewId);
     } catch (error) {
       toast.error("Failed to reject review");
+    }
+  };
+
+  const handleSeedReviews = async () => {
+    if (products.length === 0) {
+      toast.error("No products found. Please add products first.");
+      return;
+    }
+    
+    setIsSeeding(true);
+    try {
+      await seedDemoReviews();
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -198,8 +214,8 @@ export default function AdminReviews() {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               placeholder="Search reviews..."
@@ -219,6 +235,23 @@ export default function AdminReviews() {
               <SelectItem value="rejected">Rejected ({rejectedCount})</SelectItem>
             </SelectContent>
           </Select>
+          <Button
+            onClick={handleSeedReviews}
+            disabled={isSeeding}
+            className="bg-[#D4AF37] hover:bg-[#b8962f] text-black w-full md:w-auto"
+          >
+            {isSeeding ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Seeding...
+              </>
+            ) : (
+              <>
+                <Database className="w-4 h-4 mr-2" />
+                Seed Demo Reviews
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
