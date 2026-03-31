@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText, RefreshCw } from "lucide-react";
+import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText, RefreshCw, Search, ExternalLink } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
@@ -9,7 +9,7 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import emailjs from "@emailjs/browser";
 import { db } from "../../firebase";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "firebase/firestore";
 import { Order } from "../context/AdminContext";
 import { cn } from "../../lib/utils";
 
@@ -52,7 +52,14 @@ export default function Account() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [activeTab, setActiveTab] = useState<"orders" | "track">("orders");
   const previousOrderStatuses = useRef<Record<string, string>>({});
+  
+  // Track Order state
+  const [trackOrderId, setTrackOrderId] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
+  const [trackLoading, setTrackLoading] = useState(false);
+  const [trackError, setTrackError] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn || !user?.phone) {
@@ -270,6 +277,31 @@ export default function Account() {
     }
   };
 
+  const handleTrackOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trackOrderId.trim()) {
+      toast.error("Please enter an Order ID");
+      return;
+    }
+    
+    setTrackLoading(true);
+    setTrackError("");
+    setTrackedOrder(null);
+    
+    try {
+      const orderDoc = await getDoc(doc(db, "orders", trackOrderId.trim()));
+      if (orderDoc.exists()) {
+        setTrackedOrder({ id: orderDoc.id, ...orderDoc.data() } as Order);
+      } else {
+        setTrackError("Order not found. Please check your Order ID.");
+      }
+    } catch (error) {
+      setTrackError("Error fetching order. Please try again.");
+    } finally {
+      setTrackLoading(false);
+    }
+  };
+
   if (isLoggedIn && user) {
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -335,16 +367,51 @@ export default function Account() {
               </div>
             </div>
 
-            {/* Orders Section */}
-            <div className="bg-white rounded-xl shadow-sm p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Package className="w-6 h-6 text-[#D4AF37]" />
-                  <h2 className="text-2xl font-bold">My Orders</h2>
-                </div>
+            {/* Tabs */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+              <div className="flex border-b">
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-medium transition-colors ${
+                    activeTab === "orders"
+                      ? "bg-[#D4AF37] text-black"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Package className="w-5 h-5" />
+                  My Orders
+                  {userOrders.length > 0 && (
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      activeTab === "orders" ? "bg-black text-white" : "bg-gray-200 text-gray-600"
+                    }`}>
+                      {userOrders.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("track")}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-medium transition-colors ${
+                    activeTab === "track"
+                      ? "bg-[#D4AF37] text-black"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Search className="w-5 h-5" />
+                  Track Order
+                </button>
               </div>
 
-              {userOrders.length === 0 ? (
+              {/* Tab Content */}
+              {activeTab === "orders" && (
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Package className="w-6 h-6 text-[#D4AF37]" />
+                    <h2 className="text-2xl font-bold">My Orders</h2>
+                  </div>
+                </div>
+
+                {userOrders.length === 0 ? (
                 <div className="text-center py-12">
                   <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                   <p className="text-gray-600">No orders yet</p>
@@ -402,11 +469,160 @@ export default function Account() {
                             View Details →
                           </p>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                  </div>
                 </div>
               )}
+            </div>
+            )}
+
+            {/* Track Order Tab */}
+            {activeTab === "track" && (
+            <div className="bg-white rounded-xl shadow-sm p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Search className="w-6 h-6 text-[#D4AF37]" />
+                  <h2 className="text-2xl font-bold">Track Your Order</h2>
+                </div>
+              </div>
+
+              <form onSubmit={handleTrackOrder} className="mb-8">
+                <div className="flex gap-3">
+                  <Input
+                    type="text"
+                    placeholder="Enter your Order ID (e.g., LB7X9K2M)"
+                    value={trackOrderId}
+                    onChange={(e) => setTrackOrderId(e.target.value)}
+                    className="flex-1 text-lg py-6"
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={trackLoading}
+                    className="bg-[#D4AF37] hover:bg-[#C5A028] text-black px-8"
+                  >
+                    {trackLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Search className="w-5 h-5 mr-2" />
+                        Track
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+
+              {trackError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-center">
+                  {trackError}
+                </div>
+              )}
+
+              {trackedOrder && (
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <p className="text-sm text-gray-500">Order ID</p>
+                    <p className="text-2xl font-bold font-mono">{trackedOrder.id}</p>
+                  </div>
+
+                  {/* Status */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-500">Order Status</p>
+                        <span
+                          className={`inline-block mt-1 px-4 py-2 rounded-full text-sm font-medium ${
+                            trackedOrder.status === "Delivered"
+                              ? "bg-green-100 text-green-700"
+                              : trackedOrder.status === "Processing"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {trackedOrder.status}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Total</p>
+                        <p className="text-2xl font-bold text-[#D4AF37]">Rs. {trackedOrder.total.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery Tracking */}
+                  {trackedOrder.trackingNumber && (
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Truck className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-semibold">Delivery Tracking</h3>
+                      </div>
+                      <p className="text-sm text-gray-500">Tracking Number</p>
+                      <p className="font-mono font-bold text-lg">{trackedOrder.trackingNumber}</p>
+                      {trackedOrder.trackingUrl && (
+                        <a
+                          href={trackedOrder.trackingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          Track on Courier Website
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Products */}
+                  <div>
+                    <h3 className="font-semibold mb-3">Ordered Items</h3>
+                    <div className="space-y-3">
+                      {trackedOrder.products.map((product: any, index: number) => (
+                        <div key={product.id || index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                          <img
+                            src={product.image || "/placeholder.png"}
+                            alt={product.name || "Product"}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium">{product.name || "Unknown Product"}</p>
+                            <p className="text-sm text-gray-500">Qty: {product.quantity || 1}</p>
+                          </div>
+                          <p className="font-semibold">Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => {
+                        setSelectedOrder(trackedOrder);
+                        setActiveTab("orders");
+                      }}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      View Full Details
+                    </Button>
+                    <Button
+                      onClick={() => handleViewInvoice(trackedOrder.id)}
+                      className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      View Invoice
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!trackedOrder && !trackError && !trackLoading && (
+                <div className="text-center py-8 text-gray-500">
+                  <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p>Enter your Order ID above to track your order status</p>
+                </div>
+              )}
+            </div>
+            )}
             </div>
 
             {/* Order Details Modal */}
