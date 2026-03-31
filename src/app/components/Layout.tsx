@@ -4,7 +4,6 @@ import Footer from "./Footer";
 import ShortcutManager from "./admin/ShortcutManager";
 import ScrollToTop from "./ScrollToTop";
 import PageTransition from "./PageTransition";
-import WhatsAppButton from "./WhatsAppButton";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { Analytics } from "../utils/analytics";
 
@@ -24,7 +23,6 @@ export default function Layout() {
           </PageTransition>
         </main>
         <Footer />
-        <WhatsAppButton />
       </div>
     </ErrorBoundary>
   );

@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { ShoppingBag, Truck, CreditCard } from "lucide-react";
 import { loadPayhereScript, initiatePayherePayment, onPayhereCompleted, onPayhereClosed, isPayhereConfigured } from "../../lib/payhere";
 import { sendOrderNotificationToAdmin } from "../../lib/emailNotifications";
-import { sendWhatsAppNotification } from "../../lib/whatsappNotification";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -124,9 +123,8 @@ export default function Checkout() {
         date: new Date().toLocaleString("en-LK"),
       };
       
-      // Send notifications
+      // Send notification to admin
       sendOrderNotificationToAdmin(orderNotification);
-      sendWhatsAppNotification(orderNotification);
       
       if (paymentMethod === "online" && isOnlinePaymentEnabled) {
         await loadPayhereScript();
