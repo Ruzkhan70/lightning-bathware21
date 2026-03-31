@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText, RefreshCw, Search, ExternalLink } from "lucide-react";
+import { User, LogOut, Package, MapPin, Phone, Mail, Eye, EyeOff, ArrowLeft, Loader2, X, Truck, ShoppingBag, FileText, RefreshCw } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
@@ -9,7 +9,7 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import emailjs from "@emailjs/browser";
 import { db } from "../../firebase";
-import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Order } from "../context/AdminContext";
 import { cn } from "../../lib/utils";
 
@@ -52,14 +52,7 @@ export default function Account() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [activeTab, setActiveTab] = useState<"orders" | "track">("orders");
   const previousOrderStatuses = useRef<Record<string, string>>({});
-  
-  // Track Order state
-  const [trackOrderId, setTrackOrderId] = useState("");
-  const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
-  const [trackLoading, setTrackLoading] = useState(false);
-  const [trackError, setTrackError] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn || !user?.phone) {
@@ -277,31 +270,6 @@ export default function Account() {
     }
   };
 
-  const handleTrackOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trackOrderId.trim()) {
-      toast.error("Please enter an Order ID");
-      return;
-    }
-    
-    setTrackLoading(true);
-    setTrackError("");
-    setTrackedOrder(null);
-    
-    try {
-      const orderDoc = await getDoc(doc(db, "orders", trackOrderId.trim()));
-      if (orderDoc.exists()) {
-        setTrackedOrder({ id: orderDoc.id, ...orderDoc.data() } as Order);
-      } else {
-        setTrackError("Order not found. Please check your Order ID.");
-      }
-    } catch (error) {
-      setTrackError("Error fetching order. Please try again.");
-    } finally {
-      setTrackLoading(false);
-    }
-  };
-
   if (isLoggedIn && user) {
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -319,26 +287,28 @@ export default function Account() {
                     <p className="text-gray-600">Customer Account</p>
                   </div>
                 </div>
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
-                <div className="flex flex-col gap-1">
-                  <Button
-                    onClick={handleSyncCart}
-                    variant="outline"
-                    disabled={isSyncing}
-                    title="Merges your saved cart items with your current cart"
-                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                  >
-                    <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
-                    {isSyncing ? "Syncing..." : "Sync Cart"}
-                  </Button>
-                  <p className="text-xs text-gray-500 text-center">Merge your saved items with current cart</p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSyncCart}
+                      variant="outline"
+                      disabled={isSyncing}
+                      title="Merges your saved cart items with your current cart"
+                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                    >
+                      <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
+                      {isSyncing ? "Syncing..." : "Sync Cart"}
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      variant="outline"
+                      className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">Sync Cart merges your saved items with current cart</p>
                 </div>
               </div>
 
@@ -367,373 +337,194 @@ export default function Account() {
               </div>
             </div>
 
-            {/* Tabs */}
+            {/* My Orders Section */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-              <div className="flex border-b">
-                <button
-                  onClick={() => setActiveTab("orders")}
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-medium transition-colors ${
-                    activeTab === "orders"
-                      ? "bg-[#D4AF37] text-black"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Package className="w-5 h-5" />
-                  My Orders
-                  {userOrders.length > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${
-                      activeTab === "orders" ? "bg-black text-white" : "bg-gray-200 text-gray-600"
-                    }`}>
-                      {userOrders.length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => setActiveTab("track")}
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-medium transition-colors ${
-                    activeTab === "track"
-                      ? "bg-[#D4AF37] text-black"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Search className="w-5 h-5" />
-                  Track Order
-                </button>
+              <div className="bg-[#D4AF37] text-black px-6 py-4 flex items-center gap-3">
+                <Package className="w-6 h-6" />
+                <h2 className="text-xl font-bold">My Orders</h2>
+                {userOrders.length > 0 && (
+                  <span className="ml-auto px-3 py-1 rounded-full text-sm bg-black text-white">
+                    {userOrders.length}
+                  </span>
+                )}
               </div>
-
-              {/* Tab Content */}
-              {activeTab === "orders" && (
               <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <Package className="w-6 h-6 text-[#D4AF37]" />
-                    <h2 className="text-2xl font-bold">My Orders</h2>
-                  </div>
-                </div>
-
                 {userOrders.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-600">No orders yet</p>
-                  <Button
-                    onClick={() => navigate("/products")}
-                    className="mt-4 bg-black hover:bg-[#D4AF37] text-white"
-                  >
-                    Browse Products
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {userOrders.map((order) => (
-                    <div
-                      key={order.id}
-                      onClick={() => setSelectedOrder(order)}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  <div className="text-center py-12">
+                    <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-600">No orders yet</p>
+                    <Button
+                      onClick={() => navigate("/products")}
+                      className="mt-4 bg-black hover:bg-[#D4AF37] text-white"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="font-bold text-lg">
-                            Order #{order.id}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(order.date).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === "Delivered"
-                              ? "bg-green-100 text-green-700"
-                              : order.status === "Processing"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-
-                      <div className="border-t border-gray-200 pt-3">
-                        <p className="text-sm text-gray-600 mb-2">
-                          {order.products.length} item
-                          {order.products.length > 1 ? "s" : ""}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <p className="font-bold text-xl text-[#D4AF37]">
-                            Rs. {order.total.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-[#D4AF37] font-medium hover:underline">
-                            View Details →
-                          </p>
-                        </div>
+                      Browse Products
+                    </Button>
                   </div>
-                </div>
-              )}
-            </div>
-            )}
-
-            {/* Track Order Tab */}
-            {activeTab === "track" && (
-            <div className="bg-white rounded-xl shadow-sm p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Search className="w-6 h-6 text-[#D4AF37]" />
-                  <h2 className="text-2xl font-bold">Track Your Order</h2>
-                </div>
-              </div>
-
-              <form onSubmit={handleTrackOrder} className="mb-8">
-                <div className="flex gap-3">
-                  <Input
-                    type="text"
-                    placeholder="Enter your Order ID (e.g., LB7X9K2M)"
-                    value={trackOrderId}
-                    onChange={(e) => setTrackOrderId(e.target.value)}
-                    className="flex-1 text-lg py-6"
-                  />
-                  <Button 
-                    type="submit" 
-                    disabled={trackLoading}
-                    className="bg-[#D4AF37] hover:bg-[#C5A028] text-black px-8"
-                  >
-                    {trackLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Search className="w-5 h-5 mr-2" />
-                        Track
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-
-              {trackError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-center">
-                  {trackError}
-                </div>
-              )}
-
-              {trackedOrder && (
-                <div className="space-y-6">
-                  <div className="border-b pb-4">
-                    <p className="text-sm text-gray-500">Order ID</p>
-                    <p className="text-2xl font-bold font-mono">{trackedOrder.id}</p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Order Status</p>
-                        <span
-                          className={`inline-block mt-1 px-4 py-2 rounded-full text-sm font-medium ${
-                            trackedOrder.status === "Delivered"
-                              ? "bg-green-100 text-green-700"
-                              : trackedOrder.status === "Processing"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
+                ) : (
+                    <div className="space-y-4">
+                      {userOrders.map((order) => (
+                        <div
+                          key={order.id}
+                          onClick={() => setSelectedOrder(order)}
+                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                         >
-                          {trackedOrder.status}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">Total</p>
-                        <p className="text-2xl font-bold text-[#D4AF37]">Rs. {trackedOrder.total.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Delivery Tracking */}
-                  {trackedOrder.trackingNumber && (
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Truck className="w-5 h-5 text-blue-600" />
-                        <h3 className="font-semibold">Delivery Tracking</h3>
-                      </div>
-                      <p className="text-sm text-gray-500">Tracking Number</p>
-                      <p className="font-mono font-bold text-lg">{trackedOrder.trackingNumber}</p>
-                      {trackedOrder.trackingUrl && (
-                        <a
-                          href={trackedOrder.trackingUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-3 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          Track on Courier Website
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Products */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Ordered Items</h3>
-                    <div className="space-y-3">
-                      {trackedOrder.products.map((product: any, index: number) => (
-                        <div key={product.id || index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                          <img
-                            src={product.image || "/placeholder.png"}
-                            alt={product.name || "Product"}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium">{product.name || "Unknown Product"}</p>
-                            <p className="text-sm text-gray-500">Qty: {product.quantity || 1}</p>
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <p className="font-bold text-lg">Order #{order.id}</p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(order.date).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                order.status === "Delivered"
+                                  ? "bg-green-100 text-green-700"
+                                  : order.status === "Processing"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
                           </div>
-                          <p className="font-semibold">Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
+                          <div className="border-t border-gray-200 pt-3">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {order.products.length} item{order.products.length > 1 ? "s" : ""}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-xl text-[#D4AF37]">
+                                Rs. {order.total.toLocaleString()}
+                              </p>
+                              <p className="text-sm text-[#D4AF37] font-medium hover:underline">
+                                View Details →
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
+                </div>
+            </div>
+          </div>
+        </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => {
-                        setSelectedOrder(trackedOrder);
-                        setActiveTab("orders");
-                      }}
-                      variant="outline"
-                      className="flex-1"
+        {/* Order Details Modal */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Order Details</h2>
+                  <p className="text-sm text-gray-500">
+                    Order #{selectedOrder.id} • {new Date(selectedOrder.date).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold mb-2">Order Status</h3>
+                    <span
+                      className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
+                        selectedOrder.status === "Delivered"
+                          ? "bg-green-100 text-green-700"
+                          : selectedOrder.status === "Processing"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
                     >
-                      View Full Details
-                    </Button>
-                    <Button
-                      onClick={() => handleViewInvoice(trackedOrder.id)}
-                      className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      View Invoice
-                    </Button>
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => handleViewInvoice(selectedOrder.id)}
+                    className="bg-[#D4AF37] hover:bg-[#b8962f] text-white"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    View Invoice
+                  </Button>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Truck className="w-5 h-5 text-[#D4AF37]" />
+                    <h3 className="font-semibold">Delivery Information</h3>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <span className="font-medium">Delivery Type:</span> {selectedOrder.deliveryOption}
+                    </p>
+                    <p>
+                      <span className="font-medium">Delivery Cost:</span> Rs. {selectedOrder.deliveryCost.toLocaleString()}
+                    </p>
+                    <p>
+                      <span className="font-medium">Address:</span> {selectedOrder.address}
+                    </p>
                   </div>
                 </div>
-              )}
 
-              {!trackedOrder && !trackError && !trackLoading && (
-                <div className="text-center py-8 text-gray-500">
-                  <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                  <p>Enter your Order ID above to track your order status</p>
-                </div>
-              )}
-            </div>
-            )}
-            </div>
-
-            {/* Order Details Modal */}
-            {selectedOrder && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                  <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold">Order Details</h2>
-                      <p className="text-sm text-gray-500">
-                        Order #{selectedOrder.id} • {new Date(selectedOrder.date).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setSelectedOrder(null)}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <ShoppingBag className="w-5 h-5 text-[#D4AF37]" />
+                    <h3 className="font-semibold">Ordered Items</h3>
                   </div>
-
-                  <div className="p-6 space-y-6">
-                    {/* Status */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold mb-2">Order Status</h3>
-                        <span
-                          className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                            selectedOrder.status === "Delivered"
-                              ? "bg-green-100 text-green-700"
-                              : selectedOrder.status === "Processing"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {selectedOrder.status}
-                        </span>
-                      </div>
-                      <Button
-                        onClick={() => handleViewInvoice(selectedOrder.id)}
-                        className="bg-[#D4AF37] hover:bg-[#b8962f] text-white"
+                  <div className="space-y-3">
+                    {(selectedOrder.products || []).map((product: any, index: number) => (
+                      <div
+                        key={product.id || index}
+                        className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        <FileText className="w-4 h-4 mr-2" />
-                        View Invoice
-                      </Button>
-                    </div>
+                        <img
+                          src={product.image || "/placeholder.png"}
+                          alt={product.name || "Product"}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium">{product.name || "Unknown Product"}</p>
+                          <p className="text-sm text-gray-500">Qty: {product.quantity || 1}</p>
+                        </div>
+                        <p className="font-semibold text-[#D4AF37]">
+                          Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                    {/* Delivery Info */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Truck className="w-5 h-5 text-[#D4AF37]" />
-                        <h3 className="font-semibold">Delivery Information</h3>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Delivery Type:</span> {selectedOrder.deliveryOption}</p>
-                        <p><span className="font-medium">Delivery Cost:</span> Rs. {selectedOrder.deliveryCost.toLocaleString()}</p>
-                        <p><span className="font-medium">Address:</span> {selectedOrder.address}</p>
-                      </div>
-                    </div>
-
-                    {/* Products */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <ShoppingBag className="w-5 h-5 text-[#D4AF37]" />
-                        <h3 className="font-semibold">Ordered Items</h3>
-                      </div>
-                      <div className="space-y-3">
-                        {(selectedOrder.products || []).map((product: any, index: number) => (
-                          <div key={product.id || index} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            <img
-                              src={product.image || "/placeholder.png"}
-                              alt={product.name || "Product"}
-                              className="w-16 h-16 object-cover rounded-lg"
-                            />
-                            <div className="flex-1">
-                              <p className="font-medium">{product.name || "Unknown Product"}</p>
-                              <p className="text-sm text-gray-500">Qty: {product.quantity || 1}</p>
-                            </div>
-                            <p className="font-semibold text-[#D4AF37]">
-                              Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Order Summary */}
-                    <div className="bg-[#D4AF37]/10 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Subtotal</span>
-                        <span>Rs. {((selectedOrder.total || 0) - (selectedOrder.deliveryCost || 0)).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Delivery</span>
-                        <span>Rs. {(selectedOrder.deliveryCost || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="border-t border-[#D4AF37]/30 pt-2 flex justify-between font-bold text-lg">
-                        <span>Total</span>
-                        <span className="text-[#D4AF37]">Rs. {(selectedOrder.total || 0).toLocaleString()}</span>
-                      </div>
-                    </div>
+                <div className="bg-[#D4AF37]/10 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>Rs. {((selectedOrder.total || 0) - (selectedOrder.deliveryCost || 0)).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Delivery</span>
+                    <span>Rs. {(selectedOrder.deliveryCost || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="border-t border-[#D4AF37]/30 pt-2 flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span className="text-[#D4AF37]">Rs. {(selectedOrder.total || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
