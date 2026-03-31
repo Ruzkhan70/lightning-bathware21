@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const TOTAL_TIMEOUT = 120; // 2 minutes in seconds
-const WARNING_THRESHOLD = 30; // Show warning when 30 seconds remaining
+const TOTAL_TIMEOUT = 1800; // 30 minutes in seconds
+const WARNING_THRESHOLD = 60; // Show warning when 60 seconds remaining
 
 interface UseAdminTimeoutReturn {
   showWarning: boolean;
@@ -68,17 +68,16 @@ export function useAdminTimeout(
 
   // Activity tracking - reset timer on user activity
   useEffect(() => {
-    if (!isLoggedIn || showWarning) return;
+    if (!isLoggedIn) return;
 
     const handleActivity = () => {
-      // Only reset if we're not showing warning
       if (!showWarning) {
         setRemainingTime(TOTAL_TIMEOUT);
       }
     };
 
     const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
-    const throttledHandler = throttle(handleActivity, 1000); // Throttle to 1 second
+    const throttledHandler = throttle(handleActivity, 5000); // Throttle to 5 seconds
 
     events.forEach((event) => {
       window.addEventListener(event, throttledHandler, { passive: true });
