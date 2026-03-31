@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, ArrowLeft } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, ArrowLeft, ExternalLink } from "lucide-react";
 import { db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Button } from "../components/ui/button";
@@ -27,6 +27,9 @@ interface TrackedOrder {
   date: string;
   deliveryOption: string;
   deliveryCost: number;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  courierName?: string;
 }
 
 const statusSteps = [
@@ -148,7 +151,7 @@ export default function TrackOrder() {
             />
           </div>
 
-          {statusSteps.map((step, index) => {
+          {statusSteps.map((step) => {
             const status = getStepStatus(step.key);
             const Icon = step.icon;
             return (
@@ -184,6 +187,41 @@ export default function TrackOrder() {
           </div>
         )}
       </div>
+
+      {/* Tracking Information */}
+      {order.trackingNumber && (
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Truck className="w-5 h-5 text-[#D4AF37]" />
+            Delivery Tracking
+          </h2>
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Tracking Number</p>
+                <p className="font-mono font-bold text-lg">{order.trackingNumber}</p>
+              </div>
+              {order.courierName && (
+                <div>
+                  <p className="text-sm text-gray-500">Courier Service</p>
+                  <p className="font-semibold">{order.courierName}</p>
+                </div>
+              )}
+            </div>
+            {order.trackingUrl && (
+              <a
+                href={order.trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Track on Courier Website
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Order Details */}
       <div className="grid md:grid-cols-2 gap-6">

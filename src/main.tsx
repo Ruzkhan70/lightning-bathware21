@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './app/App'
 import './styles/index.css'
 import { RecentlyViewedProvider } from './app/context/RecentlyViewedContext'
+import { ReviewsProvider } from './app/context/ReviewsContext'
 
 function LoadingFallback() {
   return (
@@ -32,7 +33,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Suspense fallback={<LoadingFallback />}>
       <RecentlyViewedProvider>
-        <App />
+        <ReviewsProvider>
+          <App />
+        </ReviewsProvider>
       </RecentlyViewedProvider>
     </Suspense>
   </React.StrictMode>,

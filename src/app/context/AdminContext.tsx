@@ -31,6 +31,9 @@ export interface Order {
   date: string;
   deliveryOption: string;
   deliveryCost: number;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  courierName?: string;
 }
 
 export interface Invoice {

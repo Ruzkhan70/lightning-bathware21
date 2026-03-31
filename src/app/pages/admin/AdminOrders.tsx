@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock } from "lucide-react";
+import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock, Truck, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,8 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { toast } from "sonner";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../../firebase";
 
 export default function AdminOrders() {
   const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder, getInvoiceByOrderId, createInvoice } = useAdmin();
@@ -25,6 +28,9 @@ export default function AdminOrders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingOrder, setViewingOrder] = useState<string | null>(null);
   const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
+  const [courierName, setCourierName] = useState("");
 
   const safeOrders = orders || [];
 
@@ -61,6 +67,39 @@ export default function AdminOrders() {
     } else {
       toast.error("Failed to find or create invoice");
     }
+  };
+
+  const handleAddTracking = async () => {
+    if (!viewingOrder || !trackingNumber.trim()) {
+      toast.error("Please enter a tracking number");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "orders", viewingOrder), {
+        trackingNumber: trackingNumber.trim(),
+        trackingUrl: trackingUrl.trim(),
+        courierName: courierName.trim(),
+      });
+      
+      toast.success("Tracking information added!");
+      
+      setTrackingNumber("");
+      setTrackingUrl("");
+      setCourierName("");
+      
+      setViewingOrder(null);
+    } catch (error) {
+      console.error("Error adding tracking:", error);
+      toast.error("Failed to add tracking information");
+    }
+  };
+
+  const openTrackingDialog = (order: any) => {
+    setViewingOrder(order.id);
+    setTrackingNumber(order.trackingNumber || "");
+    setTrackingUrl(order.trackingUrl || "");
+    setCourierName(order.courierName || "");
   };
 
   const pendingCount = safeOrders.filter(o => o.status === "Pending").length;
@@ -172,10 +211,21 @@ export default function AdminOrders() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
+                        {order.trackingNumber && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openTrackingDialog(order)}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title="View Tracking"
+                          >
+                            <Truck className="w-4 h-4" />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setViewingOrder(order.id)}
+                          onClick={() => openTrackingDialog(order)}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -306,13 +356,25 @@ export default function AdminOrders() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Order Status</p>
-                    <p className={`font-semibold text-lg ${
-                      currentOrder.status === "Pending" ? "text-orange-600" :
-                      currentOrder.status === "Processing" ? "text-blue-600" :
-                      "text-green-600"
-                    }`}>
-                      {currentOrder.status}
-                    </p>
+                    <Select
+                      value={currentOrder.status}
+                      onValueChange={(value) =>
+                        handleStatusChange(currentOrder.id, value as "Pending" | "Processing" | "Delivered")
+                      }
+                    >
+                      <SelectTrigger className={`font-semibold ${
+                        currentOrder.status === "Pending" ? "border-orange-300 bg-orange-50 text-orange-600" :
+                        currentOrder.status === "Processing" ? "border-blue-300 bg-blue-50 text-blue-600" :
+                        "border-green-300 bg-green-50 text-green-600"
+                      }`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Processing">Processing</SelectItem>
+                        <SelectItem value="Delivered">Delivered</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Payment Status</p>
@@ -348,6 +410,86 @@ export default function AdminOrders() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Delivery Tracking */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Truck className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold">Delivery Tracking</h3>
+                  </div>
+                </div>
+                
+                {currentOrder.trackingNumber ? (
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Tracking Number</p>
+                        <p className="font-mono font-bold text-lg">{currentOrder.trackingNumber}</p>
+                      </div>
+                      {currentOrder.courierName && (
+                        <div>
+                          <p className="text-sm text-gray-500">Courier</p>
+                          <p className="font-semibold">{currentOrder.courierName}</p>
+                        </div>
+                      )}
+                    </div>
+                    {currentOrder.trackingUrl && (
+                      <a
+                        href={currentOrder.trackingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Track on Courier Website
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                      No tracking information added yet. Add delivery tracking details below.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Tracking Number *</Label>
+                        <Input
+                          value={trackingNumber}
+                          onChange={(e) => setTrackingNumber(e.target.value)}
+                          placeholder="e.g., TRK123456"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Courier Name</Label>
+                        <Input
+                          value={courierName}
+                          onChange={(e) => setCourierName(e.target.value)}
+                          placeholder="e.g., DHL, FedEx"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Tracking URL</Label>
+                        <Input
+                          value={trackingUrl}
+                          onChange={(e) => setTrackingUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleAddTracking}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Truck className="w-4 h-4 mr-2" />
+                      Add Tracking Info
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* View Invoice Button */}

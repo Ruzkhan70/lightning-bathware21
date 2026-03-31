@@ -32,6 +32,7 @@ const AdminOffers = lazy(() => import("./pages/admin/AdminOffers"));
 const AdminAddOffer = lazy(() => import("./pages/admin/AdminAddOffer"));
 const AdminInvoices = lazy(() => import("./pages/admin/AdminInvoices"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 
 
 // Content-only loader (NO min-h-screen - only fills parent container)
@@ -80,6 +81,7 @@ export const router = createHashRouter([
       { path: "statistics", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminStatistics /></Suspense> },
       { path: "settings", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminSettings /></Suspense> },
       { path: "invoices", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminInvoices /></Suspense> },
+      { path: "reviews", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminReviews /></Suspense> },
     ],
   },
 ]);
