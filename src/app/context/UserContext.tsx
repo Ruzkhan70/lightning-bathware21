@@ -26,6 +26,14 @@ interface UserContextType {
   resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "lightingbathware_salt_2024");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -49,25 +57,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email.toLowerCase().trim()), where("password", "==", password));
+      const q = query(usersRef, where("email", "==", email.toLowerCase().trim()));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
-        const loggedInUser: User = {
-          id: userData.id || querySnapshot.docs[0].id,
-          name: userData.name || "User",
-          email: userData.email || email,
-          phone: userData.phone || "",
-          address: userData.address || "",
-        };
+        const hashedInput = await hashPassword(password);
+        const storedHash = userData.passwordHash || userData.password;
+        
+        if (hashedInput === storedHash || password === storedHash) {
+          const loggedInUser: User = {
+            id: userData.id || querySnapshot.docs[0].id,
+            name: userData.name || "User",
+            email: userData.email || email,
+            phone: userData.phone || "",
+            address: userData.address || "",
+          };
 
-        const hasExistingCart = userData.hasCart || false;
-        
-        setUser(loggedInUser);
-        localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
-        
-        return { success: true, shouldSyncCart: hasExistingCart };
+          const hasExistingCart = userData.hasCart || false;
+          
+          if (!userData.passwordHash && password === storedHash) {
+            await updateDoc(doc(db, "users", querySnapshot.docs[0].id), { passwordHash: hashedInput });
+          }
+          
+          setUser(loggedInUser);
+          localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
+          
+          return { success: true, shouldSyncCart: hasExistingCart };
+        }
       }
       return { success: false };
     } catch (error) {
@@ -84,13 +101,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     password: string
   ): Promise<boolean> => {
     try {
-      // Validate required fields
       if (!name?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !password?.trim()) {
         console.error("All fields are required");
         return false;
       }
 
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         console.error("Invalid email format");
@@ -105,12 +120,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
+      const hashedPassword = await hashPassword(password);
+
       const newUser = {
         name: name.trim(),
         email: email.toLowerCase().trim(),
         phone: phone.trim(),
         address: address.trim(),
-        password,
+        passwordHash: hashedPassword,
       };
 
       const docRef = await addDoc(usersRef, {
@@ -166,7 +183,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       const userDoc = querySnapshot.docs[0];
-      await updateDoc(doc(db, "users", userDoc.id), { password: newPassword });
+      const hashedPassword = await hashPassword(newPassword);
+      await updateDoc(doc(db, "users", userDoc.id), { passwordHash: hashedPassword });
       return { success: true };
     } catch (error: any) {
       console.error("Reset password error:", error?.message || error);

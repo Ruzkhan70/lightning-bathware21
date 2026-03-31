@@ -44,6 +44,20 @@ export default function Contact() {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (formData.phone) {
+      const phoneRegex = /^(\+94|0)[1-9][0-9]{8}$/;
+      if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+        toast.error("Please enter a valid Sri Lankan phone number (e.g., 0771234567)");
+        return;
+      }
+    }
+
     try {
       await addMessage({
         name: formData.name,

@@ -74,6 +74,12 @@ export default function Checkout() {
       return;
     }
 
+    const phoneRegex = /^(\+94|0)[1-9][0-9]{8}$/;
+    if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      toast.error("Please enter a valid Sri Lankan phone number (e.g., 0771234567)");
+      return;
+    }
+
     if (
       !formData.customerName ||
       !formData.phone ||

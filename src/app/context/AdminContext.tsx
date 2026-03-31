@@ -3,6 +3,14 @@ import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
 
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "lightingbathware_admin_salt_2024");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -239,7 +247,7 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 const DEFAULT_USERNAME = "admin";
-const DEFAULT_PASSWORD = "admin123";
+const DEFAULT_PASSWORD = "LB" + Math.random().toString(36).substring(2, 10).toUpperCase();
 
 const DEFAULT_STORE_PROFILE: StoreProfile = {
   storeName: "Lighting",
@@ -1086,7 +1094,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
-      // Check if admin exists in Firestore
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
       if (!adminDoc.exists() || !adminDoc.data().isSetup) {
         toast.error("No admin account found. Please set up admin first.");
@@ -1095,10 +1102,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       const adminData = adminDoc.data();
       const storedUsername = (adminData.username || "").trim().toLowerCase();
-      const storedPassword = adminData.password || "";
+      const storedHash = adminData.passwordHash || adminData.password;
+      const hashedInput = await hashPassword(cleanPassword);
 
-      // Verify credentials
-      if (storedUsername === cleanEmail && storedPassword === cleanPassword) {
+      if (storedUsername === cleanEmail && (hashedInput === storedHash || cleanPassword === storedHash)) {
+        if (!adminData.passwordHash && cleanPassword === storedHash) {
+          await setDoc(doc(db, "adminCredentials", "main"), { passwordHash: hashedInput }, { merge: true });
+        }
         sessionStorage.setItem('adminSession', 'true');
         setIsAdminLoggedIn(true);
         return true;
@@ -1130,7 +1140,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const cleanPassword = password.trim();
 
       console.log("Starting setupAdmin for:", cleanEmail);
-      // Check if admin already exists
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
       
       if (adminDoc.exists() && adminDoc.data().isSetup) {
@@ -1140,10 +1149,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       console.log("Creating admin credentials...");
       const newAdminUid = "admin-" + Date.now();
-      // Create admin credentials in Firestore
+      const hashedPassword = await hashPassword(cleanPassword);
+      
       await setDoc(doc(db, "adminCredentials", "main"), {
         username: cleanEmail,
-        password: cleanPassword,
+        passwordHash: hashedPassword,
         isSetup: true,
         adminUid: newAdminUid,
         adminEmail: cleanEmail,
@@ -1171,20 +1181,28 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      // Verify current password first
       const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-      if (!adminDoc.exists() || adminDoc.data().password !== currentPassword) {
+      const adminData = adminDoc.data();
+      if (!adminDoc.exists() || !adminData) {
+        toast.error("Admin account not found");
+        return false;
+      }
+      
+      const storedHash = adminData.passwordHash || adminData.password;
+      const hashedCurrent = await hashPassword(currentPassword);
+      
+      if (hashedCurrent !== storedHash && currentPassword !== storedHash) {
         toast.error("Current password is incorrect");
         return false;
       }
       
-      // Update password
+      const hashedNew = await hashPassword(newPassword);
       await setDoc(doc(db, "adminCredentials", "main"), {
-        password: newPassword,
+        passwordHash: hashedNew,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
       
-      setAdminCredentials(prev => ({ ...prev, password: newPassword }));
+      setAdminCredentials(prev => ({ ...prev, password: hashedNew }));
       toast.success("Password changed successfully!");
       return true;
     } catch (error) {
@@ -1203,7 +1221,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const credentialsRef = doc(db, "adminCredentials", "main");
       await setDoc(credentialsRef, {
         username: newUsername.trim(),
-        password: adminCredentials.password,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
       
@@ -1269,8 +1286,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error adding product to Firebase:", error);
-      // Fallback
-      await setDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
     }
   };
 
@@ -1281,8 +1297,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error updating product in Firebase:", error);
-      // Fallback
-      await setDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
     }
   };
 
@@ -1293,8 +1308,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error deleting product from Firebase:", error);
-      // Fallback
-      setDoc(doc(db, "storeData", "products"), { products: updated });
+      setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
     }
   };
 
@@ -1305,8 +1319,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       updateDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
       console.error("Error bulk deleting products from Firebase:", error);
-      // Fallback
-      setDoc(doc(db, "storeData", "products"), { products: updated });
+      setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
     }
   };
 
@@ -1464,8 +1477,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       updateDoc(doc(db, "storeData", "categories"), { categories: updated });
     } catch (error) {
       console.error("Error saving category:", error);
-      // Fallback
-      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
     }
   };
 
@@ -1476,8 +1488,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       updateDoc(doc(db, "storeData", "categories"), { categories: updated });
     } catch (error) {
       console.error("Error updating category:", error);
-      // Fallback to setDoc if updateDoc fails
-      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
     }
   };
 
@@ -1495,9 +1506,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       updateDoc(doc(db, "storeData", "products"), { products: updatedProducts });
     } catch (error) {
       console.error("Error deleting category:", error);
-      // Fallback
-      setDoc(doc(db, "storeData", "categories"), { categories: updated });
-      setDoc(doc(db, "storeData", "products"), { products: updatedProducts });
+      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
     }
   };
 
