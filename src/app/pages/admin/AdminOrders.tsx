@@ -302,9 +302,9 @@ export default function AdminOrders() {
               <div>
                 <h3 className="font-semibold mb-3">Ordered Products</h3>
                 <div className="space-y-3">
-                  {currentOrder.products.map((product, index) => (
+                  {currentOrder.products.map((product, idx) => (
                     <div
-                      key={index}
+                      key={product.id || `product-${idx}`}
                       className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
                     >
                       <img

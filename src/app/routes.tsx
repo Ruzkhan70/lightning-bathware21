@@ -3,6 +3,7 @@ import { lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 import ContentLoader from "./components/ContentLoader";
+import { ProtectedAdminRoute } from "./components/ProtectedAdminRoute";
 
 // Lazy load all pages with optimized loading
 const Home = lazy(() => import("./pages/Home"));
@@ -66,7 +67,7 @@ export const router = createHashRouter([
   { path: "/admin/login", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminLogin /></Suspense> },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: <ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>,
     children: [
       { index: true, element: <Suspense fallback={<ContentLoaderWrapper />}><AdminDashboard /></Suspense> },
       { path: "products", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminProducts /></Suspense> },

@@ -826,10 +826,10 @@ export default function AdminSettings() {
                 {/* Service Items */}
                 <div className="space-y-6 mt-6">
                   <Label className="text-lg font-semibold">Service Items</Label>
-                  {contentForm.services.items.map((item, index) => (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  {contentForm.services.items.map((item, idx) => (
+                    <div key={`service-${idx}`} className="bg-gray-50 p-4 rounded-lg space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="font-medium">Service {index + 1}</Label>
+                        <Label className="font-medium">Service {idx + 1}</Label>
                       </div>
                       <Input 
                         placeholder="Service Title"
@@ -938,9 +938,9 @@ export default function AdminSettings() {
                 {/* FAQ Items */}
                 <div className="space-y-4 mt-4">
                   <Label className="text-lg font-semibold">FAQ Items</Label>
-                  {contentForm.faq.items.map((item, index) => (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg space-y-3">
-                      <Label className="font-medium">FAQ {index + 1}</Label>
+                  {contentForm.faq.items.map((item, idx) => (
+                    <div key={`faq-${idx}`} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <Label className="font-medium">FAQ {idx + 1}</Label>
                       <Input 
                         placeholder="Question"
                         value={item.question}

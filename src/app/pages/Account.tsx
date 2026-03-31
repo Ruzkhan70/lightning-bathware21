@@ -20,7 +20,7 @@ const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
 export default function Account() {
   const navigate = useNavigate();
   const { user, isLoggedIn, login, register, logout, resetPassword } = useUser();
-  const { orders, invoices, storeProfile, getInvoiceByOrderId } = useAdmin();
+  const { orders, invoices, storeProfile, getInvoiceByOrderId, isDataLoaded } = useAdmin();
   const { syncCartWithFirebase, isSyncing } = useCart();
   const safeOrders = orders || [];
   const [showPassword, setShowPassword] = useState(false);
@@ -277,6 +277,17 @@ export default function Account() {
   };
 
   if (isLoggedIn && user) {
+    if (!isDataLoaded) {
+      return (
+        <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#D4AF37]" />
+            <p className="mt-2 text-gray-600">Loading your account...</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-12">
