@@ -295,15 +295,19 @@ export default function Account() {
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </Button>
-                <Button
-                  onClick={handleSyncCart}
-                  variant="outline"
-                  disabled={isSyncing}
-                  className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                >
-                  <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
-                  {isSyncing ? "Syncing..." : "Sync Cart"}
-                </Button>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    onClick={handleSyncCart}
+                    variant="outline"
+                    disabled={isSyncing}
+                    title="Merges your saved cart items with your current cart"
+                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                  >
+                    <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
+                    {isSyncing ? "Syncing..." : "Sync Cart"}
+                  </Button>
+                  <p className="text-xs text-gray-500 text-center">Merge your saved items with current cart</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
