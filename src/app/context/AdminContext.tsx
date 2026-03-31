@@ -1357,9 +1357,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const generateUniqueId = (): string => {
-    const timestamp = Date.now().toString(36);
-    const randomPart = Math.random().toString(36).substring(2, 10);
-    return `${timestamp}-${randomPart}`;
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = 'LB';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   };
 
   const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">): Promise<Order> => {
