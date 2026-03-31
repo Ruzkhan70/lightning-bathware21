@@ -148,16 +148,13 @@ export default function AdminReviews() {
     }
     
     setIsSeeding(true);
-    setSeedingProgress({ current: 0, total: products.length });
     
     try {
       await seedDemoReviews();
-      toast.success("Demo reviews seeded successfully!");
     } catch (error) {
-      toast.error("Failed to seed demo reviews");
+      console.error("Seeding failed:", error);
     } finally {
       setIsSeeding(false);
-      setSeedingProgress({ current: 0, total: 0 });
     }
   };
 
