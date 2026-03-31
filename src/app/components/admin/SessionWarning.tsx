@@ -18,6 +18,18 @@ export default function SessionWarning({
   const minutes = Math.floor(remainingTime / 60);
   const seconds = remainingTime % 60;
 
+  const handleStayLoggedIn = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onStayLoggedIn();
+  };
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onLogout();
+  };
+
   return (
     <AnimatePresence>
       {show && (
@@ -28,6 +40,7 @@ export default function SessionWarning({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200]"
+            style={{ pointerEvents: 'auto' }}
           />
 
           {/* Modal */}
@@ -36,7 +49,7 @@ export default function SessionWarning({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-full max-w-md"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-full max-w-md p-4"
           >
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
               {/* Header */}
@@ -70,16 +83,16 @@ export default function SessionWarning({
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
-                    onClick={onLogout}
+                    onClick={handleLogout}
                     variant="outline"
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 pointer-events-auto relative z-[202]"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout Now
                   </Button>
                   <Button
-                    onClick={onStayLoggedIn}
-                    className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-lg"
+                    onClick={handleStayLoggedIn}
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-lg pointer-events-auto relative z-[202]"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Stay Logged In

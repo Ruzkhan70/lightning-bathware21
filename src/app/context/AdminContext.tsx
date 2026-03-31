@@ -242,6 +242,12 @@ interface AdminContextType {
   getInvoiceById: (id: string) => Invoice | undefined;
   deleteInvoice: (id: string) => Promise<void>;
   cleanOrphanedInvoices: () => Promise<void>;
+  messages: ContactMessage[];
+  addMessage: (message: Omit<ContactMessage, "id" | "createdAt" | "status">) => Promise<void>;
+  markMessageAsRead: (id: string) => void;
+  markMessageAsReplied: (id: string) => void;
+  markAllMessagesAsRead: () => void;
+  deleteMessage: (id: string) => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -509,6 +515,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     siteContent: false,
     categories: false,
     products: false,
+    messages: false,
+  });
+  
+  // Pending updates tracking - prevents Firebase from overwriting local state during updates
+  const pendingUpdates = useRef<{
+    products: boolean;
+    categories: boolean;
+    storeProfile: boolean;
+    storeAssets: boolean;
+    siteContent: boolean;
+    offers: boolean;
+  }>({
+    products: false,
+    categories: false,
+    storeProfile: false,
+    storeAssets: false,
+    siteContent: false,
+    offers: false,
   });
   
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
@@ -706,7 +730,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.categories && Array.isArray(data.categories)) {
-            setCategories(data.categories);
+            if (!pendingUpdates.current.categories) {
+              setCategories(data.categories);
+            } else {
+              setTimeout(() => {
+                pendingUpdates.current.categories = false;
+              }, 500);
+            }
           }
         } else if (!isInitialized.current.categories) {
           setDoc(catRef, { categories: DEFAULT_CATEGORIES });
@@ -746,23 +776,35 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
-      const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const unsubscribe = onSnapshot(q, (snapshot) => {
         const firebaseOffers: Offer[] = snapshot.docs.map(doc => {
           const data = doc.data();
           return { ...data, id: data.id || doc.id } as Offer;
         });
-        if (firebaseOffers.length > 0) {
-          setOffers(firebaseOffers);
+        if (!pendingUpdates.current.offers) {
+          if (firebaseOffers.length > 0) {
+            setOffers(firebaseOffers);
+          } else if (offers.length === 0) {
+            setOffers(DEMO_OFFERS);
+          }
         } else {
-          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+          setTimeout(() => {
+            pendingUpdates.current.offers = false;
+          }, 500);
         }
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
-      }, async () => {
+      }, () => {
+        if (offers.length === 0) {
+          setOffers(DEMO_OFFERS);
+        }
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Firebase offers sync error:", error);
+      if (offers.length === 0) {
+        setOffers(DEMO_OFFERS);
+      }
       setFirebaseLoaded(prev => ({ ...prev, offers: true }));
     }
   }, []);
@@ -775,10 +817,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.products && Array.isArray(data.products)) {
-            setProducts(data.products);
+            if (!pendingUpdates.current.products) {
+              setProducts(data.products);
+            } else {
+              setTimeout(() => {
+                pendingUpdates.current.products = false;
+              }, 500);
+            }
           }
         } else if (!isInitialized.current.products) {
-          // Initialize with default products only on first run
           setDoc(productsRef, { products: DEFAULT_PRODUCTS });
         }
         isInitialized.current.products = true;
@@ -820,7 +867,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // Firebase real-time sync for contact messages
   useEffect(() => {
     try {
-      const q = query(collection(db, "contactMessages"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const firebaseMessages: ContactMessage[] = snapshot.docs.map(doc => {
           const data = doc.data();
@@ -847,7 +894,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         status: "new",
         createdAt: new Date().toISOString(),
       };
-      const docRef = await addDoc(collection(db, "contactMessages"), newMessage);
+      const docRef = await addDoc(collection(db, "messages"), newMessage);
       toast.success("Message sent successfully!");
       return docRef.id;
     } catch (error) {
@@ -860,7 +907,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // Mark message as read
   const markMessageAsRead = async (id: string) => {
     try {
-      const messageRef = doc(db, "contactMessages", id);
+      const messageRef = doc(db, "messages", id);
       await updateDoc(messageRef, { status: "read" });
       setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "read" } : m));
     } catch (error) {
@@ -872,7 +919,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // Mark message as replied
   const markMessageAsReplied = async (id: string) => {
     try {
-      const messageRef = doc(db, "contactMessages", id);
+      const messageRef = doc(db, "messages", id);
       await updateDoc(messageRef, { status: "replied" });
       setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "replied" } : m));
     } catch (error) {
@@ -886,7 +933,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       const unreadMessages = messages.filter(m => m.status === "new");
       for (const message of unreadMessages) {
-        const messageRef = doc(db, "contactMessages", message.id);
+        const messageRef = doc(db, "messages", message.id);
         await updateDoc(messageRef, { status: "read" });
       }
       setMessages(prev => prev.map(m => ({ ...m, status: "read" })));
@@ -900,7 +947,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // Delete a message
   const deleteMessage = async (id: string) => {
     try {
-      const messageRef = doc(db, "contactMessages", id);
+      const messageRef = doc(db, "messages", id);
       await deleteDoc(messageRef);
       setMessages(prev => prev.filter(m => m.id !== id));
       toast.success("Message deleted");
@@ -912,13 +959,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const addDemoOffers = async () => {
     try {
+      pendingUpdates.current.offers = true;
       for (const offer of DEMO_OFFERS) {
         await setDoc(doc(db, "offers", offer.id), offer);
       }
       toast.success("Demo offers added!");
+      setTimeout(() => {
+        pendingUpdates.current.offers = false;
+      }, 1000);
     } catch (error) {
       console.error("Error adding demo offers:", error);
       toast.error("Failed to add demo offers");
+      pendingUpdates.current.offers = false;
     }
   };
 
@@ -1291,13 +1343,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProduct = async (id: string, product: Partial<Product>) => {
+    pendingUpdates.current.products = true;
     const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
     setProducts(updated);
     try {
-      await updateDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
+      setTimeout(() => {
+        pendingUpdates.current.products = false;
+      }, 500);
     } catch (error) {
       console.error("Error updating product in Firebase:", error);
-      await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      pendingUpdates.current.products = false;
     }
   };
 
@@ -1404,6 +1460,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const addOffer = (offer: Omit<Offer, "id" | "createdAt">) => {
+    pendingUpdates.current.offers = true;
     const newOffer: Offer = {
       ...offer,
       id: generateUniqueId(),
@@ -1412,17 +1469,26 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setOffers(prev => [...prev, newOffer]);
     try {
       setDoc(doc(db, "offers", newOffer.id), newOffer);
+      setTimeout(() => {
+        pendingUpdates.current.offers = false;
+      }, 500);
     } catch (error) {
       console.error("Error saving offer:", error);
+      pendingUpdates.current.offers = false;
     }
   };
 
   const updateOffer = (id: string, offer: Partial<Offer>) => {
+    pendingUpdates.current.offers = true;
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
     try {
       updateDoc(doc(db, "offers", id), offer);
+      setTimeout(() => {
+        pendingUpdates.current.offers = false;
+      }, 500);
     } catch (error) {
       console.error("Error updating offer:", error);
+      pendingUpdates.current.offers = false;
     }
   };
 
@@ -1482,13 +1548,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateCategory = (id: string, category: Partial<Category>) => {
+    pendingUpdates.current.categories = true;
     const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
     setCategories(updated);
     try {
-      updateDoc(doc(db, "storeData", "categories"), { categories: updated });
+      setDoc(doc(db, "storeData", "categories"), { categories: updated });
+      setTimeout(() => {
+        pendingUpdates.current.categories = false;
+      }, 500);
     } catch (error) {
       console.error("Error updating category:", error);
-      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      pendingUpdates.current.categories = false;
     }
   };
 

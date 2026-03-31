@@ -31,7 +31,7 @@ export default function AdminLayout() {
 
   const { showWarning, remainingTime, resetTimer, logoutNow } = useAdminTimeout(
     isAdminLoggedIn,
-    triggerLogout
+    logout
   );
 
   const unavailableProducts = (products || []).filter(p => !p.isAvailable);

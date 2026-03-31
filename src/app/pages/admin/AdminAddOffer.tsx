@@ -100,11 +100,6 @@ export default function AdminAddOffer() {
       return;
     }
 
-    if (formData.applicableProducts.length === 0) {
-      toast.error("Please select at least one product");
-      return;
-    }
-
     if (!formData.startDate || !formData.endDate) {
       toast.error("Please select start and end dates");
       return;
@@ -300,7 +295,7 @@ export default function AdminAddOffer() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
-                Applicable Products <span className="text-red-500">*</span>
+                Applicable Products <span className="text-gray-400 text-sm font-normal">(Leave empty for all products)</span>
               </h2>
               <Button
                 type="button"

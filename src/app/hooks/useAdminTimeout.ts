@@ -16,8 +16,13 @@ export function useAdminTimeout(
 ): UseAdminTimeoutReturn {
   const [remainingTime, setRemainingTime] = useState(TOTAL_TIMEOUT);
   const [showWarning, setShowWarning] = useState(false);
+  const lastActivityRef = useRef<number>(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isActiveRef = useRef(isLoggedIn);
+  const isLoggedInRef = useRef(isLoggedIn);
+
+  useEffect(() => {
+    isLoggedInRef.current = isLoggedIn;
+  }, [isLoggedIn]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -26,69 +31,82 @@ export function useAdminTimeout(
     }
   }, []);
 
+  const resetTimer = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    setRemainingTime(TOTAL_TIMEOUT);
+    setShowWarning(false);
+    console.log("Session timer reset - user chose to stay logged in");
+  }, []);
+
   const logoutNow = useCallback(() => {
     clearTimer();
     setShowWarning(false);
-    setRemainingTime(TOTAL_TIMEOUT);
+    console.log("Session expired - logging out user");
     onLogout();
   }, [clearTimer, onLogout]);
 
-  const resetTimer = useCallback(() => {
-    setRemainingTime(TOTAL_TIMEOUT);
-    setShowWarning(false);
-    clearTimer();
-    
-    // Restart the timer
-    if (isActiveRef.current) {
-      timerRef.current = setInterval(() => {
-        setRemainingTime((prev) => {
-          const newTime = prev - 1;
-
-          if (newTime <= 0) {
-            logoutNow();
-            return 0;
-          }
-
-          if (newTime === WARNING_THRESHOLD) {
-            setShowWarning(true);
-          }
-
-          return newTime;
-        });
-      }, 1000);
-    }
-  }, [clearTimer, logoutNow]);
-
-  // Main timer effect
   useEffect(() => {
-    isActiveRef.current = isLoggedIn;
-    
     if (!isLoggedIn) {
       setRemainingTime(TOTAL_TIMEOUT);
       setShowWarning(false);
       clearTimer();
+      lastActivityRef.current = Date.now();
       return;
     }
 
+    lastActivityRef.current = Date.now();
+
     timerRef.current = setInterval(() => {
-      setRemainingTime((prev) => {
-        const newTime = prev - 1;
+      if (!isLoggedInRef.current) return;
 
-        if (newTime <= 0) {
-          logoutNow();
-          return 0;
-        }
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
+      const remaining = Math.max(0, TOTAL_TIMEOUT - elapsed);
+      
+      setRemainingTime(remaining);
 
-        if (newTime === WARNING_THRESHOLD) {
-          setShowWarning(true);
-        }
+      if (remaining <= WARNING_THRESHOLD && remaining > 0) {
+        setShowWarning(true);
+      }
 
-        return newTime;
-      });
+      if (remaining <= 0) {
+        logoutNow();
+      }
     }, 1000);
 
     return () => clearTimer();
   }, [isLoggedIn, clearTimer, logoutNow]);
+
+  useEffect(() => {
+    if (!isLoggedIn || showWarning) return;
+
+    const handleActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    
+    let lastCall = 0;
+    const throttleMs = 500;
+
+    const throttledHandler = () => {
+      const now = Date.now();
+      if (now - lastCall >= throttleMs) {
+        lastCall = now;
+        handleActivity();
+      }
+    };
+
+    events.forEach((event) => {
+      window.addEventListener(event, throttledHandler, { passive: true });
+    });
+
+    return () => {
+      events.forEach((event) => {
+        window.removeEventListener(event, throttledHandler);
+      });
+    };
+  }, [isLoggedIn, showWarning]);
 
   return {
     showWarning,
@@ -96,23 +114,6 @@ export function useAdminTimeout(
     resetTimer,
     logoutNow,
   };
-}
-
-// Throttle helper function
-function throttle<T extends (...args: any[]) => void>(
-  func: T,
-  limit: number
-): T {
-  let inThrottle = false;
-  return function (this: any, ...args: Parameters<T>) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => {
-        inThrottle = false;
-      }, limit);
-    }
-  } as T;
 }
 
 export default useAdminTimeout;
