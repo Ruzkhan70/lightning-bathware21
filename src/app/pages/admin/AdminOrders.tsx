@@ -76,13 +76,15 @@ export default function AdminOrders() {
     }
 
     try {
-      await updateDoc(doc(db, "orders", viewingOrder), {
+      const updates: Record<string, any> = {
         trackingNumber: trackingNumber.trim(),
         trackingUrl: trackingUrl.trim(),
         courierName: courierName.trim(),
-      });
+      };
       
-      toast.success("Tracking information added!");
+      await updateDoc(doc(db, "orders", viewingOrder), updates);
+      
+      toast.success(currentOrder.trackingNumber ? "Tracking updated!" : "Tracking information added!");
       
       setTrackingNumber("");
       setTrackingUrl("");
@@ -421,75 +423,47 @@ export default function AdminOrders() {
                   </div>
                 </div>
                 
-                {currentOrder.trackingNumber ? (
-                  <div className="bg-white rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Tracking Number</p>
-                        <p className="font-mono font-bold text-lg">{currentOrder.trackingNumber}</p>
-                      </div>
-                      {currentOrder.courierName && (
-                        <div>
-                          <p className="text-sm text-gray-500">Courier</p>
-                          <p className="font-semibold">{currentOrder.courierName}</p>
-                        </div>
-                      )}
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Add delivery tracking details for this order.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label>Tracking Number *</Label>
+                      <Input
+                        value={trackingNumber}
+                        onChange={(e) => setTrackingNumber(e.target.value)}
+                        placeholder="e.g., TRK123456"
+                        className="mt-1"
+                      />
                     </div>
-                    {currentOrder.trackingUrl && (
-                      <a
-                        href={currentOrder.trackingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-3 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        Track on Courier Website
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
-                      No tracking information added yet. Add delivery tracking details below.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label>Tracking Number *</Label>
-                        <Input
-                          value={trackingNumber}
-                          onChange={(e) => setTrackingNumber(e.target.value)}
-                          placeholder="e.g., TRK123456"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Courier Name</Label>
-                        <Input
-                          value={courierName}
-                          onChange={(e) => setCourierName(e.target.value)}
-                          placeholder="e.g., DHL, FedEx"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Tracking URL</Label>
-                        <Input
-                          value={trackingUrl}
-                          onChange={(e) => setTrackingUrl(e.target.value)}
-                          placeholder="https://..."
-                          className="mt-1"
-                        />
-                      </div>
+                    <div>
+                      <Label>Courier Name</Label>
+                      <Input
+                        value={courierName}
+                        onChange={(e) => setCourierName(e.target.value)}
+                        placeholder="e.g., LankaPost"
+                        className="mt-1"
+                      />
                     </div>
-                    <Button
-                      onClick={handleAddTracking}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      <Truck className="w-4 h-4 mr-2" />
-                      Add Tracking Info
-                    </Button>
+                    <div>
+                      <Label>Tracking URL</Label>
+                      <Input
+                        value={trackingUrl}
+                        onChange={(e) => setTrackingUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
-                )}
+                  <Button
+                    onClick={handleAddTracking}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    {currentOrder.trackingNumber ? "Update Tracking" : "Add Tracking Info"}
+                  </Button>
+                </div>
               </div>
 
               {/* View Invoice Button */}
