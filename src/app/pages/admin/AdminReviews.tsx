@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star, Check, X, Trash2, Edit2, Search, CheckCircle, XCircle, Clock, Database, RefreshCw } from "lucide-react";
+import { Star, Check, X, Trash2, Edit2, Search, CheckCircle, XCircle, Clock, Database, RefreshCw, Square, CheckSquare, SquareCheck } from "lucide-react";
 import { useAdmin, Review } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -35,6 +35,8 @@ export default function AdminReviews() {
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [seedingProgress, setSeedingProgress] = useState({ current: 0, total: 0 });
+  const [selectedReviews, setSelectedReviews] = useState<Set<string>>(new Set());
   const [editForm, setEditForm] = useState({
     userName: "",
     rating: 5,
@@ -58,6 +60,8 @@ export default function AdminReviews() {
   const pendingCount = reviews.filter(r => r.status === "pending").length;
   const approvedCount = reviews.filter(r => r.status === "approved").length;
   const rejectedCount = reviews.filter(r => r.status === "rejected").length;
+
+  const selectedCount = selectedReviews.size;
 
   const getProductName = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -95,8 +99,29 @@ export default function AdminReviews() {
     try {
       await deleteReview(deletingReview.id);
       setDeletingReview(null);
+      setSelectedReviews(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(deletingReview.id);
+        return newSet;
+      });
     } catch (error) {
       toast.error("Failed to delete review");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedReviews.size === 0) return;
+    
+    const confirmed = window.confirm(`Are you sure you want to delete ${selectedReviews.size} review(s)? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      const deletePromises = Array.from(selectedReviews).map(id => deleteReview(id));
+      await Promise.all(deletePromises);
+      toast.success(`Successfully deleted ${selectedReviews.size} reviews`);
+      setSelectedReviews(new Set());
+    } catch (error) {
+      toast.error("Failed to delete some reviews");
     }
   };
 
@@ -123,11 +148,43 @@ export default function AdminReviews() {
     }
     
     setIsSeeding(true);
+    setSeedingProgress({ current: 0, total: products.length });
+    
     try {
       await seedDemoReviews();
+      toast.success("Demo reviews seeded successfully!");
+    } catch (error) {
+      toast.error("Failed to seed demo reviews");
     } finally {
       setIsSeeding(false);
+      setSeedingProgress({ current: 0, total: 0 });
     }
+  };
+
+  const handleCancelSeeding = () => {
+    setIsSeeding(false);
+    setSeedingProgress({ current: 0, total: 0 });
+    toast.info("Seeding cancelled");
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedReviews.size === filteredReviews.length) {
+      setSelectedReviews(new Set());
+    } else {
+      setSelectedReviews(new Set(filteredReviews.map(r => r.id)));
+    }
+  };
+
+  const toggleSelectReview = (reviewId: string) => {
+    setSelectedReviews(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reviewId)) {
+        newSet.delete(reviewId);
+      } else {
+        newSet.add(reviewId);
+      }
+      return newSet;
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -190,6 +247,19 @@ export default function AdminReviews() {
     });
   };
 
+  const getSelectAllIcon = () => {
+    if (filteredReviews.length === 0) {
+      return <Square className="w-5 h-5 text-gray-400" />;
+    }
+    if (selectedReviews.size === filteredReviews.length) {
+      return <CheckSquare className="w-5 h-5 text-[#D4AF37]" />;
+    }
+    if (selectedReviews.size > 0) {
+      return <SquareCheck className="w-5 h-5 text-[#D4AF37]" />;
+    }
+    return <Square className="w-5 h-5 text-gray-400" />;
+  };
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -235,113 +305,186 @@ export default function AdminReviews() {
               <SelectItem value="rejected">Rejected ({rejectedCount})</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            onClick={handleSeedReviews}
-            disabled={isSeeding}
-            className="bg-[#D4AF37] hover:bg-[#b8962f] text-black w-full md:w-auto"
-          >
-            {isSeeding ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Seeding...
-              </>
-            ) : (
-              <>
-                <Database className="w-4 h-4 mr-2" />
-                Seed Demo Reviews
-              </>
-            )}
-          </Button>
+          
+          {isSeeding ? (
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="flex-1 md:flex-none">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#D4AF37]" />
+                  <span className="text-sm text-gray-600">
+                    Seeding reviews...
+                  </span>
+                </div>
+              </div>
+              <Button
+                onClick={handleCancelSeeding}
+                variant="outline"
+                className="text-red-600 border-red-300 hover:bg-red-50 w-full md:w-auto"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={handleSeedReviews}
+              className="bg-[#D4AF37] hover:bg-[#b8962f] text-black w-full md:w-auto"
+            >
+              <Database className="w-4 h-4 mr-2" />
+              Seed Demo Reviews
+            </Button>
+          )}
         </div>
+
+        {/* Bulk Actions Bar */}
+        {selectedCount > 0 && (
+          <div className="mt-4 p-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
+              <span className="font-medium">{selectedCount} review(s) selected</span>
+            </div>
+            <Button
+              onClick={handleBulkDelete}
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
       </div>
 
       {filteredReviews.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center">
-          <p className="text-gray-500 text-lg">
+          <Star className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500 text-lg mb-2">
             {searchQuery ? "No reviews found matching your search" : "No reviews yet"}
+          </p>
+          <p className="text-gray-400 text-sm">
+            {searchQuery ? "Try adjusting your search or filter" : "Customer reviews will appear here"}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredReviews.map((review) => (
-            <div 
-              key={review.id} 
-              className={`bg-white rounded-lg shadow-sm p-4 md:p-6 ${
-                review.status === "pending" ? "border-l-4 border-yellow-400" : ""
-              } ${review.status === "rejected" ? "opacity-60" : ""}`}
+          {/* Header with Select All */}
+          <div className="bg-gray-100 rounded-lg p-3 flex items-center gap-3">
+            <button
+              onClick={toggleSelectAll}
+              className="flex items-center gap-2 hover:bg-gray-200 p-2 rounded transition-colors"
             >
-              <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center text-black font-bold">
-                      {review.userName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-semibold">{review.userName}</p>
-                      <p className="text-sm text-gray-500">{review.userEmail || "Guest"}</p>
-                    </div>
-                    <div className="flex items-center gap-2 ml-auto">
-                      {renderStars(review.rating)}
-                      {getStatusBadge(review.status)}
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-gray-500 mb-2">
-                    Product: <span className="font-medium text-gray-700">{getProductName(review.productId)}</span>
-                  </p>
-                  
-                  <p className="text-gray-700 mb-3">{review.comment}</p>
-                  
-                  <p className="text-xs text-gray-400">
-                    {formatDate(review.createdAt)}
-                  </p>
-                </div>
+              {getSelectAllIcon()}
+              <span className="font-medium text-sm">Select All ({filteredReviews.length})</span>
+            </button>
+            {selectedCount > 0 && (
+              <button
+                onClick={() => setSelectedReviews(new Set())}
+                className="text-sm text-blue-600 hover:underline ml-2"
+              >
+                Clear Selection
+              </button>
+            )}
+          </div>
 
-                <div className="flex flex-wrap gap-2 lg:flex-col lg:items-end">
-                  {review.status === "pending" && (
-                    <>
-                      <Button
-                        onClick={() => handleApprove(review.id)}
-                        className="bg-green-500 hover:bg-green-600 text-white text-sm"
-                        size="sm"
-                      >
-                        <Check className="w-4 h-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        onClick={() => handleReject(review.id)}
-                        variant="outline"
-                        className="text-red-500 hover:bg-red-50 text-sm"
-                        size="sm"
-                      >
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                  
-                  <Button
-                    onClick={() => handleEdit(review)}
-                    variant="outline"
-                    className="text-blue-600 hover:bg-blue-50 text-sm"
-                    size="sm"
-                  >
-                    <Edit2 className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={() => setDeletingReview(review)}
-                    variant="outline"
-                    className="text-red-500 hover:bg-red-50 text-sm"
-                    size="sm"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </Button>
+          {filteredReviews.map((review) => {
+            const isSelected = selectedReviews.has(review.id);
+            return (
+              <div 
+                key={review.id} 
+                className={`bg-white rounded-lg shadow-sm p-4 md:p-6 ${
+                  review.status === "pending" ? "border-l-4 border-yellow-400" : ""
+                } ${review.status === "rejected" ? "opacity-60" : ""} ${
+                  isSelected ? "ring-2 ring-[#D4AF37]" : ""
+                }`}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                  {/* Checkbox */}
+                  <div className="flex items-start pt-1">
+                    <button
+                      onClick={() => toggleSelectReview(review.id)}
+                      className="hover:bg-gray-100 p-1 rounded transition-colors"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center text-black font-bold">
+                        {review.userName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold">{review.userName}</p>
+                        <p className="text-sm text-gray-500">{review.userEmail || "Guest"}</p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        {renderStars(review.rating)}
+                        {getStatusBadge(review.status)}
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-500 mb-2">
+                      Product: <span className="font-medium text-gray-700">{getProductName(review.productId)}</span>
+                    </p>
+                    
+                    <p className="text-gray-700 mb-3">{review.comment}</p>
+                    
+                    <p className="text-xs text-gray-400">
+                      {formatDate(review.createdAt)}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 lg:flex-col lg:items-end">
+                    {review.status === "pending" && (
+                      <>
+                        <Button
+                          onClick={() => handleApprove(review.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white text-sm"
+                          size="sm"
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => handleReject(review.id)}
+                          variant="outline"
+                          className="text-red-500 hover:bg-red-50 text-sm"
+                          size="sm"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                    
+                    <Button
+                      onClick={() => handleEdit(review)}
+                      variant="outline"
+                      className="text-blue-600 hover:bg-blue-50 text-sm"
+                      size="sm"
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => setDeletingReview(review)}
+                      variant="outline"
+                      className="text-red-500 hover:bg-red-50 text-sm"
+                      size="sm"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
