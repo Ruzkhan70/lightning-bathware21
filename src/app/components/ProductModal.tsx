@@ -185,10 +185,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 {product.isAvailable ? `Add to Cart - Rs. ${(product.price * quantity).toLocaleString()}` : "Not Available"}
               </Button>
-
-              {/* Reviews Section */}
-              <ReviewsDisplay productId={product.id} productName={product.name} />
             </div>
+          </div>
+
+          {/* Reviews Section - Full Width */}
+          <div className="px-6 md:px-8 pb-8">
+            <ReviewsDisplay productId={product.id} productName={product.name} />
           </div>
         </motion.div>
       </motion.div>
