@@ -641,19 +641,19 @@ export default function Invoice() {
                 </div>
 
                 <div className="overflow-x-auto mb-8">
-                  <table className="w-full table-fixed">
+                  <table className="w-full min-w-[500px] md:table-fixed">
                     <thead>
                       <tr className="bg-gray-100">
-                        <th className="px-3 py-3 text-left text-sm font-bold w-1/2">Product</th>
+                        <th className="px-3 py-3 text-left text-sm font-bold min-w-0">Product</th>
                         <th className="px-3 py-3 text-center text-sm font-bold w-16">Qty</th>
-                        <th className="px-3 py-3 text-right text-sm font-bold w-28">Unit Price</th>
-                        <th className="px-3 py-3 text-right text-sm font-bold w-28">Total</th>
+                        <th className="px-3 py-3 text-right text-sm font-bold w-24 md:w-28">Unit Price</th>
+                        <th className="px-3 py-3 text-right text-sm font-bold w-24 md:w-28">Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {invoice.products.map((product, index) => (
                         <tr key={product.id || index} className="border-b">
-                          <td className="px-3 py-3 text-sm break-words">{product.name}</td>
+                          <td className="px-3 py-3 text-sm whitespace-normal break-normal">{product.name}</td>
                           <td className="px-3 py-3 text-sm text-center">{product.quantity}</td>
                           <td className="px-3 py-3 text-sm text-right whitespace-nowrap">{formatPrice(product.unitPrice)}</td>
                           <td className="px-3 py-3 text-sm text-right font-semibold whitespace-nowrap">
