@@ -104,6 +104,18 @@ export interface ContactMessage {
   createdAt: string;
 }
 
+export interface Review {
+  id: string;
+  productId: string;
+  productName?: string;
+  userName: string;
+  userEmail?: string;
+  rating: number;
+  comment: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
+
 export interface StoreProfile {
   storeName: string;
   storeNameAccent: string;
@@ -248,6 +260,14 @@ interface AdminContextType {
   markMessageAsReplied: (id: string) => void;
   markAllMessagesAsRead: () => void;
   deleteMessage: (id: string) => void;
+  reviews: Review[];
+  addReview: (review: Omit<Review, "id" | "createdAt" | "status">) => Promise<void>;
+  updateReview: (id: string, review: Partial<Review>) => Promise<void>;
+  deleteReview: (id: string) => Promise<void>;
+  approveReview: (id: string) => Promise<void>;
+  rejectReview: (id: string) => Promise<void>;
+  getApprovedReviewsByProduct: (productId: string) => Review[];
+  getAverageRating: (productId: string) => { average: number; count: number };
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -586,6 +606,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   const DEMO_OFFERS: Offer[] = [
     {
@@ -639,6 +660,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     products: false,
     invoices: false,
     messages: false,
+    reviews: false,
   });
 
   useEffect(() => {
@@ -886,6 +908,28 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Firebase real-time sync for reviews
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firebaseReviews: Review[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { ...data, id: data.id || doc.id } as Review;
+        });
+        setReviews(firebaseReviews);
+        setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
+      }, (error) => {
+        console.error("Firebase reviews sync error:", error);
+        setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase reviews sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
+    }
+  }, []);
+
   // Add a new contact message
   const addMessage = async (messageData: Omit<ContactMessage, "id" | "createdAt" | "status">) => {
     try {
@@ -955,6 +999,90 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Error deleting message:", error);
       toast.error("Failed to delete message");
     }
+  };
+
+  // Review CRUD operations
+  const addReview = async (reviewData: Omit<Review, "id" | "createdAt" | "status">) => {
+    try {
+      const newReview: Omit<Review, "id"> = {
+        ...reviewData,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+      const docRef = await addDoc(collection(db, "reviews"), newReview);
+      toast.success("Review submitted! It will be visible after approval.");
+      return docRef.id;
+    } catch (error) {
+      console.error("Error adding review:", error);
+      toast.error("Failed to submit review");
+      throw error;
+    }
+  };
+
+  const updateReview = async (id: string, reviewData: Partial<Review>) => {
+    try {
+      const reviewRef = doc(db, "reviews", id);
+      await updateDoc(reviewRef, reviewData);
+      setReviews(prev => prev.map(r => r.id === id ? { ...r, ...reviewData } : r));
+      toast.success("Review updated");
+    } catch (error) {
+      console.error("Error updating review:", error);
+      toast.error("Failed to update review");
+      throw error;
+    }
+  };
+
+  const deleteReview = async (id: string) => {
+    try {
+      const reviewRef = doc(db, "reviews", id);
+      await deleteDoc(reviewRef);
+      setReviews(prev => prev.filter(r => r.id !== id));
+      toast.success("Review deleted");
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      toast.error("Failed to delete review");
+      throw error;
+    }
+  };
+
+  const approveReview = async (id: string) => {
+    try {
+      const reviewRef = doc(db, "reviews", id);
+      await updateDoc(reviewRef, { status: "approved" });
+      setReviews(prev => prev.map(r => r.id === id ? { ...r, status: "approved" } : r));
+      toast.success("Review approved!");
+    } catch (error) {
+      console.error("Error approving review:", error);
+      toast.error("Failed to approve review");
+    }
+  };
+
+  const rejectReview = async (id: string) => {
+    try {
+      const reviewRef = doc(db, "reviews", id);
+      await updateDoc(reviewRef, { status: "rejected" });
+      setReviews(prev => prev.map(r => r.id === id ? { ...r, status: "rejected" } : r));
+      toast.success("Review rejected");
+    } catch (error) {
+      console.error("Error rejecting review:", error);
+      toast.error("Failed to reject review");
+    }
+  };
+
+  const getApprovedReviewsByProduct = (productId: string) => {
+    return reviews.filter(r => r.productId === productId && r.status === "approved");
+  };
+
+  const getAverageRating = (productId: string) => {
+    const productReviews = getApprovedReviewsByProduct(productId);
+    if (productReviews.length === 0) {
+      return { average: 0, count: 0 };
+    }
+    const total = productReviews.reduce((sum, r) => sum + r.rating, 0);
+    return {
+      average: total / productReviews.length,
+      count: productReviews.length
+    };
   };
 
   const addDemoOffers = async () => {
@@ -1671,6 +1799,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         markMessageAsReplied,
         markAllMessagesAsRead,
         deleteMessage,
+        reviews,
+        addReview,
+        updateReview,
+        deleteReview,
+        approveReview,
+        rejectReview,
+        getApprovedReviewsByProduct,
+        getAverageRating,
       }}
     >
       {children}

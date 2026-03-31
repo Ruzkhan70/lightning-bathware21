@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import ReviewsDisplay from "./ReviewsDisplay";
 
 interface ProductModalProps {
   product: Product;
@@ -184,6 +185,9 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 {product.isAvailable ? `Add to Cart - Rs. ${(product.price * quantity).toLocaleString()}` : "Not Available"}
               </Button>
+
+              {/* Reviews Section */}
+              <ReviewsDisplay productId={product.id} productName={product.name} />
             </div>
           </div>
         </motion.div>
