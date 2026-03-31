@@ -1164,6 +1164,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         "Fair quality. Some parts felt a bit flimsy.",
         "Not bad, not great. Okay for basic needs.",
       ],
+      2: [
+        "Below average product. Had some issues but usable.",
+        "Quality could be better for the price. Disappointed.",
+        "Not what I expected. Several defects noted.",
+        "Product arrived damaged. Had to request replacement.",
+        "Poor packaging led to minor damage on arrival.",
+      ],
+      1: [
+        "Very poor quality. Would not recommend.",
+        "Product didn't work at all. Complete waste of money.",
+        "Arrived broken. Very disappointed with this purchase.",
+        "Terrible experience. Product looks nothing like the photos.",
+        "Completely dissatisfied. Will be returning this item.",
+      ],
     };
 
     const generateDate = (daysAgo: number) => {
@@ -1190,9 +1204,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const productSeed = product.id.charCodeAt(0) + product.id.charCodeAt(1);
         const ratingRandom = Math.random() + (productSeed % 10) / 20;
         let rating: number;
-        if (ratingRandom < 0.4) rating = 5;
-        else if (ratingRandom < 0.7) rating = 4;
-        else if (ratingRandom < 0.9) rating = 3;
+        if (ratingRandom < 0.35) rating = 5;
+        else if (ratingRandom < 0.65) rating = 4;
+        else if (ratingRandom < 0.85) rating = 3;
         else if (ratingRandom < 0.95) rating = 2;
         else rating = 1;
         
