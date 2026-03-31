@@ -26,22 +26,6 @@ interface UserContextType {
   resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-interface UserContextType {
-  user: User | null;
-  isLoggedIn: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (
-    name: string,
-    email: string,
-    phone: string,
-    address: string,
-    password: string
-  ) => Promise<boolean>;
-  logout: () => void;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
-  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-}
-
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {

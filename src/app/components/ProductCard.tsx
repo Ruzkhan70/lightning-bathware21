@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, ShoppingCart, Eye } from "lucide-react";
+import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -7,6 +7,7 @@ import { Product, useAdmin } from "../context/AdminContext";
 import { toast } from "sonner";
 import ProductModal from "./ProductModal";
 import { AnimatePresence } from "framer-motion";
+import LazyImage from "./LazyImage";
 
 interface ProductCardProps {
   product: Product;
@@ -47,10 +48,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer"
           onClick={() => setShowModal(true)}
         >
-          <img
+          <LazyImage
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full group-hover:scale-110 transition-transform duration-500"
           />
 
           {/* Overlay Buttons */}
@@ -129,8 +130,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Offer Tag */}
           {discount.hasDiscount && discount.offerTitle && (
-            <div className="text-xs text-red-600 font-semibold mb-3">
-              🎉 {discount.offerTitle}
+            <div className="text-xs text-red-600 font-semibold mb-3 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              {discount.offerTitle}
             </div>
           )}
 

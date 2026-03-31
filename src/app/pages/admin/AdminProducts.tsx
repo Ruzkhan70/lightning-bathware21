@@ -44,7 +44,6 @@ export default function AdminProducts() {
   const safeProducts = products || [];
   const safeCategories = categories || [];
 
-  // Handle URL params for filtering
   useEffect(() => {
     const filterParam = searchParams.get("filter");
     if (filterParam === "unavailable") {
@@ -148,7 +147,6 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Unavailable Filter Banner */}
       {filterStock === "unavailable" && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -163,7 +161,6 @@ export default function AdminProducts() {
         </div>
       )}
 
-      {/* Search and Filters */}
       <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -216,7 +213,6 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
       {showBulkActions && selectedProducts.length > 0 && (
         <div className="mb-6 bg-[#D4AF37] text-black rounded-lg p-4 flex items-center justify-between">
           <span className="font-semibold">
@@ -248,7 +244,6 @@ export default function AdminProducts() {
         </div>
       )}
 
-      {/* Products Table */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -350,7 +345,6 @@ export default function AdminProducts() {
         )}
       </div>
 
-      {/* Edit Dialog */}
       <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

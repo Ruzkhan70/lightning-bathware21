@@ -44,7 +44,6 @@ export default function AdminAddProduct() {
     await addProduct(formData);
     toast.success("Product added successfully!");
 
-    // Reset form
     setFormData({
       name: "",
       category: "",
@@ -205,7 +204,6 @@ export default function AdminAddProduct() {
           </div>
         </form>
 
-        {/* Help Section */}
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="font-semibold text-blue-900 mb-3">
             Tips for Adding Products

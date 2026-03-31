@@ -11,6 +11,8 @@ import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
 import { ShoppingBag, Truck, CreditCard } from "lucide-react";
 import { loadPayhereScript, initiatePayherePayment, onPayhereCompleted, onPayhereClosed, isPayhereConfigured } from "../../lib/payhere";
+import { sendOrderNotificationToAdmin } from "../../lib/emailNotifications";
+import { sendWhatsAppNotification } from "../../lib/whatsappNotification";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -103,6 +105,28 @@ export default function Checkout() {
       };
       
       const savedOrder = await addOrder(orderData);
+      
+      const orderNotification = {
+        orderId: savedOrder.id || `ORD-${Date.now()}`,
+        customerName: formData.customerName,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,
+        products: cartItems.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        total: grandTotal,
+        deliveryOption: selectedDelivery?.label || "",
+        deliveryCost: deliveryCost,
+        paymentMethod: paymentMethod === "online" ? "Online Payment (Payhere)" : "Cash on Delivery",
+        date: new Date().toLocaleString("en-LK"),
+      };
+      
+      // Send notifications
+      sendOrderNotificationToAdmin(orderNotification);
+      sendWhatsAppNotification(orderNotification);
       
       if (paymentMethod === "online" && isOnlinePaymentEnabled) {
         await loadPayhereScript();
