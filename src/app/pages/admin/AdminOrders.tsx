@@ -145,9 +145,9 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Orders Table */}
+      {/* Desktop Orders Table */}
       {filteredOrders.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="hidden md:block bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
@@ -248,7 +248,103 @@ export default function AdminOrders() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+        <div className="hidden md:block bg-white rounded-lg shadow-lg p-12 text-center">
+          <p className="text-gray-500">No orders found</p>
+        </div>
+      )}
+
+      {/* Mobile Orders Cards */}
+      {filteredOrders.length > 0 ? (
+        <div className="md:hidden grid grid-cols-1 gap-4">
+          {filteredOrders.map((order) => (
+            <div
+              key={order.id}
+              className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="font-mono text-sm font-semibold text-gray-600">
+                    #{order.id.slice(-8)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(order.date).toLocaleDateString()}
+                  </p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  order.status === "Pending" ? "bg-orange-100 text-orange-700" :
+                  order.status === "Processing" ? "bg-blue-100 text-blue-700" :
+                  "bg-green-100 text-green-700"
+                }`}>
+                  {order.status}
+                </span>
+              </div>
+
+              <div className="mb-3">
+                <p className="font-semibold text-gray-900">{order.customerName}</p>
+                <p className="text-sm text-gray-600">{order.phone}</p>
+                <p className="text-sm text-gray-500 truncate">{order.address}</p>
+              </div>
+
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-lg font-bold text-gray-900">
+                  Rs. {order.total.toLocaleString()}
+                </span>
+                <Select
+                  value={order.status}
+                  onValueChange={(value) =>
+                    handleStatusChange(order.id, value as "Pending" | "Processing" | "Delivered")
+                  }
+                >
+                  <SelectTrigger className={`w-32 h-9 ${
+                    order.status === "Pending" ? "border-orange-300 bg-orange-50" :
+                    order.status === "Processing" ? "border-blue-300 bg-blue-50" :
+                    "border-green-300 bg-green-50"
+                  }`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Processing">Processing</SelectItem>
+                    <SelectItem value="Delivered">Delivered</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-2 pt-3 border-t">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => openTrackingDialog(order)}
+                  className="flex-1"
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </Button>
+                {order.trackingNumber && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openTrackingDialog(order)}
+                    className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Truck className="w-4 h-4 mr-1" />
+                    Tracking
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDeletingOrder(order.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="md:hidden bg-white rounded-lg shadow-sm p-12 text-center">
           <p className="text-gray-500">No orders found</p>
         </div>
       )}

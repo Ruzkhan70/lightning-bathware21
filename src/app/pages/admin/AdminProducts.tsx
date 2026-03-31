@@ -214,7 +214,7 @@ export default function AdminProducts() {
       </div>
 
       {showBulkActions && selectedProducts.length > 0 && (
-        <div className="mb-6 bg-[#D4AF37] text-black rounded-lg p-4 flex items-center justify-between">
+        <div className="mb-6 bg-[#D4AF37] text-black rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <span className="font-semibold">
             {selectedProducts.length} products selected
           </span>
@@ -244,7 +244,8 @@ export default function AdminProducts() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
@@ -341,6 +342,117 @@ export default function AdminProducts() {
         {filteredProducts.length === 0 && (
           <div className="text-center py-12 text-gray-500">
             <p>No products found matching your criteria</p>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden grid grid-cols-1 gap-4">
+        {/* Select All Card for Mobile */}
+        <div className="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-600">
+            {selectedProducts.length} of {filteredProducts.length} selected
+          </span>
+          <button
+            onClick={handleSelectAll}
+            className="flex items-center gap-2 text-[#D4AF37] font-medium text-sm"
+          >
+            {selectedProducts.length === filteredProducts.length && filteredProducts.length > 0 ? (
+              <>
+                <Square className="w-4 h-4" />
+                Deselect All
+              </>
+            ) : (
+              <>
+                <CheckSquare className="w-4 h-4" />
+                Select All
+              </>
+            )}
+          </button>
+        </div>
+
+        {filteredProducts.map((product) => (
+          <div
+            key={product.id}
+            className={`bg-white rounded-lg shadow-sm p-4 border-2 transition-all ${
+              selectedProducts.includes(product.id)
+                ? 'border-[#D4AF37]'
+                : 'border-transparent'
+            }`}
+          >
+            <div className="flex gap-4">
+              {/* Checkbox */}
+              <button
+                onClick={() => handleSelectProduct(product.id)}
+                className="flex-shrink-0 pt-1"
+              >
+                {selectedProducts.includes(product.id) ? (
+                  <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
+                ) : (
+                  <Square className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+
+              {/* Image */}
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+              />
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
+                    <p className="text-sm text-gray-500 truncate">{product.description}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                    {product.category}
+                  </span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    product.isAvailable
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}>
+                    {product.isAvailable ? "Available" : "Not Available"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-lg font-bold text-gray-900">
+                    Rs. {product.price.toLocaleString()}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEdit(product.id)}
+                      className="h-9 min-w-9 px-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDelete(product.id)}
+                      className="h-9 min-w-9 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {filteredProducts.length === 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <p className="text-gray-500">No products found matching your criteria</p>
           </div>
         )}
       </div>

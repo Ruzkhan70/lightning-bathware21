@@ -150,192 +150,265 @@ export default function AdminMessages() {
       </div>
 
       {filteredMessages.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <Mail className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+        <div className="bg-white rounded-lg shadow-sm p-6 md:p-12 text-center">
+          <Mail className="w-10 h-10 md:w-16 md:h-16 mx-auto text-gray-300 mb-4" />
+          <h3 className="text-lg md:text-xl font-semibold text-gray-600 mb-2">
             {searchQuery || statusFilter !== "all" 
               ? "No messages found" 
               : "No messages yet"}
           </h3>
-          <p className="text-gray-500">
+          <p className="text-gray-500 text-sm md:text-base">
             {searchQuery || statusFilter !== "all"
               ? "Try adjusting your search or filter"
               : "Customer messages will appear here when submitted"}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Customer</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Subject</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Message Preview</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredMessages.map((message) => (
-                  <tr 
-                    key={message.id} 
-                    className={`hover:bg-gray-50 transition-colors ${message.status === "new" ? "bg-red-50/30" : ""}`}
-                  >
-                    <td className="px-6 py-4">
-                      {getStatusBadge(message.status)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center">
-                          <span className="text-black font-bold text-sm">
-                            {message.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{message.name}</p>
-                          <p className="text-sm text-gray-500">{message.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-gray-900">
-                        {message.subject || <span className="text-gray-400 italic">No subject</span>}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-gray-600 truncate max-w-xs">
-                        {message.message}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        {formatDate(message.createdAt)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewMessage(message.id, message.status)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setDeletingMessage(message.id);
-                          }}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
+        <>
+          <div className="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Customer</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Subject</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Message Preview</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredMessages.map((message) => (
+                    <tr 
+                      key={message.id} 
+                      className={`hover:bg-gray-50 transition-colors ${message.status === "new" ? "bg-red-50/30" : ""}`}
+                    >
+                      <td className="px-6 py-4">
+                        {getStatusBadge(message.status)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center">
+                            <span className="text-black font-bold text-sm">
+                              {message.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{message.name}</p>
+                            <p className="text-sm text-gray-500">{message.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-gray-900">
+                          {message.subject || <span className="text-gray-400 italic">No subject</span>}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-gray-600 truncate max-w-xs">
+                          {message.message}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Clock className="w-4 h-4" />
+                          {formatDate(message.createdAt)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewMessage(message.id, message.status)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDeletingMessage(message.id);
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          <div className="md:hidden space-y-3">
+            {filteredMessages.map((message) => (
+              <div 
+                key={message.id}
+                className={`bg-white rounded-lg shadow-sm p-4 ${message.status === "new" ? "border-l-4 border-red-500" : ""}`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-black font-bold">
+                        {message.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{message.name}</p>
+                      <p className="text-sm text-gray-500 truncate">{message.email}</p>
+                    </div>
+                  </div>
+                  {getStatusBadge(message.status)}
+                </div>
+                
+                <div className="mb-3">
+                  <p className="text-sm text-gray-500 mb-1">Subject:</p>
+                  <p className="text-gray-900 text-sm truncate">
+                    {message.subject || <span className="text-gray-400 italic">No subject</span>}
+                  </p>
+                </div>
+                
+                <div className="mb-3">
+                  <p className="text-sm text-gray-500 mb-1">Message:</p>
+                  <p className="text-gray-600 text-sm line-clamp-2">
+                    {message.message}
+                  </p>
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock className="w-3 h-3" />
+                    {formatDate(message.createdAt)}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewMessage(message.id, message.status)}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50 h-8 px-2"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      <span className="text-xs">View</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDeletingMessage(message.id)}
+                      className="text-red-600 border-red-200 hover:bg-red-50 h-8 px-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* View Message Dialog */}
       <Dialog open={!!viewingMessage} onOpenChange={() => setViewingMessage(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-full md:max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Message Details</DialogTitle>
+            <DialogTitle className="text-lg md:text-xl font-bold pr-8">Message Details</DialogTitle>
           </DialogHeader>
           {currentMessage && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 {getStatusBadge(currentMessage.status)}
-                <span className="text-sm text-gray-500">
+                <span className="text-xs md:text-sm text-gray-500">
                   {formatDate(currentMessage.createdAt)}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <User className="w-5 h-5 text-[#D4AF37]" />
-                  <div>
-                    <p className="text-sm text-gray-500">Customer Name</p>
-                    <p className="font-medium">{currentMessage.name}</p>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
+                  <User className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs md:text-sm text-gray-500">Customer Name</p>
+                    <p className="font-medium text-sm md:text-base truncate">{currentMessage.name}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <Mail className="w-5 h-5 text-[#D4AF37]" />
-                  <div>
-                    <p className="text-sm text-gray-500">Email Address</p>
-                    <a href={`mailto:${currentMessage.email}`} className="font-medium text-blue-600 hover:underline">
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
+                  <Mail className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs md:text-sm text-gray-500">Email Address</p>
+                    <a href={`mailto:${currentMessage.email}`} className="font-medium text-blue-600 hover:underline text-sm md:text-base break-all">
                       {currentMessage.email}
                     </a>
                   </div>
                 </div>
                 {currentMessage.phone && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <Phone className="w-5 h-5 text-[#D4AF37]" />
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
+                    <Phone className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-500">Phone Number</p>
-                      <a href={`tel:${currentMessage.phone}`} className="font-medium text-blue-600 hover:underline">
+                      <p className="text-xs md:text-sm text-gray-500">Phone Number</p>
+                      <a href={`tel:${currentMessage.phone}`} className="font-medium text-blue-600 hover:underline text-sm md:text-base">
                         {currentMessage.phone}
                       </a>
                     </div>
                   </div>
                 )}
                 {currentMessage.subject && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <MessageSquare className="w-5 h-5 text-[#D4AF37]" />
-                    <div>
-                      <p className="text-sm text-gray-500">Subject</p>
-                      <p className="font-medium">{currentMessage.subject}</p>
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
+                    <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm text-gray-500">Subject</p>
+                      <p className="font-medium text-sm md:text-base truncate">{currentMessage.subject}</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-sm text-gray-500 mb-2 font-medium">Message</h3>
-                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+              <div className="bg-gray-50 rounded-lg p-4 md:p-6">
+                <h3 className="text-xs md:text-sm text-gray-500 mb-2 font-medium">Message</h3>
+                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-sm md:text-base">
                   {currentMessage.message}
                 </p>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t">
-                {currentMessage.status === "new" && (
-                  <Button
-                    onClick={() => markMessageAsRead(currentMessage.id)}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <Check className="w-4 h-4" />
-                    Mark as Read
-                  </Button>
-                )}
-                {currentMessage.status !== "replied" && (
-                  <Button
-                    onClick={() => {
-                      markMessageAsReplied(currentMessage.id);
-                      window.open(`mailto:${currentMessage.email}?subject=Re: ${currentMessage.subject || "Contact Form Message"}`, "_blank");
-                    }}
-                    className="bg-[#D4AF37] hover:bg-[#b8962f] text-black flex items-center gap-2"
-                  >
-                    <Mail className="w-4 h-4" />
-                    Mark as Replied
-                  </Button>
-                )}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 md:pt-4 border-t">
+                <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+                  {currentMessage.status === "new" && (
+                    <Button
+                      onClick={() => markMessageAsRead(currentMessage.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 flex-1 sm:flex-none justify-center"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span className="hidden sm:inline">Mark as Read</span>
+                      <span className="sm:hidden">Read</span>
+                    </Button>
+                  )}
+                  {currentMessage.status !== "replied" && (
+                    <Button
+                      onClick={() => {
+                        markMessageAsReplied(currentMessage.id);
+                        window.open(`mailto:${currentMessage.email}?subject=Re: ${currentMessage.subject || "Contact Form Message"}`, "_blank");
+                      }}
+                      size="sm"
+                      className="bg-[#D4AF37] hover:bg-[#b8962f] text-black flex items-center gap-2 flex-1 sm:flex-none justify-center"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span className="hidden sm:inline">Mark as Replied</span>
+                      <span className="sm:hidden">Reply</span>
+                    </Button>
+                  )}
+                </div>
                 <Button
                   onClick={() => {
                     setViewingMessage(null);
                     setDeletingMessage(currentMessage.id);
                   }}
                   variant="outline"
-                  className="text-red-600 hover:bg-red-50 flex items-center gap-2 ml-auto"
+                  size="sm"
+                  className="text-red-600 hover:bg-red-50 flex items-center gap-2 justify-center sm:ml-auto"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete

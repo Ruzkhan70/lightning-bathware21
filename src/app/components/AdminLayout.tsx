@@ -292,8 +292,8 @@ export default function AdminLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="lg:ml-64 pt-16 lg:pt-0 overflow-auto">
-          <div className="p-4 lg:p-8">
+        <main className="lg:ml-64 pt-16 lg:pt-0 overflow-auto min-h-screen">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
             <Outlet />
           </div>
         </main>

@@ -70,18 +70,18 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
         {stats.map((stat, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
+            className="bg-white rounded-lg shadow-sm md:shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
-                <stat.icon className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between mb-2 md:mb-4">
+              <div className={`${stat.color} w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center`}>
+                <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               {stat.label === "Total Revenue" && (
                 <span className="text-green-500 text-xs font-semibold flex items-center">
@@ -89,8 +89,8 @@ export default function AdminDashboard() {
                 </span>
               )}
             </div>
-            <div className="text-2xl xl:text-3xl font-bold mb-1">{stat.value}</div>
-            <div className="text-gray-600 text-sm">{stat.label}</div>
+            <div className="text-xl md:text-2xl xl:text-3xl font-bold mb-1 truncate">{stat.value}</div>
+            <div className="text-gray-600 text-xs md:text-sm">{stat.label}</div>
           </motion.div>
         ))}
       </div>
