@@ -62,6 +62,24 @@ export default function AdminSettings() {
       toast.error("Shortcut can only contain letters and numbers");
       return;
     }
+
+    // Validate delivery prices
+    if (profileForm.deliveryColomboPrice < 0) {
+      toast.error("Colombo delivery price cannot be negative");
+      return;
+    }
+    if (profileForm.deliveryIslandwidePrice < 0) {
+      toast.error("Islandwide delivery price cannot be negative");
+      return;
+    }
+    if (profileForm.deliveryColomboPrice > 50000) {
+      toast.error("Colombo delivery price is too high");
+      return;
+    }
+    if (profileForm.deliveryIslandwidePrice > 100000) {
+      toast.error("Islandwide delivery price is too high");
+      return;
+    }
     
     updateStoreProfile(profileForm);
     toast.success("Store profile updated successfully!");

@@ -31,8 +31,29 @@ export default function AdminAddProduct() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.category || formData.price < 0) {
-      toast.error("Please fill in all required fields correctly");
+    // Validation
+    if (!formData.name || formData.name.trim().length < 2) {
+      toast.error("Product name must be at least 2 characters");
+      return;
+    }
+
+    if (!formData.category) {
+      toast.error("Please select a category");
+      return;
+    }
+
+    if (formData.price <= 0) {
+      toast.error("Price must be greater than 0");
+      return;
+    }
+
+    if (formData.price > 10000000) {
+      toast.error("Price cannot exceed 10,000,000 LKR");
+      return;
+    }
+
+    if (!formData.description || formData.description.trim().length < 10) {
+      toast.error("Description must be at least 10 characters");
       return;
     }
 
@@ -41,7 +62,11 @@ export default function AdminAddProduct() {
       return;
     }
 
-    await addProduct(formData);
+    await addProduct({
+      ...formData,
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+    });
     toast.success("Product added successfully!");
 
     setFormData({

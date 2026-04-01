@@ -16,6 +16,7 @@ export default function AdminLogin() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSetupMode, setIsSetupMode] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (isAdminDataLoaded && adminUid) {
@@ -50,6 +51,14 @@ export default function AdminLogin() {
       console.log("Login result:", success);
 
       if (success) {
+        // Handle remember me
+        if (rememberMe && !isSetupMode) {
+          localStorage.setItem('adminSession', 'true');
+          sessionStorage.removeItem('adminSession');
+        } else {
+          sessionStorage.setItem('adminSession', 'true');
+          localStorage.removeItem('adminSession');
+        }
         toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
         navigate("/admin");
       } else {
@@ -128,6 +137,21 @@ export default function AdminLogin() {
                 />
               </div>
             </div>
+
+            {!isSetupMode && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-[#D4AF37] border-gray-300 rounded focus:ring-[#D4AF37]"
+                />
+                <Label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600 cursor-pointer">
+                  Remember me (stay logged in)
+                </Label>
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -20,7 +20,8 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
     formData.append("image", file);
     
     // Using ImgBB free API (anonymous uploads, 3200px limit)
-    const response = await fetch("https://api.imgbb.com/1/upload?key=d36eb6591370aa4f4a3431f4f7e2c982", {
+    const apiKey = import.meta.env.VITE_IMGBB_API_KEY || "d36eb6591370aa4f4a3431f4f7e2c982";
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
       method: "POST",
       body: formData,
     });

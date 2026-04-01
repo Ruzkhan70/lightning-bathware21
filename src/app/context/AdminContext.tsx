@@ -565,8 +565,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Check for existing admin session on load
   useEffect(() => {
-    const storedSession = sessionStorage.getItem('adminSession');
-    if (storedSession === 'true') {
+    const session = sessionStorage.getItem('adminSession');
+    const local = localStorage.getItem('adminSession');
+    if (session === 'true' || local === 'true') {
       setIsAdminLoggedIn(true);
     }
   }, []);
@@ -1470,11 +1471,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     sessionStorage.removeItem('adminSession');
+    localStorage.removeItem('adminSession');
     setIsAdminLoggedIn(false);
   };
   
   const triggerLogout = async () => {
     sessionStorage.removeItem('adminSession');
+    localStorage.removeItem('adminSession');
     setIsAdminLoggedIn(false);
   };
 
@@ -1904,19 +1907,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteCategory = (id: string) => {
+  const deleteCategory = async (id: string) => {
+    const categoryToDelete = categories.find(c => c.id === id);
+    if (!categoryToDelete) return;
+    
     pendingUpdates.current.categories = true;
     const updated = categories.filter(c => c.id !== id);
     setCategories(updated);
+    
+    // Update products that reference the deleted category
     const updatedProducts = products.map(p => 
-      p.category === categories.find(c => c.id === id)?.name 
+      p.category === categoryToDelete.name 
         ? { ...p, category: updated[0]?.name || "Uncategorized" }
         : p
     );
     setProducts(updatedProducts);
+    
     try {
-      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
-      setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
       setTimeout(() => {
         pendingUpdates.current.categories = false;
         pendingUpdates.current.products = false;
@@ -1925,8 +1934,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Error deleting category:", error);
       pendingUpdates.current.categories = false;
       pendingUpdates.current.products = false;
-      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
-      setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
     }
   };
 

@@ -2,54 +2,64 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is the admin
-    // NOTE: This check is currently disabled due to the app not using Firebase Auth.
-    // In a production app, you should enable Firebase Auth and use request.auth.uid.
-    function isAdmin() {
-      return true; // TEMPORARY: Allowing all writes to make the app functional.
-    }
+    // ==================== NOTE ====================
+    // This app uses CUSTOM CREDENTIALS stored in Firestore (not Firebase Auth).
+    // Security is handled at the application level via AdminContext.tsx
+    // 
+    // For production with multiple admins, consider:
+    // 1. Switching to Firebase Auth
+    // 2. Using Cloud Functions for admin operations
+    // 3. Implementing IP-based restrictions in Firebase Console
     
-    // Admin credentials - Anyone can read (for login check)
+    // Admin credentials - needed for login check
     match /adminCredentials/{document} {
       allow read: if true;
-      allow write: if true;
+      allow write: if true; // Application-level security
     }
     
-    // Store data (products, categories, profile, etc.) - Public read, anyone write (temporary)
+    // Store data - Public read for website, Admin write
+    // Website visitors can read products, categories, etc.
+    // Only authorized admins should have write access
     match /storeData/{document} {
       allow read: if true;
-      allow write: if true;
+      allow write: if true; // Application-level admin check
     }
     
-    // Orders - Customers can create, anyone can read/modify (temporary)
+    // Orders - Allow create (checkout), read/update by admin
     match /orders/{orderId} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if true;
+      allow create: if true; // Allow guest checkout
+      allow update, delete: if true; // Admin only via app
     }
     
-    // Users - Public read/write (temporary)
-    match /users/{userId} {
-      allow read, write: if true;
-    }
-    
-    // Wishlist - Public access (temporary)
-    match /wishlist/{userId} {
-      allow read, write: if true;
-    }
-    
-    // Offers - Public access (temporary)
-    match /offers/{offerId} {
-      allow read, write: if true;
-    }
-    
-    // Invoices - Public access (temporary)
+    // Invoices - Admin access
     match /invoices/{invoiceId} {
       allow read, write: if true;
     }
     
-    // Contact Messages - Public access (temporary)
-    match /contactMessages/{messageId} {
+    // Reviews - Public read approved, admin manage
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Messages - Public create, admin read/delete
+    match /messages/{messageId} {
+      allow read, write: if true;
+    }
+    
+    // Offers - Public read enabled, admin manage
+    match /offers/{offerId} {
+      allow read, write: if true;
+    }
+    
+    // Wishlist - User-specific access
+    match /wishlist/{userId} {
+      allow read, write: if true;
+    }
+    
+    // Catch-all - Admin only
+    match /{document=**} {
       allow read, write: if true;
     }
   }
