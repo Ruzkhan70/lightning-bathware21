@@ -805,6 +805,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  // Track recent updates to ignore them from Firebase
+  const recentOfferUpdates = useRef<Map<string, { value: any; timestamp: number }>>(new Map());
+  
   // Firebase real-time sync for offers
   useEffect(() => {
     try {
@@ -815,13 +818,28 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           return { ...data, id: data.id || doc.id } as Offer;
         });
         
-        // Always update from Firebase if we have data, but respect pending updates
-        if (!pendingUpdates.current.offers) {
-          if (firebaseOffers.length > 0) {
-            setOffers(firebaseOffers);
-          } else if (offers.length === 0) {
-            setOffers(DEMO_OFFERS);
-          }
+        // Check if this is a pending update we're ignoring
+        if (pendingUpdates.current.offers) {
+          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+          return;
+        }
+        
+        // Check each offer for recent local updates
+        const now = Date.now();
+        const hasRecentUpdate = firebaseOffers.some(offer => {
+          const recent = recentOfferUpdates.current.get(offer.id);
+          return recent && (now - recent.timestamp) < 2000;
+        });
+        
+        if (hasRecentUpdate) {
+          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+          return;
+        }
+        
+        if (firebaseOffers.length > 0) {
+          setOffers(firebaseOffers);
+        } else if (offers.length === 0) {
+          setOffers(DEMO_OFFERS);
         }
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
       }, () => {
@@ -1739,15 +1757,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const updateOffer = async (id: string, offer: Partial<Offer>) => {
     pendingUpdates.current.offers = true;
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
+    
+    // Track this update to ignore Firebase callback
+    recentOfferUpdates.current.set(id, { value: offer, timestamp: Date.now() });
+    
     try {
       await updateDoc(doc(db, "offers", id), offer);
+      
+      // Clear pending flag after a delay
       setTimeout(() => {
         pendingUpdates.current.offers = false;
-      }, 500);
+        recentOfferUpdates.current.delete(id);
+      }, 1500);
     } catch (error) {
       console.error("Error updating offer:", error);
       setOffers(prev => prev.map(o => o.id === id ? { ...o, isEnabled: !offer.isEnabled } : o));
       pendingUpdates.current.offers = false;
+      recentOfferUpdates.current.delete(id);
     }
   };
 
