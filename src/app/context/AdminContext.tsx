@@ -1889,12 +1889,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateCategory = (id: string, category: Partial<Category>) => {
+  const updateCategory = async (id: string, category: Partial<Category>) => {
     pendingUpdates.current.categories = true;
     const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
     setCategories(updated);
     try {
-      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       setTimeout(() => {
         pendingUpdates.current.categories = false;
       }, 1000);

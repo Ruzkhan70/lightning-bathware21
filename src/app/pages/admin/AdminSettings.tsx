@@ -95,16 +95,6 @@ export default function AdminSettings() {
     setAssetsForm({ ...assetsForm, [e.target.name]: e.target.value });
   };
 
-  const handleCategoryImageChange = (category: string, value: string) => {
-    setAssetsForm({
-      ...assetsForm,
-      categoryImages: {
-        ...assetsForm.categoryImages,
-        [category]: value
-      }
-    });
-  };
-
   const handleUsernameChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -659,21 +649,6 @@ export default function AdminSettings() {
                   value={assetsForm.aboutTeamImage}
                   onChange={(val) => setAssetsForm({ ...assetsForm, aboutTeamImage: val })}
                 />
-              </div>
-            </div>
-
-            {/* Category Images */}
-            <div className="border-b pb-4">
-              <h3 className="font-semibold text-gray-700 mb-3">Category Card Images</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.keys(assetsForm.categoryImages).map((category) => (
-                  <ImageUpload
-                    key={category}
-                    label={category}
-                    value={assetsForm.categoryImages[category]}
-                    onChange={(val) => handleCategoryImageChange(category, val)}
-                  />
-                ))}
               </div>
             </div>
 
