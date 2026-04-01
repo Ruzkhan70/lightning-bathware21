@@ -20,7 +20,7 @@ import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
 import { useState, useEffect, useRef } from "react";
 import { setMetaTags } from "../utils/seo";
-import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 function AnimatedCounter({ value }: { value: string }) {
   const [displayValue, setDisplayValue] = useState("0");
@@ -167,7 +167,33 @@ export default function Home() {
         {/* Loading State */}
         {heroImageLoading && (
           <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-            <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin" />
+            <motion.div
+              className="relative w-16 h-16"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div
+                className="absolute inset-0 border-4 border-gray-700 rounded-full"
+              />
+              <motion.div
+                className="absolute inset-0 border-4 border-transparent rounded-full"
+                style={{
+                  borderTopColor: "#D4AF37",
+                  borderRightColor: "#D4AF37",
+                }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.div
+                className="absolute inset-2 border-4 border-transparent rounded-full"
+                style={{
+                  borderBottomColor: "#D4AF37",
+                  borderLeftColor: "#D4AF37",
+                }}
+                animate={{ rotate: -360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              />
+            </motion.div>
           </div>
         )}
 
