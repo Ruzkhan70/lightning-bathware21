@@ -807,33 +807,49 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Firebase real-time sync for offers
   useEffect(() => {
+    console.log("[Firebase] Setting up offers listener...");
+    
+    let unsubscribe: (() => void) | undefined;
+    
     try {
       const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const firebaseOffers: Offer[] = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return { ...data, id: data.id || doc.id } as Offer;
-        });
-        
-        // Always update from Firebase - Firebase data is the source of truth
-        if (firebaseOffers.length > 0) {
-          setOffers(firebaseOffers);
-        } else {
-          // Only use DEMO_OFFERS if we have no real offers AND no local state
-          setOffers(prev => prev.length === 0 ? DEMO_OFFERS : prev);
+      unsubscribe = onSnapshot(q, 
+        (snapshot) => {
+          console.log("[Firebase] Offers snapshot received:", snapshot.size, "offers");
+          
+          const firebaseOffers: Offer[] = snapshot.docs.map(doc => {
+            const data = doc.data();
+            const offer = { ...data, id: data.id || doc.id } as Offer;
+            console.log("[Firebase] Offer:", offer.id, offer.title, "isEnabled:", offer.isEnabled);
+            return offer;
+          });
+          
+          // Always update from Firebase - Firebase data is the source of truth
+          if (firebaseOffers.length > 0) {
+            setOffers(firebaseOffers);
+          } else {
+            setOffers(DEMO_OFFERS);
+          }
+          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
+        },
+        (error) => {
+          console.error("[Firebase] Offers snapshot error:", error);
+          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
         }
-        setFirebaseLoaded(prev => ({ ...prev, offers: true }));
-      }, () => {
-        // Firebase error - keep existing data or use demos
-        setOffers(prev => prev.length === 0 ? DEMO_OFFERS : prev);
-        setFirebaseLoaded(prev => ({ ...prev, offers: true }));
-      });
-      return () => unsubscribe();
+      );
+      
+      console.log("[Firebase] Offers listener set up successfully");
     } catch (error) {
-      console.error("Firebase offers sync error:", error);
-      setOffers(prev => prev.length === 0 ? DEMO_OFFERS : prev);
+      console.error("[Firebase] Offers listener setup error:", error);
       setFirebaseLoaded(prev => ({ ...prev, offers: true }));
     }
+    
+    return () => {
+      if (unsubscribe) {
+        console.log("[Firebase] Cleaning up offers listener");
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Firebase real-time sync for products
@@ -1714,28 +1730,39 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       id: generateUniqueId(),
       createdAt: new Date().toISOString(),
     };
+    
+    console.log("[Offers] Adding offer:", newOffer.id, newOffer.title);
+    
     // Optimistic update
     setOffers(prev => [...prev, newOffer]);
-    try {
-      setDoc(doc(db, "offers", newOffer.id), newOffer);
-    } catch (error) {
-      console.error("Error saving offer:", error);
-      // Revert on error
-      setOffers(prev => prev.filter(o => o.id !== newOffer.id));
-    }
+    
+    setDoc(doc(db, "offers", newOffer.id), newOffer)
+      .then(() => {
+        console.log("[Offers] Successfully saved to Firebase:", newOffer.id);
+      })
+      .catch((error) => {
+        console.error("[Offers] Error saving to Firebase:", error);
+        toast.error("Failed to save offer to database");
+        // Revert on error
+        setOffers(prev => prev.filter(o => o.id !== newOffer.id));
+      });
   };
 
   const updateOffer = async (id: string, offer: Partial<Offer>) => {
     // Store previous state for rollback
     const previousOffer = offers.find(o => o.id === id);
     
+    console.log("[Offers] Updating offer:", id, "with:", offer);
+    
     // Optimistic update
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
     
     try {
       await updateDoc(doc(db, "offers", id), offer);
+      console.log("[Offers] Successfully updated in Firebase:", id);
     } catch (error) {
-      console.error("Error updating offer:", error);
+      console.error("[Offers] Error updating in Firebase:", error);
+      toast.error("Failed to update offer in database");
       // Revert on error
       if (previousOffer) {
         setOffers(prev => prev.map(o => o.id === id ? previousOffer : o));
@@ -1747,24 +1774,32 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     // Store for rollback
     const deletedOffer = offers.find(o => o.id === id);
     
+    console.log("[Offers] Deleting offer:", id);
+    
     // Optimistic delete
     setOffers(prev => prev.filter(o => o.id !== id));
     
-    try {
-      deleteDoc(doc(db, "offers", id));
-    } catch (error) {
-      console.error("Error deleting offer:", error);
-      // Revert on error
-      if (deletedOffer) {
-        setOffers(prev => [...prev, deletedOffer]);
-      }
-    }
+    deleteDoc(doc(db, "offers", id))
+      .then(() => {
+        console.log("[Offers] Successfully deleted from Firebase:", id);
+      })
+      .catch((error) => {
+        console.error("[Offers] Error deleting from Firebase:", error);
+        toast.error("Failed to delete offer from database");
+        // Revert on error
+        if (deletedOffer) {
+          setOffers(prev => [...prev, deletedOffer]);
+        }
+      });
   };
 
   const toggleOfferStatus = (id: string) => {
     const offer = offers.find(o => o.id === id);
     if (offer) {
+      console.log("[Offers] Toggling offer:", id, "from", offer.isEnabled, "to", !offer.isEnabled);
       updateOffer(id, { isEnabled: !offer.isEnabled });
+    } else {
+      console.error("[Offers] Offer not found for toggle:", id);
     }
   };
 
