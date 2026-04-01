@@ -63,7 +63,7 @@ function AnimatedCounter({ value }: { value: string }) {
 }
 
 export default function Home() {
-  const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile } = useAdmin();
+  const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile, isDataLoaded } = useAdmin();
   const safeProducts = products || [];
   const safeCategories = categories || [];
   
@@ -137,13 +137,17 @@ export default function Home() {
     >
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] flex items-center bg-black text-white overflow-hidden">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 opacity-40 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('${storeAssets.heroImage}')`,
-          }}
-        />
+        {/* Background Image - Only show once data is loaded to prevent default image flash */}
+        {isDataLoaded ? (
+          <div
+            className="absolute inset-0 opacity-40 bg-cover bg-center transition-opacity duration-500"
+            style={{
+              backgroundImage: `url('${storeAssets.heroImage}')`,
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 animate-pulse" />
+        )}
 
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
@@ -243,10 +247,14 @@ export default function Home() {
                     to={`/products?category=${encodeURIComponent(category.name)}`}
                     className="group relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                   >
-                    <div
-                      className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
-                      style={{ backgroundImage: `url('${category.image}')` }}
-                    />
+                    {isDataLoaded ? (
+                      <div
+                        className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
+                        style={{ backgroundImage: `url('${category.image}')` }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-800 animate-pulse" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
                     
                     <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
