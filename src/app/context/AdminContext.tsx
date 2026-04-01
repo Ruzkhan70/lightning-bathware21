@@ -815,23 +815,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           return { ...data, id: data.id || doc.id } as Offer;
         });
         
-        // Only update if not a pending update
+        // Always update from Firebase if we have data, but respect pending updates
         if (!pendingUpdates.current.offers) {
           if (firebaseOffers.length > 0) {
-            setOffers(prev => {
-              if (JSON.stringify(prev) !== JSON.stringify(firebaseOffers)) {
-                return firebaseOffers;
-              }
-              return prev;
-            });
+            setOffers(firebaseOffers);
           } else if (offers.length === 0) {
             setOffers(DEMO_OFFERS);
           }
-        } else {
-          const timeoutId = setTimeout(() => {
-            pendingUpdates.current.offers = false;
-          }, 1000);
-          return () => clearTimeout(timeoutId);
         }
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
       }, () => {
@@ -1132,53 +1122,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       { name: "Asela Jayasinghe", email: "asela.j@example.lk" },
     ];
 
-    const REVIEW_COMMENTS = {
-      5: [
-        "Absolutely excellent product! The quality exceeded my expectations. Highly recommend!",
-        "Best purchase I've made. The craftsmanship is outstanding.",
-        "Superb quality and fast delivery. Very satisfied!",
-        "Outstanding product! Worth every rupee.",
-        "Fantastic quality for the price. Works perfectly.",
-        "I'm extremely happy with this. The design is modern.",
-        "This product has transformed my space.",
-        "Five stars! Well-made and great customer service.",
-        "Perfect addition to my home. Quality is top-notch.",
-        "Wonderful product! Easy to install.",
-      ],
-      4: [
-        "Very good quality. Minor packaging issue but overall excellent.",
-        "Great value for money. The design is elegant.",
-        "Impressed with the product. The finish is smooth.",
-        "Good product overall. Delivery was quick.",
-        "Nice product with good quality. Would recommend.",
-        "Satisfied with this purchase. The quality is solid.",
-        "Good quality for the price. Arrived in perfect condition.",
-        "Very nice product. Easy to use.",
-        "Happy with this buy. Well-crafted and looks elegant.",
-        "Solid product with good design.",
-      ],
-      3: [
-        "Decent product for the price. Quality is okay.",
-        "Average quality. Does the job but not exceptional.",
-        "Product is okay but delivery took longer than expected.",
-        "Fair quality. Some parts felt a bit flimsy.",
-        "Not bad, not great. Okay for basic needs.",
-      ],
-      2: [
-        "Below average product. Had some issues but usable.",
-        "Quality could be better for the price. Disappointed.",
-        "Not what I expected. Several defects noted.",
-        "Product arrived damaged. Had to request replacement.",
-        "Poor packaging led to minor damage on arrival.",
-      ],
-      1: [
-        "Very poor quality. Would not recommend.",
-        "Product didn't work at all. Complete waste of money.",
-        "Arrived broken. Very disappointed with this purchase.",
-        "Terrible experience. Product looks nothing like the photos.",
-        "Completely dissatisfied. Will be returning this item.",
-      ],
-    };
+    const REVIEW_COMMENTS = [
+      "Absolutely excellent product! The quality exceeded my expectations. Highly recommend!",
+      "Best purchase I've made. The craftsmanship is outstanding.",
+      "Superb quality and fast delivery. Very satisfied!",
+      "Outstanding product! Worth every rupee.",
+      "Fantastic quality for the price. Works perfectly.",
+      "I'm extremely happy with this. The design is modern and beautiful.",
+      "This product has transformed my space. Looks amazing!",
+      "Five stars! Well-made and great customer service.",
+      "Perfect addition to my home. Quality is top-notch.",
+      "Wonderful product! Easy to install and looks elegant.",
+      "Amazing value! The design is stunning and build quality is premium.",
+      "Love this product! It has exceeded all my expectations.",
+      "Perfect quality for the price. Very happy with my purchase.",
+      "Excellent craftsmanship. The product is beautiful and functional.",
+      "Best buy ever! Highly recommend to everyone.",
+    ];
 
     const generateDate = (daysAgo: number) => {
       const date = new Date();
@@ -1201,16 +1161,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       for (let i = 0; i < numReviews; i++) {
         const reviewer = DEMO_REVIEWERS[Math.floor(Math.random() * DEMO_REVIEWERS.length)];
         
-        const productSeed = product.id.charCodeAt(0) + product.id.charCodeAt(1);
-        const ratingRandom = Math.random() + (productSeed % 10) / 20;
-        let rating: number;
-        if (ratingRandom < 0.35) rating = 5;
-        else if (ratingRandom < 0.65) rating = 4;
-        else if (ratingRandom < 0.85) rating = 3;
-        else if (ratingRandom < 0.95) rating = 2;
-        else rating = 1;
+        // Always generate 5-star positive reviews only
+        const rating = 5;
         
-        const comments = REVIEW_COMMENTS[rating as keyof typeof REVIEW_COMMENTS];
+        const comments = REVIEW_COMMENTS[5];
         const comment = comments[Math.floor(Math.random() * comments.length)];
         const daysAgo = Math.floor(Math.random() * 90);
         
@@ -1782,16 +1736,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateOffer = (id: string, offer: Partial<Offer>) => {
+  const updateOffer = async (id: string, offer: Partial<Offer>) => {
     pendingUpdates.current.offers = true;
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
     try {
-      updateDoc(doc(db, "offers", id), offer);
+      await updateDoc(doc(db, "offers", id), offer);
       setTimeout(() => {
         pendingUpdates.current.offers = false;
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Error updating offer:", error);
+      setOffers(prev => prev.map(o => o.id === id ? { ...o, isEnabled: !offer.isEnabled } : o));
       pendingUpdates.current.offers = false;
     }
   };
@@ -1810,10 +1765,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const toggleOfferStatus = (id: string) => {
+  const toggleOfferStatus = async (id: string) => {
     const offer = offers.find(o => o.id === id);
     if (offer) {
-      updateOffer(id, { isEnabled: !offer.isEnabled });
+      await updateOffer(id, { isEnabled: !offer.isEnabled });
     }
   };
 

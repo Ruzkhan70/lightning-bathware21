@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Star, Send, User, Mail } from "lucide-react";
-import { useAdmin } from "../context/AdminContext";
+import { useReviews } from "../context/ReviewsContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -13,7 +13,7 @@ interface ReviewSubmissionProps {
 }
 
 export default function ReviewSubmission({ productId, productName, onSuccess }: ReviewSubmissionProps) {
-  const { addReview } = useAdmin();
+  const { addReview } = useReviews();
   const [formData, setFormData] = useState({
     userName: "",
     userEmail: "",

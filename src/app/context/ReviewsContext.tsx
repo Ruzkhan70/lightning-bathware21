@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { db } from "../../firebase";
-import { collection, addDoc, getDocs, query, orderBy, where } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 
 export interface Review {
   id: string;
@@ -9,7 +9,8 @@ export interface Review {
   userEmail?: string;
   rating: number;
   comment: string;
-  isApproved: boolean;
+  status?: "pending" | "approved" | "rejected";
+  isApproved?: boolean;
   createdAt: string;
 }
 
@@ -17,7 +18,7 @@ interface ReviewsContextType {
   reviews: Review[];
   getProductReviews: (productId: string) => Review[];
   getProductRating: (productId: string) => { average: number; count: number };
-  addReview: (review: Omit<Review, "id" | "createdAt" | "isApproved">) => Promise<void>;
+  addReview: (review: Omit<Review, "id" | "createdAt" | "status">) => Promise<void>;
   loading: boolean;
 }
 
@@ -28,32 +29,43 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const reviewsRef = collection(db, "reviews");
-        const q = query(reviewsRef, orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
+    try {
+      const reviewsRef = collection(db, "reviews");
+      const q = query(reviewsRef, orderBy("createdAt", "desc"));
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
         const reviewsData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Review[];
         setReviews(reviewsData);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-      } finally {
         setLoading(false);
-      }
-    };
+      }, (error) => {
+        console.error("Error fetching reviews:", error);
+        setLoading(false);
+      });
 
-    fetchReviews();
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error setting up reviews listener:", error);
+      setLoading(false);
+    }
   }, []);
 
+  const isReviewApproved = (review: Review): boolean => {
+    if (review.status === "approved") return true;
+    if (review.status === "rejected") return false;
+    if (review.status === "pending") return false;
+    if (review.isApproved === true) return true;
+    return false;
+  };
+
   const getProductReviews = (productId: string): Review[] => {
-    return reviews.filter(r => r.productId === productId && r.isApproved);
+    return reviews.filter(r => r.productId === productId && isReviewApproved(r));
   };
 
   const getProductRating = (productId: string): { average: number; count: number } => {
-    const productReviews = reviews.filter(r => r.productId === productId && r.isApproved);
+    const productReviews = reviews.filter(r => r.productId === productId && isReviewApproved(r));
     if (productReviews.length === 0) return { average: 0, count: 0 };
     
     const total = productReviews.reduce((sum, r) => sum + r.rating, 0);
@@ -63,12 +75,12 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  const addReview = async (review: Omit<Review, "id" | "createdAt" | "isApproved">) => {
+  const addReview = async (review: Omit<Review, "id" | "createdAt" | "status">) => {
     try {
       const reviewsRef = collection(db, "reviews");
       await addDoc(reviewsRef, {
         ...review,
-        isApproved: false,
+        status: "pending",
         createdAt: new Date().toISOString(),
       });
     } catch (error) {
