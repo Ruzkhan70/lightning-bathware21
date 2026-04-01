@@ -23,7 +23,7 @@ import SessionWarning from "./admin/SessionWarning";
 import { useAdminTimeout } from "../hooks/useAdminTimeout";
 
 export default function AdminLayout() {
-  const { isAdminLoggedIn, logout, triggerLogout, products, storeProfile, messages } = useAdmin();
+  const { isAdminLoggedIn, isDataLoaded, logout, triggerLogout, products, storeProfile, messages } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -68,6 +68,18 @@ export default function AdminLayout() {
 
   if (!isAdminLoggedIn) {
     return null;
+  }
+
+  // Show loading screen while Firebase data is loading
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   const menuItems = [
