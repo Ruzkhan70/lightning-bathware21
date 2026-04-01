@@ -277,7 +277,7 @@ const DEFAULT_USERNAME = "admin";
 const DEFAULT_PASSWORD = "LB" + Math.random().toString(36).substring(2, 10).toUpperCase();
 
 const DEFAULT_STORE_PROFILE: StoreProfile = {
-  storeName: "Lighting",
+  storeName: "Lightning",
   storeNameAccent: "Bathware",
   storeLogo: "",
   phone: "+94 11 234 5678",
@@ -670,6 +670,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setIsDataLoaded(true);
     }
   }, [firebaseLoaded]);
+
+  // Fallback: if Firebase takes too long, mark as loaded anyway
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log("[Firebase] Timeout reached, marking as loaded");
+      setIsDataLoaded(true);
+    }, 5000); // 5 second timeout
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Firebase real-time sync for storeProfile
   useEffect(() => {
