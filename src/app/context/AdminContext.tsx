@@ -805,9 +805,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  // Track recent updates to ignore them from Firebase
-  const recentOfferUpdates = useRef<Map<string, { value: any; timestamp: number }>>(new Map());
-  
   // Firebase real-time sync for offers
   useEffect(() => {
     try {
@@ -818,42 +815,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           return { ...data, id: data.id || doc.id } as Offer;
         });
         
-        // Check if this is a pending update we're ignoring
-        if (pendingUpdates.current.offers) {
-          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
-          return;
-        }
-        
-        // Check each offer for recent local updates
-        const now = Date.now();
-        const hasRecentUpdate = firebaseOffers.some(offer => {
-          const recent = recentOfferUpdates.current.get(offer.id);
-          return recent && (now - recent.timestamp) < 2000;
-        });
-        
-        if (hasRecentUpdate) {
-          setFirebaseLoaded(prev => ({ ...prev, offers: true }));
-          return;
-        }
-        
+        // Always update from Firebase - Firebase data is the source of truth
         if (firebaseOffers.length > 0) {
           setOffers(firebaseOffers);
-        } else if (offers.length === 0) {
-          setOffers(DEMO_OFFERS);
+        } else {
+          // Only use DEMO_OFFERS if we have no real offers AND no local state
+          setOffers(prev => prev.length === 0 ? DEMO_OFFERS : prev);
         }
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
       }, () => {
-        if (offers.length === 0) {
-          setOffers(DEMO_OFFERS);
-        }
+        // Firebase error - keep existing data or use demos
+        setOffers(prev => prev.length === 0 ? DEMO_OFFERS : prev);
         setFirebaseLoaded(prev => ({ ...prev, offers: true }));
       });
       return () => unsubscribe();
     } catch (error) {
       console.error("Firebase offers sync error:", error);
-      if (offers.length === 0) {
-        setOffers(DEMO_OFFERS);
-      }
+      setOffers(prev => prev.length === 0 ? DEMO_OFFERS : prev);
       setFirebaseLoaded(prev => ({ ...prev, offers: true }));
     }
   }, []);
@@ -1220,18 +1198,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const addDemoOffers = async () => {
     try {
-      pendingUpdates.current.offers = true;
       for (const offer of DEMO_OFFERS) {
         await setDoc(doc(db, "offers", offer.id), offer);
       }
       toast.success("Demo offers added!");
-      setTimeout(() => {
-        pendingUpdates.current.offers = false;
-      }, 1000);
     } catch (error) {
       console.error("Error adding demo offers:", error);
       toast.error("Failed to add demo offers");
-      pendingUpdates.current.offers = false;
     }
   };
 
@@ -1736,65 +1709,62 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const addOffer = (offer: Omit<Offer, "id" | "createdAt">) => {
-    pendingUpdates.current.offers = true;
     const newOffer: Offer = {
       ...offer,
       id: generateUniqueId(),
       createdAt: new Date().toISOString(),
     };
+    // Optimistic update
     setOffers(prev => [...prev, newOffer]);
     try {
       setDoc(doc(db, "offers", newOffer.id), newOffer);
-      setTimeout(() => {
-        pendingUpdates.current.offers = false;
-      }, 1000);
     } catch (error) {
       console.error("Error saving offer:", error);
-      pendingUpdates.current.offers = false;
+      // Revert on error
+      setOffers(prev => prev.filter(o => o.id !== newOffer.id));
     }
   };
 
   const updateOffer = async (id: string, offer: Partial<Offer>) => {
-    pendingUpdates.current.offers = true;
-    setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
+    // Store previous state for rollback
+    const previousOffer = offers.find(o => o.id === id);
     
-    // Track this update to ignore Firebase callback
-    recentOfferUpdates.current.set(id, { value: offer, timestamp: Date.now() });
+    // Optimistic update
+    setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
     
     try {
       await updateDoc(doc(db, "offers", id), offer);
-      
-      // Clear pending flag after a delay
-      setTimeout(() => {
-        pendingUpdates.current.offers = false;
-        recentOfferUpdates.current.delete(id);
-      }, 1500);
     } catch (error) {
       console.error("Error updating offer:", error);
-      setOffers(prev => prev.map(o => o.id === id ? { ...o, isEnabled: !offer.isEnabled } : o));
-      pendingUpdates.current.offers = false;
-      recentOfferUpdates.current.delete(id);
+      // Revert on error
+      if (previousOffer) {
+        setOffers(prev => prev.map(o => o.id === id ? previousOffer : o));
+      }
     }
   };
 
   const deleteOffer = (id: string) => {
-    pendingUpdates.current.offers = true;
+    // Store for rollback
+    const deletedOffer = offers.find(o => o.id === id);
+    
+    // Optimistic delete
     setOffers(prev => prev.filter(o => o.id !== id));
+    
     try {
       deleteDoc(doc(db, "offers", id));
-      setTimeout(() => {
-        pendingUpdates.current.offers = false;
-      }, 1000);
     } catch (error) {
       console.error("Error deleting offer:", error);
-      pendingUpdates.current.offers = false;
+      // Revert on error
+      if (deletedOffer) {
+        setOffers(prev => [...prev, deletedOffer]);
+      }
     }
   };
 
-  const toggleOfferStatus = async (id: string) => {
+  const toggleOfferStatus = (id: string) => {
     const offer = offers.find(o => o.id === id);
     if (offer) {
-      await updateOffer(id, { isEnabled: !offer.isEnabled });
+      updateOffer(id, { isEnabled: !offer.isEnabled });
     }
   };
 
