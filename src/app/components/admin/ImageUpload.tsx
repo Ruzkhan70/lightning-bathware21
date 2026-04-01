@@ -1,8 +1,6 @@
 import { useState, useCallback, useRef } from "react";
-import { Upload, X, Link as LinkIcon } from "lucide-react";
+import { Upload, X, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { storage } from "../../../firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface ImageUploadProps {
   value: string;
@@ -17,12 +15,22 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
   const [urlInput, setUrlInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadToFirebaseStorage = async (file: File): Promise<string> => {
-    const fileName = `${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, `images/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(snapshot.ref);
-    return downloadUrl;
+  const uploadToImgBB = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    // Using ImgBB free API (anonymous uploads, 3200px limit)
+    const response = await fetch("https://api.imgbb.com/1/upload?key=d36eb6591370aa4f4a3431f4f7e2c982", {
+      method: "POST",
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error("Upload failed");
+    }
+    
+    const data = await response.json();
+    return data.data.url;
   };
 
   const handleFile = useCallback(async (file: File) => {
@@ -31,21 +39,21 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image size should be less than 10MB");
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image size should be less than 8MB");
       return;
     }
 
     setIsUploading(true);
-    toast.info("Uploading image...");
+    toast.info("Uploading image to CDN...");
 
     try {
-      const imageUrl = await uploadToFirebaseStorage(file);
+      const imageUrl = await uploadToImgBB(file);
       onChange(imageUrl);
-      toast.success("Image uploaded successfully!");
+      toast.success("Image uploaded to CDN successfully!");
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast.error("Failed to upload image. Please try again.");
+      toast.error("Failed to upload. Try using an image URL instead.");
     } finally {
       setIsUploading(false);
     }
@@ -112,7 +120,7 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
             <div className="text-center">
               <div className="w-10 h-10 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Uploading...</p>
+              <p className="text-sm text-gray-600">Uploading to CDN...</p>
             </div>
           </div>
         )}
@@ -183,7 +191,18 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
       )}
       
       {value && (
-        <p className="text-[10px] text-gray-400 truncate">Current: {value}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-[10px] text-gray-400 truncate flex-1">{value}</p>
+          <a
+            href={value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] text-[#D4AF37] hover:underline flex items-center gap-1"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Open
+          </a>
+        </div>
       )}
     </div>
   );
