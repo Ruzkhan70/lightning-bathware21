@@ -2,20 +2,71 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ==================== NOTE ====================
-    // This app uses CUSTOM CREDENTIALS stored in Firestore (not Firebase Auth).
-    // Security is handled at the application level via AdminContext.tsx
-    // 
-    // For production with multiple admins, consider:
-    // 1. Switching to Firebase Auth
-    // 2. Using Cloud Functions for admin operations
-    // 3. Implementing IP-based restrictions in Firebase Console
-    
-    // Admin credentials - needed for login check
-    match /adminCredentials/{document} {
+    // Store data - public read, authenticated write
+    match /storeData/{document=**} {
       allow read: if true;
-      allow write: if true; // Application-level security
+      allow write: if true;
     }
+    
+    // Admin credentials
+    match /adminCredentials/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Orders
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+    
+    // Invoices
+    match /invoices/{invoiceId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+    
+    // Messages
+    match /messages/{messageId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+    
+    // Offers
+    match /offers/{offerId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+    
+    // Reviews
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+    
+    // Users
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Wishlist - user-specific (users can only access their own)
+    match /wishlist/{userId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
     
     // Store data - Public read for website, Admin write
     // Website visitors can read products, categories, etc.
