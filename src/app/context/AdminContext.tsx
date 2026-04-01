@@ -810,6 +810,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     console.log("[Firebase] Setting up offers listener...");
     
     let unsubscribe: (() => void) | undefined;
+    let initialDataChecked = false;
     
     try {
       const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
@@ -824,12 +825,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             return offer;
           });
           
-          // Always update from Firebase - Firebase data is the source of truth
+          // If Firebase has offers, use them
           if (firebaseOffers.length > 0) {
             setOffers(firebaseOffers);
-          } else {
+            initialDataChecked = true;
+          } 
+          // If Firebase has NO offers and we haven't checked yet, save demo offers
+          else if (!initialDataChecked) {
+            console.log("[Firebase] No offers in Firebase, saving demo offers...");
+            initialDataChecked = true;
+            
+            // Save demo offers to Firebase
+            Promise.all(DEMO_OFFERS.map(offer => 
+              setDoc(doc(db, "offers", offer.id), offer).catch(err => {
+                console.error("[Firebase] Error saving demo offer:", err);
+              })
+            )).then(() => {
+              console.log("[Firebase] Demo offers saved to Firebase");
+              // After saving, the listener will fire again with the new data
+            });
+            
+            // Show demo offers locally while Firebase saves them
             setOffers(DEMO_OFFERS);
           }
+          
           setFirebaseLoaded(prev => ({ ...prev, offers: true }));
         },
         (error) => {
