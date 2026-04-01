@@ -20,7 +20,6 @@ import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
 import { useState, useEffect, useRef } from "react";
 import { setMetaTags } from "../utils/seo";
-import { motion } from "framer-motion";
 
 function AnimatedCounter({ value }: { value: string }) {
   const [displayValue, setDisplayValue] = useState("0");
@@ -66,8 +65,6 @@ function AnimatedCounter({ value }: { value: string }) {
 export default function Home() {
   const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile } = useAdmin();
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
-  const [heroImageError, setHeroImageError] = useState(false);
-  const [heroImageLoading, setHeroImageLoading] = useState(true);
   const safeProducts = products || [];
   const safeCategories = categories || [];
   
@@ -80,24 +77,9 @@ export default function Home() {
 
   useEffect(() => {
     if (storeAssets.heroImage && storeAssets.heroImage.trim() !== "") {
-      setHeroImageLoading(true);
-      setHeroImageError(false);
-      setHeroImageLoaded(false);
-      
       const img = new Image();
-      img.onload = () => {
-        setHeroImageLoaded(true);
-        setHeroImageLoading(false);
-      };
-      img.onerror = () => {
-        setHeroImageError(true);
-        setHeroImageLoading(false);
-      };
+      img.onload = () => setHeroImageLoaded(true);
       img.src = storeAssets.heroImage;
-    } else {
-      setHeroImageLoading(false);
-      setHeroImageError(true);
-      setHeroImageLoaded(false);
     }
   }, [storeAssets.heroImage]);
 
@@ -163,55 +145,18 @@ export default function Home() {
       className="bg-white"
     >
       {/* Hero Section */}
-      <section className="relative h-[500px] md:h-[600px] flex items-center bg-black text-white overflow-hidden">
-        {/* Loading State */}
-        {heroImageLoading && (
-          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-            <motion.div
-              className="relative w-16 h-16"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <motion.div
-                className="absolute inset-0 border-4 border-gray-700 rounded-full"
-              />
-              <motion.div
-                className="absolute inset-0 border-4 border-transparent rounded-full"
-                style={{
-                  borderTopColor: "#D4AF37",
-                  borderRightColor: "#D4AF37",
-                }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
-              <motion.div
-                className="absolute inset-2 border-4 border-transparent rounded-full"
-                style={{
-                  borderBottomColor: "#D4AF37",
-                  borderLeftColor: "#D4AF37",
-                }}
-                animate={{ rotate: -360 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-              />
-            </motion.div>
-          </div>
-        )}
-
-        {/* Background Image - Only show when loaded */}
+      <section className="relative h-[500px] md:h-[600px] flex items-center bg-gray-900 text-white overflow-hidden">
+        {/* Background Image - fades in when loaded */}
         {heroImageLoaded && storeAssets.heroImage && (
-          <div
-            className="absolute inset-0 opacity-40 bg-cover bg-center"
+          <motion.div
+            className="absolute inset-0 bg-cover bg-center opacity-40"
             style={{
               backgroundImage: `url('${storeAssets.heroImage}')`,
             }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            transition={{ duration: 0.5 }}
           />
-        )}
-
-        {/* Error State */}
-        {heroImageError && !heroImageLoading && (
-          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-            <p className="text-gray-400 text-lg">Image not available</p>
-          </div>
         )}
 
         <div className="relative container mx-auto px-4 py-12 md:py-24">
