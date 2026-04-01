@@ -20,6 +20,7 @@ import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
 import { useState, useEffect, useRef } from "react";
 import { setMetaTags } from "../utils/seo";
+import { Loader2 } from "lucide-react";
 
 function AnimatedCounter({ value }: { value: string }) {
   const [displayValue, setDisplayValue] = useState("0");
@@ -64,6 +65,9 @@ function AnimatedCounter({ value }: { value: string }) {
 
 export default function Home() {
   const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile } = useAdmin();
+  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+  const [heroImageError, setHeroImageError] = useState(false);
+  const [heroImageLoading, setHeroImageLoading] = useState(true);
   const safeProducts = products || [];
   const safeCategories = categories || [];
   
@@ -73,6 +77,29 @@ export default function Home() {
       "Welcome to Lightning Bathware, your one-stop shop for premium lighting, bathroom fittings, plumbing, and electrical hardware in Sri Lanka."
     );
   }, []);
+
+  useEffect(() => {
+    if (storeAssets.heroImage && storeAssets.heroImage.trim() !== "") {
+      setHeroImageLoading(true);
+      setHeroImageError(false);
+      setHeroImageLoaded(false);
+      
+      const img = new Image();
+      img.onload = () => {
+        setHeroImageLoaded(true);
+        setHeroImageLoading(false);
+      };
+      img.onerror = () => {
+        setHeroImageError(true);
+        setHeroImageLoading(false);
+      };
+      img.src = storeAssets.heroImage;
+    } else {
+      setHeroImageLoading(false);
+      setHeroImageError(true);
+      setHeroImageLoaded(false);
+    }
+  }, [storeAssets.heroImage]);
 
   const featuredProducts = safeProducts.slice(0, 8);
   const activeOffers = getActiveOffers() || [];
@@ -137,13 +164,29 @@ export default function Home() {
     >
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] flex items-center bg-black text-white overflow-hidden">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 opacity-40 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('${storeAssets.heroImage}')`,
-          }}
-        />
+        {/* Loading State */}
+        {heroImageLoading && (
+          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+            <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin" />
+          </div>
+        )}
+
+        {/* Background Image - Only show when loaded */}
+        {heroImageLoaded && storeAssets.heroImage && (
+          <div
+            className="absolute inset-0 opacity-40 bg-cover bg-center"
+            style={{
+              backgroundImage: `url('${storeAssets.heroImage}')`,
+            }}
+          />
+        )}
+
+        {/* Error State */}
+        {heroImageError && !heroImageLoading && (
+          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+            <p className="text-gray-400 text-lg">Image not available</p>
+          </div>
+        )}
 
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
