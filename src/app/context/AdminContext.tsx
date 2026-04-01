@@ -1132,7 +1132,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  const seedDemoReviews = async () => {
+  const seedDemoReviews = async (signal?: { cancelled: boolean }) => {
     console.log("Starting to seed reviews...", products.length, "products");
     
     const DEMO_REVIEWERS = [
@@ -1186,17 +1186,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     let errorsCount = 0;
     
     for (const product of products) {
+      // Check for cancellation
+      if (signal?.cancelled) {
+        console.log("Seeding cancelled by user");
+        toast.info("Seeding cancelled");
+        return;
+      }
+      
       const numReviews = Math.floor(Math.random() * 6) + 20;
       console.log(`Adding ${numReviews} reviews for product:`, product.name);
       
       for (let i = 0; i < numReviews; i++) {
+        // Check for cancellation on each iteration
+        if (signal?.cancelled) {
+          console.log("Seeding cancelled by user");
+          toast.info("Seeding cancelled");
+          return;
+        }
+        
         const reviewer = DEMO_REVIEWERS[Math.floor(Math.random() * DEMO_REVIEWERS.length)];
         
         // Always generate 5-star positive reviews only
         const rating = 5;
         
-        const comments = REVIEW_COMMENTS[5];
-        const comment = comments[Math.floor(Math.random() * comments.length)];
+        // Fixed: Access REVIEW_COMMENTS directly as an array
+        const comment = REVIEW_COMMENTS[Math.floor(Math.random() * REVIEW_COMMENTS.length)];
         const daysAgo = Math.floor(Math.random() * 90);
         
         const reviewData = {

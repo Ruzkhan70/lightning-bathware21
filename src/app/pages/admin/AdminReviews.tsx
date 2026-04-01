@@ -141,6 +141,8 @@ export default function AdminReviews() {
     }
   };
 
+  const cancelRef = { cancelled: false };
+
   const handleSeedReviews = async () => {
     console.log("handleSeedReviews called, products:", products.length);
     
@@ -149,11 +151,13 @@ export default function AdminReviews() {
       return;
     }
     
+    // Reset cancellation flag
+    cancelRef.cancelled = false;
     setIsSeeding(true);
     console.log("Starting seeding...");
     
     try {
-      await seedDemoReviews();
+      await seedDemoReviews(cancelRef);
       console.log("Seeding completed");
     } catch (error) {
       console.error("Seeding failed:", error);
@@ -164,9 +168,9 @@ export default function AdminReviews() {
   };
 
   const handleCancelSeeding = () => {
+    cancelRef.cancelled = true;
     setIsSeeding(false);
-    setSeedingProgress({ current: 0, total: 0 });
-    toast.info("Seeding cancelled");
+    toast.info("Cancelling...");
   };
 
   const toggleSelectAll = () => {
