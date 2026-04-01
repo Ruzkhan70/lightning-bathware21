@@ -4,7 +4,7 @@ interface WhatsAppConfig {
 }
 
 const config: WhatsAppConfig = {
-  adminPhone: import.meta.env.VITE_WHATSAPP_ADMIN_PHONE || "94771234567",
+  adminPhone: import.meta.env.VITE_WHATSAPP_ADMIN_PHONE || "",
   enabled: import.meta.env.VITE_WHATSAPP_NOTIFICATIONS === "true",
 };
 
@@ -47,25 +47,28 @@ ${productsList}
 
 export function getWhatsAppAdminLink(order: OrderData): string {
   const message = formatWhatsAppOrderMessage(order);
-  const phone = config.adminPhone?.replace(/[^0-9]/g, "") || "94771234567";
+  const phone = config.adminPhone?.replace(/[^0-9]/g, "") || "";
+  if (!phone) return "#";
   return `https://wa.me/${phone}?text=${message}`;
 }
 
 export async function sendWhatsAppNotification(order: OrderData): Promise<boolean> {
   if (!config.enabled) {
-    console.log("WhatsApp notifications disabled");
+    return false;
+  }
+
+  if (!config.adminPhone) {
     return false;
   }
 
   try {
     const message = formatWhatsAppOrderMessage(order);
-    const phone = config.adminPhone?.replace(/[^0-9]/g, "") || "94771234567";
+    const phone = config.adminPhone.replace(/[^0-9]/g, "");
     const url = `https://api.whatsapp.com/send?phone=${phone}&text=${message}`;
     
     window.open(url, "_blank");
     return true;
-  } catch (error) {
-    console.error("Failed to send WhatsApp notification:", error);
+  } catch {
     return false;
   }
 }

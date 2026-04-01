@@ -1,26 +1,80 @@
 import { useState, useCallback, useRef } from "react";
 import { Upload, X, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { handleError } from "../../../lib/errorHandler";
 
 interface ImageUploadProps {
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  maxSizeMB?: number;
+  allowedTypes?: string[];
 }
 
-export default function ImageUpload({ value, onChange, label }: ImageUploadProps) {
+const DEFAULT_MAX_SIZE_MB = 5;
+const DEFAULT_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+export default function ImageUpload({ 
+  value, 
+  onChange, 
+  label,
+  maxSizeMB = DEFAULT_MAX_SIZE_MB,
+  allowedTypes = DEFAULT_ALLOWED_TYPES,
+}: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const compressImage = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      
+      img.onload = () => {
+        const maxDimension = 1920;
+        let { width, height } = img;
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Failed to compress image"));
+          },
+          "image/jpeg",
+          0.85
+        );
+      };
+      
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const uploadToImgBB = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("image", file);
     
-    // Using ImgBB free API (anonymous uploads, 3200px limit)
-    const apiKey = import.meta.env.VITE_IMGBB_API_KEY || "d36eb6591370aa4f4a3431f4f7e2c982";
+    const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+    if (!apiKey) {
+      throw new Error("Image upload API key not configured");
+    }
+    
     const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
       method: "POST",
       body: formData,
@@ -31,30 +85,39 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
     }
     
     const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error?.message || "Upload failed");
+    }
     return data.data.url;
   };
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
-      return;
+  const validateFile = (file: File): string | null => {
+    if (!allowedTypes.includes(file.type)) {
+      return `Invalid file type. Allowed: ${allowedTypes.map(t => t.split("/")[1]).join(", ")}`;
     }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      return `File size exceeds ${maxSizeMB}MB limit`;
+    }
+    return null;
+  };
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("Image size should be less than 8MB");
+  const handleFile = useCallback(async (file: File) => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setIsUploading(true);
-    toast.info("Uploading image to CDN...");
+    toast.info("Uploading image...");
 
     try {
-      const imageUrl = await uploadToImgBB(file);
+      const compressedFile = await compressImage(file);
+      const imageUrl = await uploadToImgBB(compressedFile);
       onChange(imageUrl);
-      toast.success("Image uploaded to CDN successfully!");
+      toast.success("Image uploaded successfully!");
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload. Try using an image URL instead.");
+      handleError(error, "Failed to upload image");
     } finally {
       setIsUploading(false);
     }

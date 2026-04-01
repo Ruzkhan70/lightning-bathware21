@@ -9,7 +9,7 @@ interface WhatsAppButtonProps {
 }
 
 export default function WhatsAppButton({
-  phone = "94771234567",
+  phone = import.meta.env.VITE_WHATSAPP_ADMIN_PHONE || "",
   message = "Hello! I'm interested in your products.",
   className = "",
   size = "md",
@@ -64,7 +64,7 @@ interface QuickOrderProps {
 export function WhatsAppQuickOrder({
   productName,
   productPrice,
-  phone = "94771234567",
+  phone = import.meta.env.VITE_WHATSAPP_ADMIN_PHONE || "",
 }: QuickOrderProps) {
   const message = productName && productPrice
     ? `Hello! I want to order:\n\n*${productName}*\nPrice: Rs. ${productPrice.toLocaleString()}\n\nPlease confirm availability.`
