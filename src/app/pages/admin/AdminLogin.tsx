@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { Lock, Mail, AlertCircle, ShieldCheck, User } from "lucide-react";
+import { Lock, Mail, AlertCircle, Shield, User, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -10,26 +10,22 @@ import { toast } from "sonner";
 export default function AdminLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAdminLoggedIn, storeProfile, setupAdmin, adminUid, isAdminDataLoaded, firebaseUser, adminExists } = useAdmin();
+  const { login, isAdminLoggedIn, storeProfile, setupAdmin, isAdminDataLoaded, adminExists } = useAdmin();
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     displayName: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isSetupMode, setIsSetupMode] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (isAdminDataLoaded) {
-      if (!adminExists) {
-        setIsSetupMode(true);
-      } else {
-        setIsSetupMode(false);
-      }
+      setIsReady(true);
     }
-  }, [isAdminDataLoaded, adminExists]);
+  }, [isAdminDataLoaded]);
 
   useEffect(() => {
     if (isAdminLoggedIn) {
@@ -49,13 +45,6 @@ export default function AdminLogin() {
       return;
     }
 
-    if (isSetupMode && !formData.displayName) {
-      setErrorMessage("Please enter your name");
-      toast.error("Please enter your name");
-      setIsLoading(false);
-      return;
-    }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setErrorMessage("Please enter a valid email address");
@@ -67,14 +56,22 @@ export default function AdminLogin() {
     try {
       let result: { success: boolean; error?: string };
       
-      if (isSetupMode) {
+      // If no admin exists, this is a setup
+      // If admin exists, this is a login
+      if (!adminExists) {
+        if (!formData.displayName.trim()) {
+          setErrorMessage("Please enter your name");
+          toast.error("Please enter your name");
+          setIsLoading(false);
+          return;
+        }
         result = await setupAdmin(formData.email, formData.password, formData.displayName);
       } else {
         result = await login(formData.email, formData.password);
       }
 
       if (result.success) {
-        toast.success(isSetupMode ? "Admin account created!" : "Login successful!");
+        toast.success(!adminExists ? "Admin account created!" : "Login successful!");
         const from = (location.state as { from?: string })?.from || "/admin";
         navigate(from, { replace: true });
       } else {
@@ -88,6 +85,20 @@ export default function AdminLogin() {
       setIsLoading(false);
     }
   };
+
+  // Loading state
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#D4AF37] mx-auto" />
+          <p className="mt-4 text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isSetupMode = !adminExists;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center p-4">
@@ -110,8 +121,8 @@ export default function AdminLogin() {
             </h2>
             <p className="text-gray-600 text-sm mt-2">
               {isSetupMode 
-                ? "Create your admin credentials to get started" 
-                : "Enter your admin credentials to continue"}
+                ? "Create your admin credentials to get started. This will be the only admin account." 
+                : "Enter your admin credentials to access the dashboard."}
             </p>
           </div>
 
@@ -123,6 +134,7 @@ export default function AdminLogin() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Only show name field during setup */}
             {isSetupMode && (
               <div>
                 <Label htmlFor="displayName">Full Name</Label>
@@ -158,7 +170,7 @@ export default function AdminLogin() {
                     setErrorMessage(null);
                   }}
                   className="pl-10"
-                  placeholder="admin@example.com"
+                  placeholder={isSetupMode ? "admin@example.com" : "admin@yourdomain.com"}
                   autoComplete="email"
                   disabled={isLoading}
                 />
@@ -185,22 +197,6 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            {!isSetupMode && (
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-[#D4AF37] border-gray-300 rounded focus:ring-[#D4AF37]"
-                  disabled={isLoading}
-                />
-                <Label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600 cursor-pointer">
-                  Remember me
-                </Label>
-              </div>
-            )}
-
             <Button
               type="submit"
               size="lg"
@@ -214,7 +210,7 @@ export default function AdminLogin() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Please wait...
+                    {isSetupMode ? "Creating Account..." : "Logging in..."}
                   </span>
                 ) 
                 : isSetupMode 
@@ -223,21 +219,22 @@ export default function AdminLogin() {
             </Button>
           </form>
 
-          {!isSetupMode && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-600 font-semibold mb-1">
-                    Protected Access
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    This admin portal is secured. Only authorized administrators can access. All login attempts are logged and monitored.
-                  </p>
-                </div>
+          {/* Security Notice */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-xs text-gray-600 font-semibold mb-1">
+                  {isSetupMode ? "First-Time Setup" : "Secure Access"}
+                </p>
+                <p className="text-xs text-gray-600">
+                  {isSetupMode 
+                    ? "This creates the only admin account. After setup, only this email can access the admin portal."
+                    : "This admin portal is secured. Only the authorized administrator can access. All login attempts are logged."}
+                </p>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="text-center mt-6">

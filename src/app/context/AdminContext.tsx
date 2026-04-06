@@ -583,15 +583,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const checkIfUserIsAdmin = useCallback(async (user: FirebaseUser): Promise<boolean> => {
     try {
+      if (storeProfile.authorizedAdminEmail) {
+        const normalizedUserEmail = user.email?.toLowerCase() || "";
+        if (normalizedUserEmail !== storeProfile.authorizedAdminEmail.toLowerCase()) {
+          return false;
+        }
+      }
+      
       const adminDoc = await getDoc(doc(db, "admins", user.uid));
       if (adminDoc.exists()) {
         const adminData = adminDoc.data();
-        if (adminData.role === "admin") {
-          if (storeProfile.authorizedAdminEmail) {
-            return user.email?.toLowerCase() === storeProfile.authorizedAdminEmail.toLowerCase();
-          }
-          return true;
-        }
+        return adminData.role === "admin";
       }
       return false;
     } catch (error) {
@@ -609,15 +611,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     
     if (storeProfile.authorizedAdminEmail) {
       return normalizedEmail === storeProfile.authorizedAdminEmail.toLowerCase();
-    }
-    
-    const adminsCollection = collection(db, "admins");
-    const q = query(adminsCollection, where("email", "==", normalizedEmail));
-    const { getDocs } = await import("firebase/firestore");
-    const snapshot = await getDocs(q);
-    
-    if (!snapshot.empty) {
-      return true;
     }
     
     return false;
