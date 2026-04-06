@@ -107,12 +107,12 @@ export default function Account() {
       toast.success("Welcome back!");
       setLoginEmail("");
       setLoginPassword("");
-      if (result.shouldSyncCart && user?.id) {
+      if (user?.id) {
         await syncCartWithFirebase(user.id);
         toast.success("Your cart has been synced!");
       }
     } else {
-      toast.error("Invalid email or password");
+      toast.error(result.error || "Invalid email or password");
     }
   };
 
@@ -135,7 +135,7 @@ export default function Account() {
       return;
     }
 
-    const success = await register(
+    const result = await register(
       registerName,
       registerEmail,
       registerPhone,
@@ -143,7 +143,7 @@ export default function Account() {
       registerPassword
     );
 
-    if (success) {
+    if (result.success) {
       toast.success("Account created successfully!");
       setRegisterName("");
       setRegisterEmail("");

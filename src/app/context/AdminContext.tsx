@@ -1,15 +1,17 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
-import { db } from "../../firebase";
-import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from "firebase/firestore";
+import { db, auth } from "../../firebase";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc, where } from "firebase/firestore";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  User as FirebaseUser
+} from "firebase/auth";
 import { toast } from "sonner";
-
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "lightingbathware_admin_salt_2024");
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-}
+import { logAdminLogin, logAdminLogout } from "../../lib/adminLoginLog";
+import { logOrderAction, logProductAction, logCategoryAction, logOfferAction, logAdminAction, logPasswordChange } from "../../lib/adminActionLog";
 
 export interface Product {
   id: string;
@@ -199,14 +201,15 @@ export interface SiteContent {
 interface AdminContextType {
   isAdminLoggedIn: boolean;
   adminUsername: string;
-  adminCredentials: { username: string; password: string };
+  adminEmail: string;
   isAdminDataLoaded: boolean;
   adminUid: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  firebaseUser: FirebaseUser | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   triggerLogout: () => void;
-  setupAdmin: (email: string, password: string) => Promise<boolean>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  setupAdmin: (email: string, password: string, displayName?: string) => Promise<{ success: boolean; error?: string }>;
+  changePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   changeUsername: (newUsername: string) => Promise<boolean>;
   storeProfile: StoreProfile;
   updateStoreProfile: (profile: Partial<StoreProfile>) => void;
@@ -521,25 +524,13 @@ const DEFAULT_PRODUCTS: Product[] = [
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminCredentials, setAdminCredentials] = useState<{username: string; password: string}>({
-    username: DEFAULT_USERNAME,
-    password: DEFAULT_PASSWORD,
-  });
+  const [adminEmail, setAdminEmail] = useState<string>("");
   const [isAdminDataLoaded, setIsAdminDataLoaded] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   
-  // Use refs to track initialization and prevent overwrites
-  const isInitialized = useRef({
-    adminCredentials: false,
-    storeProfile: false,
-    storeAssets: false,
-    siteContent: false,
-    categories: false,
-    products: false,
-    messages: false,
-  });
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  // Pending updates tracking - prevents Firebase from overwriting local state during updates
   const pendingUpdates = useRef<{
     products: boolean;
     categories: boolean;
@@ -563,44 +554,56 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUid, setAdminUid] = useState<string | null>(null);
 
-  // Check for existing admin session on load
-  useEffect(() => {
-    const session = sessionStorage.getItem('adminSession');
-    const local = localStorage.getItem('adminSession');
-    if (session === 'true' || local === 'true') {
-      setIsAdminLoggedIn(true);
+  const checkIfUserIsAdmin = useCallback(async (user: FirebaseUser): Promise<boolean> => {
+    try {
+      const adminDoc = await getDoc(doc(db, "admins", user.uid));
+      if (adminDoc.exists()) {
+        return true;
+      }
+      
+      const adminByEmailQuery = query(
+        collection(db, "admins"),
+        where("email", "==", user.email?.toLowerCase())
+      );
+      const adminByEmail = await getDoc(doc(db, "admins", "byEmail_" + user.uid));
+      if (adminByEmail.exists()) {
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      return false;
     }
   }, []);
 
-  // Firebase real-time sync for admin credentials
   useEffect(() => {
-    try {
-      const credentialsRef = doc(db, "adminCredentials", "main");
-      const unsubscribe = onSnapshot(credentialsRef, (docSnap) => {
-          if (docSnap.exists() && docSnap.data().isSetup) {
-            const data = docSnap.data();
-            setAdminCredentials({
-              username: data.username || DEFAULT_USERNAME,
-              password: data.password || DEFAULT_PASSWORD,
-            });
-            setAdminUid(data.adminUid || "admin");
-          } else {
-            setAdminUid(null);
-          }
-          isInitialized.current.adminCredentials = true;
-          setIsAdminDataLoaded(true);
-      }, (error) => {
-        console.error("Error loading admin credentials:", error);
-        isInitialized.current.adminCredentials = true;
-        setIsAdminDataLoaded(true);
-      });
-      return () => unsubscribe();
-    } catch (error) {
-      console.error("Error loading admin credentials:", error);
-      isInitialized.current.adminCredentials = true;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const isAdmin = await checkIfUserIsAdmin(user);
+        setFirebaseUser(user);
+        setAdminUid(user.uid);
+        setAdminEmail(user.email || "");
+        setIsAdminLoggedIn(isAdmin);
+        
+        if (!isAdmin) {
+          await signOut(auth);
+          setFirebaseUser(null);
+          setAdminUid(null);
+          setAdminEmail("");
+        }
+      } else {
+        setFirebaseUser(null);
+        setAdminUid(null);
+        setAdminEmail("");
+        setIsAdminLoggedIn(false);
+      }
       setIsAdminDataLoaded(true);
-    }
-  }, []);
+      setIsInitialized(true);
+    });
+
+    return () => unsubscribe();
+  }, [checkIfUserIsAdmin]);
 
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
@@ -1434,144 +1437,181 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
-      const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-      if (!adminDoc.exists() || !adminDoc.data().isSetup) {
-        toast.error("No admin account found. Please set up admin first.");
-        return false;
+      if (!cleanEmail || !cleanPassword) {
+        return { success: false, error: "Please enter email and password" };
+      }
+
+      const result = await signInWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+      
+      if (result.user) {
+        const isAdmin = await checkIfUserIsAdmin(result.user);
+        
+        if (!isAdmin) {
+          await signOut(auth);
+          toast.error("Access denied. You are not authorized as admin.");
+          await logAdminLogin(cleanEmail, "failed", "Not authorized as admin");
+          return { success: false, error: "Access denied. You are not authorized as admin." };
+        }
+        
+        await logAdminLogin(cleanEmail, "success");
+        return { success: true };
       }
       
-      const adminData = adminDoc.data();
-      const storedUsername = (adminData.username || "").trim().toLowerCase();
-      const storedHash = adminData.passwordHash || adminData.password;
-      const hashedInput = await hashPassword(cleanPassword);
-
-      if (storedUsername === cleanEmail && (hashedInput === storedHash || cleanPassword === storedHash)) {
-        if (!adminData.passwordHash && cleanPassword === storedHash) {
-          await setDoc(doc(db, "adminCredentials", "main"), { passwordHash: hashedInput }, { merge: true });
-        }
-        sessionStorage.setItem('adminSession', 'true');
-        setIsAdminLoggedIn(true);
-        return true;
-      } else {
-        console.warn("Login failed: Credentials mismatch", { entered: cleanEmail, stored: storedUsername });
-        toast.error("Invalid credentials");
-        return false;
+      return { success: false, error: "Login failed" };
+    } catch (error: any) {
+      console.error("Admin login error:", error);
+      
+      let errorMessage = "Login failed. Please check your credentials.";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No admin account found with this email";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Incorrect password";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (error.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === "auth/network-request-failed") {
+        errorMessage = "Network error. Please check your connection.";
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Login failed. Please check your internet connection.");
-      return false;
+      
+      await logAdminLogin(email, "failed", errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
   const logout = async () => {
-    sessionStorage.removeItem('adminSession');
-    localStorage.removeItem('adminSession');
-    setIsAdminLoggedIn(false);
+    try {
+      await signOut(auth);
+      setIsAdminLoggedIn(false);
+      setFirebaseUser(null);
+      setAdminUid(null);
+      setAdminEmail("");
+      await logAdminLogout(adminEmail);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
   
   const triggerLogout = async () => {
-    sessionStorage.removeItem('adminSession');
-    localStorage.removeItem('adminSession');
-    setIsAdminLoggedIn(false);
+    try {
+      await signOut(auth);
+      setIsAdminLoggedIn(false);
+      setFirebaseUser(null);
+      setAdminUid(null);
+      setAdminEmail("");
+      await logAdminLogout(adminEmail);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
-  const setupAdmin = async (email: string, password: string): Promise<boolean> => {
+  const setupAdmin = async (email: string, password: string, displayName?: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
-      console.log("Starting setupAdmin for:", cleanEmail);
-      const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
+      if (!cleanEmail || !cleanPassword) {
+        return { success: false, error: "Please enter email and password" };
+      }
+
+      const result = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
       
-      if (adminDoc.exists() && adminDoc.data().isSetup) {
-        toast.error("Admin already set up. Please login instead.");
-        return false;
+      if (result.user) {
+        if (displayName) {
+          await updateProfile(result.user, { displayName: displayName.trim() });
+        }
+        
+        await setDoc(doc(db, "admins", result.user.uid), {
+          email: cleanEmail,
+          displayName: displayName?.trim() || cleanEmail.split('@')[0],
+          createdAt: new Date().toISOString(),
+          createdBy: result.user.uid,
+        });
+        
+        await logAdminLogin(cleanEmail, "success");
+        return { success: true };
       }
       
-      console.log("Creating admin credentials...");
-      const newAdminUid = "admin-" + Date.now();
-      const hashedPassword = await hashPassword(cleanPassword);
-      
-      await setDoc(doc(db, "adminCredentials", "main"), {
-        username: cleanEmail,
-        passwordHash: hashedPassword,
-        isSetup: true,
-        adminUid: newAdminUid,
-        adminEmail: cleanEmail,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      
-      console.log("Setting session...");
-      sessionStorage.setItem('adminSession', 'true');
-      setIsAdminLoggedIn(true);
-      setAdminUid(newAdminUid);
-      toast.success("Admin account created successfully!");
-      return true;
-    } catch (error) {
+      return { success: false, error: "Setup failed" };
+    } catch (error: any) {
       console.error("Setup admin error:", error);
-      const errMsg = error instanceof Error ? error.message : String(error);
-      if (errMsg.toLowerCase().includes("permission-denied") || errMsg.toLowerCase().includes("permission denied")) {
-        toast.error("Security Error: Firestore rules are blocking setup. Please check your rules.");
-      } else {
-        toast.error("Failed: " + errMsg);
+      
+      let errorMessage = "Setup failed. Please try again.";
+      
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "An admin account with this email already exists";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password should be at least 6 characters";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address";
+      } else if (error.code === "auth/network-request-failed") {
+        errorMessage = "Network error. Please check your connection.";
       }
-      return false;
+      
+      await logAdminLogin(email, "failed", errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const changePassword = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const adminDoc = await getDoc(doc(db, "adminCredentials", "main"));
-      const adminData = adminDoc.data();
-      if (!adminDoc.exists() || !adminData) {
-        toast.error("Admin account not found");
-        return false;
+      if (!firebaseUser) {
+        return { success: false, error: "Not authenticated" };
       }
       
-      const storedHash = adminData.passwordHash || adminData.password;
-      const hashedCurrent = await hashPassword(currentPassword);
-      
-      if (hashedCurrent !== storedHash && currentPassword !== storedHash) {
-        toast.error("Current password is incorrect");
-        return false;
+      if (newPassword.length < 6) {
+        return { success: false, error: "Password should be at least 6 characters" };
       }
       
-      const hashedNew = await hashPassword(newPassword);
-      await setDoc(doc(db, "adminCredentials", "main"), {
-        passwordHash: hashedNew,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      const { updatePassword } = await import("firebase/auth");
+      await updatePassword(firebaseUser, newPassword);
       
-      setAdminCredentials(prev => ({ ...prev, password: hashedNew }));
+      await logPasswordChange(adminUid || 'unknown', adminEmail, 'success');
       toast.success("Password changed successfully!");
-      return true;
-    } catch (error) {
-      console.error("Error changing password:", error);
-      toast.error("Failed to change password");
-      return false;
+      return { success: true };
+    } catch (error: any) {
+      console.error("Change password error:", error);
+      
+      let errorMessage = "Failed to change password.";
+      
+      if (error.code === "auth/weak-password") {
+        errorMessage = "Password should be at least 6 characters";
+      } else if (error.code === "auth/requires-recent-login") {
+        errorMessage = "Please logout and login again before changing password.";
+      }
+      
+      await logPasswordChange(adminUid || 'unknown', adminEmail, 'failed');
+      return { success: false, error: errorMessage };
     }
   };
 
   const changeUsername = async (newUsername: string): Promise<boolean> => {
     if (!newUsername || newUsername.trim().length < 3) {
+      toast.error("Username must be at least 3 characters");
       return false;
     }
     
     try {
-      const credentialsRef = doc(db, "adminCredentials", "main");
-      await setDoc(credentialsRef, {
-        username: newUsername.trim(),
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      if (firebaseUser) {
+        await updateProfile(firebaseUser, { displayName: newUsername.trim() });
+      }
       
-      setAdminCredentials(prev => ({ ...prev, username: newUsername.trim() }));
+      if (adminUid) {
+        await setDoc(doc(db, "admins", adminUid), {
+          displayName: newUsername.trim(),
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+      }
+      
+      toast.success("Username updated successfully!");
       return true;
     } catch (error) {
       console.error("Error changing username:", error);
@@ -1586,9 +1626,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "profile"), updated);
       toast.success("Profile saved to Firebase!");
+      logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Updated store profile',
+        'success',
+        { settingKey: 'storeProfile' }
+      );
     } catch (error) {
       console.error("Error saving storeProfile:", error);
       toast.error("Failed to save profile: " + (error as Error).message);
+      logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Failed to update store profile',
+        'failed',
+        { settingKey: 'storeProfile' }
+      );
     }
   };
 
@@ -1598,9 +1654,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "assets"), updated);
       toast.success("Assets saved to Firebase!");
+      logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Updated store assets',
+        'success',
+        { settingKey: 'storeAssets' }
+      );
     } catch (error) {
       console.error("Error saving storeAssets:", error);
       toast.error("Failed to save assets: " + (error as Error).message);
+      logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Failed to update store assets',
+        'failed',
+        { settingKey: 'storeAssets' }
+      );
     }
   };
 
@@ -1610,9 +1682,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "siteContent"), updated);
       toast.success("Content saved to Firebase!");
+      logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Updated site content',
+        'success',
+        { settingKey: 'siteContent' }
+      );
     } catch (error) {
       console.error("Error saving siteContent:", error);
       toast.error("Failed to save content: " + (error as Error).message);
+      logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Failed to update site content',
+        'failed',
+        { settingKey: 'siteContent' }
+      );
     }
   };
 
@@ -1635,14 +1723,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         pendingUpdates.current.products = false;
       }, 1000);
+      toast.success("Product added successfully!");
+      await logProductAction(
+        'PRODUCT_ADD',
+        adminUid || 'unknown',
+        adminEmail,
+        newProduct.id,
+        newProduct.name,
+        `Added new product: ${newProduct.name}`
+      );
     } catch (error) {
       console.error("Error adding product to Firebase:", error);
       pendingUpdates.current.products = false;
       await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      await logProductAction(
+        'PRODUCT_ADD',
+        adminUid || 'unknown',
+        adminEmail,
+        newProduct.id,
+        newProduct.name,
+        `Failed to add product: ${newProduct.name}`,
+        'failed'
+      );
     }
   };
 
   const updateProduct = async (id: string, product: Partial<Product>) => {
+    const productName = products.find(p => p.id === id)?.name;
     pendingUpdates.current.products = true;
     const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
     setProducts(updated);
@@ -1651,13 +1758,32 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         pendingUpdates.current.products = false;
       }, 1000);
+      toast.success("Product updated!");
+      await logProductAction(
+        'PRODUCT_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        productName,
+        `Updated product: ${productName || id}`
+      );
     } catch (error) {
       console.error("Error updating product in Firebase:", error);
       pendingUpdates.current.products = false;
+      await logProductAction(
+        'PRODUCT_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        productName,
+        `Failed to update product: ${productName || id}`,
+        'failed'
+      );
     }
   };
 
   const deleteProduct = (id: string) => {
+    const productName = products.find(p => p.id === id)?.name;
     pendingUpdates.current.products = true;
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
@@ -1666,15 +1792,34 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         pendingUpdates.current.products = false;
       }, 1000);
+      toast.success("Product deleted!");
+      logProductAction(
+        'PRODUCT_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        productName,
+        `Deleted product: ${productName || id}`
+      );
     } catch (error) {
       console.error("Error deleting product from Firebase:", error);
       pendingUpdates.current.products = false;
       setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      logProductAction(
+        'PRODUCT_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        productName,
+        `Failed to delete product: ${productName || id}`,
+        'failed'
+      );
     }
   };
 
   const bulkDeleteProducts = (ids: string[]) => {
     pendingUpdates.current.products = true;
+    const deletedProducts = products.filter(p => ids.includes(p.id));
     const updated = products.filter(p => !ids.includes(p.id));
     setProducts(updated);
     try {
@@ -1682,21 +1827,54 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         pendingUpdates.current.products = false;
       }, 1000);
+      toast.success(`${ids.length} products deleted!`);
+      logAdminAction(
+        'PRODUCT_BULK_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        `Bulk deleted ${ids.length} products: ${deletedProducts.map(p => p.name).join(', ')}`,
+        'success',
+        { productIds: ids, productNames: deletedProducts.map(p => p.name) }
+      );
     } catch (error) {
       console.error("Error bulk deleting products from Firebase:", error);
       pendingUpdates.current.products = false;
       setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      logAdminAction(
+        'PRODUCT_BULK_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        `Failed to bulk delete ${ids.length} products`,
+        'failed',
+        { productIds: ids }
+      );
     }
   };
 
   const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
+    const previousStatus = orders.find(o => o.id === id)?.status;
     setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
     try {
       await updateDoc(doc(db, "orders", id), { status });
       toast.success("Order status updated!");
+      await logOrderAction(
+        'ORDER_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        `Updated order ${id} status from ${previousStatus} to ${status}`
+      );
     } catch (error) {
       console.error("Error updating order status:", error);
       toast.error("Failed to update status");
+      await logOrderAction(
+        'ORDER_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        `Failed to update order status`,
+        'failed'
+      );
     }
   };
 
@@ -1737,9 +1915,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       
       toast.success("Order and associated invoice deleted");
+      await logOrderAction(
+        'ORDER_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        `Deleted order ${id}`
+      );
     } catch (error) {
       console.error("Error deleting order:", error);
       toast.error("Failed to delete order");
+      await logOrderAction(
+        'ORDER_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        `Failed to delete order`,
+        'failed'
+      );
     }
   };
 
@@ -1778,63 +1971,109 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     
     console.log("[Offers] Adding offer:", newOffer.id, newOffer.title);
     
-    // Optimistic update
     setOffers(prev => [...prev, newOffer]);
     
     setDoc(doc(db, "offers", newOffer.id), newOffer)
       .then(() => {
         console.log("[Offers] Successfully saved to Firebase:", newOffer.id);
+        toast.success("Offer added!");
+        logOfferAction(
+          'OFFER_ADD',
+          adminUid || 'unknown',
+          adminEmail,
+          newOffer.id,
+          newOffer.title,
+          `Added offer: ${newOffer.title}`
+        );
       })
       .catch((error) => {
         console.error("[Offers] Error saving to Firebase:", error);
         toast.error("Failed to save offer to database");
-        // Revert on error
         setOffers(prev => prev.filter(o => o.id !== newOffer.id));
+        logOfferAction(
+          'OFFER_ADD',
+          adminUid || 'unknown',
+          adminEmail,
+          newOffer.id,
+          newOffer.title,
+          `Failed to add offer: ${newOffer.title}`,
+          'failed'
+        );
       });
   };
 
   const updateOffer = async (id: string, offer: Partial<Offer>) => {
-    // Store previous state for rollback
     const previousOffer = offers.find(o => o.id === id);
     
     console.log("[Offers] Updating offer:", id, "with:", offer);
     
-    // Optimistic update
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
     
     try {
       await updateDoc(doc(db, "offers", id), offer);
       console.log("[Offers] Successfully updated in Firebase:", id);
+      toast.success("Offer updated!");
+      logOfferAction(
+        'OFFER_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        previousOffer?.title,
+        `Updated offer: ${previousOffer?.title || id}`
+      );
     } catch (error) {
       console.error("[Offers] Error updating in Firebase:", error);
       toast.error("Failed to update offer in database");
-      // Revert on error
       if (previousOffer) {
         setOffers(prev => prev.map(o => o.id === id ? previousOffer : o));
       }
+      logOfferAction(
+        'OFFER_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        previousOffer?.title,
+        `Failed to update offer: ${previousOffer?.title || id}`,
+        'failed'
+      );
     }
   };
 
   const deleteOffer = (id: string) => {
-    // Store for rollback
     const deletedOffer = offers.find(o => o.id === id);
     
     console.log("[Offers] Deleting offer:", id);
     
-    // Optimistic delete
     setOffers(prev => prev.filter(o => o.id !== id));
     
     deleteDoc(doc(db, "offers", id))
       .then(() => {
         console.log("[Offers] Successfully deleted from Firebase:", id);
+        toast.success("Offer deleted!");
+        logOfferAction(
+          'OFFER_DELETE',
+          adminUid || 'unknown',
+          adminEmail,
+          id,
+          deletedOffer?.title,
+          `Deleted offer: ${deletedOffer?.title || id}`
+        );
       })
       .catch((error) => {
         console.error("[Offers] Error deleting from Firebase:", error);
         toast.error("Failed to delete offer from database");
-        // Revert on error
         if (deletedOffer) {
           setOffers(prev => [...prev, deletedOffer]);
         }
+        logOfferAction(
+          'OFFER_DELETE',
+          adminUid || 'unknown',
+          adminEmail,
+          id,
+          deletedOffer?.title,
+          `Failed to delete offer: ${deletedOffer?.title || id}`,
+          'failed'
+        );
       });
   };
 
@@ -1885,14 +2124,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         pendingUpdates.current.categories = false;
       }, 1000);
+      toast.success("Category added!");
+      logCategoryAction(
+        'CATEGORY_ADD',
+        adminUid || 'unknown',
+        adminEmail,
+        newCategory.id,
+        newCategory.name,
+        `Added category: ${newCategory.name}`
+      );
     } catch (error) {
       console.error("Error saving category:", error);
       pendingUpdates.current.categories = false;
       setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      logCategoryAction(
+        'CATEGORY_ADD',
+        adminUid || 'unknown',
+        adminEmail,
+        newCategory.id,
+        newCategory.name,
+        `Failed to add category: ${newCategory.name}`,
+        'failed'
+      );
     }
   };
 
   const updateCategory = async (id: string, category: Partial<Category>) => {
+    const categoryName = categories.find(c => c.id === id)?.name;
     pendingUpdates.current.categories = true;
     const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
     setCategories(updated);
@@ -1901,9 +2159,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         pendingUpdates.current.categories = false;
       }, 1000);
+      toast.success("Category updated!");
+      logCategoryAction(
+        'CATEGORY_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryName,
+        `Updated category: ${categoryName || id}`
+      );
     } catch (error) {
       console.error("Error updating category:", error);
       pendingUpdates.current.categories = false;
+      logCategoryAction(
+        'CATEGORY_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryName,
+        `Failed to update category: ${categoryName || id}`,
+        'failed'
+      );
     }
   };
 
@@ -1915,7 +2191,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = categories.filter(c => c.id !== id);
     setCategories(updated);
     
-    // Update products that reference the deleted category
     const updatedProducts = products.map(p => 
       p.category === categoryToDelete.name 
         ? { ...p, category: updated[0]?.name || "Uncategorized" }
@@ -1930,12 +2205,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         pendingUpdates.current.categories = false;
         pendingUpdates.current.products = false;
       }, 1000);
+      toast.success("Category deleted!");
+      logCategoryAction(
+        'CATEGORY_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryToDelete.name,
+        `Deleted category: ${categoryToDelete.name}`
+      );
     } catch (error) {
       console.error("Error deleting category:", error);
       pendingUpdates.current.categories = false;
       pendingUpdates.current.products = false;
       await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
+      logCategoryAction(
+        'CATEGORY_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryToDelete.name,
+        `Failed to delete category: ${categoryToDelete.name}`,
+        'failed'
+      );
     }
   };
 
@@ -1970,10 +2263,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     <AdminContext.Provider
       value={{
         isAdminLoggedIn,
-        adminUsername: adminCredentials.username,
-        adminCredentials,
+        adminUsername: adminEmail,
+        adminEmail,
         isAdminDataLoaded,
         adminUid,
+        firebaseUser,
         login,
         logout,
         triggerLogout,

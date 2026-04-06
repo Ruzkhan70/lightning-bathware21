@@ -2,84 +2,74 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Store profile (public read)
-    match /storeData/profile {
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    // Products in storeData - public read, auth write
+    match /storeData/{document=**} {
       allow read: if true;
-      allow write: if false; // Only via admin
+      allow write: if isAuth();
     }
     
-    // Store assets (public read)
-    match /storeData/assets {
-      allow read: if true;
-      allow write: if false; // Only via admin
+    // Admin credentials - auth write (for admin setup)
+    match /adminCredentials/{document=**} {
+      allow read: if isAuth();
+      allow write: if isAuth();
     }
     
-    // Site content (public read)
-    match /storeData/siteContent {
-      allow read: if true;
-      allow write: if false; // Only via admin
-    }
-    
-    // Products (public read)
-    match /storeData/products {
-      allow read: if true;
-      allow write: if false; // Only via admin
-    }
-    
-    // Categories (public read)
-    match /storeData/categories {
-      allow read: if true;
-      allow write: if false; // Only via admin
-    }
-    
-    // Offers (public read)
-    match /storeData/offers {
-      allow read: if true;
-      allow write: if false; // Only via admin
-    }
-    
-    // Admin credentials (no read access from client)
-    match /admin/admin {
-      allow read, write: if false;
-    }
-    
-    // Admin profile
-    match /admin/profile {
-      allow read: if false;
-      allow write: if false;
-    }
-    
-    // Orders collection
+    // Orders - public create, auth read/update
     match /orders/{orderId} {
-      allow read: if true; // Allow customers to view their orders
-      allow create: if true; // Allow new orders from checkout
-      allow update, delete: if false; // Only admin can modify
+      allow read: if isAuth();
+      allow create: if true;
+      allow update, delete: if isAuth();
     }
     
-    // Invoices collection
+    // Invoices - auth read/write
     match /invoices/{invoiceId} {
+      allow read, write: if isAuth();
+    }
+    
+    // Messages - public create, auth read/delete
+    match /messages/{messageId} {
+      allow read, delete: if isAuth();
+      allow create: if true;
+    }
+    
+    // Offers - public read, auth write
+    match /offers/{offerId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+    
+    // Reviews - public read/create, auth update/delete
+    match /reviews/{reviewId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if false;
+      allow update, delete: if isAuth();
     }
     
-    // Contact messages
-    match /contactMessages/{messageId} {
-      allow read: if false;
-      allow create: if true;
-      allow update, delete: if false;
-    }
-    
-    // User carts (for cart sync feature)
-    match /carts/{userId} {
-      allow read: if true;
-      allow write: if true; // Only authenticated users
-    }
-    
-    // Users collection
+    // Users - public read/create (for registration), auth update own data
     match /users/{userId} {
       allow read: if true;
-      allow write: if true; // Users can update their own data
+      allow create: if true;
+      allow update: if isAuth() && request.auth.uid == userId;
+      allow delete: if isAuth() && request.auth.uid == userId;
+    }
+    
+    // Wishlist - users can only access their own
+    match /wishlist/{userId} {
+      allow read, write: if isAuth() && request.auth.uid == userId;
+    }
+    
+    // Carts - users can only access their own
+    match /carts/{userId} {
+      allow read, write: if isAuth() && request.auth.uid == userId;
+    }
+    
+    // Activity Logs - auth read/write
+    match /activityLogs/{logId} {
+      allow read, write: if isAuth();
     }
   }
 }

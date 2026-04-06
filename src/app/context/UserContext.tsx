@@ -1,6 +1,18 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { db } from "../../firebase";
-import { collection, addDoc, updateDoc, doc, getDocs, query, where } from "firebase/firestore";
+import { 
+  auth, 
+  db 
+} from "../../firebase";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  User as FirebaseUser
+} from "firebase/auth";
+import { doc, setDoc, getDoc, query, where, collection, getDocs, updateDoc } from "firebase/firestore";
+import { toast } from "sonner";
 
 export interface User {
   id: string;
@@ -12,84 +24,129 @@ export interface User {
 
 interface UserContextType {
   user: User | null;
+  firebaseUser: FirebaseUser | null;
   isLoggedIn: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; shouldSyncCart?: boolean }>;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (
     name: string,
     email: string,
     phone: string,
     address: string,
     password: string
-  ) => Promise<boolean>;
-  logout: () => void;
+  ) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
-  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-}
-
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "lightingbathware_salt_2024");
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const fetchUserProfile = useCallback(async (uid: string): Promise<User | null> => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        return {
+          id: uid,
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          address: data.address || "",
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
     }
-    setIsLoading(false);
   }, []);
 
+  const syncUserData = useCallback(async (fbUser: FirebaseUser) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", fbUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setUser({
+          id: fbUser.uid,
+          name: data.name || fbUser.displayName || "",
+          email: fbUser.email || "",
+          phone: data.phone || "",
+          address: data.address || "",
+        });
+      } else if (fbUser.email) {
+        const newUser: Omit<User, "id"> = {
+          name: fbUser.displayName || "",
+          email: fbUser.email,
+          phone: "",
+          address: "",
+        };
+        await setDoc(doc(db, "users", fbUser.uid), newUser);
+        setUser({ id: fbUser.uid, ...newUser });
+      }
+    } catch (error) {
+      console.error("Error syncing user data:", error);
+    }
+  }, []);
 
+  useEffect(() => {
+    if (isInitialized) return;
+    
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setFirebaseUser(fbUser);
+      
+      if (fbUser) {
+        await syncUserData(fbUser);
+      } else {
+        setUser(null);
+      }
+      
+      setIsLoading(false);
+      setIsInitialized(true);
+    });
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; shouldSyncCart?: boolean }> => {
+    return () => unsubscribe();
+  }, [isInitialized, syncUserData]);
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!email?.trim() || !password?.trim()) {
-        return { success: false };
+        return { success: false, error: "Email and password are required" };
       }
 
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email.toLowerCase().trim()));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        const hashedInput = await hashPassword(password);
-        const storedHash = userData.passwordHash || userData.password;
-        
-        if (hashedInput === storedHash || password === storedHash) {
-          const loggedInUser: User = {
-            id: userData.id || querySnapshot.docs[0].id,
-            name: userData.name || "User",
-            email: userData.email || email,
-            phone: userData.phone || "",
-            address: userData.address || "",
-          };
-
-          const hasExistingCart = userData.hasCart || false;
-          
-          if (!userData.passwordHash && password === storedHash) {
-            await updateDoc(doc(db, "users", querySnapshot.docs[0].id), { passwordHash: hashedInput });
-          }
-          
-          setUser(loggedInUser);
-          localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
-          
-          return { success: true, shouldSyncCart: hasExistingCart };
-        }
+      const result = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      
+      if (result.user) {
+        await syncUserData(result.user);
+        toast.success("Welcome back!");
+        return { success: true };
       }
-      return { success: false };
-    } catch (error) {
+      
+      return { success: false, error: "Login failed" };
+    } catch (error: any) {
       console.error("Login error:", error);
-      return { success: false };
+      
+      let errorMessage = "Login failed. Please check your credentials.";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Incorrect password";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (error.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password";
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -99,96 +156,105 @@ export function UserProvider({ children }: { children: ReactNode }) {
     phone: string,
     address: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!name?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !password?.trim()) {
-        console.error("All fields are required");
-        return false;
+        return { success: false, error: "All fields are required" };
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        console.error("Invalid email format");
-        return false;
+        return { success: false, error: "Invalid email format" };
       }
 
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email.toLowerCase()));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        return false;
+      const existingQuery = query(collection(db, "users"), where("email", "==", email.toLowerCase()));
+      const existingDocs = await getDocs(existingQuery);
+      if (!existingDocs.empty) {
+        return { success: false, error: "An account with this email already exists" };
       }
 
-      const hashedPassword = await hashPassword(password);
-
-      const newUser = {
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone.trim(),
-        address: address.trim(),
-        passwordHash: hashedPassword,
-      };
-
-      const docRef = await addDoc(usersRef, {
-        ...newUser,
-        createdAt: new Date().toISOString(),
-      });
-
-      const registeredUser: User = {
-        id: docRef.id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        address: newUser.address,
-      };
-
-      setUser(registeredUser);
-      localStorage.setItem("currentUser", JSON.stringify(registeredUser));
-      return true;
-    } catch (error) {
+      const result = await createUserWithEmailAndPassword(auth, email.toLowerCase().trim(), password);
+      
+      if (result.user) {
+        await updateProfile(result.user, { displayName: name.trim() });
+        
+        const newUser = {
+          name: name.trim(),
+          email: email.toLowerCase().trim(),
+          phone: phone.trim(),
+          address: address.trim(),
+          createdAt: new Date().toISOString(),
+        };
+        
+        await setDoc(doc(db, "users", result.user.uid), newUser);
+        
+        setUser({ id: result.user.uid, ...newUser });
+        toast.success("Account created successfully!");
+        return { success: true };
+      }
+      
+      return { success: false, error: "Registration failed" };
+    } catch (error: any) {
       console.error("Registration error:", error);
-      return false;
+      
+      let errorMessage = "Registration failed. Please try again.";
+      
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "An account with this email already exists";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password should be at least 6 characters";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address";
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("currentUser");
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to logout");
+    }
   };
 
   const updateProfile = async (updates: Partial<User>) => {
-    if (user) {
+    if (user && firebaseUser) {
       try {
-        const userRef = doc(db, "users", user.id);
+        const userRef = doc(db, "users", firebaseUser.uid);
         await updateDoc(userRef, updates);
-
-        const updatedUser = { ...user, ...updates };
-        setUser(updatedUser);
-        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+        
+        setUser({ ...user, ...updates });
+        toast.success("Profile updated!");
       } catch (error) {
         console.error("Update profile error:", error);
+        toast.error("Failed to update profile");
       }
     }
   };
 
-  const resetPassword = async (email: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email.toLowerCase()));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        return { success: false, error: "email_not_found" };
-      }
-
-      const userDoc = querySnapshot.docs[0];
-      const hashedPassword = await hashPassword(newPassword);
-      await updateDoc(doc(db, "users", userDoc.id), { passwordHash: hashedPassword });
+      const { sendPasswordResetEmail } = await import("firebase/auth");
+      await sendPasswordResetEmail(auth, email);
+      toast.success("Password reset email sent!");
       return { success: true };
     } catch (error: any) {
-      console.error("Reset password error:", error?.message || error);
-      return { success: false, error: error?.message || "unknown" };
+      console.error("Reset password error:", error);
+      
+      let errorMessage = "Failed to send reset email.";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address";
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -200,7 +266,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     <UserContext.Provider
       value={{
         user,
+        firebaseUser,
         isLoggedIn: !!user,
+        isLoading,
         login,
         register,
         logout,
