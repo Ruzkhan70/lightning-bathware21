@@ -9,9 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Shield, Clock, Globe, Monitor } from "lucide-react";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Shield, Clock, Globe, Monitor, Trash2, Trash, X } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../../firebase";
+import { toast } from "sonner";
 
 interface LoginAttemptLog {
   id: string;
@@ -35,6 +36,9 @@ export default function AdminLoginAttempts() {
   const [filterDate, setFilterDate] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, "adminLogs"), orderBy("timestamp", "desc"));
@@ -148,6 +152,35 @@ export default function AdminLoginAttempts() {
     return "low";
   };
 
+  const handleDeleteLog = async (logId: string) => {
+    try {
+      setIsDeleting(true);
+      await deleteDoc(doc(db, "adminLogs", logId));
+      toast.success("Login attempt deleted");
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error("Error deleting log:", error);
+      toast.error("Failed to delete log");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      setIsDeleting(true);
+      const deletePromises = filteredLogs.map(log => deleteDoc(doc(db, "adminLogs", log.id)));
+      await Promise.all(deletePromises);
+      toast.success(`Deleted ${filteredLogs.length} login attempt(s)`);
+      setShowClearAllConfirm(false);
+    } catch (error) {
+      console.error("Error clearing logs:", error);
+      toast.error("Failed to clear logs");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const getSeverityColor = (severity: "low" | "medium" | "high") => {
     switch (severity) {
       case "high": return "text-red-600 bg-red-50 border-red-200";
@@ -176,13 +209,26 @@ export default function AdminLoginAttempts() {
             Monitor all admin login attempts and security events
           </p>
         </div>
-        <Button
-          onClick={exportToCSV}
-          className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          {filteredLogs.length > 0 && (
+            <Button
+              onClick={() => setShowClearAllConfirm(true)}
+              variant="outline"
+              className="border-red-500 text-red-500 hover:bg-red-50"
+              disabled={isDeleting}
+            >
+              <Trash className="w-4 h-4 mr-2" />
+              Clear All ({filteredLogs.length})
+            </Button>
+          )}
+          <Button
+            onClick={exportToCSV}
+            className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -300,12 +346,13 @@ export default function AdminLoginAttempts() {
                 <th className="text-left py-4 px-4 font-semibold">Failure Reason</th>
                 <th className="text-left py-4 px-4 font-semibold">Device</th>
                 <th className="text-left py-4 px-4 font-semibold">Browser</th>
+                <th className="text-left py-4 px-4 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                  <td colSpan={7} className="py-12 text-center text-gray-500">
                     No login attempts found
                   </td>
                 </tr>
@@ -362,6 +409,37 @@ export default function AdminLoginAttempts() {
                           {log.browser || "Unknown"}
                         </div>
                       </td>
+                      <td className="py-3 px-4">
+                        {deleteConfirm === log.id ? (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteLog(log.id)}
+                              disabled={isDeleting}
+                              className="bg-red-500 hover:bg-red-600 text-white"
+                            >
+                              {isDeleting ? "..." : "Delete"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleteConfirm(null)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeleteConfirm(log.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
@@ -414,6 +492,39 @@ export default function AdminLoginAttempts() {
           </div>
         </div>
       </div>
+
+      {/* Clear All Confirmation Modal */}
+      {showClearAllConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-red-100 rounded-full">
+                <Trash className="w-6 h-6 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold">Clear All Login Attempts</h2>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete all {filteredLogs.length} login attempt(s)? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowClearAllConfirm(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleClearAll}
+                disabled={isDeleting}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+              >
+                {isDeleting ? "Deleting..." : `Delete ${filteredLogs.length} Item(s)`}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
