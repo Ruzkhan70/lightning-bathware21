@@ -10,26 +10,26 @@ import { toast } from "sonner";
 export default function AdminLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAdminLoggedIn, storeProfile, setupAdmin, adminUid, isAdminDataLoaded, firebaseUser } = useAdmin();
+  const { login, isAdminLoggedIn, storeProfile, setupAdmin, adminUid, isAdminDataLoaded, firebaseUser, adminExists } = useAdmin();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     displayName: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isSetupMode, setIsSetupMode] = useState(true);
+  const [isSetupMode, setIsSetupMode] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAdminDataLoaded) {
-      if (!firebaseUser && !adminUid) {
+      if (!adminExists) {
         setIsSetupMode(true);
       } else {
         setIsSetupMode(false);
       }
     }
-  }, [isAdminDataLoaded, adminUid, firebaseUser]);
+  }, [isAdminDataLoaded, adminExists]);
 
   useEffect(() => {
     if (isAdminLoggedIn) {

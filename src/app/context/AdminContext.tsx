@@ -205,6 +205,7 @@ interface AdminContextType {
   isAdminDataLoaded: boolean;
   adminUid: string | null;
   firebaseUser: FirebaseUser | null;
+  adminExists: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   triggerLogout: () => void;
@@ -574,6 +575,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUid, setAdminUid] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState(false);
 
   const checkIfUserIsAdmin = useCallback(async (user: FirebaseUser): Promise<boolean> => {
     try {
@@ -639,6 +641,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       unsubscribe();
     };
   }, [checkIfUserIsAdmin]);
+
+  useEffect(() => {
+    const checkAdminExists = async () => {
+      try {
+        const adminsCollection = collection(db, "admins");
+        const snapshot = await getDocs(adminsCollection);
+        setAdminExists(!snapshot.empty);
+      } catch (error) {
+        console.error("Error checking if admin exists:", error);
+        setAdminExists(false);
+      }
+    };
+    
+    checkAdminExists();
+  }, []);
 
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
@@ -1613,6 +1630,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const setupAdmin = async (email: string, password: string, displayName?: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      if (adminExists) {
+        return { success: false, error: "An admin account already exists. Please login with existing credentials." };
+      }
+      
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
@@ -1651,6 +1672,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setAdminUid(result.user.uid);
         setAdminEmail(cleanEmail);
         setIsAdminLoggedIn(true);
+        setAdminExists(true);
         
         await logAdminLogin(cleanEmail, "success");
         return { success: true };
@@ -2384,6 +2406,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         isAdminDataLoaded,
         adminUid,
         firebaseUser,
+        adminExists,
         login,
         logout,
         triggerLogout,
