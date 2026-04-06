@@ -35,6 +35,7 @@ const AdminInvoices = lazy(() => import("./pages/admin/AdminInvoices"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminActivityLogs = lazy(() => import("./pages/admin/AdminActivityLogs"));
+const AdminLoginAttempts = lazy(() => import("./pages/admin/AdminLoginAttempts"));
 const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
 
 
@@ -85,6 +86,7 @@ export const router = createHashRouter([
       { path: "invoices", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminInvoices /></Suspense> },
       { path: "reviews", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminReviews /></Suspense> },
       { path: "activity-logs", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminActivityLogs /></Suspense> },
+      { path: "login-attempts", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminLoginAttempts /></Suspense> },
       { path: "customers", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminCustomers /></Suspense> },
     ],
   },

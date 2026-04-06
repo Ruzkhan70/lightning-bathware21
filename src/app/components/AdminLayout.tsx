@@ -18,6 +18,7 @@ import {
   Star,
   Users,
   FileText,
+  Shield,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
@@ -143,6 +144,11 @@ export default function AdminLayout() {
       icon: FileText,
       label: "Activity Logs",
       path: "/admin/activity-logs",
+    },
+    {
+      icon: Shield,
+      label: "Login Attempts",
+      path: "/admin/login-attempts",
     },
     {
       icon: Settings,

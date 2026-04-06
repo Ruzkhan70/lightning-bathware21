@@ -144,6 +144,7 @@ export interface StoreProfile {
   statsCustomers: string;
   statsAuthentic: string;
   enableOnlinePayment: boolean;
+  authorizedAdminEmail?: string;
 }
 
 export interface StoreAssets {
@@ -327,6 +328,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   statsCustomers: "5,000+",
   statsAuthentic: "100%",
   enableOnlinePayment: false,
+  authorizedAdminEmail: "",
 };
 
 const DEFAULT_STORE_ASSETS: StoreAssets = {
@@ -576,29 +578,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUid, setAdminUid] = useState<string | null>(null);
   const [adminExists, setAdminExists] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState<Record<string, number>>({});
+  const [lockedEmails, setLockedEmails] = useState<Record<string, Date>>({});
 
   const checkIfUserIsAdmin = useCallback(async (user: FirebaseUser): Promise<boolean> => {
     try {
       const adminDoc = await getDoc(doc(db, "admins", user.uid));
       if (adminDoc.exists()) {
-        return true;
+        const adminData = adminDoc.data();
+        if (adminData.role === "admin") {
+          return true;
+        }
       }
-      
-      const adminByEmailQuery = query(
-        collection(db, "admins"),
-        where("email", "==", user.email?.toLowerCase())
-      );
-      const adminByEmail = await getDoc(doc(db, "admins", "byEmail_" + user.uid));
-      if (adminByEmail.exists()) {
-        return true;
-      }
-      
       return false;
     } catch (error) {
       console.error("Error checking admin status:", error);
       return false;
     }
   }, []);
+
+  const checkIfEmailIsAuthorized = useCallback((email: string): boolean => {
+    if (!storeProfile.authorizedAdminEmail) {
+      return true;
+    }
+    return email.toLowerCase() === storeProfile.authorizedAdminEmail.toLowerCase();
+  }, [storeProfile.authorizedAdminEmail]);
 
   useEffect(() => {
     let isComponentMounted = true;
@@ -1555,13 +1559,36 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const cleanPassword = password.trim();
 
-      if (!cleanEmail || !cleanPassword) {
+      if (!cleanEmail || !password) {
         return { success: false, error: "Please enter email and password" };
       }
 
-      const result = await signInWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+      if (!checkIfEmailIsAuthorized(cleanEmail)) {
+        await logAdminLogin(cleanEmail, "failed", "Unauthorized admin email");
+        const attempts = (failedAttempts[cleanEmail] || 0) + 1;
+        setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
+        
+        if (attempts >= 3) {
+          await logAdminAction(
+            'SUSPICIOUS_ACTIVITY',
+            'unknown',
+            cleanEmail,
+            `Multiple failed login attempts with unauthorized email: ${cleanEmail}`,
+            'warning',
+            { email: cleanEmail, attempts, reason: 'unauthorized_admin_email' }
+          );
+        }
+        
+        return { success: false, error: "Access denied. This email is not authorized for admin access." };
+      }
+
+      if (lockedEmails[cleanEmail] && new Date() < lockedEmails[cleanEmail]) {
+        const remainingMinutes = Math.ceil((lockedEmails[cleanEmail].getTime() - Date.now()) / 60000);
+        return { success: false, error: `Too many failed attempts. Try again in ${remainingMinutes} minute(s).` };
+      }
+
+      const result = await signInWithEmailAndPassword(auth, cleanEmail, password);
       
       if (result.user) {
         const isAdmin = await checkIfUserIsAdmin(result.user);
@@ -1570,8 +1597,36 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           await signOut(auth);
           toast.error("Access denied. You are not authorized as admin.");
           await logAdminLogin(cleanEmail, "failed", "Not authorized as admin");
-          return { success: false, error: "Access denied. You are not authorized as admin." };
+          
+          const attempts = (failedAttempts[cleanEmail] || 0) + 1;
+          setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
+          
+          if (attempts >= 3) {
+            setLockedEmails(prev => ({ ...prev, [cleanEmail]: new Date(Date.now() + 30 * 60 * 1000) }));
+            await logAdminAction(
+              'SUSPICIOUS_ACTIVITY',
+              'unknown',
+              cleanEmail,
+              `Account locked after ${attempts} failed attempts - non-admin user attempted access`,
+              'warning',
+              { email: cleanEmail, attempts, reason: 'non_admin_user' }
+            );
+            return { success: false, error: `Access denied. Too many failed attempts. Try again in 30 minutes.` };
+          }
+          
+          return { success: false, error: `Access denied. You are not authorized as admin. (${3 - attempts} attempts remaining)` };
         }
+        
+        setFailedAttempts(prev => {
+          const updated = { ...prev };
+          delete updated[cleanEmail];
+          return updated;
+        });
+        setLockedEmails(prev => {
+          const updated = { ...prev };
+          delete updated[cleanEmail];
+          return updated;
+        });
         
         await logAdminLogin(cleanEmail, "success");
         return { success: true };
@@ -1580,6 +1635,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return { success: false, error: "Login failed" };
     } catch (error: any) {
       console.error("Admin login error:", error);
+      
+      const attempts = (failedAttempts[cleanEmail] || 0) + 1;
+      setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
       
       let errorMessage = "Login failed. Please check your credentials.";
       
@@ -1597,7 +1655,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         errorMessage = "Network error. Please check your connection.";
       }
       
-      await logAdminLogin(email, "failed", errorMessage);
+      await logAdminLogin(cleanEmail, "failed", errorMessage);
+      
+      if (attempts >= 3) {
+        setLockedEmails(prev => ({ ...prev, [cleanEmail]: new Date(Date.now() + 30 * 60 * 1000) }));
+        await logAdminAction(
+          'SUSPICIOUS_ACTIVITY',
+          'unknown',
+          cleanEmail,
+          `Account locked after ${attempts} failed login attempts`,
+          'warning',
+          { email: cleanEmail, attempts, reason: 'max_failed_attempts' }
+        );
+        errorMessage = `Too many failed attempts. Account locked for 30 minutes.`;
+      }
+      
       return { success: false, error: errorMessage };
     }
   };
@@ -1635,9 +1707,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       
       const cleanEmail = email.trim().toLowerCase();
-      const cleanPassword = password.trim();
 
-      if (!cleanEmail || !cleanPassword) {
+      if (!cleanEmail || !password) {
         return { success: false, error: "Please enter email and password" };
       }
 
@@ -1645,10 +1716,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       let isExistingUser = false;
       
       try {
-        result = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+        result = await createUserWithEmailAndPassword(auth, cleanEmail, password);
       } catch (signUpError: any) {
         if (signUpError.code === "auth/email-already-in-use") {
-          result = await signInWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+          result = await signInWithEmailAndPassword(auth, cleanEmail, password);
           isExistingUser = true;
         } else {
           throw signUpError;
@@ -1663,10 +1734,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, "admins", result.user.uid), {
           email: cleanEmail,
           displayName: displayName?.trim() || result.user.displayName || cleanEmail.split('@')[0],
+          role: "admin",
           createdAt: new Date().toISOString(),
           createdBy: result.user.uid,
           isExistingUser,
         });
+
+        await setDoc(doc(db, "storeData", "profile"), {
+          authorizedAdminEmail: cleanEmail,
+        }, { merge: true });
+        setStoreProfile(prev => ({ ...prev, authorizedAdminEmail: cleanEmail }));
         
         setFirebaseUser(result.user);
         setAdminUid(result.user.uid);

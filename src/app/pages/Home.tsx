@@ -146,7 +146,7 @@ export default function Home() {
     >
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] flex items-center bg-gray-900 text-white overflow-hidden">
-        {/* Background Image */}
+        {/* Background Image - Brighter */}
         {storeAssets.heroImage && (
           <motion.div
             className="absolute inset-0 bg-cover bg-center"
@@ -154,17 +154,23 @@ export default function Home() {
               backgroundImage: `url('${storeAssets.heroImage}')`,
             }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: heroImageLoaded ? 0.4 : 0 }}
+            animate={{ opacity: heroImageLoaded ? 0.7 : 0 }}
             transition={{ duration: 0.5 }}
           />
         )}
 
+        {/* Left Side Black Shadow Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+        
+        {/* Subtle Top/Bottom Fade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/20" />
+
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-7xl font-bold mb-4 leading-tight">
+            <h1 className="text-4xl md:text-7xl font-bold mb-4 leading-tight drop-shadow-lg">
               {siteContent.home.heroTitle}
             </h1>
-            <p className="text-base md:text-lg text-gray-300 mb-8 max-w-xl">
+            <p className="text-base md:text-lg text-gray-100 mb-8 max-w-xl drop-shadow-md">
               {siteContent.home.heroSubtitle}
             </p>
             <div className="flex flex-wrap items-center gap-4">
