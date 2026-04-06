@@ -939,7 +939,7 @@ export default function AdminSettings() {
                         value={item.question}
                         onChange={(e) => {
                           const newItems = [...contentForm.faq.items];
-                          newItems[index] = { ...newItems[index], question: e.target.value };
+                          newItems[idx] = { ...newItems[idx], question: e.target.value };
                           setContentForm({
                             ...contentForm,
                             faq: { ...contentForm.faq, items: newItems }
@@ -951,7 +951,7 @@ export default function AdminSettings() {
                         value={item.answer}
                         onChange={(e) => {
                           const newItems = [...contentForm.faq.items];
-                          newItems[index] = { ...newItems[index], answer: e.target.value };
+                          newItems[idx] = { ...newItems[idx], answer: e.target.value };
                           setContentForm({
                             ...contentForm,
                             faq: { ...contentForm.faq, items: newItems }

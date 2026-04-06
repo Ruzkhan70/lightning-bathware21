@@ -146,15 +146,15 @@ export default function Home() {
     >
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] flex items-center bg-gray-900 text-white overflow-hidden">
-        {/* Background Image - fades in when loaded */}
-        {heroImageLoaded && storeAssets.heroImage && (
+        {/* Background Image */}
+        {storeAssets.heroImage && (
           <motion.div
-            className="absolute inset-0 bg-cover bg-center opacity-40"
+            className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage: `url('${storeAssets.heroImage}')`,
             }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: heroImageLoaded ? 0.4 : 0 }}
             transition={{ duration: 0.5 }}
           />
         )}
