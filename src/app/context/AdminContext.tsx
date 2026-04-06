@@ -587,6 +587,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (adminDoc.exists()) {
         const adminData = adminDoc.data();
         if (adminData.role === "admin") {
+          if (storeProfile.authorizedAdminEmail) {
+            return user.email?.toLowerCase() === storeProfile.authorizedAdminEmail.toLowerCase();
+          }
           return true;
         }
       }
@@ -595,14 +598,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Error checking admin status:", error);
       return false;
     }
-  }, []);
-
-  const checkIfEmailIsAuthorized = useCallback((email: string): boolean => {
-    if (!storeProfile.authorizedAdminEmail) {
-      return false;
-    }
-    return email.toLowerCase() === storeProfile.authorizedAdminEmail.toLowerCase();
   }, [storeProfile.authorizedAdminEmail]);
+
+  const checkIfEmailIsAuthorized = useCallback(async (email: string): Promise<boolean> => {
+    if (!adminExists) {
+      return true;
+    }
+    
+    const normalizedEmail = email.toLowerCase();
+    
+    if (storeProfile.authorizedAdminEmail) {
+      return normalizedEmail === storeProfile.authorizedAdminEmail.toLowerCase();
+    }
+    
+    const adminsCollection = collection(db, "admins");
+    const q = query(adminsCollection, where("email", "==", normalizedEmail));
+    const { getDocs } = await import("firebase/firestore");
+    const snapshot = await getDocs(q);
+    
+    if (!snapshot.empty) {
+      return true;
+    }
+    
+    return false;
+  }, [adminExists, storeProfile.authorizedAdminEmail]);
 
   useEffect(() => {
     let isComponentMounted = true;
@@ -1565,7 +1584,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
 
       if (adminExists) {
-        if (!checkIfEmailIsAuthorized(cleanEmail)) {
+        const isAuthorized = await checkIfEmailIsAuthorized(cleanEmail);
+        if (!isAuthorized) {
           await logAdminLogin(cleanEmail, "failed", "Unauthorized admin email");
           const attempts = (failedAttempts[cleanEmail] || 0) + 1;
           setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
