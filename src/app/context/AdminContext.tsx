@@ -1536,18 +1536,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return { success: false, error: "Please enter email and password" };
       }
 
-      const result = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+      let result;
+      let isExistingUser = false;
+      
+      try {
+        result = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+      } catch (signUpError: any) {
+        if (signUpError.code === "auth/email-already-in-use") {
+          result = await signInWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+          isExistingUser = true;
+        } else {
+          throw signUpError;
+        }
+      }
       
       if (result.user) {
-        if (displayName) {
+        if (displayName && !result.user.displayName) {
           await updateProfile(result.user, { displayName: displayName.trim() });
         }
         
         await setDoc(doc(db, "admins", result.user.uid), {
           email: cleanEmail,
-          displayName: displayName?.trim() || cleanEmail.split('@')[0],
+          displayName: displayName?.trim() || result.user.displayName || cleanEmail.split('@')[0],
           createdAt: new Date().toISOString(),
           createdBy: result.user.uid,
+          isExistingUser,
         });
         
         setFirebaseUser(result.user);
@@ -1565,8 +1578,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       let errorMessage = "Setup failed. Please try again.";
       
-      if (error.code === "auth/email-already-in-use") {
-        errorMessage = "An admin account with this email already exists";
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+        errorMessage = "An account exists but the password is incorrect. Please use the correct password.";
       } else if (error.code === "auth/weak-password") {
         errorMessage = "Password should be at least 6 characters";
       } else if (error.code === "auth/invalid-email") {
