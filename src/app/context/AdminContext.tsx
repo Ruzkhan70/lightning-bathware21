@@ -599,7 +599,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const checkIfEmailIsAuthorized = useCallback((email: string): boolean => {
     if (!storeProfile.authorizedAdminEmail) {
-      return true;
+      return false;
     }
     return email.toLowerCase() === storeProfile.authorizedAdminEmail.toLowerCase();
   }, [storeProfile.authorizedAdminEmail]);
@@ -1564,23 +1564,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return { success: false, error: "Please enter email and password" };
       }
 
-      if (!checkIfEmailIsAuthorized(cleanEmail)) {
-        await logAdminLogin(cleanEmail, "failed", "Unauthorized admin email");
-        const attempts = (failedAttempts[cleanEmail] || 0) + 1;
-        setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
-        
-        if (attempts >= 3) {
-          await logAdminAction(
-            'SUSPICIOUS_ACTIVITY',
-            'unknown',
-            cleanEmail,
-            `Multiple failed login attempts with unauthorized email: ${cleanEmail}`,
-            'warning',
-            { email: cleanEmail, attempts, reason: 'unauthorized_admin_email' }
-          );
+      if (adminExists) {
+        if (!checkIfEmailIsAuthorized(cleanEmail)) {
+          await logAdminLogin(cleanEmail, "failed", "Unauthorized admin email");
+          const attempts = (failedAttempts[cleanEmail] || 0) + 1;
+          setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
+          
+          if (attempts >= 3) {
+            await logAdminAction(
+              'SUSPICIOUS_ACTIVITY',
+              'unknown',
+              cleanEmail,
+              `Multiple failed login attempts with unauthorized email: ${cleanEmail}`,
+              'warning',
+              { email: cleanEmail, attempts, reason: 'unauthorized_admin_email' }
+            );
+          }
+          
+          return { success: false, error: "Access denied. This email is not authorized for admin access." };
         }
-        
-        return { success: false, error: "Access denied. This email is not authorized for admin access." };
       }
 
       if (lockedEmails[cleanEmail] && new Date() < lockedEmails[cleanEmail]) {
