@@ -10,6 +10,17 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
     
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // System collection - for admin setup tracking
+    match /system/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
     // Admins collection - store admin users
     match /admins/{adminId} {
       allow read: if isAuth();
@@ -20,59 +31,58 @@ service cloud.firestore {
     // Products in storeData - public read, authenticated write
     match /storeData/{document=**} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     
-    // Admin credentials - authenticated access only
+    // Admin credentials - admin only
     match /adminCredentials/{document=**} {
-      allow read: if isAuth();
-      allow write: if isAuth();
+      allow read, write: if isAdmin();
     }
     
     // Admin login logs - read by admins, anyone can create (for logging)
     match /adminLogs/{logId} {
-      allow read: if isAuth();
+      allow read: if isAdmin();
       allow create: if true;
       allow update, delete: if false;
     }
     
-    // Orders - public create (checkout), auth read/update
+    // Orders - public create (checkout), admin read/update
     match /orders/{orderId} {
-      allow read: if isAuth();
+      allow read: if isAdmin();
       allow create: if true;
-      allow update, delete: if isAuth();
+      allow update, delete: if isAdmin();
     }
     
-    // Invoices - auth read/write
+    // Invoices - admin only
     match /invoices/{invoiceId} {
-      allow read, write: if isAuth();
+      allow read, write: if isAdmin();
     }
     
-    // Messages - public create (contact form), auth read/delete
+    // Messages - public create (contact form), admin read/delete
     match /messages/{messageId} {
-      allow read, delete: if isAuth();
+      allow read, delete: if isAdmin();
       allow create: if true;
     }
     
-    // Offers - public read, auth write
+    // Offers - public read, admin write
     match /offers/{offerId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     
-    // Reviews - public read/create, auth update/delete
+    // Reviews - public read/create, admin update/delete
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if isAuth();
+      allow update, delete: if isAdmin();
     }
     
-    // Users - public read/create (registration), auth update own data
+    // Users - public read/create (registration), admin or owner update own data
     match /users/{userId} {
       allow read: if true;
       allow create: if true;
-      allow update: if isAuth() && request.auth.uid == userId;
-      allow delete: if isAuth() && request.auth.uid == userId;
+      allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
+      allow delete: if isAdmin() || (isAuth() && request.auth.uid == userId);
     }
     
     // Wishlist - users can only access their own
@@ -85,9 +95,9 @@ service cloud.firestore {
       allow read, write: if isAuth() && request.auth.uid == userId;
     }
     
-    // Activity Logs - auth read/write
+    // Activity Logs - admin only
     match /activityLogs/{logId} {
-      allow read, write: if isAuth();
+      allow read, write: if isAdmin();
     }
   }
 }
