@@ -578,31 +578,45 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let isComponentMounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!isComponentMounted) return;
+      
       if (user) {
         const isAdmin = await checkIfUserIsAdmin(user);
-        setFirebaseUser(user);
-        setAdminUid(user.uid);
-        setAdminEmail(user.email || "");
-        setIsAdminLoggedIn(isAdmin);
         
-        if (!isAdmin) {
-          await signOut(auth);
+        if (!isComponentMounted) return;
+        
+        if (isAdmin) {
+          setFirebaseUser(user);
+          setAdminUid(user.uid);
+          setAdminEmail(user.email || "");
+          setIsAdminLoggedIn(true);
+        } else {
+          setFirebaseUser(user);
+          setAdminUid(user.uid);
+          setAdminEmail(user.email || "");
+          setIsAdminLoggedIn(false);
+        }
+      } else {
+        if (isComponentMounted) {
           setFirebaseUser(null);
           setAdminUid(null);
           setAdminEmail("");
+          setIsAdminLoggedIn(false);
         }
-      } else {
-        setFirebaseUser(null);
-        setAdminUid(null);
-        setAdminEmail("");
-        setIsAdminLoggedIn(false);
       }
-      setIsAdminDataLoaded(true);
-      setIsInitialized(true);
+      if (isComponentMounted) {
+        setIsAdminDataLoaded(true);
+        setIsInitialized(true);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isComponentMounted = false;
+      unsubscribe();
+    };
   }, [checkIfUserIsAdmin]);
 
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
@@ -1535,6 +1549,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           createdAt: new Date().toISOString(),
           createdBy: result.user.uid,
         });
+        
+        setFirebaseUser(result.user);
+        setAdminUid(result.user.uid);
+        setAdminEmail(cleanEmail);
+        setIsAdminLoggedIn(true);
         
         await logAdminLogin(cleanEmail, "success");
         return { success: true };
