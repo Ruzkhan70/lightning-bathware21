@@ -272,6 +272,27 @@ interface AdminContextType {
   getApprovedReviewsByProduct: (productId: string) => Review[];
   getAverageRating: (productId: string) => { average: number; count: number };
   seedDemoReviews: () => Promise<void>;
+  activityLogs: ActivityLog[];
+  users: UserProfile[];
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  createdAt?: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  action: string;
+  userId: string;
+  userEmail: string;
+  details: string;
+  timestamp: string;
+  status: 'success' | 'failed' | 'warning';
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -626,6 +647,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
 
   const DEMO_OFFERS: Offer[] = [
     {
@@ -680,6 +703,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     invoices: false,
     messages: false,
     reviews: false,
+    activityLogs: false,
+    users: false,
   });
 
   useEffect(() => {
@@ -1001,6 +1026,65 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Firebase reviews sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
+    }
+  }, []);
+
+  // Firebase real-time sync for activity logs
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "activityLogs"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const logs: ActivityLog[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { 
+            id: doc.id,
+            action: data.action || "",
+            userId: data.userId || "",
+            userEmail: data.userEmail || "",
+            details: data.details || "",
+            timestamp: data.timestamp || data.createdAt || new Date().toISOString(),
+            status: data.status || "success",
+          };
+        });
+        setActivityLogs(logs);
+        setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
+      }, (error) => {
+        console.error("Firebase activityLogs sync error:", error);
+        setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase activityLogs sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
+    }
+  }, []);
+
+  // Firebase real-time sync for users/customers
+  useEffect(() => {
+    try {
+      const q = query(collection(db, "users"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const usersData: UserProfile[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { 
+            id: doc.id,
+            name: data.name || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            address: data.address || "",
+            createdAt: data.createdAt,
+          };
+        });
+        setUsers(usersData);
+        setFirebaseLoaded(prev => ({ ...prev, users: true }));
+      }, (error) => {
+        console.error("Firebase users sync error:", error);
+        setFirebaseLoaded(prev => ({ ...prev, users: true }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Firebase users sync error:", error);
+      setFirebaseLoaded(prev => ({ ...prev, users: true }));
     }
   }, []);
 
@@ -2364,6 +2448,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         getApprovedReviewsByProduct,
         getAverageRating,
         seedDemoReviews,
+        activityLogs,
+        users,
       }}
     >
       {children}

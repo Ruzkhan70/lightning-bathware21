@@ -16,6 +16,8 @@ import {
   X,
   Mail,
   Star,
+  Users,
+  FileText,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
@@ -131,6 +133,16 @@ export default function AdminLayout() {
       icon: BarChart3,
       label: "Statistics",
       path: "/admin/statistics",
+    },
+    {
+      icon: Users,
+      label: "Customers",
+      path: "/admin/customers",
+    },
+    {
+      icon: FileText,
+      label: "Activity Logs",
+      path: "/admin/activity-logs",
     },
     {
       icon: Settings,

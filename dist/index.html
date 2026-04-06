@@ -2,24 +2,72 @@
 <html lang="en">
 
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NZ7JV53WQK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-NZ7JV53WQK');
+  </script>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lightning Bathware - Sri Lanka's Premier Hardware Store</title>
   <meta name="description" content="Lightning Bathware is Sri Lanka's leading hardware store, offering premium lighting, bathroom fittings, plumbing, and electrical hardware. Explore our wide range of products and special offers." />
   <meta name="google-site-verification" content="SmhkE1y_ZF07BhXK5G-KYOGKaxA-orPqOQvs09x8jT8" />
-  <!-- Basic styles for flash of unstyled content -->
+  <!-- Loading styles to prevent white flash -->
   <style>
     body {
       margin: 0;
+      padding: 0;
+      background-color: #000;
+      min-height: 100vh;
+    }
+    #root {
+      min-height: 100vh;
+    }
+    .loading-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid #333;
+      border-top-color: #D4AF37;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loading-text {
+      margin-top: 20px;
+      color: #D4AF37;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
-  <script type="module" crossorigin src="/lightning-bathware21/assets/index-BP8_SN6a.js"></script>
-  <link rel="stylesheet" crossorigin href="/lightning-bathware21/assets/index-yAkmTJsr.css">
+  <script type="module" crossorigin src="/lightning-bathware21/assets/index-BsLjTN95.js"></script>
+  <link rel="stylesheet" crossorigin href="/lightning-bathware21/assets/index-DUiXcuT3.css">
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- Loading screen shown while React loads -->
+    <div class="loading-screen">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">LOADING...</div>
+    </div>
+  </div>
 </body>
 
 </html>
