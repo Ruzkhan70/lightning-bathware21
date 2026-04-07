@@ -160,10 +160,10 @@ export default function Home() {
         )}
 
         {/* Left Side Black Shadow Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
         
         {/* Subtle Top/Bottom Fade */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/10" />
 
         <div className="relative container mx-auto px-4 py-12 md:py-24">
           <div className="max-w-3xl">
