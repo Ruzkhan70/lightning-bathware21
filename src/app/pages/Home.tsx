@@ -154,7 +154,7 @@ export default function Home() {
               backgroundImage: `url('${storeAssets.heroImage}')`,
             }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: heroImageLoaded ? 0.7 : 0 }}
+            animate={{ opacity: heroImageLoaded ? 0.85 : 0 }}
             transition={{ duration: 0.5 }}
           />
         )}
