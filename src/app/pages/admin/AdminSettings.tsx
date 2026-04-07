@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award, Plus, Trash2, CreditCard, ToggleLeft, ToggleRight } from "lucide-react";
+import { Lock, User, Save, Store, Phone, Mail, MapPin, Clock, Globe, Image as ImageIcon, Zap, Type, RotateCcw, Truck, Award, Plus, Trash2, CreditCard, ToggleLeft, ToggleRight, Laptop, Smartphone, Monitor, X, LogOut, Shield } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin, DEFAULT_SITE_CONTENT } from "../../context/AdminContext";
@@ -9,7 +9,25 @@ import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
 
 export default function AdminSettings() {
-  const { adminUsername, changeUsername, changePassword, storeProfile, updateStoreProfile, storeAssets, updateStoreAssets, showAdminLogin, setShowAdminLogin, siteContent, updateSiteContent, resetSiteContent } = useAdmin();
+  const { 
+    adminUsername, 
+    changeUsername, 
+    changePassword, 
+    storeProfile, 
+    updateStoreProfile, 
+    storeAssets, 
+    updateStoreAssets, 
+    showAdminLogin, 
+    setShowAdminLogin, 
+    siteContent, 
+    updateSiteContent, 
+    resetSiteContent,
+    deviceSessions,
+    removeDeviceSession,
+    logoutDeviceSession,
+    currentDeviceId,
+    adminEmail
+  } = useAdmin();
   const [usernameForm, setUsernameForm] = useState({
     newUsername: adminUsername,
   });
@@ -1273,6 +1291,118 @@ export default function AdminSettings() {
               <span className="text-gray-600">Access Level:</span>
               <span className="font-semibold">Full Access</span>
             </div>
+          </div>
+        </div>
+
+        {/* Logged-in Devices */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <Shield className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Logged-in Devices</h2>
+              <p className="text-sm text-gray-600">
+                Manage devices that have admin access
+              </p>
+            </div>
+          </div>
+
+          {deviceSessions.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Monitor className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>No devices logged in</p>
+              <p className="text-sm">Login on a device to see it here</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 mb-4">
+                {deviceSessions.filter(d => d.status === 'active').length} active session(s)
+              </p>
+              
+              {deviceSessions.map((device) => (
+                <div
+                  key={device.id}
+                  className={`flex items-center justify-between p-4 rounded-lg border ${
+                    device.isCurrentDevice 
+                      ? 'bg-green-50 border-green-200' 
+                      : device.status === 'logged_out'
+                      ? 'bg-gray-50 border-gray-200 opacity-60'
+                      : 'bg-white border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      device.device === 'Mobile' ? 'bg-blue-100' : 'bg-purple-100'
+                    }`}>
+                      {device.device === 'Mobile' ? (
+                        <Smartphone className="w-5 h-5 text-blue-600" />
+                      ) : (
+                        <Monitor className="w-5 h-5 text-purple-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">
+                          {device.device} - {device.browser}
+                        </p>
+                        {device.isCurrentDevice && (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
+                            Current
+                          </span>
+                        )}
+                        {device.status === 'logged_out' && (
+                          <span className="px-2 py-0.5 bg-gray-400 text-white text-xs rounded-full">
+                            Logged Out
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {device.os} • Last active: {new Date(device.lastActive).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Login: {new Date(device.loginTime).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {device.status === 'active' && !device.isCurrentDevice && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => logoutDeviceSession(device.deviceId)}
+                        className="px-3 py-1.5 text-sm border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 flex items-center gap-1"
+                        title="Log out this device"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+                      <button
+                        onClick={() => removeDeviceSession(device.deviceId)}
+                        className="px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 flex items-center gap-1"
+                        title="Remove this device"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                  
+                  {device.isCurrentDevice && (
+                    <span className="text-sm text-green-600 font-medium">
+                      This device
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">Security Info</h4>
+            <p className="text-sm text-blue-800">
+              Admin sessions are stored locally on each device and expire after 24 hours. 
+              You can logout or remove other devices to secure your admin account.
+            </p>
           </div>
         </div>
       </div>
