@@ -226,6 +226,12 @@ export default function AdminAddProduct() {
       return;
     }
 
+    const productsWithoutCategory = productsNeedingDescription.filter(p => !p.category);
+    if (productsWithoutCategory.length > 0) {
+      toast.error(`${productsWithoutCategory.length} products need a category first`);
+      return;
+    }
+
     setIsGeneratingDescriptions(true);
     for (const product of productsNeedingDescription) {
       setGeneratingId(product.id);
