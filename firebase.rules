@@ -6,19 +6,22 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    // System - public read
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+    
+    // System - public read (store config needed for frontend)
     match /system/{document=**} {
       allow read: if true;
       allow write: if isAuth();
     }
     
-    // Admins - public read
+    // Admins - auth only
     match /admins/{document=**} {
-      allow read: if true;
-      allow write: if isAuth();
+      allow read, write: if isAuth();
     }
     
-    // Products in storeData - public read, auth write
+    // Products in storeData - public read (for storefront), auth write
     match /storeData/{document=**} {
       allow read: if true;
       allow write: if isAuth();
@@ -30,15 +33,17 @@ service cloud.firestore {
       allow write: if isAuth();
     }
     
-    // Orders - public read, public create, auth update/delete
+    // Orders - admins only read, anyone can create
     match /orders/{orderId} {
-      allow read, create: if true;
+      allow read: if isAuth();
+      allow create: if true;
       allow update, delete: if isAuth();
     }
     
-    // Invoices - public read/write
+    // Invoices - auth only
     match /invoices/{invoiceId} {
-      allow read, write: if true;
+      allow read: if isAuth();
+      allow write: if isAuth();
     }
     
     // Messages - public create, auth read/delete
@@ -47,38 +52,37 @@ service cloud.firestore {
       allow create: if true;
     }
     
-    // Offers - public read, auth write
+    // Offers - public read (for storefront), auth write
     match /offers/{offerId} {
       allow read: if true;
       allow write: if isAuth();
     }
     
-    // Reviews - public read/create, auth update/delete
+    // Reviews - public read/create (for storefront), auth update/delete
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if isAuth();
     }
     
-    // Users - public read/create (for registration), auth update own data
+    // Users - auth read, own write
     match /users/{userId} {
-      allow read: if true;
+      allow read: if isAuth();
       allow create: if true;
-      allow update: if isAuth() && request.auth.uid == userId;
-      allow delete: if isAuth() && request.auth.uid == userId;
+      allow update, delete: if isOwner(userId);
     }
     
-    // Wishlist - users can only access their own
+    // Wishlist - owner only
     match /wishlist/{userId} {
-      allow read, write: if isAuth() && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
     
-    // Carts - users can only access their own
+    // Carts - owner only
     match /carts/{userId} {
-      allow read, write: if isAuth() && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
     
-    // Activity Logs - auth read/write
+    // Activity Logs - auth only
     match /activityLogs/{logId} {
       allow read, write: if isAuth();
     }
