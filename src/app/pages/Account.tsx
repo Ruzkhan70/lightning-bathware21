@@ -352,7 +352,6 @@ export default function Account() {
                       <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
                       {isSyncing ? "Syncing..." : "Sync Cart"}
                     </Button>
-                    <p className="text-xs text-gray-500 text-center">Sync your cart from another device</p>
                     <Button
                       onClick={handleLogout}
                       variant="outline"
@@ -362,7 +361,6 @@ export default function Account() {
                       Logout
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500 text-center">Sync Cart merges your saved items with current cart</p>
                 </div>
               </div>
 
