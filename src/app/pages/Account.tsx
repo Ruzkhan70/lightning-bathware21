@@ -291,6 +291,14 @@ export default function Account() {
     setIsEditingProfile(false);
   };
 
+  // Force re-render when orders are loaded or user changes
+  const [, setOrdersKey] = useState(0);
+  useEffect(() => {
+    if (isDataLoaded) {
+      setOrdersKey(prev => prev + 1);
+    }
+  }, [isDataLoaded, orders.length]);
+
   const userOrders = isLoggedIn && user?.id
     ? orders.filter((order) => order?.userId === user?.id)
     : [];
