@@ -6,6 +6,18 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    // System - public read
+    match /system/{document=**} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+    
+    // Admins - public read
+    match /admins/{document=**} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+    
     // Products in storeData - public read, auth write
     match /storeData/{document=**} {
       allow read: if true;
