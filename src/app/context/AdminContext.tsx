@@ -1956,6 +1956,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addMultipleProducts = async (newProducts: Omit<Product, "id">[]) => {
+    const productsWithIds = newProducts.map(p => ({ ...p, id: generateUniqueId() }));
+    const updated = [...products, ...productsWithIds];
+    pendingUpdates.current.products = true;
+    setProducts(updated);
+    try {
+      await updateDoc(doc(db, "storeData", "products"), { products: updated });
+      setTimeout(() => {
+        pendingUpdates.current.products = false;
+      }, 1000);
+      await logProductAction(
+        'PRODUCT_ADD',
+        adminUid || 'unknown',
+        adminEmail,
+        '',
+        `${newProducts.length} products`,
+        `Bulk added ${newProducts.length} products`
+      );
+    } catch (error) {
+      console.error("Error adding products to Firebase:", error);
+      pendingUpdates.current.products = false;
+      await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+    }
+  };
+
   const updateProduct = async (id: string, product: Partial<Product>) => {
     const productName = products.find(p => p.id === id)?.name;
     pendingUpdates.current.products = true;
@@ -2487,6 +2512,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         updateStoreProfile,
         products,
         addProduct,
+        addMultipleProducts,
         updateProduct,
         deleteProduct,
         bulkDeleteProducts,

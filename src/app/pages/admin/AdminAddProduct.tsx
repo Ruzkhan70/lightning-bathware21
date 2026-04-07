@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Upload, FileText, X, Check } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -15,8 +15,16 @@ import {
 } from "../../components/ui/select";
 import { toast } from "sonner";
 
+interface BulkProduct {
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  isAvailable: boolean;
+}
+
 export default function AdminAddProduct() {
-  const { addProduct, categories } = useAdmin();
+  const { addProduct, addMultipleProducts, categories } = useAdmin();
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -26,7 +34,66 @@ export default function AdminAddProduct() {
     image: "",
   });
 
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [bulkData, setBulkData] = useState("");
+  const [bulkPreview, setBulkPreview] = useState<BulkProduct[]>([]);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
   const safeCategories = categories || [];
+
+  const parseBulkData = (data: string): BulkProduct[] => {
+    const lines = data.trim().split("\n");
+    const products: BulkProduct[] = [];
+
+    for (const line of lines) {
+      const parts = line.split(",").map((p) => p.trim());
+      if (parts.length >= 4) {
+        const categoryMatch = safeCategories.find(
+          (c) => c.name.toLowerCase() === parts[1].toLowerCase()
+        );
+        products.push({
+          name: parts[0],
+          category: categoryMatch?.id || parts[1],
+          price: parseFloat(parts[2]) || 0,
+          description: parts[3] || "",
+          isAvailable: true,
+        });
+      }
+    }
+    return products;
+  };
+
+  const handleBulkPreview = () => {
+    if (!bulkData.trim()) {
+      toast.error("Please enter product data");
+      return;
+    }
+    const preview = parseBulkData(bulkData);
+    if (preview.length === 0) {
+      toast.error("No valid products found. Format: Name,Category,Price,Description");
+      return;
+    }
+    setBulkPreview(preview);
+  };
+
+  const handleBulkSubmit = async () => {
+    if (bulkPreview.length === 0) {
+      toast.error("No products to upload");
+      return;
+    }
+    setIsBulkProcessing(true);
+    try {
+      await addMultipleProducts(bulkPreview);
+      toast.success(`Successfully added ${bulkPreview.length} products!`);
+      setBulkData("");
+      setBulkPreview([]);
+      setShowBulkUpload(false);
+    } catch (error) {
+      toast.error("Failed to upload products");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,9 +149,94 @@ export default function AdminAddProduct() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Add New Product</h1>
-        <p className="text-gray-600">Add a new product to your inventory</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Add New Product</h1>
+            <p className="text-gray-600">Add a new product to your inventory</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowBulkUpload(!showBulkUpload)}
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            {showBulkUpload ? "Single Upload" : "Bulk Upload"}
+          </Button>
+        </div>
       </div>
+
+      {showBulkUpload ? (
+        <div className="max-w-4xl">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-2">Bulk Product Upload</h2>
+              <p className="text-gray-600 text-sm">
+                Enter products in format: Name,Category,Price,Description
+                <br />
+                One product per line. Use exact category names.
+              </p>
+            </div>
+
+            <Textarea
+              value={bulkData}
+              onChange={(e) => setBulkData(e.target.value)}
+              placeholder={`Product Name,Category Name,Price,Description&#10;Example Product,Bathroom Faucets,2500,High quality faucet&#10;Another Product,Lighting,1500,LED light`}
+              className="min-h-[200px] font-mono text-sm"
+            />
+
+            <div className="flex gap-4 mt-4">
+              <Button
+                onClick={handleBulkPreview}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Preview
+              </Button>
+              <Button
+                onClick={handleBulkSubmit}
+                disabled={bulkPreview.length === 0 || isBulkProcessing}
+                className="bg-black hover:bg-[#D4AF37] text-white"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {isBulkProcessing ? "Uploading..." : `Upload ${bulkPreview.length} Products`}
+              </Button>
+            </div>
+
+            {bulkPreview.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-semibold mb-3">
+                  Preview ({bulkPreview.length} products)
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Name</th>
+                        <th className="px-3 py-2 text-left">Category</th>
+                        <th className="px-3 py-2 text-left">Price</th>
+                        <th className="px-3 py-2 text-left">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkPreview.map((product, index) => (
+                        <tr key={index} className="border-t">
+                          <td className="px-3 py-2">{product.name}</td>
+                          <td className="px-3 py-2">{product.category}</td>
+                          <td className="px-3 py-2">Rs. {product.price.toLocaleString()}</td>
+                          <td className="px-3 py-2 truncate max-w-xs">
+                            {product.description}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
 
       <div className="max-w-3xl">
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
@@ -252,7 +404,8 @@ export default function AdminAddProduct() {
             <li>• Keep availability status updated to manage product visibility</li>
           </ul>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
