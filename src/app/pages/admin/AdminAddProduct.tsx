@@ -49,20 +49,49 @@ export default function AdminAddProduct() {
     const products: Omit<BulkProduct, "description">[] = [];
 
     for (const line of lines) {
-      const parts = line.split("\t").map(p => p.trim());
-      if (parts.length >= 3) {
+      let parts = line.split("\t").map(p => p.trim());
+      
+      if (parts.length < 2) {
+        parts = line.split(",").map(p => p.trim());
+      }
+      
+      if (parts.length < 2) {
+        parts = line.split(/\|/).map(p => p.trim());
+      }
+
+      if (parts.length >= 2) {
         const categoryMatch = safeCategories.find(
-          (c) => c.name.toLowerCase() === parts[1].toLowerCase()
+          (c) => c.name.toLowerCase() === parts[1].toLowerCase() ||
+                 c.name.toLowerCase().includes(parts[1].toLowerCase()) ||
+                 parts[1].toLowerCase().includes(c.name.toLowerCase())
         );
+        
+        const price = parts.length >= 3 ? parseFloat(parts[2].replace(/[^0-9.]/g, "")) : 0;
+        
         products.push({
           name: parts[0],
           category: categoryMatch?.name || parts[1],
-          price: parseFloat(parts[2]) || 0,
+          price: isNaN(price) ? 0 : price,
           isAvailable: true,
         });
       }
     }
     return products;
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (typeof content === "string") {
+        setBulkData(content);
+        toast.success("File loaded! Click 'Preview Products' to continue");
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleBulkPreview = async () => {
@@ -217,7 +246,14 @@ export default function AdminAddProduct() {
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Bulk Product Upload</h2>
               <div className="text-gray-600 text-sm space-y-2">
-                <p>Copy from Excel and paste below. Format (tab-separated):</p>
+                <p>Option 1: Upload Excel/CSV file</p>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.txt"
+                  onChange={handleFileUpload}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#D4AF37] file:text-black hover:file:bg-[#C5A028]"
+                />
+                <p className="mt-4">Option 2: Paste directly from Excel</p>
                 <code className="bg-gray-100 px-2 py-1 rounded block">
                   Product Name | Category | Price
                 </code>
@@ -227,10 +263,17 @@ export default function AdminAddProduct() {
               </div>
             </div>
 
+            <div className="mb-4">
+              <Label>Or paste Excel data here:</Label>
+            </div>
             <Textarea
               value={bulkData}
               onChange={(e) => setBulkData(e.target.value)}
-              placeholder={`Paste Excel data here (tab-separated)&#10;Example: Chrome Bath Faucet	Bathroom Faucets	2500&#10;LED Mirror Light	Lighting	1500`}
+              onPaste={(e) => {
+                const pastedData = e.clipboardData.getData("text");
+                setBulkData(prev => prev + pastedData);
+              }}
+              placeholder={`Paste Excel data here (tab, comma, or pipe separated)&#10;Example: Chrome Bath Faucet	Bathroom Faucets	2500&#10;LED Mirror Light	Lighting	1500`}
               className="min-h-[150px] font-mono text-sm"
             />
 
