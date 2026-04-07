@@ -1295,7 +1295,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      const numReviews = Math.floor(Math.random() * 6) + 20;
+      const numReviews = Math.floor(Math.random() * 3) + 6;
       console.log(`Adding ${numReviews} reviews for product:`, product.name);
       
       for (let i = 0; i < numReviews; i++) {
