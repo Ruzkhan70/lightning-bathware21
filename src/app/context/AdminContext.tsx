@@ -603,46 +603,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Admin session storage key
+  const ADMIN_SESSION_KEY = 'admin_session';
+
+  // Load admin session from localStorage
   useEffect(() => {
-    let isComponentMounted = true;
-    
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!isComponentMounted) return;
-      
-      if (user) {
-        const isAdmin = await checkIfUserIsAdmin(user);
-        
-        if (!isComponentMounted) return;
-        
-        if (isAdmin) {
-          setFirebaseUser(user);
-          setAdminUid(user.uid);
-          setAdminEmail(user.email || "");
+    const savedSession = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        // Session expires after 24 hours
+        if (session.expiresAt && Date.now() < session.expiresAt) {
+          setAdminUid(session.uid);
+          setAdminEmail(session.email);
           setIsAdminLoggedIn(true);
         } else {
-          setFirebaseUser(user);
-          setAdminUid(null);
-          setAdminEmail("");
-          setIsAdminLoggedIn(false);
+          // Session expired, clear it
+          localStorage.removeItem(ADMIN_SESSION_KEY);
         }
-      } else {
-        if (isComponentMounted) {
-          setFirebaseUser(null);
-          setAdminUid(null);
-          setAdminEmail("");
-          setIsAdminLoggedIn(false);
-        }
+      } catch (e) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
       }
-      if (isComponentMounted) {
-        setIsAdminDataLoaded(true);
-      }
-    });
-
-    return () => {
-      isComponentMounted = false;
-      unsubscribe();
-    };
-  }, [checkIfUserIsAdmin]);
+    }
+    setIsAdminDataLoaded(true);
+  }, []);
 
   useEffect(() => {
     checkAdminExists().then(exists => {
@@ -1579,6 +1563,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           return updated;
         });
         
+        // Store admin session in localStorage (separate from Firebase Auth)
+        const session = {
+          uid: result.user.uid,
+          email: result.user.email,
+          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+        };
+        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+        
+        // Update state
+        setAdminUid(result.user.uid);
+        setAdminEmail(result.user.email || "");
+        setIsAdminLoggedIn(true);
+        
+        // Sign out from Firebase Auth to keep customer session intact
+        await signOut(auth);
+        
         await logAdminLogin(cleanEmail, "success");
         return { success: true };
       }
@@ -1627,9 +1627,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      // Clear admin session from localStorage
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      
       setIsAdminLoggedIn(false);
-      setFirebaseUser(null);
       setAdminUid(null);
       setAdminEmail("");
       await logAdminLogout(adminEmail);
