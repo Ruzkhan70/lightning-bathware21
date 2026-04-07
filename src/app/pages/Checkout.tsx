@@ -94,6 +94,7 @@ export default function Checkout() {
 
     try {
       const orderData = {
+        userId: user?.id,
         customerName: formData.customerName,
         phone: formData.phone,
         address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,

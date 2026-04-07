@@ -6,6 +6,7 @@ import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { toast } from "sonner";
 import emailjs from "@emailjs/browser";
 import { db } from "../../firebase";
@@ -19,7 +20,7 @@ const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
 
 export default function Account() {
   const navigate = useNavigate();
-  const { user, isLoggedIn, login, register, logout, resetPassword } = useUser();
+  const { user, isLoggedIn, login, register, logout, resetPassword, updateProfile } = useUser();
   const { orders, invoices, storeProfile, getInvoiceByOrderId, isDataLoaded } = useAdmin();
   const { syncCartWithFirebase, isSyncing } = useCart();
   const safeOrders = orders || [];
@@ -27,6 +28,10 @@ export default function Account() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editPhone, setEditPhone] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   
   // Forgot password steps
   const [forgotStep, setForgotStep] = useState<"email" | "verify" | "reset">("email");
@@ -55,14 +60,14 @@ export default function Account() {
   const previousOrderStatuses = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    if (!isLoggedIn || !user?.phone) {
+    if (!isLoggedIn || !user?.id) {
       return;
     }
 
     const ordersRef = collection(db, "orders");
     const q = query(
       ordersRef,
-      where("phone", "==", user.phone),
+      where("userId", "==", user.id),
       orderBy("date", "desc")
     );
 
@@ -98,7 +103,7 @@ export default function Account() {
     });
 
     return () => unsubscribe();
-  }, [isLoggedIn, user?.phone]);
+  }, [isLoggedIn, user?.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,8 +268,31 @@ export default function Account() {
     }
   };
 
-  const userOrders = isLoggedIn && user?.phone
-    ? orders.filter((order) => order?.phone === user?.phone)
+  const handleEditProfile = () => {
+    setEditPhone(user?.phone || "");
+    setEditAddress(user?.address || "");
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSavingProfile(true);
+    try {
+      await updateProfile({
+        phone: editPhone,
+        address: editAddress,
+      });
+      setIsEditingProfile(false);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingProfile(false);
+  };
+
+  const userOrders = isLoggedIn && user?.id
+    ? orders.filter((order) => order?.userId === user?.id)
     : [];
 
   const handleViewInvoice = (orderId: string) => {
@@ -307,6 +335,14 @@ export default function Account() {
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2">
                     <Button
+                      onClick={handleEditProfile}
+                      variant="outline"
+                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                    <Button
                       onClick={handleSyncCart}
                       variant="outline"
                       disabled={isSyncing}
@@ -329,29 +365,67 @@ export default function Account() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <Mail className="w-5 h-5 text-[#D4AF37]" />
+              {isEditingProfile ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{user.email}</p>
+                    <Label className="text-sm text-gray-500">Phone</Label>
+                    <Input
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="0771234567"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-500">Address</Label>
+                    <Input
+                      value={editAddress}
+                      onChange={(e) => setEditAddress(e.target.value)}
+                      placeholder="Your address"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex gap-2 justify-end">
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={isSavingProfile}
+                      className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+                    >
+                      {isSavingProfile ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <Phone className="w-5 h-5 text-[#D4AF37]" />
-                  <div>
-                    <p className="text-sm text-gray-500">Phone</p>
-                    <p className="font-medium">{user.phone}</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <Mail className="w-5 h-5 text-[#D4AF37]" />
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <Phone className="w-5 h-5 text-[#D4AF37]" />
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium">{user.phone || "Not set"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg md:col-span-2">
+                    <MapPin className="w-5 h-5 text-[#D4AF37]" />
+                    <div>
+                      <p className="text-sm text-gray-500">Address</p>
+                      <p className="font-medium">{user.address || "Not set"}</p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg md:col-span-2">
-                  <MapPin className="w-5 h-5 text-[#D4AF37]" />
-                  <div>
-                    <p className="text-sm text-gray-500">Address</p>
-                    <p className="font-medium">{user.address}</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* My Orders Section */}

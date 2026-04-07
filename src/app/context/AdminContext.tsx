@@ -25,6 +25,7 @@ export interface Product {
 
 export interface Order {
   id: string;
+  userId?: string;
   customerName: string;
   phone: string;
   address: string;
@@ -1342,8 +1343,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         
         const reviewer = DEMO_REVIEWERS[Math.floor(Math.random() * DEMO_REVIEWERS.length)];
         
-        // Always generate 5-star positive reviews only
-        const rating = 5;
+        // Generate realistic ratings between 3 and 5
+        const rating = Math.floor(Math.random() * 3) + 3;
         
         // Fixed: Access REVIEW_COMMENTS directly as an array
         const comment = REVIEW_COMMENTS[Math.floor(Math.random() * REVIEW_COMMENTS.length)];
