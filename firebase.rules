@@ -18,16 +18,15 @@ service cloud.firestore {
       allow write: if isAuth();
     }
     
-    // Orders - public create, auth read/update
+    // Orders - public read, public create, auth update/delete
     match /orders/{orderId} {
-      allow read: if isAuth();
-      allow create: if true;
+      allow read, create: if true;
       allow update, delete: if isAuth();
     }
     
-    // Invoices - auth read/write
+    // Invoices - public read/write
     match /invoices/{invoiceId} {
-      allow read, write: if isAuth();
+      allow read, write: if true;
     }
     
     // Messages - public create, auth read/delete
