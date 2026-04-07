@@ -556,22 +556,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   
   const [isInitialized, setIsInitialized] = useState(false);
   
-  const pendingUpdates = useRef<{
-    products: boolean;
-    categories: boolean;
-    storeProfile: boolean;
-    storeAssets: boolean;
-    siteContent: boolean;
-    offers: boolean;
-  }>({
-    products: false,
-    categories: false,
-    storeProfile: false,
-    storeAssets: false,
-    siteContent: false,
-    offers: false,
-  });
-  
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
@@ -831,23 +815,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.categories && Array.isArray(data.categories)) {
-            // Only update if not a pending update OR if the update is significantly different
-            // This prevents Firebase cache from reverting local changes
-            if (!pendingUpdates.current.categories) {
-              // Compare with current state to avoid unnecessary re-renders
-              setCategories(prev => {
-                if (JSON.stringify(prev) !== JSON.stringify(data.categories)) {
-                  return data.categories;
-                }
-                return prev;
-              });
-            } else {
-              // Clear pending flag after a delay to allow Firebase to update
-              const timeoutId = setTimeout(() => {
-                pendingUpdates.current.categories = false;
-              }, 1000);
-              return () => clearTimeout(timeoutId);
-            }
+            setCategories(prev => {
+              if (JSON.stringify(prev) !== JSON.stringify(data.categories)) {
+                return data.categories;
+              }
+              return prev;
+            });
           }
         } else if (!isInitialized.current.categories) {
           setDoc(catRef, { categories: DEFAULT_CATEGORIES });
@@ -957,20 +930,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.products && Array.isArray(data.products)) {
-            // Only update if not a pending update
-            if (!pendingUpdates.current.products) {
-              setProducts(prev => {
-                if (JSON.stringify(prev) !== JSON.stringify(data.products)) {
-                  return data.products;
-                }
-                return prev;
-              });
-            } else {
-              const timeoutId = setTimeout(() => {
-                pendingUpdates.current.products = false;
-              }, 1000);
-              return () => clearTimeout(timeoutId);
-            }
+            setProducts(prev => {
+              if (JSON.stringify(prev) !== JSON.stringify(data.products)) {
+                return data.products;
+              }
+              return prev;
+            });
           }
         } else if (!isInitialized.current.products) {
           setDoc(productsRef, { products: DEFAULT_PRODUCTS });
@@ -1924,13 +1889,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const addProduct = async (product: Omit<Product, "id">) => {
     const newProduct: Product = { ...product, id: generateUniqueId() };
     const updated = [...products, newProduct];
-    pendingUpdates.current.products = true;
     setProducts(updated);
     try {
       await updateDoc(doc(db, "storeData", "products"), { products: updated });
-      setTimeout(() => {
-        pendingUpdates.current.products = false;
-      }, 1000);
       toast.success("Product added successfully!");
       await logProductAction(
         'PRODUCT_ADD',
@@ -1942,7 +1903,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error adding product to Firebase:", error);
-      pendingUpdates.current.products = false;
       await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
       await logProductAction(
         'PRODUCT_ADD',
@@ -1959,13 +1919,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const addMultipleProducts = async (newProducts: Omit<Product, "id">[]) => {
     const productsWithIds = newProducts.map(p => ({ ...p, id: generateUniqueId() }));
     const updated = [...products, ...productsWithIds];
-    pendingUpdates.current.products = true;
     setProducts(updated);
     try {
       await updateDoc(doc(db, "storeData", "products"), { products: updated });
-      setTimeout(() => {
-        pendingUpdates.current.products = false;
-      }, 1000);
       await logProductAction(
         'PRODUCT_ADD',
         adminUid || 'unknown',
@@ -1976,21 +1932,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error adding products to Firebase:", error);
-      pendingUpdates.current.products = false;
       await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
     }
   };
 
   const updateProduct = async (id: string, product: Partial<Product>) => {
     const productName = products.find(p => p.id === id)?.name;
-    pendingUpdates.current.products = true;
     const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
     setProducts(updated);
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
-      setTimeout(() => {
-        pendingUpdates.current.products = false;
-      }, 1000);
       toast.success("Product updated!");
       await logProductAction(
         'PRODUCT_EDIT',
@@ -2002,7 +1953,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error updating product in Firebase:", error);
-      pendingUpdates.current.products = false;
       await logProductAction(
         'PRODUCT_EDIT',
         adminUid || 'unknown',
@@ -2017,14 +1967,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const deleteProduct = (id: string) => {
     const productName = products.find(p => p.id === id)?.name;
-    pendingUpdates.current.products = true;
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
     try {
       updateDoc(doc(db, "storeData", "products"), { products: updated });
-      setTimeout(() => {
-        pendingUpdates.current.products = false;
-      }, 1000);
       toast.success("Product deleted!");
       logProductAction(
         'PRODUCT_DELETE',
@@ -2036,7 +1982,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error deleting product from Firebase:", error);
-      pendingUpdates.current.products = false;
       setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
       logProductAction(
         'PRODUCT_DELETE',
@@ -2051,15 +1996,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const bulkDeleteProducts = (ids: string[]) => {
-    pendingUpdates.current.products = true;
     const deletedProducts = products.filter(p => ids.includes(p.id));
     const updated = products.filter(p => !ids.includes(p.id));
     setProducts(updated);
     try {
       updateDoc(doc(db, "storeData", "products"), { products: updated });
-      setTimeout(() => {
-        pendingUpdates.current.products = false;
-      }, 1000);
       toast.success(`${ids.length} products deleted!`);
       logAdminAction(
         'PRODUCT_BULK_DELETE',
@@ -2071,7 +2012,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error bulk deleting products from Firebase:", error);
-      pendingUpdates.current.products = false;
       setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
       logAdminAction(
         'PRODUCT_BULK_DELETE',
@@ -2348,15 +2288,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const addCategory = (category: Omit<Category, "id">) => {
-    pendingUpdates.current.categories = true;
     const newCategory: Category = { ...category, id: Date.now().toString() };
     const updated = [...categories, newCategory];
     setCategories(updated);
     try {
       setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
-      setTimeout(() => {
-        pendingUpdates.current.categories = false;
-      }, 1000);
       toast.success("Category added!");
       logCategoryAction(
         'CATEGORY_ADD',
@@ -2368,7 +2304,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error saving category:", error);
-      pendingUpdates.current.categories = false;
       setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       logCategoryAction(
         'CATEGORY_ADD',
@@ -2384,14 +2319,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const updateCategory = async (id: string, category: Partial<Category>) => {
     const categoryName = categories.find(c => c.id === id)?.name;
-    pendingUpdates.current.categories = true;
     const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
     setCategories(updated);
     try {
       await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
-      setTimeout(() => {
-        pendingUpdates.current.categories = false;
-      }, 1000);
       toast.success("Category updated!");
       logCategoryAction(
         'CATEGORY_EDIT',
@@ -2403,7 +2334,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error updating category:", error);
-      pendingUpdates.current.categories = false;
       logCategoryAction(
         'CATEGORY_EDIT',
         adminUid || 'unknown',
@@ -2420,7 +2350,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const categoryToDelete = categories.find(c => c.id === id);
     if (!categoryToDelete) return;
     
-    pendingUpdates.current.categories = true;
     const updated = categories.filter(c => c.id !== id);
     setCategories(updated);
     
@@ -2434,10 +2363,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
-      setTimeout(() => {
-        pendingUpdates.current.categories = false;
-        pendingUpdates.current.products = false;
-      }, 1000);
       toast.success("Category deleted!");
       logCategoryAction(
         'CATEGORY_DELETE',
@@ -2449,8 +2374,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error deleting category:", error);
-      pendingUpdates.current.categories = false;
-      pendingUpdates.current.products = false;
       await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
       logCategoryAction(
