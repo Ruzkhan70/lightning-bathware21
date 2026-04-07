@@ -11,7 +11,7 @@ import {
   updateProfile,
   User as FirebaseUser
 } from "firebase/auth";
-import { doc, setDoc, getDoc, query, where, collection, getDocs, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, query, where, collection, getDocs, updateDoc, getDocs as firestoreGetDocs } from "firebase/firestore";
 import { toast } from "sonner";
 
 export interface User {
@@ -95,6 +95,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const checkIfUserIsAdmin = useCallback(async (fbUser: FirebaseUser): Promise<boolean> => {
+    try {
+      const adminQuery = query(collection(db, "admins"), where("email", "==", fbUser.email));
+      const adminDocs = await getDocs(adminQuery);
+      return !adminDocs.empty;
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     if (isInitialized) return;
     
@@ -102,7 +113,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(fbUser);
       
       if (fbUser) {
-        await syncUserData(fbUser);
+        const isAdmin = await checkIfUserIsAdmin(fbUser);
+        if (!isAdmin) {
+          await syncUserData(fbUser);
+        } else {
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
@@ -112,7 +128,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [isInitialized, syncUserData]);
+  }, [isInitialized, syncUserData, checkIfUserIsAdmin]);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
