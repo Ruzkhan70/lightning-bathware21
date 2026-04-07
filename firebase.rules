@@ -86,5 +86,12 @@ service cloud.firestore {
     match /activityLogs/{logId} {
       allow read, write: if isAuth();
     }
+    
+    // Admin Login Logs - auth only (create is public for failed logins without auth)
+    match /adminLogs/{logId} {
+      allow read: if isAuth();
+      allow create: if true;
+      allow update, delete: if isAuth();
+    }
   }
 }
