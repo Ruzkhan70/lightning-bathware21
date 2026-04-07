@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const TOTAL_TIMEOUT = 120; // 2 minutes in seconds
-const WARNING_THRESHOLD = 30; // Show warning when 30 seconds remaining
+const INACTIVITY_TIMEOUT = 120; // 2 minutes in seconds
+const WARNING_COUNTDOWN = 30; // 30 seconds countdown after warning
 
 interface UseAdminTimeoutReturn {
   showWarning: boolean;
@@ -14,69 +14,89 @@ export function useAdminTimeout(
   isLoggedIn: boolean,
   onLogout: () => void
 ): UseAdminTimeoutReturn {
-  const [remainingTime, setRemainingTime] = useState(TOTAL_TIMEOUT);
   const [showWarning, setShowWarning] = useState(false);
+  const [countdownTime, setCountdownTime] = useState(WARNING_COUNTDOWN);
+  
   const lastActivityRef = useRef<number>(Date.now());
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isLoggedInRef = useRef(isLoggedIn);
+  const warningShownRef = useRef(false);
 
   useEffect(() => {
     isLoggedInRef.current = isLoggedIn;
   }, [isLoggedIn]);
 
-  const clearTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+  const clearAllTimers = useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearInterval(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
     }
   }, []);
 
   const resetTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
-    setRemainingTime(TOTAL_TIMEOUT);
+    warningShownRef.current = false;
     setShowWarning(false);
-    console.log("Session timer reset - user chose to stay logged in");
-  }, []);
+    setCountdownTime(WARNING_COUNTDOWN);
+    clearAllTimers();
+    console.log("Session timer reset - activity detected");
+  }, [clearAllTimers]);
 
   const logoutNow = useCallback(() => {
-    clearTimer();
+    clearAllTimers();
     setShowWarning(false);
+    warningShownRef.current = false;
     console.log("Session expired - logging out user");
     onLogout();
-  }, [clearTimer, onLogout]);
+  }, [clearAllTimers, onLogout]);
+
+  const startWarningCountdown = useCallback(() => {
+    setShowWarning(true);
+    setCountdownTime(WARNING_COUNTDOWN);
+    
+    countdownTimerRef.current = setInterval(() => {
+      setCountdownTime((prev) => {
+        if (prev <= 1) {
+          logoutNow();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [logoutNow]);
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setRemainingTime(TOTAL_TIMEOUT);
-      setShowWarning(false);
-      clearTimer();
-      lastActivityRef.current = Date.now();
+      resetTimer();
       return;
     }
 
     lastActivityRef.current = Date.now();
+    warningShownRef.current = false;
 
-    timerRef.current = setInterval(() => {
+    // Inactivity timer - checks every second
+    inactivityTimerRef.current = setInterval(() => {
       if (!isLoggedInRef.current) return;
 
       const now = Date.now();
       const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
-      const remaining = Math.max(0, TOTAL_TIMEOUT - elapsed);
       
-      setRemainingTime(remaining);
-
-      if (remaining <= WARNING_THRESHOLD && remaining > 0) {
-        setShowWarning(true);
-      }
-
-      if (remaining <= 0) {
-        logoutNow();
+      // If 2 minutes have passed and warning not shown yet
+      if (elapsed >= INACTIVITY_TIMEOUT && !warningShownRef.current) {
+        warningShownRef.current = true;
+        startWarningCountdown();
       }
     }, 1000);
 
-    return () => clearTimer();
-  }, [isLoggedIn, clearTimer, logoutNow]);
+    return () => clearAllTimers();
+  }, [isLoggedIn, clearAllTimers, resetTimer, startWarningCountdown]);
 
+  // Activity listener - only active when not showing warning
   useEffect(() => {
     if (!isLoggedIn || showWarning) return;
 
@@ -110,7 +130,7 @@ export function useAdminTimeout(
 
   return {
     showWarning,
-    remainingTime,
+    remainingTime: countdownTime,
     resetTimer,
     logoutNow,
   };

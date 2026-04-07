@@ -342,16 +342,18 @@ export default function Account() {
                       <Mail className="w-4 h-4 mr-2" />
                       Edit Profile
                     </Button>
-                    <Button
-                      onClick={handleSyncCart}
-                      variant="outline"
-                      disabled={isSyncing}
-                      title="Merges your saved cart items with your current cart"
-                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                    >
-                      <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
-                      {isSyncing ? "Syncing..." : "Sync Cart"}
-                    </Button>
+                    <div className="flex flex-col items-start">
+                      <Button
+                        onClick={handleSyncCart}
+                        variant="outline"
+                        disabled={isSyncing}
+                        className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                      >
+                        <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
+                        {isSyncing ? "Syncing..." : "Sync Cart"}
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-2">Sync your cart from another device</p>
+                    </div>
                     <Button
                       onClick={handleLogout}
                       variant="outline"
@@ -360,8 +362,6 @@ export default function Account() {
                       <LogOut className="w-4 h-4 mr-2" />
                       Logout
                     </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 text-center">Sync Cart merges your saved items with current cart</p>
                 </div>
               </div>
 
