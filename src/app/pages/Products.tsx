@@ -24,6 +24,14 @@ export default function Products() {
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+  // Initialize category from URL params ONCE on mount
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, []); // Only run once on mount
+
   // Memoize active categories to prevent recalculation
   const activeCategories = useMemo(() => [
     "All Categories",
@@ -54,12 +62,9 @@ export default function Products() {
       );
     }
 
-    // Category filter from URL params
+    // Category filter - only if NOT from URL params
     const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
-      result = result.filter((p) => p.category === categoryParam);
-    } else if (selectedCategory !== "all" && selectedCategory !== "All Categories") {
+    if (!categoryParam && selectedCategory !== "all" && selectedCategory !== "All Categories") {
       result = result.filter((p) => p.category === selectedCategory);
     }
 

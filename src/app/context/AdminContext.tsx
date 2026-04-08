@@ -316,16 +316,6 @@ export interface DeviceSession {
   ipAddress?: string;
 }
 
-export interface ActivityLog {
-  id: string;
-  action: string;
-  userId: string;
-  userEmail: string;
-  details: string;
-  timestamp: string;
-  status: 'success' | 'failed' | 'warning';
-}
-
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 const DEFAULT_USERNAME = "admin";
