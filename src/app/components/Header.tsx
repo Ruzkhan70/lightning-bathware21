@@ -9,6 +9,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export default function Header() {
+  console.log("[Header] Rendering...");
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -231,7 +232,8 @@ export default function Header() {
     return name.charAt(0).toUpperCase();
   }, []);
 
-  return (
+  try {
+    return (
     <>
       {/* Swipe Detection Layer - Mobile Only */}
       <div 
@@ -742,5 +744,17 @@ export default function Header() {
         {/* Old Mobile Menu - Hidden, replaced by drawer */}
       </header>
     </>
-  );
+    );
+  } catch (error) {
+    console.error("[Header] Render error:", error);
+    return (
+      <header className="sticky top-0 z-50 bg-black text-white">
+        <div className="container mx-auto px-4 py-4">
+          <div className="text-center">
+            <p className="text-[#D4AF37]">Loading...</p>
+          </div>
+        </div>
+      </header>
+    );
+  }
 }
