@@ -22,6 +22,7 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -87,6 +88,9 @@ export default function Header() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
       if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
@@ -571,7 +575,7 @@ export default function Header() {
           </div>
 
           {/* Search Bar - Mobile */}
-          <div className="md:hidden mt-4 relative" ref={searchRef}>
+          <div className="md:hidden mt-4 relative" ref={mobileSearchRef}>
             <div className="relative w-full">
               <Input
                 type="text"
@@ -609,7 +613,6 @@ export default function Header() {
                     <li 
                       key={link.path} 
                       className="relative h-full"
-                      ref={categoriesRef as any}
                     >
                       <div 
                         className="relative h-full flex items-center"
@@ -643,6 +646,7 @@ export default function Header() {
 
                         {/* Categories Dropdown */}
                         <div
+                          ref={categoriesRef}
                           className={`absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 z-50 ${
                             showCategoriesDropdown 
                               ? "opacity-100 translate-y-0 pointer-events-auto mt-1" 
