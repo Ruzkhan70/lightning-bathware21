@@ -13,7 +13,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: process.env.VERCEL ? '/' : '/lightning-bathware21',
+  base: '/',
   assetsInclude: ['**/*.svg', '**/*.csv'],
   esbuild: {
     keepNames: true,
