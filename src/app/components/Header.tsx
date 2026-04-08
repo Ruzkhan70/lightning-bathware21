@@ -7,36 +7,13 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 export default function Header() {
   console.log("[Header] Rendering...");
-  
-  let cartCount = 0;
-  let wishlist: any[] = [];
-  let storeProfile = { storeName: 'Store', storeNameAccent: 'Name' };
-  let categories: any[] = [];
-  
-  try {
-    const cartCtx = useCart();
-    cartCount = cartCtx.cartCount;
-  } catch (e) {
-    console.error("[Header] useCart error:", e);
-  }
-  
-  try {
-    const wishCtx = useWishlist();
-    wishlist = wishCtx.wishlist;
-  } catch (e) {
-    console.error("[Header] useWishlist error:", e);
-  }
-  
-  try {
-    const adminCtx = useAdmin();
-    storeProfile = adminCtx.storeProfile;
-    categories = adminCtx.categories || [];
-  } catch (e) {
-    console.error("[Header] useAdmin error:", e);
-  }
-  
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const { cartCount } = useCart();
+  const { wishlist } = useWishlist();
+  const { storeProfile, categories } = useAdmin();
+  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -113,134 +90,121 @@ export default function Header() {
     { name: "Contact", path: "/contact" },
   ];
 
-  try {
-    return (
-      <>
-        {/* Swipe Detection Layer - Mobile Only */}
-        <div 
-          className="fixed inset-0 z-[60] pointer-events-none md:hidden"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        />
+  return (
+    <>
+      {/* Swipe Detection Layer - Mobile Only */}
+      <div 
+        className="fixed inset-0 z-[60] pointer-events-none md:hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      />
 
-        {/* Drawer Overlay */}
-        <div 
-          ref={overlayRef}
-          className={`fixed inset-0 bg-black/50 z-[70] transition-opacity duration-300 md:hidden ${
-            drawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          onClick={handleDrawerClose}
-        />
+      {/* Drawer Overlay */}
+      <div 
+        ref={overlayRef}
+        className={`fixed inset-0 bg-black/50 z-[70] transition-opacity duration-300 md:hidden ${
+          drawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={handleDrawerClose}
+      />
 
-        {/* Mobile Drawer */}
-        <div 
-          ref={drawerRef}
-          className={`fixed top-0 right-0 h-full w-[85%] max-w-[340px] bg-gray-50 z-[80] transform transition-shadow md:hidden ${
-            isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'
-          } ${drawerOpen || drawerTranslate > 0 ? 'shadow-2xl' : 'shadow-none'}`}
-          style={{ transform: getDrawerTransform() }}
-        >
-          <div className="bg-gray-900 px-5 pt-6 pb-5">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xl font-bold text-white">
-                {storeProfile.storeName}
-                <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+      {/* Mobile Drawer */}
+      <div 
+        ref={drawerRef}
+        className={`fixed top-0 right-0 h-full w-[85%] max-w-[340px] bg-gray-50 z-[80] transform transition-shadow md:hidden ${
+          isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'
+        } ${drawerOpen || drawerTranslate > 0 ? 'shadow-2xl' : 'shadow-none'}`}
+        style={{ transform: getDrawerTransform() }}
+      >
+        <div className="bg-gray-900 px-5 pt-6 pb-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xl font-bold text-white">
+              {storeProfile?.storeName || 'Store'}
+              <span className="text-[#D4AF37]"> {storeProfile?.storeNameAccent || ''}</span>
+            </span>
+            <button 
+              onClick={handleDrawerClose}
+              className="p-2 hover:bg-white/10 rounded-full"
+            >
+              <span className="w-5 h-5 text-white/80">X</span>
+            </button>
+          </div>
+        </div>
+        <nav className="flex-1 overflow-y-auto pt-2 pb-4 px-4">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              onClick={() => setDrawerOpen(false)}
+              className={`block py-3 px-3 rounded-lg transition-colors ${
+                isActive(link.path) ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'text-gray-700'
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      <header className="sticky top-0 z-50 bg-black text-white shadow-lg">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <Link to="/" className="flex items-center gap-3">
+              <span className="text-2xl font-bold">
+                <span className="text-white">{storeProfile?.storeName || 'Store'}</span>
+                <span className="text-[#D4AF37]"> {storeProfile?.storeNameAccent || ''}</span>
               </span>
-              <button 
-                onClick={handleDrawerClose}
-                className="p-2 hover:bg-white/10 rounded-full"
+            </Link>
+
+            <div className="flex items-center gap-4">
+              <Link to="/wishlist" className="hidden md:block relative">
+                <Heart className="w-6 h-6 hover:text-[#D4AF37]" />
+                {wishlist && wishlist.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+
+              <Link to="/cart" className="relative">
+                <ShoppingCart className="w-6 h-6 hover:text-[#D4AF37]" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="md:hidden hover:text-[#D4AF37]"
               >
-                <span className="w-5 h-5 text-white/80">X</span>
+                <Menu className="w-6 h-6" />
               </button>
             </div>
           </div>
-          <nav className="flex-1 overflow-y-auto pt-2 pb-4 px-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setDrawerOpen(false)}
-                className={`block py-3 px-3 rounded-lg transition-colors ${
-                  isActive(link.path) ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'text-gray-700'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
         </div>
 
-        <header className="sticky top-0 z-50 bg-black text-white shadow-lg">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <Link to="/" className="flex items-center gap-3">
-                <span className="text-2xl font-bold">
-                  <span className="text-white">{storeProfile.storeName}</span>
-                  <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
-                </span>
-              </Link>
-
-              <div className="flex items-center gap-4">
-                <Link to="/wishlist" className="hidden md:block relative">
-                  <Heart className="w-6 h-6 hover:text-[#D4AF37]" />
-                  {wishlist.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                      {wishlist.length}
-                    </span>
-                  )}
-                </Link>
-
-                <Link to="/cart" className="relative">
-                  <ShoppingCart className="w-6 h-6 hover:text-[#D4AF37]" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-
-                <button
-                  onClick={() => setDrawerOpen(true)}
-                  className="md:hidden hover:text-[#D4AF37]"
-                >
-                  <Menu className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
+        <nav className="border-t border-gray-800 hidden md:block">
+          <div className="container mx-auto px-4">
+            <ul className="flex items-center justify-center gap-8 py-3">
+              {navLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={`transition-colors font-medium ${
+                      isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <nav className="border-t border-gray-800 hidden md:block">
-            <div className="container mx-auto px-4">
-              <ul className="flex items-center justify-center gap-8 py-3">
-                {navLinks.map((link) => (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className={`transition-colors font-medium ${
-                        isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
-                      }`}
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </nav>
-        </header>
-      </>
-    );
-  } catch (error) {
-    console.error("[Header] Unexpected error:", error);
-    return (
-      <header className="sticky top-0 z-50 bg-black text-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="text-center">
-            <p className="text-white">Loading...</p>
-          </div>
-        </div>
+        </nav>
       </header>
-    );
-  }
+    </>
+  );
 }
