@@ -5,11 +5,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: [],
-      },
-    }),
+    react(),
     tailwindcss(),
   ],
   resolve: {
@@ -19,9 +15,6 @@ export default defineConfig({
   },
   base: process.env.VERCEL ? '/' : '/lightning-bathware21',
   assetsInclude: ['**/*.svg', '**/*.csv'],
-  optimizeDeps: {
-    include: ['firebase', 'firebase/firestore', 'firebase/app'],
-  },
   esbuild: {
     keepNames: true,
   },
