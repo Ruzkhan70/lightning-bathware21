@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { db, auth } from "../../firebase";
-import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc, where } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, getDocs, setDoc, where } from "firebase/firestore";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -582,7 +582,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   
-  const [isInitialized, setIsInitialized] = useState(false);
+  const isInitialized = useRef({
+    storeProfile: false,
+    storeAssets: false,
+    siteContent: false,
+    categories: false,
+    products: false,
+  });
   
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
@@ -800,37 +806,40 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setCurrentDeviceId(deviceId);
 
     try {
+      // Query without status filter to avoid needing composite index
       const q = query(
         collection(db, DEVICE_SESSIONS_COLLECTION),
         where('email', '==', adminEmail),
-        where('status', '==', 'active'),
         orderBy('loginTime', 'desc')
       );
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        console.log(`[Session] Listener triggered with ${snapshot.docs.length} active sessions`);
+        // Filter to only show active sessions in UI
+        const activeSessions: DeviceSession[] = [];
         
-        const sessions: DeviceSession[] = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            deviceId: data.deviceId,
-            email: data.email,
-            device: data.device,
-            browser: data.browser,
-            os: data.os,
-            isCurrentDevice: data.deviceId === deviceId,
-            status: data.status,
-            loginTime: data.loginTime,
-            lastActive: data.lastActive,
-            ipAddress: data.ipAddress,
-          } as DeviceSession;
+        snapshot.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.status === 'active') {
+            activeSessions.push({
+              id: docSnap.id,
+              deviceId: data.deviceId,
+              email: data.email,
+              device: data.device,
+              browser: data.browser,
+              os: data.os,
+              isCurrentDevice: data.deviceId === deviceId,
+              status: data.status,
+              loginTime: data.loginTime,
+              lastActive: data.lastActive,
+              ipAddress: data.ipAddress,
+            } as DeviceSession);
+          }
         });
         
         // Always include current device, even if not in Firestore yet
-        if (!sessions.some(s => s.deviceId === deviceId)) {
+        if (!activeSessions.some(s => s.deviceId === deviceId)) {
           const { device, browser, os } = getDeviceInfo();
-          sessions.unshift({
+          activeSessions.unshift({
             id: 'current-local',
             deviceId: deviceId,
             email: adminEmail,
@@ -844,8 +853,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           });
         }
         
-        setDeviceSessions(sessions);
-        console.log(`[Session] Updated sessions state with ${sessions.length} devices`);
+        setDeviceSessions(activeSessions);
       }, (error) => {
         console.error("Error loading device sessions:", error);
       });

@@ -72,21 +72,22 @@ export default function Account() {
 
     setIsOrdersLoading(true);
     const ordersRef = collection(db, "orders");
-    const q = query(
-      ordersRef,
-      where("userId", "==", user.id),
-      orderBy("date", "desc")
-    );
+    
+    // Query with orderBy only first, then filter by userId in memory
+    // This avoids needing a composite index
+    const q = query(ordersRef, orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const orders: Order[] = [];
-      snapshot.docChanges().forEach((change) => {
-        const orderData = change.doc.data() as Order;
-        const order = { ...orderData, id: orderData.id || change.doc.id };
-        
-        if (change.type === "modified") {
-          const previousStatus = previousOrderStatuses.current[order.id];
+      // Filter orders by userId in memory
+      const userOrdersList: Order[] = [];
+      
+      snapshot.docs.forEach(docSnap => {
+        const data = docSnap.data() as Order;
+        if (data.userId === user.id) {
+          const order = { ...data, id: data.id || docSnap.id };
           
+          // Check for status changes
+          const previousStatus = previousOrderStatuses.current[order.id];
           if (previousStatus && previousStatus !== order.status) {
             let message = "";
             if (order.status === "Processing") {
@@ -101,24 +102,11 @@ export default function Account() {
           }
           
           previousOrderStatuses.current[order.id] = order.status;
+          userOrdersList.push(order);
         }
-        
-        if (change.type === "added") {
-          previousOrderStatuses.current[order.id] = order.status;
-        }
-        
-        if (change.type !== "removed") {
-          orders.push(order);
-        }
-      });
-
-      // Update all orders from snapshot (not just changes)
-      const allOrders: Order[] = snapshot.docs.map(doc => {
-        const data = doc.data() as Order;
-        return { ...data, id: data.id || doc.id };
       });
       
-      setUserOrders(allOrders);
+      setUserOrders(userOrdersList);
       setIsOrdersLoading(false);
     }, (error) => {
       console.error("Error fetching user orders:", error);
