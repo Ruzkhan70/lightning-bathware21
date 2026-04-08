@@ -5,7 +5,11 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: [],
+      },
+    }),
     tailwindcss(),
   ],
   resolve: {
@@ -17,8 +21,11 @@ export default defineConfig({
   assetsInclude: ['**/*.svg', '**/*.csv'],
   optimizeDeps: {
     include: ['firebase', 'firebase/firestore', 'firebase/app'],
-    esbuildOptions: {
-      keepNames: true,
-    },
+  },
+  esbuild: {
+    keepNames: true,
+  },
+  build: {
+    minify: 'esbuild',
   },
 })

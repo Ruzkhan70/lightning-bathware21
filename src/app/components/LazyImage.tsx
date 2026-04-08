@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, memo, useCallback } from "react";
 import { cn } from "../../lib/utils";
 
 interface LazyImageProps {
@@ -9,7 +9,7 @@ interface LazyImageProps {
   aspectRatio?: "square" | "video" | "portrait" | "wide";
 }
 
-function LazyImageComponent({
+const LazyImageComponent = memo(function LazyImageComponent({
   src,
   alt,
   className,
@@ -41,13 +41,13 @@ function LazyImageComponent({
     return () => observer.disconnect();
   }, []);
 
-  const handleLoad = () => {
+  const handleLoad = useCallback(() => {
     setIsLoaded(true);
-  };
+  }, []);
 
-  const handleError = () => {
+  const handleError = useCallback(() => {
     setError(true);
-  };
+  }, []);
 
   return (
     <div
@@ -81,8 +81,6 @@ function LazyImageComponent({
       )}
     </div>
   );
-}
+});
 
-export const LazyImage = memo(LazyImageComponent);
-
-export default LazyImage;
+export default LazyImageComponent;

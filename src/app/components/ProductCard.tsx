@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from "react";
+import { useState, memo, useCallback, useMemo } from "react";
 import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
@@ -13,19 +13,17 @@ interface ProductCardProps {
   product: Product;
 }
 
-function ProductCardComponent({ product }: ProductCardProps) {
+const ProductCardComponent = memo(function ProductCardComponent({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { getProductDiscount } = useAdmin();
   const [showModal, setShowModal] = useState(false);
   
-  // Memoize discount calculation
   const discount = getProductDiscount(product.id);
   const displayPrice = discount.hasDiscount
     ? discount.discountedPrice
     : product.price;
   
-  // Memoize wishlist check
   const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = useCallback(() => {
@@ -47,10 +45,13 @@ function ProductCardComponent({ product }: ProductCardProps) {
     setShowModal(true);
   }, []);
 
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+  }, []);
+
   return (
     <>
       <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-        {/* Image */}
         <div 
           className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer"
           onClick={handleOpenModal}
@@ -61,7 +62,6 @@ function ProductCardComponent({ product }: ProductCardProps) {
             className="w-full h-full group-hover:scale-110 transition-transform duration-500"
           />
 
-          {/* Overlay Buttons */}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
             <Button
               onClick={handleOpenModal}
@@ -73,7 +73,6 @@ function ProductCardComponent({ product }: ProductCardProps) {
             </Button>
           </div>
 
-          {/* Wishlist Icon */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -90,14 +89,12 @@ function ProductCardComponent({ product }: ProductCardProps) {
             />
           </button>
 
-          {/* Discount Badge */}
           {discount.hasDiscount && discount.discountPercentage && (
             <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold z-10">
               -{discount.discountPercentage}% OFF
             </div>
           )}
 
-          {/* Availability Badge */}
           {!product.isAvailable && (
             <div className="absolute top-3 left-3 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold">
               Not Available
@@ -105,19 +102,15 @@ function ProductCardComponent({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Content */}
         <div className="p-4">
-          {/* Category */}
           <div className="text-xs text-[#D4AF37] font-semibold mb-1">
             {product.category}
           </div>
 
-          {/* Product Name */}
           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 h-12">
             {product.name}
           </h3>
 
-          {/* Price */}
           <div className="flex items-baseline gap-2 mb-3">
             {discount.hasDiscount ? (
               <>
@@ -135,7 +128,6 @@ function ProductCardComponent({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Offer Tag */}
           {discount.hasDiscount && discount.offerTitle && (
             <div className="text-xs text-red-600 font-semibold mb-3 flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
@@ -143,7 +135,6 @@ function ProductCardComponent({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Add to Cart Button */}
           <Button
             onClick={handleAddToCart}
             disabled={!product.isAvailable}
@@ -155,19 +146,17 @@ function ProductCardComponent({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Product Modal */}
       <AnimatePresence>
         {showModal && (
           <ProductModal
             key="product-modal"
             product={product}
-            onClose={() => setShowModal(false)}
+            onClose={handleCloseModal}
           />
         )}
       </AnimatePresence>
     </>
   );
-}
+});
 
-// Memoize to prevent unnecessary re-renders when parent state changes
-export default memo(ProductCardComponent);
+export default ProductCardComponent;
