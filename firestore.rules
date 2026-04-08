@@ -10,79 +10,74 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
     
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
-             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
-    }
-    
     // System collection - for admin setup tracking
     match /system/{document} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuth();
     }
     
-    // Admins collection - store admin users
+    // Admins collection - check for admin role
     match /admins/{adminId} {
       allow read: if isAuth();
       allow create: if isAuth() && request.auth.uid == adminId;
-      allow update, delete: if false;
+      allow update, delete: if isAuth() && request.auth.uid == adminId;
     }
     
     // Products in storeData - public read, authenticated write
     match /storeData/{document=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuth();
     }
     
-    // Admin credentials - admin only
+    // Admin credentials - authenticated users
     match /adminCredentials/{document=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
-    // Admin login logs - read by admins, anyone can create (for logging)
+    // Admin login logs - anyone can create (for logging)
     match /adminLogs/{logId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow create: if true;
-      allow update, delete: if false;
+      allow update, delete: if isAuth();
     }
     
-    // Orders - public create (checkout), admin read/update
+    // Orders - public create (checkout), authenticated read/update
     match /orders/{orderId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow create: if true;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAuth();
     }
     
-    // Invoices - admin only
+    // Invoices - authenticated only
     match /invoices/{invoiceId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
-    // Messages - public create (contact form), admin read/delete
+    // Messages - public create (contact form), authenticated read/delete
     match /messages/{messageId} {
-      allow read, delete: if isAdmin();
+      allow read, delete: if isAuth();
       allow create: if true;
     }
     
-    // Offers - public read, admin write
+    // Offers - public read, authenticated write
     match /offers/{offerId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuth();
     }
     
-    // Reviews - public read/create, admin update/delete
+    // Reviews - public read/create, authenticated update/delete
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAuth();
     }
     
-    // Users - public read/create (registration), admin or owner update own data
+    // Users - public read/create, owner or authenticated update own data
     match /users/{userId} {
       allow read: if true;
       allow create: if true;
-      allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
-      allow delete: if isAdmin() || (isAuth() && request.auth.uid == userId);
+      allow update: if isAuth() && (request.auth.uid == userId || isAuth());
+      allow delete: if isAuth() && request.auth.uid == userId;
     }
     
     // Wishlist - users can only access their own
@@ -95,9 +90,14 @@ service cloud.firestore {
       allow read, write: if isAuth() && request.auth.uid == userId;
     }
     
-    // Activity Logs - admin only
+    // Activity Logs - authenticated only
     match /activityLogs/{logId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuth();
+    }
+    
+    // Admin Device Sessions - authenticated only
+    match /adminDeviceSessions/{sessionId} {
+      allow read, write: if isAuth();
     }
   }
 }
