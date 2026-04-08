@@ -58,12 +58,19 @@ export default function Account() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const previousOrderStatuses = useRef<Record<string, string>>({});
+  
+  // Local state for user orders with real-time sync
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
 
+  // Real-time orders listener - sets up immediately after login
   useEffect(() => {
     if (!isLoggedIn || !user?.id) {
+      setUserOrders([]);
       return;
     }
 
+    setIsOrdersLoading(true);
     const ordersRef = collection(db, "orders");
     const q = query(
       ordersRef,
@@ -72,34 +79,50 @@ export default function Account() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      const orders: Order[] = [];
       snapshot.docChanges().forEach((change) => {
+        const orderData = change.doc.data() as Order;
+        const order = { ...orderData, id: orderData.id || change.doc.id };
+        
         if (change.type === "modified") {
-          const updatedOrder = change.doc.data() as Order;
-          const previousStatus = previousOrderStatuses.current[updatedOrder.id];
+          const previousStatus = previousOrderStatuses.current[order.id];
           
-            if (previousStatus && previousStatus !== updatedOrder.status) {
+          if (previousStatus && previousStatus !== order.status) {
             let message = "";
-            if (updatedOrder.status === "Processing") {
-              message = `Your order #${updatedOrder.id} is now being processed!`;
-            } else if (updatedOrder.status === "Delivered") {
-              message = `Your order #${updatedOrder.id} has been delivered!`;
+            if (order.status === "Processing") {
+              message = `Your order #${order.id} is now being processed!`;
+            } else if (order.status === "Delivered") {
+              message = `Your order #${order.id} has been delivered!`;
             }
             
             if (message) {
-              toast.success(message, {
-                duration: 8000,
-              });
+              toast.success(message, { duration: 8000 });
             }
           }
           
-          previousOrderStatuses.current[updatedOrder.id] = updatedOrder.status;
+          previousOrderStatuses.current[order.id] = order.status;
         }
         
         if (change.type === "added") {
-          const newOrder = change.doc.data() as Order;
-          previousOrderStatuses.current[newOrder.id] = newOrder.status;
+          previousOrderStatuses.current[order.id] = order.status;
+        }
+        
+        if (change.type !== "removed") {
+          orders.push(order);
         }
       });
+
+      // Update all orders from snapshot (not just changes)
+      const allOrders: Order[] = snapshot.docs.map(doc => {
+        const data = doc.data() as Order;
+        return { ...data, id: data.id || doc.id };
+      });
+      
+      setUserOrders(allOrders);
+      setIsOrdersLoading(false);
+    }, (error) => {
+      console.error("Error fetching user orders:", error);
+      setIsOrdersLoading(false);
     });
 
     return () => unsubscribe();
@@ -291,10 +314,6 @@ export default function Account() {
     setIsEditingProfile(false);
   };
 
-  const userOrders = isLoggedIn && user?.id
-    ? orders.filter((order) => order?.userId === user?.id)
-    : [];
-
   const handleViewInvoice = (orderId: string) => {
     const invoice = getInvoiceByOrderId(orderId);
     if (invoice) {
@@ -318,50 +337,51 @@ export default function Account() {
     
     return (
       <div className="bg-gray-50 min-h-screen">
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-6 md:py-12">
           <div className="max-w-4xl mx-auto">
             {/* User Info Card */}
-            <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-[#D4AF37] rounded-full">
-                    <User className="w-8 h-8 text-black" />
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 md:p-8 mb-6 md:mb-8">
+              {/* Header Row */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-[#D4AF37] rounded-full flex-shrink-0">
+                    <User className="w-6 h-6 sm:w-8 sm:h-8 text-black" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold mb-1">{user.name}</h1>
-                    <p className="text-gray-600">Customer Account</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-1">{user.name}</h1>
+                    <p className="text-gray-600 text-sm sm:text-base">Customer Account</p>
                   </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleEditProfile}
-                      variant="outline"
-                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                    <Button
-                      onClick={handleSyncCart}
-                      variant="outline"
-                      disabled={isSyncing}
-                      title="Merges your saved cart items with your current cart"
-                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                    >
-                      <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
-                      {isSyncing ? "Syncing..." : "Sync Cart"}
-                    </Button>
-                    <Button
-                      onClick={handleLogout}
-                      variant="outline"
-                      className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
-                  </div>
-                </div>
+              </div>
+
+              {/* Action Buttons - Stacked on Mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-6">
+                <Button
+                  onClick={handleEditProfile}
+                  variant="outline"
+                  className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white text-sm sm:text-base"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+                <Button
+                  onClick={handleSyncCart}
+                  variant="outline"
+                  disabled={isSyncing}
+                  title="Merges your saved cart items with your current cart"
+                  className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white text-sm sm:text-base"
+                >
+                  <RefreshCw className={cn("w-4 h-4 mr-2", isSyncing && "animate-spin")} />
+                  {isSyncing ? "Syncing..." : "Sync Cart"}
+                </Button>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-sm sm:text-base"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
               </div>
 
               {isEditingProfile ? (
@@ -401,26 +421,26 @@ export default function Account() {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <Mail className="w-5 h-5 text-[#D4AF37]" />
-                    <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{user.email}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <Mail className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Email</p>
+                      <p className="font-medium text-sm sm:text-base break-all">{user.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <Phone className="w-5 h-5 text-[#D4AF37]" />
-                    <div>
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <p className="font-medium">{user.phone || "Not set"}</p>
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Phone</p>
+                      <p className="font-medium text-sm sm:text-base">{user.phone || "Not set"}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg md:col-span-2">
-                    <MapPin className="w-5 h-5 text-[#D4AF37]" />
-                    <div>
-                      <p className="text-sm text-gray-500">Address</p>
-                      <p className="font-medium">{user.address || "Not set"}</p>
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:col-span-2">
+                    <MapPin className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Address</p>
+                      <p className="font-medium text-sm sm:text-base">{user.address || "Not set"}</p>
                     </div>
                   </div>
                 </div>
@@ -428,20 +448,25 @@ export default function Account() {
             </div>
 
             {/* My Orders Section */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-              <div className="bg-[#D4AF37] text-black px-6 py-4 flex items-center gap-3">
-                <Package className="w-6 h-6" />
-                <h2 className="text-xl font-bold">My Orders</h2>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6 md:mb-8">
+              <div className="bg-[#D4AF37] text-black px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
+                <Package className="w-5 h-5 sm:w-6 sm:h-6" />
+                <h2 className="text-lg sm:text-xl font-bold">My Orders</h2>
                 {userOrders.length > 0 && (
-                  <span className="ml-auto px-3 py-1 rounded-full text-sm bg-black text-white">
+                  <span className="ml-auto px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm bg-black text-white">
                     {userOrders.length}
                   </span>
                 )}
               </div>
-              <div className="p-8">
-                {userOrders.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+              <div className="p-4 sm:p-6 md:p-8">
+                {isOrdersLoading ? (
+                  <div className="text-center py-8 sm:py-12">
+                    <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 animate-spin mx-auto text-[#D4AF37]" />
+                    <p className="mt-3 text-gray-600 text-sm sm:text-base">Loading your orders...</p>
+                  </div>
+                ) : userOrders.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12">
+                    <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-300 mb-4" />
                     <p className="text-gray-600">No orders yet</p>
                     <Button
                       onClick={() => navigate("/products")}
@@ -451,17 +476,17 @@ export default function Account() {
                     </Button>
                   </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {userOrders.map((order) => (
                         <div
                           key={order.id}
                           onClick={() => setSelectedOrder(order)}
-                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer"
                         >
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between mb-2 sm:mb-3">
                             <div>
-                              <p className="font-bold text-lg">Order #{order.id}</p>
-                              <p className="text-sm text-gray-500">
+                              <p className="font-bold text-base sm:text-lg">Order #{order.id}</p>
+                              <p className="text-xs sm:text-sm text-gray-500">
                                 {new Date(order.date).toLocaleDateString("en-GB", {
                                   day: "2-digit",
                                   month: "short",
@@ -470,7 +495,7 @@ export default function Account() {
                               </p>
                             </div>
                             <span
-                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${
                                 order.status === "Delivered"
                                   ? "bg-green-100 text-green-700"
                                   : order.status === "Processing"
@@ -481,12 +506,12 @@ export default function Account() {
                               {order.status}
                             </span>
                           </div>
-                          <div className="border-t border-gray-200 pt-3">
-                            <p className="text-sm text-gray-600 mb-2">
+                          <div className="border-t border-gray-200 pt-2 sm:pt-3">
+                            <p className="text-xs sm:text-sm text-gray-600 mb-2">
                               {order.products.length} item{order.products.length > 1 ? "s" : ""}
                             </p>
                             <div className="flex items-center justify-between">
-                              <p className="font-bold text-xl text-[#D4AF37]">
+                              <p className="font-bold text-lg sm:text-xl text-[#D4AF37]">
                                 Rs. {order.total.toLocaleString()}
                               </p>
                               <p className="text-sm text-[#D4AF37] font-medium hover:underline">
@@ -507,10 +532,10 @@ export default function Account() {
         {selectedOrder && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-4 sm:p-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">Order Details</h2>
-                  <p className="text-sm text-gray-500">
+                  <h2 className="text-xl sm:text-2xl font-bold">Order Details</h2>
+                  <p className="text-xs sm:text-sm text-gray-500">
                     Order #{selectedOrder.id} • {new Date(selectedOrder.date).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "long",
@@ -522,16 +547,16 @@ export default function Account() {
                   onClick={() => setSelectedOrder(null)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div className="flex items-center justify-between">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <h3 className="font-semibold mb-2">Order Status</h3>
                     <span
-                      className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
+                      className={`inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium ${
                         selectedOrder.status === "Delivered"
                           ? "bg-green-100 text-green-700"
                           : selectedOrder.status === "Processing"
@@ -544,14 +569,14 @@ export default function Account() {
                   </div>
                   <Button
                     onClick={() => handleViewInvoice(selectedOrder.id)}
-                    className="bg-[#D4AF37] hover:bg-[#b8962f] text-white"
+                    className="bg-[#D4AF37] hover:bg-[#b8962f] text-white w-full sm:w-auto"
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     View Invoice
                   </Button>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Truck className="w-5 h-5 text-[#D4AF37]" />
                     <h3 className="font-semibold">Delivery Information</h3>
@@ -563,7 +588,7 @@ export default function Account() {
                     <p>
                       <span className="font-medium">Delivery Cost:</span> Rs. {selectedOrder.deliveryCost.toLocaleString()}
                     </p>
-                    <p>
+                    <p className="break-words">
                       <span className="font-medium">Address:</span> {selectedOrder.address}
                     </p>
                   </div>
@@ -578,18 +603,18 @@ export default function Account() {
                     {(selectedOrder.products || []).map((product: any, index: number) => (
                       <div
                         key={product.id || index}
-                        className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <img
                           src={product.image || "/placeholder.png"}
                           alt={product.name || "Product"}
-                          className="w-16 h-16 object-cover rounded-lg"
+                          className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <p className="font-medium">{product.name || "Unknown Product"}</p>
-                          <p className="text-sm text-gray-500">Qty: {product.quantity || 1}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{product.name || "Unknown Product"}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Qty: {product.quantity || 1}</p>
                         </div>
-                        <p className="font-semibold text-[#D4AF37]">
+                        <p className="font-semibold text-[#D4AF37] text-sm sm:text-base whitespace-nowrap">
                           Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}
                         </p>
                       </div>
@@ -597,7 +622,7 @@ export default function Account() {
                   </div>
                 </div>
 
-                <div className="bg-[#D4AF37]/10 rounded-lg p-4 space-y-2">
+                <div className="bg-[#D4AF37]/10 rounded-lg p-3 sm:p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
                     <span>Rs. {((selectedOrder.total || 0) - (selectedOrder.deliveryCost || 0)).toLocaleString()}</span>
@@ -606,7 +631,7 @@ export default function Account() {
                     <span>Delivery</span>
                     <span>Rs. {(selectedOrder.deliveryCost || 0).toLocaleString()}</span>
                   </div>
-                  <div className="border-t border-[#D4AF37]/30 pt-2 flex justify-between font-bold text-lg">
+                  <div className="border-t border-[#D4AF37]/30 pt-2 flex justify-between font-bold text-base sm:text-lg">
                     <span>Total</span>
                     <span className="text-[#D4AF37]">Rs. {(selectedOrder.total || 0).toLocaleString()}</span>
                   </div>
@@ -622,16 +647,16 @@ export default function Account() {
   // Login/Register Form
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <div className="inline-block p-4 bg-[#D4AF37] rounded-full mb-4">
-              <User className="w-8 h-8 text-black" />
+      <div className="container mx-auto px-4 py-6 sm:py-12">
+        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-5 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-block p-3 sm:p-4 bg-[#D4AF37] rounded-full mb-3 sm:mb-4">
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-black" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
               {isLoginMode ? "Welcome Back" : "Create Account"}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm sm:text-base">
               {isLoginMode
                 ? "Login to track your orders"
                 : "Register to start shopping"}
@@ -639,10 +664,10 @@ export default function Account() {
           </div>
 
           {/* Toggle Buttons */}
-          <div className="flex gap-2 mb-8 p-1 bg-gray-100 rounded-lg">
+          <div className="flex gap-2 mb-6 sm:mb-8 p-1 bg-gray-100 rounded-lg">
             <button
               onClick={() => setIsLoginMode(true)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              className={`flex-1 py-2 sm:py-2.5 px-4 rounded-md font-medium transition-colors text-sm sm:text-base ${
                 isLoginMode
                   ? "bg-black text-white"
                   : "text-gray-600 hover:text-black"
@@ -652,7 +677,7 @@ export default function Account() {
             </button>
             <button
               onClick={() => setIsLoginMode(false)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              className={`flex-1 py-2 sm:py-2.5 px-4 rounded-md font-medium transition-colors text-sm sm:text-base ${
                 !isLoginMode
                   ? "bg-black text-white"
                   : "text-gray-600 hover:text-black"
@@ -672,7 +697,7 @@ export default function Account() {
                   onChange={(e) => setLoginEmail(e.target.value)}
                   placeholder="your@email.com"
                   required
-                  className="w-full"
+                  className="w-full h-11 sm:h-12"
                 />
               </div>
               <div>
@@ -686,12 +711,12 @@ export default function Account() {
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pr-12"
+                    className="w-full pr-12 h-11 sm:h-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 p-1 touch-manipulation"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -700,13 +725,13 @@ export default function Account() {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-sm text-[#D4AF37] hover:underline"
+                className="text-sm text-[#D4AF37] hover:underline touch-manipulation"
               >
                 Forgot Password?
               </button>
               <Button
                 type="submit"
-                className="w-full bg-black hover:bg-[#D4AF37] text-white"
+                className="w-full bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
                 size="lg"
               >
                 Login
@@ -724,7 +749,7 @@ export default function Account() {
                   onChange={(e) => setRegisterName(e.target.value)}
                   placeholder="John Doe"
                   required
-                  className="w-full"
+                  className="w-full h-11 sm:h-12"
                 />
               </div>
               <div>
@@ -735,7 +760,7 @@ export default function Account() {
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   placeholder="your@email.com"
                   required
-                  className="w-full"
+                  className="w-full h-11 sm:h-12"
                 />
               </div>
               <div>
@@ -746,7 +771,7 @@ export default function Account() {
                   onChange={(e) => setRegisterPhone(e.target.value)}
                   placeholder="0771234567"
                   required
-                  className="w-full"
+                  className="w-full h-11 sm:h-12"
                 />
               </div>
               <div>
@@ -759,7 +784,7 @@ export default function Account() {
                   onChange={(e) => setRegisterAddress(e.target.value)}
                   placeholder="No. 456, Galle Road, Colombo"
                   required
-                  className="w-full"
+                  className="w-full h-11 sm:h-12"
                 />
               </div>
               <div>
@@ -774,12 +799,12 @@ export default function Account() {
                     placeholder="••••••••"
                     required
                     minLength={6}
-                    className="w-full pr-10"
+                    className="w-full pr-10 h-11 sm:h-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 touch-manipulation"
                   >
                     {showRegisterPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -797,12 +822,12 @@ export default function Account() {
                     placeholder="••••••••"
                     required
                     minLength={6}
-                    className="w-full pr-10"
+                    className="w-full pr-10 h-11 sm:h-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 touch-manipulation"
                   >
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -810,7 +835,7 @@ export default function Account() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-black hover:bg-[#D4AF37] text-white"
+                className="w-full bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
                 size="lg"
               >
                 Create Account
@@ -822,20 +847,20 @@ export default function Account() {
         {/* Forgot Password Modal */}
         {showForgotPassword && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+            <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 w-full max-w-md">
               {/* Step 1: Enter Email */}
               {forgotStep === "email" && (
                 <>
                   <div className="flex items-center mb-4">
                     <button
                       onClick={closeForgotPassword}
-                      className="mr-2 p-2 hover:bg-gray-100 rounded-full"
+                      className="mr-2 p-2 hover:bg-gray-100 rounded-full touch-manipulation"
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-2xl font-bold">Forgot Password</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold">Forgot Password</h2>
                   </div>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 mb-6 text-sm sm:text-base">
                     Enter your email address to receive a verification code.
                   </p>
                   <div className="space-y-4">
@@ -847,13 +872,13 @@ export default function Account() {
                         onChange={(e) => setForgotEmail(e.target.value)}
                         placeholder="your@email.com"
                         required
-                        className="w-full"
+                        className="w-full h-11 sm:h-12"
                       />
                     </div>
                     <Button
                       onClick={handleSendCode}
                       disabled={isSendingCode || !forgotEmail}
-                      className="w-full bg-black hover:bg-[#D4AF37] text-white"
+                      className="w-full bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
                     >
                       {isSendingCode ? (
                         <>
@@ -874,13 +899,13 @@ export default function Account() {
                   <div className="flex items-center mb-4">
                     <button
                       onClick={() => setForgotStep("email")}
-                      className="mr-2 p-2 hover:bg-gray-100 rounded-full"
+                      className="mr-2 p-2 hover:bg-gray-100 rounded-full touch-manipulation"
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-2xl font-bold">Verify Code</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold">Verify Code</h2>
                   </div>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 mb-6 text-sm sm:text-base break-all">
                     Enter the 6-digit code sent to {forgotEmail}
                   </p>
                   <div className="space-y-4">
@@ -893,13 +918,13 @@ export default function Account() {
                         placeholder="Enter 6-digit code"
                         required
                         maxLength={6}
-                        className="w-full text-center text-2xl tracking-widest"
+                        className="w-full text-center text-xl sm:text-2xl tracking-widest h-12"
                       />
                     </div>
                     <Button
                       onClick={handleVerifyCode}
                       disabled={verificationCode.length !== 6}
-                      className="w-full bg-black hover:bg-[#D4AF37] text-white"
+                      className="w-full bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
                     >
                       Verify Code
                     </Button>
@@ -907,7 +932,7 @@ export default function Account() {
                       Didn't receive code?{" "}
                       <button
                         onClick={handleSendCode}
-                        className="text-[#D4AF37] hover:underline"
+                        className="text-[#D4AF37] hover:underline touch-manipulation"
                       >
                         Resend
                       </button>
@@ -922,13 +947,13 @@ export default function Account() {
                   <div className="flex items-center mb-4">
                     <button
                       onClick={() => setForgotStep("verify")}
-                      className="mr-2 p-2 hover:bg-gray-100 rounded-full"
+                      className="mr-2 p-2 hover:bg-gray-100 rounded-full touch-manipulation"
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-2xl font-bold">Reset Password</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold">Reset Password</h2>
                   </div>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 mb-6 text-sm sm:text-base break-all">
                     Set your new password for {forgotEmail}
                   </p>
                   <form onSubmit={handleResetPassword} className="space-y-4">
@@ -942,12 +967,12 @@ export default function Account() {
                           placeholder="••••••••"
                           required
                           minLength={6}
-                          className="w-full pr-10"
+                          className="w-full pr-10 h-11 sm:h-12"
                         />
                         <button
                           type="button"
                           onClick={() => setShowResetPassword(!showResetPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 touch-manipulation"
                         >
                           {showResetPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -962,21 +987,21 @@ export default function Account() {
                         placeholder="••••••••"
                         required
                         minLength={6}
-                        className="w-full"
+                        className="w-full h-11 sm:h-12"
                       />
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <Button
                         type="button"
                         onClick={closeForgotPassword}
                         variant="outline"
-                        className="flex-1"
+                        className="flex-1 h-11 sm:h-12"
                       >
                         Cancel
                       </Button>
                       <Button
                         type="submit"
-                        className="flex-1 bg-black hover:bg-[#D4AF37] text-white"
+                        className="flex-1 bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
                       >
                         Reset Password
                       </Button>

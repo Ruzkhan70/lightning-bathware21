@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock, Truck, ExternalLink } from "lucide-react";
+import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock, Truck, ExternalLink, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -23,7 +23,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder, getInvoiceByOrderId, createInvoice } = useAdmin();
+  const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder, getInvoiceByOrderId, createInvoice, isDataLoaded } = useAdmin();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingOrder, setViewingOrder] = useState<string | null>(null);
@@ -107,6 +107,17 @@ export default function AdminOrders() {
   const pendingCount = safeOrders.filter(o => o.status === "Pending").length;
   const processingCount = safeOrders.filter(o => o.status === "Processing").length;
   const completedCount = safeOrders.filter(o => o.status === "Delivered").length;
+
+  if (!isDataLoaded) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto text-[#D4AF37]" />
+          <p className="mt-4 text-gray-600">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

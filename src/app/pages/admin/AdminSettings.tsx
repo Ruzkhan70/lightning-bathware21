@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { 
   Settings, Store, Image, FileText, Shield, User, Lock, Key, 
-  Monitor, Smartphone, LogOut, Trash2, Check, ChevronRight, 
+  Monitor, Smartphone, LogOut, Trash2, Check, ChevronRight, Save,
   Globe, Phone, Mail, MapPin, Clock, Truck, CreditCard, Award,
-  Save, X, CheckCircle, AlertCircle
+  Plus, X, CheckCircle, AlertCircle, Zap, RotateCcw, ToggleLeft, ToggleRight
 } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
@@ -69,13 +69,13 @@ export default function AdminSettings() {
     confirmPassword: "",
   });
 
-  // Sync form states when context data changes
+  // Sync form states
   useEffect(() => { setProfileForm({ ...storeProfile }); }, [storeProfile]);
   useEffect(() => { setAssetsForm({ ...storeAssets }); }, [storeAssets]);
   useEffect(() => { setContentForm({ ...siteContent }); }, [siteContent]);
   useEffect(() => { setUsernameForm({ newUsername: adminUsername }); }, [adminUsername]);
 
-  // Handlers
+  // Profile handlers
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^[a-zA-Z0-9]+$/.test(profileForm.adminShortcut || '')) {
@@ -86,12 +86,14 @@ export default function AdminSettings() {
     toast.success("Store profile updated!");
   };
 
+  // Assets handlers
   const handleAssetsSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateStoreAssets(assetsForm);
     toast.success("Store assets updated!");
   };
 
+  // Content handlers
   const handleContentSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateSiteContent(contentForm);
@@ -106,6 +108,7 @@ export default function AdminSettings() {
     }
   };
 
+  // Account handlers
   const handleUsernameSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!usernameForm.newUsername || usernameForm.newUsername.length < 3) {
@@ -140,6 +143,7 @@ export default function AdminSettings() {
     }
   };
 
+  // Device handlers
   const handleLogoutAllDevices = async () => {
     if (!window.confirm("Log out from all devices?")) return;
     const otherDevices = deviceSessions?.filter(d => d.status === 'active' && !d.isCurrentDevice) || [];
@@ -221,8 +225,8 @@ export default function AdminSettings() {
         <div className="p-6">
           {/* Store Profile Section */}
           {activeSection === 'store-profile' && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <Card title="Store Name & Logo" icon={<Store className="w-5 h-5" />} description="Basic store information displayed across the website">
+            <form onSubmit={handleProfileSave} className="max-w-4xl mx-auto space-y-6">
+              <Card title="Store Name & Logo" icon={<Store className="w-5 h-5" />} description="Basic store information">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Primary Name</Label>
@@ -258,10 +262,14 @@ export default function AdminSettings() {
                     <Label>Sales Email</Label>
                     <Input type="email" value={profileForm.salesEmail} onChange={(e) => setProfileForm({...profileForm, salesEmail: e.target.value})} />
                   </div>
+                  <div>
+                    <Label>Support Email</Label>
+                    <Input type="email" value={profileForm.supportEmail} onChange={(e) => setProfileForm({...profileForm, supportEmail: e.target.value})} />
+                  </div>
                 </div>
               </Card>
 
-              <Card title="Address" icon={<MapPin className="w-5 h-5" />} description="Your store location displayed on the website">
+              <Card title="Address" icon={<MapPin className="w-5 h-5" />} description="Your store location">
                 <div className="space-y-4">
                   <div>
                     <Label>Street Address</Label>
@@ -309,6 +317,35 @@ export default function AdminSettings() {
                     <Label>Instagram URL</Label>
                     <Input value={profileForm.instagramUrl} onChange={(e) => setProfileForm({...profileForm, instagramUrl: e.target.value})} placeholder="https://instagram.com/..." />
                   </div>
+                  <div>
+                    <Label>Twitter URL</Label>
+                    <Input value={profileForm.twitterUrl} onChange={(e) => setProfileForm({...profileForm, twitterUrl: e.target.value})} placeholder="https://twitter.com/..." />
+                  </div>
+                </div>
+              </Card>
+
+              <Card title="Secret Admin Shortcut" icon={<Zap className="w-5 h-5" />} description="Secret sequence to open admin login">
+                <div className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-sm text-amber-800">
+                      Type the sequence anywhere on the site to open admin login. Use letters, numbers, or both.
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Secret Access Sequence</Label>
+                    <Input 
+                      value={profileForm.adminShortcut} 
+                      onChange={(e) => setProfileForm({...profileForm, adminShortcut: e.target.value})} 
+                      placeholder="e.g. admin123 or 4571"
+                      className="font-mono"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">3-20 characters, letters and numbers only</p>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <p className="text-xs text-gray-600">
+                      Fallback: Visit <code className="bg-gray-200 px-1 rounded">/__admin__</code> to access admin login directly.
+                    </p>
+                  </div>
                 </div>
               </Card>
 
@@ -337,9 +374,16 @@ export default function AdminSettings() {
                     onClick={() => setProfileForm({...profileForm, enableOnlinePayment: !profileForm.enableOnlinePayment})}
                     className={profileForm.enableOnlinePayment ? 'text-green-600' : 'text-gray-400'}
                   >
-                    {profileForm.enableOnlinePayment ? <CheckCircle className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}
+                    {profileForm.enableOnlinePayment ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
                   </button>
                 </div>
+                {profileForm.enableOnlinePayment && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                    <p className="text-sm text-amber-800">
+                      Requires Payhere credentials in .env file: VITE_PAYHERE_MERCHANT_ID, VITE_PAYHERE_MERCHANT_SECRET
+                    </p>
+                  </div>
+                )}
               </Card>
 
               <Card title="Home Page Stats" icon={<Award className="w-5 h-5" />} description="Statistics displayed on your homepage">
@@ -363,16 +407,16 @@ export default function AdminSettings() {
                 </div>
               </Card>
 
-              <Button onClick={handleProfileSave} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black">
+              <Button type="submit" className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black">
                 <Save className="w-4 h-4 mr-2" />
                 Save Store Profile
               </Button>
-            </div>
+            </form>
           )}
 
           {/* Store Assets Section */}
           {activeSection === 'store-assets' && (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <form onSubmit={handleAssetsSave} className="max-w-4xl mx-auto space-y-6">
               <Card title="Hero Image" icon={<Image className="w-5 h-5" />} description="Main banner on homepage">
                 <ImageUpload value={assetsForm.heroImage} onChange={(val) => setAssetsForm({...assetsForm, heroImage: val})} label="Upload hero image" />
                 <p className="text-xs text-gray-500 mt-2">Recommended size: 1920x800px</p>
@@ -385,16 +429,16 @@ export default function AdminSettings() {
                 </div>
               </Card>
 
-              <Button onClick={handleAssetsSave} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black">
+              <Button type="submit" className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black">
                 <Save className="w-4 h-4 mr-2" />
                 Save Store Assets
               </Button>
-            </div>
+            </form>
           )}
 
           {/* Page Content Section */}
           {activeSection === 'page-content' && (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <form onSubmit={handleContentSave} className="max-w-4xl mx-auto space-y-6">
               <Card title="Home Page" icon={<FileText className="w-5 h-5" />} description="Hero section content">
                 <div className="space-y-4">
                   <div>
@@ -450,16 +494,116 @@ export default function AdminSettings() {
                 </div>
               </Card>
 
+              <Card title="FAQ Section" icon={<FileText className="w-5 h-5" />} description="Frequently asked questions">
+                <div className="space-y-4">
+                  <div>
+                    <Label>FAQ Title</Label>
+                    <Input value={contentForm.faq.title} onChange={(e) => setContentForm({...contentForm, faq: {...contentForm.faq, title: e.target.value}})} />
+                  </div>
+                  {contentForm.faq.items.map((item, idx) => (
+                    <div key={idx} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <Label>Question {idx + 1}</Label>
+                      <Input 
+                        value={item.question} 
+                        onChange={(e) => {
+                          const newItems = [...contentForm.faq.items];
+                          newItems[idx] = { ...newItems[idx], question: e.target.value };
+                          setContentForm({...contentForm, faq: {...contentForm.faq, items: newItems}});
+                        }}
+                        placeholder="Question"
+                      />
+                      <Textarea 
+                        value={item.answer}
+                        onChange={(e) => {
+                          const newItems = [...contentForm.faq.items];
+                          newItems[idx] = { ...newItems[idx], answer: e.target.value };
+                          setContentForm({...contentForm, faq: {...contentForm.faq, items: newItems}});
+                        }}
+                        placeholder="Answer"
+                        rows={2}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card title="Terms and Conditions" icon={<FileText className="w-5 h-5" />} description="Legal terms and policies">
+                <div className="space-y-4">
+                  <div>
+                    <Label>Introduction</Label>
+                    <Textarea 
+                      value={contentForm.terms.introduction}
+                      onChange={(e) => setContentForm({...contentForm, terms: {...contentForm.terms, introduction: e.target.value}})}
+                      rows={2}
+                      placeholder="Introduction text..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Use [Store Name] as placeholder</p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <Label>Sections</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        const newSection = { id: `section-${Date.now()}`, title: "New Section", content: "" };
+                        setContentForm({...contentForm, terms: {...contentForm.terms, sections: [...(contentForm.terms.sections || []), newSection]}});
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Section
+                    </Button>
+                  </div>
+                  {contentForm.terms.sections?.map((section: any, idx: number) => (
+                    <div key={section.id} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label>Section {idx + 1}</Label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContentForm({...contentForm, terms: {...contentForm.terms, sections: contentForm.terms.sections.filter((s: any) => s.id !== section.id)}});
+                          }}
+                          className="text-red-500 hover:bg-red-50 p-1 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <Input 
+                        value={section.title}
+                        onChange={(e) => {
+                          const newSections = [...contentForm.terms.sections];
+                          newSections[idx] = { ...section, title: e.target.value };
+                          setContentForm({...contentForm, terms: {...contentForm.terms, sections: newSections}});
+                        }}
+                        placeholder="Section title"
+                      />
+                      <Textarea 
+                        value={section.content}
+                        onChange={(e) => {
+                          const newSections = [...contentForm.terms.sections];
+                          newSections[idx] = { ...section, content: e.target.value };
+                          setContentForm({...contentForm, terms: {...contentForm.terms, sections: newSections}});
+                        }}
+                        placeholder="Section content (each line = bullet point)"
+                        rows={3}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
               <div className="flex gap-4">
-                <Button variant="outline" onClick={handleResetContent} className="flex-1 border-red-500 text-red-500 hover:bg-red-50">
+                <Button type="button" variant="outline" onClick={handleResetContent} className="flex-1 border-red-500 text-red-500 hover:bg-red-50">
+                  <RotateCcw className="w-4 h-4 mr-2" />
                   Reset to Default
                 </Button>
-                <Button onClick={handleContentSave} className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black">
+                <Button type="submit" className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black">
                   <Save className="w-4 h-4 mr-2" />
                   Save Page Content
                 </Button>
               </div>
-            </div>
+            </form>
           )}
 
           {/* Account Section */}
@@ -511,7 +655,7 @@ export default function AdminSettings() {
             </div>
           )}
 
-          {/* Security & Devices Section */}
+          {/* Security Section */}
           {activeSection === 'security' && (
             <div className="max-w-4xl mx-auto space-y-6">
               <Card title="Logged-in Devices" icon={<Shield className="w-5 h-5" />} description="Manage devices with admin access">
@@ -559,9 +703,7 @@ export default function AdminSettings() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-medium">
-                                {device.device} - {device.browser}
-                              </p>
+                              <p className="font-medium">{device.device} - {device.browser}</p>
                               {device.isCurrentDevice && (
                                 <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">Current</span>
                               )}

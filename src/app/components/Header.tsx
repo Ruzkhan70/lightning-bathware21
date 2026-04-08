@@ -30,6 +30,9 @@ export default function Header() {
   const touchStartY = useRef<number>(0);
   const drawerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [drawerTranslate, setDrawerTranslate] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const drawerWidth = 320; // max-width of drawer
 
   const safeCategories = categories || [];
 
@@ -121,18 +124,59 @@ export default function Header() {
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    setIsDragging(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
     const touchX = e.touches[0].clientX;
     const touchY = e.touches[0].clientY;
-    const deltaX = touchX - touchStartX.current;
+    const deltaX = touchStartX.current - touchX; // Inverted for right-side drawer
     const deltaY = Math.abs(touchY - touchStartY.current);
+    const screenWidth = window.innerWidth;
 
-    // Only trigger swipe right from left edge (within 30px) and mostly horizontal movement
-    if (touchStartX.current <= 30 && deltaX > 50 && deltaY < 100) {
-      setDrawerOpen(true);
+    // Allow swipe from right edge (within 50px) to open drawer
+    if (touchStartX.current >= screenWidth - 50 && deltaX > 0 && deltaY < 100) {
+      // Progressive opening - drawer follows finger
+      const translate = Math.min(deltaX, drawerWidth);
+      setDrawerTranslate(translate);
     }
+    
+    // Allow swipe from anywhere on screen to close drawer (when open)
+    if (drawerOpen && deltaX < 0) {
+      // Progressive closing - drawer follows finger going right
+      const translate = drawerWidth + deltaX;
+      setDrawerTranslate(Math.max(0, Math.min(translate, drawerWidth)));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    
+    // If swiped more than 40% of drawer width, complete the action
+    if (drawerTranslate > drawerWidth * 0.4) {
+      setDrawerOpen(true);
+      setDrawerTranslate(0);
+    } else if (drawerTranslate > 0) {
+      setDrawerOpen(false);
+      setDrawerTranslate(0);
+    }
+  };
+
+  // Calculate drawer position based on state
+  const getDrawerTransform = () => {
+    if (isDragging) {
+      // During drag, show drawer at drag position
+      if (drawerOpen) {
+        // Closing - translate from 0 to full width
+        return `translateX(${drawerTranslate}px)`;
+      } else if (drawerTranslate > 0) {
+        // Opening - translate from full width to 0
+        return `translateX(${drawerWidth - drawerTranslate}px)`;
+      }
+    }
+    return drawerOpen ? 'translateX(0)' : 'translateX(100%)';
   };
 
   const handleDrawerClose = () => {
@@ -184,6 +228,7 @@ export default function Header() {
         className="fixed inset-0 z-[60] pointer-events-none md:hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       />
 
       {/* Drawer Overlay */}
@@ -198,9 +243,10 @@ export default function Header() {
       {/* Mobile Drawer */}
       <div 
         ref={drawerRef}
-        className={`fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-white z-[80] transform transition-transform duration-300 ease-out shadow-2xl md:hidden ${
-          drawerOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 h-full w-[85%] max-w-[320px] bg-white z-[80] transform transition-shadow md:hidden ${
+          isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'
+        } ${drawerOpen || drawerTranslate > 0 ? 'shadow-2xl' : 'shadow-none'}`}
+        style={{ transform: getDrawerTransform() }}
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between p-4 border-b">
