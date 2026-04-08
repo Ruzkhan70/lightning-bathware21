@@ -571,6 +571,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminDataLoaded, setIsAdminDataLoaded] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   
   const isInitialized = useRef({
     storeProfile: false,
@@ -716,9 +717,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       } else {
         setFirebaseUser(null);
       }
+      setAuthReady(true);
     });
     return () => unsubscribe();
   }, []);
+
+  const waitForAuth = useCallback(async (): Promise<boolean> => {
+    if (authReady && firebaseUser) return true;
+    
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (!authReady && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    return authReady && !!firebaseUser;
+  }, [authReady, firebaseUser]);
 
   useEffect(() => {
     checkAdminExists().then(exists => {
@@ -1814,8 +1830,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setAdminEmail(result.user.email || "");
         setIsAdminLoggedIn(true);
         
-        // Sign out from Firebase Auth to keep customer session intact
-        await signOut(auth);
+        // Keep Firebase Auth signed in so Firestore writes work
+        // The admin session is tracked separately in localStorage
+        
+        // Wait for auth state to propagate to Firestore
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         await logAdminLogin(cleanEmail, "success");
         return { success: true };
@@ -2244,6 +2263,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProduct = async (id: string, product: Partial<Product>) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const productName = products.find(p => p.id === id)?.name;
     const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
     setProducts(updated);
@@ -2272,12 +2297,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const productName = products.find(p => p.id === id)?.name;
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
     try {
-      updateDoc(doc(db, "storeData", "products"), { products: updated });
+      await updateDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success("Product deleted!");
       logProductAction(
         'PRODUCT_DELETE',
@@ -2332,6 +2363,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateOrderStatus = async (id: string, status: "Pending" | "Processing" | "Delivered") => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const previousStatus = orders.find(o => o.id === id)?.status;
     setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
     try {
@@ -2359,6 +2396,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updatePaymentStatus = async (id: string, paymentStatus: "Pending" | "Paid") => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     setOrders(prev => prev.map(order => order.id === id ? { ...order, paymentStatus } : order));
     
     // Also update the invoice's payment status
@@ -2382,6 +2425,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteOrder = async (id: string) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     try {
       const invoice = invoices.find(inv => inv.orderId === id);
       
@@ -2483,6 +2532,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateOffer = async (id: string, offer: Partial<Offer>) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const previousOffer = offers.find(o => o.id === id);
     
     console.log("[Offers] Updating offer:", id, "with:", offer);
@@ -2625,6 +2680,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateCategory = async (id: string, category: Partial<Category>) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const categoryName = categories.find(c => c.id === id)?.name;
     const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
     setCategories(updated);
@@ -2731,6 +2792,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         isAdminDataLoaded,
         adminUid,
         firebaseUser,
+        authReady,
         adminExists,
         login,
         logout,
