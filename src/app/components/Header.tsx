@@ -243,150 +243,222 @@ export default function Header() {
       {/* Mobile Drawer */}
       <div 
         ref={drawerRef}
-        className={`fixed top-0 right-0 h-full w-[85%] max-w-[320px] bg-white z-[80] transform transition-shadow md:hidden ${
+        className={`fixed top-0 right-0 h-full w-[85%] max-w-[340px] bg-gray-50 z-[80] transform transition-shadow md:hidden ${
           isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'
         } ${drawerOpen || drawerTranslate > 0 ? 'shadow-2xl' : 'shadow-none'}`}
         style={{ transform: getDrawerTransform() }}
       >
-        {/* Drawer Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <Link to="/" className="flex items-center gap-2" onClick={handleNavClick}>
-            {storeProfile.storeLogo ? (
-              <img src={storeProfile.storeLogo} alt="Logo" className="h-8 w-auto" />
-            ) : (
-              <div className="text-lg font-bold">
-                <span className="text-black">{storeProfile.storeName}</span>
-                <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
-              </div>
-            )}
-          </Link>
-          <button 
-            onClick={handleDrawerClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
+        {/* Drawer Header with Gradient */}
+        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-5 pt-6 pb-5">
+          <div className="flex items-center justify-between mb-4">
+            <Link to="/" className="flex items-center gap-2" onClick={handleNavClick}>
+              {storeProfile.storeLogo ? (
+                <img src={storeProfile.storeLogo} alt="Logo" className="h-10 w-auto" />
+              ) : (
+                <div className="text-xl font-bold">
+                  <span className="text-white">{storeProfile.storeName}</span>
+                  <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+                </div>
+              )}
+            </Link>
+            <button 
+              onClick={handleDrawerClose}
+              className="p-2 hover:bg-white/10 rounded-full transition-all duration-200 active:scale-95"
+            >
+              <X className="w-5 h-5 text-white/80" />
+            </button>
+          </div>
 
-        {/* User Section */}
-        {isLoggedIn && user && (
-          <div className="p-4 bg-gray-50 border-b">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center text-black font-bold">
-                {user.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{user.name}</p>
-                <p className="text-sm text-gray-500 truncate">{user.email}</p>
+          {/* User Profile Card */}
+          {isLoggedIn && user && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-2">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#B8962E] rounded-full flex items-center justify-center text-black font-bold text-lg shadow-lg">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white truncate">{user.name}</p>
+                  <p className="text-sm text-white/60 truncate">{user.email}</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Guest User Card */}
+          {!isLoggedIn && (
+            <Link
+              to="/account"
+              onClick={handleNavClick}
+              className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-2 hover:bg-white/20 transition-all duration-200"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#B8962E] rounded-full flex items-center justify-center">
+                <UserCircle className="w-6 h-6 text-black" />
+              </div>
+              <div>
+                <p className="font-semibold text-white">Welcome</p>
+                <p className="text-sm text-white/60">Login or create account</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-white/60 ml-auto" />
+            </Link>
+          )}
+        </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-2">
-          <div className="px-3 py-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Menu</p>
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-lg mb-1 transition-colors ${
-                    isActive(link.path)
-                      ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{link.name}</span>
-                  {isActive(link.path) && <ChevronRight className="w-4 h-4 ml-auto" />}
-                </Link>
-              );
-            })}
+        <nav className="flex-1 overflow-y-auto pt-2 pb-4">
+          {/* Main Menu Section */}
+          <div className="px-4">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Menu</p>
+            <div className="space-y-0.5">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={handleNavClick}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
+                      isActive(link.path)
+                        ? 'bg-gradient-to-r from-[#D4AF37]/20 to-transparent text-[#D4AF37]'
+                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg transition-all duration-200 ${
+                      isActive(link.path)
+                        ? 'bg-[#D4AF37]/20'
+                        : 'bg-gray-100 group-hover:bg-gray-200'
+                    }`}>
+                      <Icon className={`w-5 h-5 ${
+                        isActive(link.path) ? 'text-[#D4AF37]' : 'text-gray-500 group-hover:text-gray-700'
+                      }`} />
+                    </div>
+                    <span className={`font-medium ${
+                      isActive(link.path) ? 'text-[#D4AF37]' : ''
+                    }`}>{link.name}</span>
+                    {isActive(link.path) && (
+                      <div className="ml-auto w-1.5 h-1.5 bg-[#D4AF37] rounded-full" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Categories */}
-          <div className="px-3 py-1 mt-2 border-t pt-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Categories</p>
-            {safeCategories.filter(cat => cat.isActive).slice(0, 5).map((category) => {
-              const color = getCategoryColor(category.name);
-              return (
-                <Link
-                  key={category.id}
-                  to={`/products?category=${encodeURIComponent(category.name)}`}
-                  onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors text-gray-700 hover:bg-gray-100`}
-                >
-                  {category.image ? (
-                    <img src={category.image} alt={category.name} className="w-6 h-6 rounded object-cover" />
-                  ) : (
-                    <span className={`w-6 h-6 rounded flex items-center justify-center ${color.bg} ${color.text} font-bold text-xs`}>
-                      {getCategoryInitial(category.name)}
-                    </span>
-                  )}
-                  <span className="text-sm">{category.name}</span>
-                </Link>
-              );
-            })}
+          {/* Divider */}
+          <div className="mx-4 my-4">
+            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          </div>
+
+          {/* Categories Section */}
+          <div className="px-4">
+            <div className="flex items-center justify-between px-3 mb-3">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Categories</p>
+              <Link 
+                to="/categories" 
+                onClick={handleNavClick}
+                className="text-xs text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors"
+              >
+                View All
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {safeCategories.filter(cat => cat.isActive).slice(0, 4).map((category) => {
+                const color = getCategoryColor(category.name);
+                return (
+                  <Link
+                    key={category.id}
+                    to={`/products?category=${encodeURIComponent(category.name)}`}
+                    onClick={handleNavClick}
+                    className="flex items-center gap-2.5 p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 group"
+                  >
+                    {category.image ? (
+                      <img src={category.image} alt={category.name} className="w-9 h-9 rounded-lg object-cover" />
+                    ) : (
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color.bg}`}>
+                        <span className={`${color.text} font-bold text-sm`}>
+                          {getCategoryInitial(category.name)}
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 line-clamp-1">{category.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="mx-4 my-4">
+            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           </div>
 
           {/* Account Section */}
-          <div className="px-3 py-1 mt-2 border-t pt-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Account</p>
+          <div className="px-4">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Account</p>
             {isLoggedIn ? (
-              <>
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <Link
                   to="/account"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-lg mb-1 transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3.5 transition-all duration-200 ${
                     isActive("/account")
-                      ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <UserCircle className="w-5 h-5" />
-                  <span>My Account</span>
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <UserCircle className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <span className="font-medium">My Account</span>
                 </Link>
                 <Link
                   to="/wishlist"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-lg mb-1 transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3.5 transition-all duration-200 ${
                     isActive("/wishlist")
-                      ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Heart className="w-5 h-5" />
-                  <span>Wishlist ({wishlist.length})</span>
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <Heart className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <span className="font-medium">Wishlist</span>
+                  {wishlist.length > 0 && (
+                    <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                      {wishlist.length}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   to="/orders"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-lg mb-1 transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3.5 transition-all duration-200 ${
                     isActive("/orders")
-                      ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <FileText className="w-5 h-5" />
-                  <span>My Orders</span>
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <FileText className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <span className="font-medium">My Orders</span>
                 </Link>
+                <div className="h-px bg-gray-100 mx-4" />
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 px-3 py-3 rounded-lg mb-1 transition-colors text-red-600 hover:bg-red-50 w-full"
+                  className="flex items-center gap-3 px-4 py-3.5 text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
                 >
-                  <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
+                  <div className="p-2 bg-red-50 rounded-lg">
+                    <LogOut className="w-5 h-5" />
+                  </div>
+                  <span className="font-medium">Logout</span>
                 </button>
-              </>
+              </div>
             ) : (
               <Link
                 to="/account"
                 onClick={handleNavClick}
-                className="flex items-center gap-3 px-3 py-3 rounded-lg mb-1 transition-colors text-gray-700 hover:bg-gray-100"
+                className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-xl text-black font-semibold hover:shadow-lg transition-all duration-200"
               >
                 <UserCircle className="w-5 h-5" />
                 <span>Login / Register</span>
