@@ -7,11 +7,36 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 export default function Header() {
   console.log("[Header] Rendering...");
+  
+  let cartCount = 0;
+  let wishlist: any[] = [];
+  let storeProfile = { storeName: 'Store', storeNameAccent: 'Name' };
+  let categories: any[] = [];
+  
+  try {
+    const cartCtx = useCart();
+    cartCount = cartCtx.cartCount;
+  } catch (e) {
+    console.error("[Header] useCart error:", e);
+  }
+  
+  try {
+    const wishCtx = useWishlist();
+    wishlist = wishCtx.wishlist;
+  } catch (e) {
+    console.error("[Header] useWishlist error:", e);
+  }
+  
+  try {
+    const adminCtx = useAdmin();
+    storeProfile = adminCtx.storeProfile;
+    categories = adminCtx.categories || [];
+  } catch (e) {
+    console.error("[Header] useAdmin error:", e);
+  }
+  
   const navigate = useNavigate();
   const location = useLocation();
-  const { cartCount } = useCart();
-  const { wishlist } = useWishlist();
-  const { storeProfile, categories } = useAdmin();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -207,12 +232,12 @@ export default function Header() {
       </>
     );
   } catch (error) {
-    console.error("[Header] Render error:", error);
+    console.error("[Header] Unexpected error:", error);
     return (
       <header className="sticky top-0 z-50 bg-black text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="text-center">
-            <p className="text-[#D4AF37]">Loading...</p>
+            <p className="text-white">Loading...</p>
           </div>
         </div>
       </header>
