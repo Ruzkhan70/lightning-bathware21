@@ -710,6 +710,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFirebaseUser(user);
+      } else {
+        setFirebaseUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     checkAdminExists().then(exists => {
       setAdminExists(exists);
     });
