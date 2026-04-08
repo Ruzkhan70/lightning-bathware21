@@ -5,7 +5,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
 import { Input } from "./ui/input";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export default function Header() {
@@ -35,22 +35,32 @@ export default function Header() {
   const drawerWidth = 320; // max-width of drawer
 
   const safeCategories = categories || [];
+  const safeProducts = products || [];
 
-  const isActive = (path: string) => {
+  // Memoize isActive function
+  const isActive = useCallback((path: string) => {
     if (path === "/") {
       return location.pathname === "/";
     }
     return location.pathname.startsWith(path);
-  };
+  }, [location.pathname]);
 
-  const safeProducts = products || [];
+  // Memoize suggestions to prevent recalculation on every render
+  const suggestions = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const lowerQuery = searchQuery.toLowerCase();
+    return safeProducts.filter(p => 
+      p.name.toLowerCase().includes(lowerQuery) ||
+      p.category.toLowerCase().includes(lowerQuery)
+    ).slice(0, 5);
+  }, [searchQuery, safeProducts]);
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     setShowSuggestions(value.length > 0);
-  };
+  }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
@@ -58,20 +68,13 @@ export default function Header() {
       navigate(`/products`);
     }
     setShowSuggestions(false);
-  };
+  }, [searchQuery, navigate]);
 
-  const suggestions = searchQuery.trim()
-    ? safeProducts.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 5)
-    : [];
-
-  const handleSuggestionClick = (productName: string) => {
+  const handleSuggestionClick = useCallback((productName: string) => {
     setSearchQuery(productName);
     setShowSuggestions(false);
     navigate(`/products?search=${encodeURIComponent(productName)}`);
-  };
+  }, [navigate]);
 
   const handleCategoriesMouseEnter = useCallback(() => {
     if (dropdownTimeoutRef.current) {
@@ -120,14 +123,14 @@ export default function Header() {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Touch handlers for swipe gesture
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // Touch handlers for swipe gesture - memoized with useCallback
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     setIsDragging(true);
-  };
+  }, []);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging) return;
     
     const touchX = e.touches[0].clientX;
@@ -149,9 +152,9 @@ export default function Header() {
       const translate = drawerWidth + deltaX;
       setDrawerTranslate(Math.max(0, Math.min(translate, drawerWidth)));
     }
-  };
+  }, [isDragging, drawerOpen, drawerWidth]);
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
     
     // If swiped more than 40% of drawer width, complete the action
@@ -162,10 +165,10 @@ export default function Header() {
       setDrawerOpen(false);
       setDrawerTranslate(0);
     }
-  };
+  }, [drawerTranslate, drawerWidth]);
 
-  // Calculate drawer position based on state
-  const getDrawerTransform = () => {
+  // Calculate drawer position based on state - memoized
+  const getDrawerTransform = useMemo(() => {
     if (isDragging) {
       // During drag, show drawer at drag position
       if (drawerOpen) {
@@ -177,25 +180,26 @@ export default function Header() {
       }
     }
     return drawerOpen ? 'translateX(0)' : 'translateX(100%)';
-  };
+  }, [isDragging, drawerOpen, drawerTranslate]);
 
-  const handleDrawerClose = () => {
+  const handleDrawerClose = useCallback(() => {
     setDrawerOpen(false);
     setMobileMenuOpen(false);
-  };
+  }, []);
 
-  const handleNavClick = () => {
+  const handleNavClick = useCallback(() => {
     setDrawerOpen(false);
     setMobileMenuOpen(false);
-  };
+  }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await logout();
     toast.success("Logged out successfully!");
     handleNavClick();
     navigate("/");
-  };
+  }, [logout, handleNavClick, navigate]);
 
+  // Navigation links
   const navLinks = [
     { name: "Home", path: "/", icon: Home },
     { name: "Products", path: "/products", icon: Package },
@@ -206,20 +210,22 @@ export default function Header() {
     { name: "Contact", path: "/contact", icon: Phone },
   ];
 
-  const getCategoryColor = (name: string) => {
-    const colors: Record<string, { bg: string; text: string }> = {
-      "Lighting": { bg: "bg-yellow-100", text: "text-yellow-600" },
-      "Bathroom Fittings": { bg: "bg-blue-100", text: "text-blue-600" },
-      "Plumbing": { bg: "bg-green-100", text: "text-green-600" },
-      "Electrical Hardware": { bg: "bg-orange-100", text: "text-orange-600" },
-      "Construction Tools": { bg: "bg-red-100", text: "text-red-600" },
-    };
-    return colors[name] || { bg: "bg-gray-100", text: "text-gray-600" };
+  // Category color map (computed once)
+  const categoryColorMap = {
+    "Lighting": { bg: "bg-yellow-100", text: "text-yellow-600" },
+    "Bathroom Fittings": { bg: "bg-blue-100", text: "text-blue-600" },
+    "Plumbing": { bg: "bg-green-100", text: "text-green-600" },
+    "Electrical Hardware": { bg: "bg-orange-100", text: "text-orange-600" },
+    "Construction Tools": { bg: "bg-red-100", text: "text-red-600" },
   };
 
-  const getCategoryInitial = (name: string) => {
+  const getCategoryColor = useCallback((name: string) => {
+    return categoryColorMap[name] || { bg: "bg-gray-100", text: "text-gray-600" };
+  }, []);
+
+  const getCategoryInitial = useCallback((name: string) => {
     return name.charAt(0).toUpperCase();
-  };
+  }, []);
 
   return (
     <>

@@ -18,7 +18,7 @@ import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
 import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { setMetaTags } from "../utils/seo";
 
 function AnimatedCounter({ value }: { value: string }) {
@@ -83,29 +83,42 @@ export default function Home() {
     }
   }, [storeAssets.heroImage]);
 
-  const featuredProducts = safeProducts.slice(0, 8);
-  const activeOffers = getActiveOffers() || [];
+  // Memoize featured products
+  const featuredProducts = useMemo(
+    () => safeProducts.slice(0, 8),
+    [safeProducts]
+  );
 
-  const activeCategories = safeCategories
-    .filter((c) => c.isActive)
-    .map((c) => ({
-      ...c,
-      icon:
-        c.name === "Lighting"
-          ? Lightbulb
-          : c.name === "Bathroom Fittings"
-          ? Bath
-          : c.name === "Plumbing"
-          ? Wrench
-          : c.name === "Electrical Hardware"
-          ? Zap
-          : c.name === "Construction Tools"
-          ? HardHat
-          : Lightbulb,
-      count: safeProducts.filter((p) => p.category === c.name).length,
-    }));
+  // Memoize active offers
+  const activeOffers = useMemo(
+    () => getActiveOffers() || [],
+    [getActiveOffers]
+  );
 
-  const features = [
+  // Memoize active categories with icon mapping
+  const activeCategories = useMemo(() => {
+    return safeCategories
+      .filter((c) => c.isActive)
+      .map((c) => ({
+        ...c,
+        icon:
+          c.name === "Lighting"
+            ? Lightbulb
+            : c.name === "Bathroom Fittings"
+            ? Bath
+            : c.name === "Plumbing"
+            ? Wrench
+            : c.name === "Electrical Hardware"
+            ? Zap
+            : c.name === "Construction Tools"
+            ? HardHat
+            : Lightbulb,
+        count: safeProducts.filter((p) => p.category === c.name).length,
+      }));
+  }, [safeCategories, safeProducts]);
+
+  // Memoize features array
+  const features = useMemo(() => [
     {
       icon: Truck,
       title: "Island-wide Delivery",
@@ -126,14 +139,15 @@ export default function Home() {
       title: "Best Prices",
       description: "Competitive pricing on premium products",
     },
-  ];
+  ], []);
 
-  const stats = [
+  // Memoize stats array
+  const stats = useMemo(() => [
     { value: storeProfile.statsYearsExperience, label: "Years of Experience" },
     { value: storeProfile.statsProducts, label: "Products" },
     { value: storeProfile.statsCustomers, label: "Happy Customers" },
     { value: storeProfile.statsAuthentic, label: "Authentic Products" },
-  ];
+  ], [storeProfile.statsYearsExperience, storeProfile.statsProducts, storeProfile.statsCustomers, storeProfile.statsAuthentic]);
 
   const statsRef = useRef(null);
 

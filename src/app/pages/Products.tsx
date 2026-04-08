@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { setMetaTags } from "../utils/seo";
 import { useSearchParams } from "react-router";
 import { Filter, X } from "lucide-react";
@@ -19,16 +19,16 @@ export default function Products() {
   const { products, categories } = useAdmin();
   const safeProducts = products || [];
   const safeCategories = categories || [];
-  const [filteredProducts, setFilteredProducts] = useState(safeProducts);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const activeCategories = [
+  // Memoize active categories to prevent recalculation
+  const activeCategories = useMemo(() => [
     "All Categories",
     ...safeCategories.filter(cat => cat.isActive).map(cat => cat.name),
-  ];
+  ], [safeCategories]);
 
   const priceRanges = [
     { label: "All Prices", value: "all" },
@@ -38,17 +38,19 @@ export default function Products() {
     { label: "Above Rs. 20,000", value: "20000+" },
   ];
 
-  useEffect(() => {
+  // Use useMemo for filtered products - more efficient than useEffect
+  const filteredProducts = useMemo(() => {
     let result = [...safeProducts];
 
     // Search filter from URL params
     const searchQuery = searchParams.get("search");
     if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(
         (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.category.toLowerCase().includes(searchQuery.toLowerCase())
+          p.name.toLowerCase().includes(lowerQuery) ||
+          p.description.toLowerCase().includes(lowerQuery) ||
+          p.category.toLowerCase().includes(lowerQuery)
       );
     }
 
@@ -74,16 +76,16 @@ export default function Products() {
       }
     }
 
-    // Sort
+    // Sort (create a copy to avoid mutating original)
     if (sortBy === "price-low") {
-      result.sort((a, b) => a.price - b.price);
+      return [...result].sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-high") {
-      result.sort((a, b) => b.price - a.price);
+      return [...result].sort((a, b) => b.price - a.price);
     } else if (sortBy === "name") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      return [...result].sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    setFilteredProducts(result);
+    return result;
   }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
 
   useEffect(() => {

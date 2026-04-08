@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from "react";
 import { db } from "../../firebase";
-import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 export interface CartItem {
   id: string;
@@ -44,6 +44,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
 
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Ref for debounced Firebase sync
+  const firebaseSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const cartItemsRef = useRef(cartItems);
+  
+  // Keep ref updated with latest cartItems
+  useEffect(() => {
+    cartItemsRef.current = cartItems;
+  }, [cartItems]);
 
   useEffect(() => {
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
@@ -82,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (cartDoc.exists()) {
         const firebaseCart = cartDoc.data().items as CartItem[];
         if (firebaseCart && Array.isArray(firebaseCart)) {
-          const merged = mergeCarts(cartItems, firebaseCart);
+          const merged = mergeCarts(cartItemsRef.current, firebaseCart);
           setCartItems(merged);
           await setDoc(cartRef, {
             items: merged,
@@ -91,7 +100,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       } else {
         await setDoc(cartRef, {
-          items: cartItems,
+          items: cartItemsRef.current,
           updatedAt: new Date().toISOString(),
         }, { merge: true });
       }
@@ -100,19 +109,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsSyncing(false);
     }
-  }, [cartItems]);
+  }, []);
 
-  const saveCartToFirebase = useCallback(async (userId: string, items: CartItem[]) => {
-    if (!userId) return;
-    try {
-      const cartRef = doc(db, "carts", userId);
-      await setDoc(cartRef, {
-        items,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-    } catch (error) {
-      console.error("Error saving cart to Firebase:", error);
+  const saveCartToFirebaseDebounced = useCallback((userId: string, items: CartItem[]) => {
+    // Clear existing timeout
+    if (firebaseSyncTimeoutRef.current) {
+      clearTimeout(firebaseSyncTimeoutRef.current);
     }
+    
+    // Set new timeout - debounce by 1.5 seconds
+    firebaseSyncTimeoutRef.current = setTimeout(async () => {
+      try {
+        const cartRef = doc(db, "carts", userId);
+        await setDoc(cartRef, {
+          items,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+      } catch (error) {
+        console.error("Error saving cart to Firebase:", error);
+      }
+    }, 1500);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (firebaseSyncTimeoutRef.current) {
+        clearTimeout(firebaseSyncTimeoutRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -121,13 +146,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const user = JSON.parse(currentUser);
         if (user?.id) {
-          saveCartToFirebase(user.id, cartItems);
+          saveCartToFirebaseDebounced(user.id, cartItems);
         }
       } catch (error) {
         console.error("Error getting user ID for cart sync:", error);
       }
     }
-  }, [cartItems, saveCartToFirebase]);
+  }, [cartItems, saveCartToFirebaseDebounced]);
 
   const addToCart = (product: Omit<CartItem, "quantity">) => {
     setCartItems((prev) => {
@@ -158,8 +183,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = () => {
+    // Clear pending sync
+    if (firebaseSyncTimeoutRef.current) {
+      clearTimeout(firebaseSyncTimeoutRef.current);
+    }
+    
     setCartItems([]);
-    // Also clear Firebase cart if user is logged in
     const currentUser = localStorage.getItem("currentUser");
     if (currentUser) {
       try {
@@ -174,12 +203,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const cartTotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
+  // Memoize cartTotal and cartCount to prevent recalculation on every render
+  const cartTotal = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [cartItems]
   );
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
+    [cartItems]
+  );
 
   return (
     <CartContext.Provider

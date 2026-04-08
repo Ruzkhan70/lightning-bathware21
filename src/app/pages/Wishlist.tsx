@@ -5,6 +5,7 @@ import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
+import { useMemo, useCallback } from "react";
 
 export default function Wishlist() {
   const { wishlist, removeFromWishlist } = useWishlist();
@@ -12,19 +13,22 @@ export default function Wishlist() {
   const { addToCart } = useCart();
 
   const safeProducts = products || [];
-  const wishlistProducts = safeProducts.filter((product) =>
-    wishlist.includes(product.id)
+  
+  // Memoize wishlist products filtering
+  const wishlistProducts = useMemo(
+    () => safeProducts.filter((product) => wishlist.includes(product.id)),
+    [safeProducts, wishlist]
   );
 
-  const handleAddToCart = (productId: string, productName: string) => {
+  const handleAddToCart = useCallback((productId: string, productName: string) => {
     addToCart(productId);
     toast.success(`${productName} added to cart!`);
-  };
+  }, [addToCart]);
 
-  const handleRemoveFromWishlist = (productId: string, productName: string) => {
+  const handleRemoveFromWishlist = useCallback((productId: string, productName: string) => {
     removeFromWishlist(productId);
     toast.success(`${productName} removed from wishlist!`);
-  };
+  }, [removeFromWishlist]);
 
   if (wishlistProducts.length === 0) {
     return (

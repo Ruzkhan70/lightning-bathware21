@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
@@ -13,24 +13,27 @@ interface ProductCardProps {
   product: Product;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+function ProductCardComponent({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { getProductDiscount } = useAdmin();
   const [showModal, setShowModal] = useState(false);
-  const inWishlist = isInWishlist(product.id);
-
+  
+  // Memoize discount calculation
   const discount = getProductDiscount(product.id);
   const displayPrice = discount.hasDiscount
     ? discount.discountedPrice
     : product.price;
+  
+  // Memoize wishlist check
+  const inWishlist = isInWishlist(product.id);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
-  };
+  }, [addToCart, product]);
 
-  const handleWishlist = () => {
+  const handleWishlist = useCallback(() => {
     if (inWishlist) {
       removeFromWishlist(product.id);
       toast.success("Removed from wishlist");
@@ -38,7 +41,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       addToWishlist(product.id);
       toast.success("Added to wishlist");
     }
-  };
+  }, [inWishlist, addToWishlist, removeFromWishlist, product.id]);
+
+  const handleOpenModal = useCallback(() => {
+    setShowModal(true);
+  }, []);
 
   return (
     <>
@@ -46,7 +53,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Image */}
         <div 
           className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer"
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenModal}
         >
           <LazyImage
             src={product.image}
@@ -57,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Overlay Buttons */}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
             <Button
-              onClick={() => setShowModal(true)}
+              onClick={handleOpenModal}
               size="sm"
               className="bg-white text-black hover:bg-[#D4AF37] hover:text-white transform hover:scale-110 transition-all"
             >
@@ -161,3 +168,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     </>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when parent state changes
+export default memo(ProductCardComponent);
