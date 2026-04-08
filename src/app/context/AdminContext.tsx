@@ -715,6 +715,75 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
   }, [checkAdminExists]);
 
+  // Clean up expired sessions and create session on app load
+  useEffect(() => {
+    if (!isAdminLoggedIn || !adminEmail) return;
+
+    const cleanupAndCreateSession = async () => {
+      try {
+        const deviceId = getOrCreateDeviceId();
+        const { device, browser, os } = getDeviceInfo();
+        const now = new Date().toISOString();
+
+        // Clean up expired sessions (older than 24 hours)
+        const sessionsRef = collection(db, DEVICE_SESSIONS_COLLECTION);
+        const allSessionsQuery = query(sessionsRef, where('email', '==', adminEmail));
+        const sessionsSnapshot = await getDocs(allSessionsQuery);
+        
+        for (const sessionDoc of sessionsSnapshot.docs) {
+          const sessionData = sessionDoc.data();
+          const loginTime = new Date(sessionData.loginTime).getTime();
+          const expiryTime = loginTime + (24 * 60 * 60 * 1000); // 24 hours
+          
+          if (Date.now() > expiryTime) {
+            // Delete expired session
+            await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, sessionDoc.id));
+            console.log(`[Session] Deleted expired session: ${sessionDoc.id}`);
+          }
+        }
+
+        // Check if current device already has a session
+        const deviceQuery = query(
+          sessionsRef,
+          where('deviceId', '==', deviceId),
+          where('email', '==', adminEmail)
+        );
+        const deviceSnapshot = await getDocs(deviceQuery);
+
+        if (deviceSnapshot.empty) {
+          // Create new session for this device
+          await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
+            deviceId,
+            email: adminEmail,
+            device,
+            browser,
+            os,
+            status: 'active',
+            loginTime: now,
+            lastActive: now,
+          });
+          console.log(`[Session] Created new session for current device: ${deviceId}`);
+        } else {
+          // Update existing session
+          const docId = deviceSnapshot.docs[0].id;
+          await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
+            status: 'active',
+            loginTime: now,
+            lastActive: now,
+            device,
+            browser,
+            os,
+          });
+          console.log(`[Session] Updated existing session: ${docId}`);
+        }
+      } catch (error) {
+        console.error("[Session] Error in cleanup/create session:", error);
+      }
+    };
+
+    cleanupAndCreateSession();
+  }, [isAdminLoggedIn, adminEmail, getOrCreateDeviceId, getDeviceInfo]);
+
   // Firebase listener for device sessions
   useEffect(() => {
     if (!adminEmail) {
