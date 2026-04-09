@@ -24,6 +24,7 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
+  const categoriesBtnRef = useRef<HTMLButtonElement>(null);
   
   const touchStartX = useRef(0);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -334,37 +335,39 @@ export default function Header() {
       </div>
 
       {/* DESKTOP HEADER */}
-      <header className="sticky top-0 z-50 bg-white shadow-md">
+      <header className="sticky top-0 z-50 bg-white shadow-sm">
         {/* Top Row */}
-        <div className="border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between h-16 gap-6">
-              {/* Logo */}
-              <Link to="/" className="flex items-center gap-3 flex-shrink-0">
-                {storeProfile.storeLogo ? (
-                  <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-10 w-auto" />
-                ) : (
-                  <div className="text-xl font-bold">
-                    <span className="text-black">{storeProfile.storeName}</span>
-                    <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
-                  </div>
-                )}
-              </Link>
+        <div className="border-b border-gray-100 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-center h-16">
+              {/* Logo - Fixed Width */}
+              <div className="w-48 flex-shrink-0 pl-2">
+                <Link to="/" className="flex items-center">
+                  {storeProfile.storeLogo ? (
+                    <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-10 w-auto" />
+                  ) : (
+                    <div className="text-xl font-bold">
+                      <span className="text-black">{storeProfile.storeName}</span>
+                      <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+                    </div>
+                  )}
+                </Link>
+              </div>
 
               {/* Search Bar - Centered */}
-              <div className="flex-1 max-w-xl relative" ref={searchRef}>
-                <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <div className="flex-1 flex justify-center px-8" ref={searchRef}>
+                <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xl">
                   <input
                     type="text"
                     placeholder="Search for products..."
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-                    className="w-full pl-5 pr-12 py-2.5 bg-gray-100 text-black border-0 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 transition-all"
+                    className="w-full pl-5 pr-14 py-2.5 bg-gray-100 text-black border-0 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 transition-all placeholder:text-gray-400"
                   />
                   <button 
                     type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[#D4AF37] rounded-full hover:bg-[#C5A028] transition-colors"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 bg-[#D4AF37] rounded-full hover:bg-[#C5A028] transition-colors"
                   >
                     <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -388,8 +391,8 @@ export default function Header() {
                 </form>
               </div>
 
-              {/* Icons */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Icons - Fixed Width */}
+              <div className="w-48 flex-shrink-0 flex items-center justify-end gap-3 pr-2">
                 <Link to="/account" className="p-2.5 hover:bg-gray-100 rounded-full transition-colors group">
                   <User className="w-5 h-5 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
                 </Link>
@@ -412,7 +415,7 @@ export default function Header() {
                   )}
                 </Link>
 
-                <button onClick={() => setDrawerOpen(true)} className="md:hidden p-2.5 hover:bg-gray-100 rounded-full transition-colors ml-2">
+                <button onClick={() => setDrawerOpen(true)} className="md:hidden p-2.5 hover:bg-gray-100 rounded-full transition-colors">
                   <Menu className="w-5 h-5 text-gray-700" />
                 </button>
               </div>
@@ -421,11 +424,11 @@ export default function Header() {
         </div>
 
         {/* Bottom Row - Navigation */}
-        <div className="bg-black hidden md:block">
-          <div className="max-w-7xl mx-auto px-4">
-            <nav className="flex items-center justify-center py-0">
+        <div className="bg-black hidden md:block shadow-lg">
+          <div className="max-w-7xl mx-auto px-6">
+            <nav className="flex items-center justify-center">
               <ul className="flex items-center">
-                {navLinks.map((link, index) => {
+                {navLinks.map((link) => {
                   const Icon = link.icon;
                   const isCategories = link.name === "Categories";
                   
@@ -434,19 +437,25 @@ export default function Header() {
                       {isCategories ? (
                         <div 
                           className="relative"
+                          ref={categoriesRef}
                           onMouseEnter={() => setShowCategoriesDropdown(true)}
                           onMouseLeave={() => setShowCategoriesDropdown(false)}
                         >
-                          <button className={`flex items-center gap-1.5 px-5 py-4 text-sm font-medium transition-colors ${
-                            isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
-                          }`}>
+                          <button 
+                            ref={categoriesBtnRef}
+                            className={`flex items-center gap-2 px-6 py-5 text-sm font-medium transition-colors ${
+                              isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
+                            }`}
+                          >
                             <Icon className="w-4 h-4" />
                             {link.name}
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
                           </button>
                           
                           {showCategoriesDropdown && (
-                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 mt-0.5">
+                            <div 
+                              className="absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 mt-0.5"
+                            >
                               <div className="py-2">
                                 {safeCategories.filter(cat => cat.isActive).map((category) => {
                                   const color = getCategoryColor(category.name);
@@ -485,7 +494,7 @@ export default function Header() {
                       ) : (
                         <Link 
                           to={link.path} 
-                          className={`flex items-center gap-1.5 px-5 py-4 text-sm font-medium transition-colors ${
+                          className={`flex items-center gap-2 px-6 py-5 text-sm font-medium transition-colors ${
                             isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
                           }`}
                         >
