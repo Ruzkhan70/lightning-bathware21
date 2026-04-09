@@ -5,6 +5,7 @@ import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
+import { NotificationsProvider } from "./context/NotificationsContext";
 import { Toaster } from "./components/ui/sonner";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -91,14 +92,16 @@ function AppContent() {
     <ErrorBoundary>
       <UserProvider>
         <AdminProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <DataLoader>
-                <RouterProvider router={router} />
-                <Toaster position="top-right" draggable />
-              </DataLoader>
-            </WishlistProvider>
-          </CartProvider>
+          <NotificationsProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <DataLoader>
+                  <RouterProvider router={router} />
+                  <Toaster position="top-right" draggable />
+                </DataLoader>
+              </WishlistProvider>
+            </CartProvider>
+          </NotificationsProvider>
         </AdminProvider>
       </UserProvider>
     </ErrorBoundary>

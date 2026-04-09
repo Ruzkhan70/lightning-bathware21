@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { db, auth } from "../../firebase";
-import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, getDocs, setDoc, where } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, getDocs, setDoc, where, serverTimestamp } from "firebase/firestore";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -12,6 +12,26 @@ import {
 import { toast } from "sonner";
 import { logAdminLogin, logAdminLogout } from "../../lib/adminLoginLog";
 import { logOrderAction, logProductAction, logCategoryAction, logOfferAction, logAdminAction, logPasswordChange } from "../../lib/adminActionLog";
+
+const createGlobalNotification = async (
+  type: "product" | "offer" | "terms" | "update",
+  title: string,
+  message: string,
+  targetId?: string
+) => {
+  try {
+    await addDoc(collection(db, "notifications"), {
+      type,
+      title,
+      message,
+      targetId: targetId || null,
+      isActive: true,
+      createdAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Error creating notification:", error);
+  }
+};
 
 export interface Product {
   id: string;
@@ -2181,6 +2201,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "siteContent"), updated);
       toast.success("Content saved to Firebase!");
+      
+      if (content.terms) {
+        await createGlobalNotification(
+          "terms",
+          "Terms & Conditions Updated",
+          "Please review our updated Terms & Conditions",
+          "terms"
+        );
+      }
+      
       logAdminAction(
         'SETTINGS_UPDATE',
         adminUid || 'unknown',
@@ -2219,6 +2249,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await updateDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success("Product added successfully!");
+      
+      await createGlobalNotification(
+        "product",
+        "New Product Available!",
+        `${newProduct.name} is now available in our store`,
+        newProduct.id
+      );
+      
       await logProductAction(
         'PRODUCT_ADD',
         adminUid || 'unknown',
@@ -2275,6 +2313,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success("Product updated!");
+      
+      await createGlobalNotification(
+        "update",
+        "Product Updated",
+        `${productName} has been updated with new details`,
+        id
+      );
+      
       await logProductAction(
         'PRODUCT_EDIT',
         adminUid || 'unknown',
@@ -2503,9 +2549,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setOffers(prev => [...prev, newOffer]);
     
     setDoc(doc(db, "offers", newOffer.id), newOffer)
-      .then(() => {
+      .then(async () => {
         console.log("[Offers] Successfully saved to Firebase:", newOffer.id);
         toast.success("Offer added!");
+        
+        await createGlobalNotification(
+          "offer",
+          "New Offer Available!",
+          `${newOffer.title} - Don't miss out on this special deal!`,
+          newOffer.id
+        );
+        
         logOfferAction(
           'OFFER_ADD',
           adminUid || 'unknown',
@@ -2548,6 +2602,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await updateDoc(doc(db, "offers", id), offer);
       console.log("[Offers] Successfully updated in Firebase:", id);
       toast.success("Offer updated!");
+      
+      await createGlobalNotification(
+        "offer",
+        "Offer Updated!",
+        `${previousOffer?.title || 'An offer'} has been updated - Check it out now!`,
+        id
+      );
+      
       logOfferAction(
         'OFFER_EDIT',
         adminUid || 'unknown',
