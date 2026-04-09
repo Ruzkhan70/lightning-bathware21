@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router";
 import {
   LayoutDashboard,
@@ -31,11 +31,46 @@ export default function AdminLayout() {
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const { showWarning, remainingTime, resetTimer, logoutNow } = useAdminTimeout(
     isAdminLoggedIn,
     logout
   );
+
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeThreshold = 50;
+    const diff = touchStartX.current - touchEndX.current;
+    
+    if (diff > swipeThreshold && mobileMenuOpen) {
+      closeMobileMenu();
+    } else if (diff < -swipeThreshold && !mobileMenuOpen) {
+      setMobileMenuOpen(true);
+    }
+  };
 
   const unavailableProducts = (products || []).filter(p => !p.isAvailable);
   const newMessages = (messages || []).filter(m => m.status === "new").length;
@@ -254,7 +289,11 @@ export default function AdminLayout() {
 
         {/* Mobile Sidebar */}
         <aside
-          className={`lg:hidden fixed left-0 top-0 h-screen w-64 bg-black text-white flex flex-col z-50 transform transition-transform duration-300 ${
+          ref={drawerRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className={`lg:hidden fixed left-0 top-0 h-screen w-64 bg-black text-white flex flex-col z-50 transform transition-transform duration-300 ease-out shadow-2xl ${
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -318,6 +357,10 @@ export default function AdminLayout() {
               <LogOut className="w-5 h-5" />
               <span className="text-sm">Logout</span>
             </button>
+          </div>
+
+          <div className="p-4 border-t border-gray-800">
+            <p className="text-xs text-gray-500 text-center">Swipe right to close</p>
           </div>
         </aside>
 

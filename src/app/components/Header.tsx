@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router";
-import { ShoppingCart, Heart, Menu, User, ChevronDown } from "lucide-react";
+import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -13,11 +13,47 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const safeCategories = categories || [];
   const safeProducts = products || [];
+
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeThreshold = 50;
+    const diff = touchStartX.current - touchEndX.current;
+    
+    if (diff > swipeThreshold && mobileMenuOpen) {
+      closeMobileMenu();
+    } else if (diff < -swipeThreshold && !mobileMenuOpen) {
+      setMobileMenuOpen(true);
+    }
+  };
 
   const searchSuggestions = searchQuery.trim().length > 0
     ? safeProducts.filter(p => 
@@ -127,7 +163,11 @@ export default function Header() {
               )}
             </Link>
 
-            <button onClick={() => navigate("/products")} className="md:hidden hover:text-[#D4AF37] transition-colors">
+            <button 
+              onClick={() => setMobileMenuOpen(true)} 
+              className="md:hidden p-2 -mr-2 hover:text-[#D4AF37] transition-colors active:bg-white/10 rounded-lg"
+              aria-label="Open menu"
+            >
               <Menu className="w-6 h-6" />
             </button>
           </div>
@@ -241,7 +281,155 @@ export default function Header() {
             </li>
           </ul>
         </div>
-      </nav>
+        </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Mobile Drawer */}
+      <div
+        ref={drawerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`md:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 transform transition-transform duration-300 ease-out shadow-2xl ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <div className="text-lg font-bold">
+            <span className="text-white">{storeProfile.storeName}</span>
+            <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+          </div>
+          <button
+            onClick={closeMobileMenu}
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+            aria-label="Close menu"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-4">
+          <ul className="space-y-1 px-3">
+            <li>
+              <Link
+                to="/"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              >
+                <Home className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">Home</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/products"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              >
+                <Package className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">Products</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/categories"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              >
+                <LayoutGrid className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">Categories</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/offers"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              >
+                <Tag className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">Offers</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/about"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              >
+                <Info className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">About</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/contact"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              >
+                <Phone className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">Contact</span>
+              </Link>
+            </li>
+          </ul>
+
+          <div className="border-t border-gray-800 mt-4 pt-4 px-3">
+            <p className="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">Account</p>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  to="/account"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                >
+                  <User className="w-5 h-5 text-[#D4AF37]" />
+                  <span className="font-medium">My Account</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/wishlist"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                >
+                  <Heart className="w-5 h-5 text-[#D4AF37]" />
+                  <span className="font-medium">Wishlist</span>
+                  {wishlist.length > 0 && (
+                    <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/cart"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                >
+                  <ShoppingCart className="w-5 h-5 text-[#D4AF37]" />
+                  <span className="font-medium">Cart</span>
+                  {cartCount > 0 && (
+                    <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <div className="p-4 border-t border-gray-800">
+          <p className="text-xs text-gray-500 text-center">Swipe right to close</p>
+        </div>
+      </div>
     </header>
   );
 }

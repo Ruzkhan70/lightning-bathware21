@@ -13,10 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { ProductGridSkeleton } from "../components/Skeleton";
+import EmptyState, { ProductsEmpty, SearchEmpty } from "../components/EmptyState";
 
 export default function Products() {
   const [searchParams] = useSearchParams();
-  const { products, categories } = useAdmin();
+  const { products, categories, isDataLoaded } = useAdmin();
   const safeProducts = products || [];
   const safeCategories = categories || [];
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -114,9 +116,13 @@ export default function Products() {
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
             Our Products
           </h1>
-          <p className="text-gray-600">
-            Showing {filteredProducts.length} of {safeProducts.length} products
-          </p>
+          {!isDataLoaded ? (
+            <div className="h-6 w-48 bg-gray-200 animate-pulse rounded"></div>
+          ) : (
+            <p className="text-gray-600">
+              Showing {filteredProducts.length} of {safeProducts.length} products
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -291,20 +297,21 @@ export default function Products() {
             )}
 
             {/* Products Grid */}
-            {filteredProducts.length > 0 ? (
+            {!isDataLoaded ? (
+              <ProductGridSkeleton count={8} />
+            ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <p className="text-xl text-gray-600 mb-4">
-                  No products found matching your criteria
-                </p>
-                <Button onClick={clearFilters} variant="outline">
-                  Clear Filters
-                </Button>
+              <div className="bg-white rounded-lg shadow-sm p-8">
+                {searchParams.get("search") ? (
+                  <SearchEmpty query={searchParams.get("search") || undefined} />
+                ) : (
+                  <ProductsEmpty />
+                )}
               </div>
             )}
 

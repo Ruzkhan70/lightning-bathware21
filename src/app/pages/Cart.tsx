@@ -1,7 +1,8 @@
 import { Link } from "react-router";
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
+import EmptyState, { CartEmpty } from "../components/EmptyState";
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } =
@@ -9,22 +10,11 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-16">
+      <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4">
-          <div className="max-w-md mx-auto text-center">
-            <ShoppingBag className="w-24 h-24 mx-auto text-gray-300 mb-6" />
-            <h2 className="text-2xl font-bold mb-4">Your Cart is Empty</h2>
-            <p className="text-gray-600 mb-8">
-              Add some products to get started!
-            </p>
-            <Link to="/products">
-              <Button
-                size="lg"
-                className="bg-black hover:bg-[#D4AF37] text-white"
-              >
-                Browse Products
-              </Button>
-            </Link>
+          <h1 className="text-3xl md:text-4xl font-bold mb-8">Shopping Cart</h1>
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <CartEmpty />
           </div>
         </div>
       </div>

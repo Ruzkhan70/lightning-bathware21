@@ -1,11 +1,12 @@
 import { Link } from "react-router";
-import { Heart, ShoppingCart, X } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
 import { useMemo, useCallback } from "react";
+import EmptyState, { WishlistEmpty } from "../components/EmptyState";
 
 export default function Wishlist() {
   const { wishlist, removeFromWishlist } = useWishlist();
@@ -14,7 +15,6 @@ export default function Wishlist() {
 
   const safeProducts = products || [];
   
-  // Memoize wishlist products filtering
   const wishlistProducts = useMemo(
     () => safeProducts.filter((product) => wishlist.includes(product.id)),
     [safeProducts, wishlist]
@@ -32,22 +32,12 @@ export default function Wishlist() {
 
   if (wishlistProducts.length === 0) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Heart className="w-24 h-24 mx-auto text-gray-300 mb-6" />
-          <h2 className="text-3xl font-bold mb-4">Your Wishlist is Empty</h2>
-          <p className="text-gray-600 mb-8 max-w-md">
-            Start adding products to your wishlist by clicking the heart icon on
-            any product.
-          </p>
-          <Link to="/products">
-            <Button
-              size="lg"
-              className="bg-black hover:bg-[#D4AF37] text-white"
-            >
-              Browse Products
-            </Button>
-          </Link>
+      <div className="bg-gray-50 min-h-screen">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-3xl md:text-4xl font-bold mb-8">My Wishlist</h1>
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <WishlistEmpty />
+          </div>
         </div>
       </div>
     );

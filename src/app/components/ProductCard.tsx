@@ -51,7 +51,7 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
 
   return (
     <>
-      <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 sm:active:shadow-xl active:translate-y-0 transition-all duration-300">
         <div 
           className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer"
           onClick={handleOpenModal}
@@ -62,11 +62,11 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
             className="w-full h-full group-hover:scale-110 transition-transform duration-500"
           />
 
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 sm:group-active:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
             <Button
               onClick={handleOpenModal}
               size="sm"
-              className="bg-white text-black hover:bg-[#D4AF37] hover:text-white transform hover:scale-110 transition-all"
+              className="bg-white text-black hover:bg-[#D4AF37] hover:text-white active:scale-95 transform hover:scale-110 transition-all"
             >
               <Eye className="w-4 h-4 mr-1" />
               Quick View
@@ -78,7 +78,7 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
               e.stopPropagation();
               handleWishlist();
             }}
-            className="absolute top-3 right-3 p-2 bg-white rounded-full hover:bg-[#D4AF37] hover:scale-110 transition-all group/heart z-10"
+            className="absolute top-3 right-3 p-2.5 min-w-[44px] min-h-[44px] bg-white rounded-full hover:bg-[#D4AF37] active:scale-90 hover:scale-110 transition-all group/heart z-10 flex items-center justify-center"
           >
             <Heart
               className={`w-5 h-5 ${
@@ -138,7 +138,7 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
           <Button
             onClick={handleAddToCart}
             disabled={!product.isAvailable}
-            className="w-full bg-black hover:bg-[#D4AF37] text-white transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full min-h-[48px] bg-black hover:bg-[#D4AF37] text-white active:scale-[0.98] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
             {product.isAvailable ? "Add to Cart" : "Not Available"}
