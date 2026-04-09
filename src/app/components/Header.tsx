@@ -22,9 +22,7 @@ export default function Header() {
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   
   const searchRef = useRef<HTMLDivElement>(null);
-  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
-  const categoriesBtnRef = useRef<HTMLButtonElement>(null);
   
   const touchStartX = useRef(0);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -72,9 +70,6 @@ export default function Header() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
-      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
       if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
@@ -174,29 +169,31 @@ export default function Header() {
 
   return (
     <>
+      {/* Touch detection overlay for mobile */}
       <div 
-        className="fixed inset-0 z-[60] pointer-events-none md:hidden"
+        className="fixed inset-0 z-[60] pointer-events-none hidden max-md:block"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       />
 
+      {/* Overlay */}
       <div 
         ref={overlayRef}
-        className={`fixed inset-0 bg-black/50 z-[70] transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 bg-black/50 z-[70] transition-opacity duration-300 ${
           drawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={handleDrawerClose}
       />
 
+      {/* Mobile Drawer */}
       <div 
         ref={drawerRef}
-        className={`fixed top-0 right-0 h-full w-[85%] max-w-[340px] bg-gray-50 z-[80] md:hidden ${
-          isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'
-        }`}
+        className={`fixed top-0 right-0 h-full w-[85%] max-w-[340px] bg-gray-50 z-[80] transition-transform duration-300 ease-out`}
         style={{ transform: drawerTransform }}
       >
         <div className="h-full flex flex-col">
+          {/* Drawer Header */}
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-5 pt-6 pb-5 flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <Link to="/" className="flex items-center gap-2" onClick={handleNavClick}>
@@ -209,12 +206,16 @@ export default function Header() {
                   </div>
                 )}
               </Link>
-              <button onClick={handleDrawerClose} className="p-2 hover:bg-white/10 rounded-full">
+              <button 
+                onClick={handleDrawerClose} 
+                className="p-2.5 hover:bg-white/10 rounded-full active:bg-white/20 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              >
                 <X className="w-5 h-5 text-white/80" />
               </button>
             </div>
 
-            {isLoggedIn && user && (
+            {/* User Info */}
+            {isLoggedIn && user ? (
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#B8962E] rounded-full flex items-center justify-center text-black font-bold text-lg">
@@ -226,10 +227,12 @@ export default function Header() {
                   </div>
                 </div>
               </div>
-            )}
-
-            {!isLoggedIn && (
-              <Link to="/account" onClick={handleNavClick} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+            ) : (
+              <Link 
+                to="/account" 
+                onClick={handleNavClick} 
+                className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl p-4 active:bg-white/20 transition-colors"
+              >
                 <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#B8962E] rounded-full flex items-center justify-center">
                   <UserCircle className="w-6 h-6 text-black" />
                 </div>
@@ -242,7 +245,9 @@ export default function Header() {
             )}
           </div>
 
+          {/* Drawer Navigation */}
           <nav className="flex-1 overflow-y-auto py-4">
+            {/* Menu Section */}
             <div className="px-4 mb-4">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Menu</p>
               <div className="space-y-1">
@@ -253,10 +258,10 @@ export default function Header() {
                       key={link.path}
                       to={link.path}
                       onClick={handleNavClick}
-                      className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+                      className={`flex items-center gap-3 px-3 py-3.5 rounded-xl transition-all min-h-[48px] ${
                         isActive(link.path)
                           ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
-                          : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                          : 'text-gray-700 active:bg-gray-100'
                       }`}
                     >
                       <div className={`p-2 rounded-lg ${isActive(link.path) ? 'bg-[#D4AF37]/20' : 'bg-gray-100'}`}>
@@ -271,10 +276,15 @@ export default function Header() {
 
             <div className="mx-4 my-2"><div className="h-px bg-gray-200" /></div>
 
+            {/* Categories Section */}
             <div className="px-4 mb-4">
               <div className="flex items-center justify-between px-3 mb-3">
                 <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Categories</p>
-                <Link to="/categories" onClick={handleNavClick} className="text-xs text-[#D4AF37] hover:text-[#B8962E] font-medium">
+                <Link 
+                  to="/categories" 
+                  onClick={handleNavClick} 
+                  className="text-xs text-[#D4AF37] hover:text-[#B8962E] font-medium active:scale-95 transition-transform"
+                >
                   View All
                 </Link>
               </div>
@@ -286,7 +296,7 @@ export default function Header() {
                       key={category.id}
                       to={`/products?category=${encodeURIComponent(category.name)}`}
                       onClick={handleNavClick}
-                      className="flex items-center gap-2.5 p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all"
+                      className="flex items-center gap-2.5 p-3 bg-white rounded-xl shadow-sm active:scale-[0.98] transition-transform min-h-[56px]"
                     >
                       {category.image ? (
                         <img src={category.image} alt={category.name} className="w-9 h-9 rounded-lg object-cover" />
@@ -304,27 +314,47 @@ export default function Header() {
 
             <div className="mx-4 my-2"><div className="h-px bg-gray-200" /></div>
 
+            {/* Account Section */}
             <div className="px-4">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Account</p>
               {isLoggedIn ? (
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                  <Link to="/account" onClick={handleNavClick} className={`flex items-center gap-3 px-4 py-3.5 ${isActive("/account") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700'}`}>
+                  <Link 
+                    to="/account" 
+                    onClick={handleNavClick} 
+                    className={`flex items-center gap-3 px-4 py-3.5 min-h-[48px] ${isActive("/account") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700 active:bg-gray-50'}`}
+                  >
                     <div className="p-2 bg-gray-100 rounded-lg"><UserCircle className="w-5 h-5" /></div>
                     <span className="font-medium">My Account</span>
                   </Link>
-                  <Link to="/wishlist" onClick={handleNavClick} className={`flex items-center gap-3 px-4 py-3.5 ${isActive("/wishlist") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700'}`}>
+                  <Link 
+                    to="/wishlist" 
+                    onClick={handleNavClick} 
+                    className={`flex items-center gap-3 px-4 py-3.5 min-h-[48px] ${isActive("/wishlist") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700 active:bg-gray-50'}`}
+                  >
                     <div className="p-2 bg-gray-100 rounded-lg"><Heart className="w-5 h-5" /></div>
                     <span className="font-medium">Wishlist</span>
-                    {wishlist.length > 0 && <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2 py-0.5 rounded-full">{wishlist.length}</span>}
+                    {wishlist.length > 0 && (
+                      <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                        {wishlist.length}
+                      </span>
+                    )}
                   </Link>
                   <div className="h-px bg-gray-100 mx-4" />
-                  <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3.5 text-red-600 hover:bg-red-50 w-full">
+                  <button 
+                    onClick={handleLogout} 
+                    className="flex items-center gap-3 px-4 py-3.5 text-red-600 active:bg-red-50 w-full min-h-[48px]"
+                  >
                     <div className="p-2 bg-red-50 rounded-lg"><LogOut className="w-5 h-5" /></div>
                     <span className="font-medium">Logout</span>
                   </button>
                 </div>
               ) : (
-                <Link to="/account" onClick={handleNavClick} className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-xl text-black font-semibold">
+                <Link 
+                  to="/account" 
+                  onClick={handleNavClick} 
+                  className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-xl text-black font-semibold active:scale-[0.98] transition-transform min-h-[48px]"
+                >
                   <UserCircle className="w-5 h-5" />
                   <span>Login / Register</span>
                 </Link>
@@ -334,10 +364,96 @@ export default function Header() {
         </div>
       </div>
 
+      {/* MOBILE HEADER */}
+      <header className="sticky top-0 z-50 bg-white shadow-sm md:hidden">
+        {/* Mobile Top Row */}
+        <div className="px-4">
+          <div className="flex items-center justify-between h-14">
+            {/* Hamburger Menu */}
+            <button 
+              onClick={() => setDrawerOpen(true)} 
+              className="p-2.5 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2"
+            >
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2">
+              {storeProfile.storeLogo ? (
+                <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-8 w-auto" />
+              ) : (
+                <div className="text-lg font-bold text-center">
+                  <span className="text-black">{storeProfile.storeName}</span>
+                  <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
+                </div>
+              )}
+            </Link>
+
+            {/* Icons */}
+            <div className="flex items-center gap-1">
+              <Link 
+                to="/account" 
+                className="p-2.5 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              >
+                <User className="w-5 h-5 text-gray-700" />
+              </Link>
+
+              <Link 
+                to="/cart" 
+                className="p-2.5 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center relative"
+              >
+                <ShoppingCart className="w-5 h-5 text-gray-700" />
+                {cartCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-[#D4AF37] text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Search */}
+        <div className="px-4 pb-3" ref={searchRef}>
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-4 pr-12 py-3 bg-gray-100 text-black border-0 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+            />
+            <button 
+              type="submit"
+              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 bg-[#D4AF37] rounded-full active:bg-[#C5A028] transition-colors"
+            >
+              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                {suggestions.map((product) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => handleSuggestionClick(product.name)}
+                    className="w-full text-left px-4 py-3 active:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                  >
+                    <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                    <div className="text-xs text-gray-500">{product.category}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </form>
+        </div>
+      </header>
+
       {/* DESKTOP HEADER */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-white shadow-sm hidden md:block">
         {/* Top Row */}
-        <div className="border-b border-gray-100 shadow-sm">
+        <div className="border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center h-16">
               {/* Logo - Fixed Width */}
@@ -414,17 +530,13 @@ export default function Header() {
                     </span>
                   )}
                 </Link>
-
-                <button onClick={() => setDrawerOpen(true)} className="md:hidden p-2.5 hover:bg-gray-100 rounded-full transition-colors">
-                  <Menu className="w-5 h-5 text-gray-700" />
-                </button>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Row - Navigation */}
-        <div className="bg-black hidden md:block shadow-lg">
+        <div className="bg-black">
           <div className="max-w-7xl mx-auto px-6">
             <nav className="flex items-center justify-center">
               <ul className="flex items-center">
@@ -442,7 +554,6 @@ export default function Header() {
                           onMouseLeave={() => setShowCategoriesDropdown(false)}
                         >
                           <button 
-                            ref={categoriesBtnRef}
                             className={`flex items-center gap-2 px-6 py-5 text-sm font-medium transition-colors ${
                               isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
                             }`}
@@ -508,27 +619,6 @@ export default function Header() {
               </ul>
             </nav>
           </div>
-        </div>
-
-        {/* Mobile Search */}
-        <div className="md:hidden px-4 py-3 bg-white border-t border-gray-100" ref={mobileSearchRef}>
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input
-              type="text"
-              placeholder="Search for products..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-4 pr-12 py-3 bg-gray-100 text-black border-0 rounded-full text-sm"
-            />
-            <button 
-              type="submit"
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 bg-[#D4AF37] rounded-full"
-            >
-              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </form>
         </div>
       </header>
     </>
