@@ -286,13 +286,27 @@ export default function Account() {
   };
 
   const handleSaveProfile = async () => {
+    const phoneRegex = /^(\+94|0)?[1-9][0-9]{8}$/;
+    if (editPhone && !phoneRegex.test(editPhone.replace(/\s/g, ''))) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+    
+    if (!editAddress.trim()) {
+      toast.error("Please enter your address");
+      return;
+    }
+
     setIsSavingProfile(true);
     try {
       await updateProfile({
-        phone: editPhone,
-        address: editAddress,
+        phone: editPhone.trim(),
+        address: editAddress.trim(),
       });
       setIsEditingProfile(false);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update profile");
     } finally {
       setIsSavingProfile(false);
     }
