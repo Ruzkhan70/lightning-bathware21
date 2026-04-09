@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Building2 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 
 export default function Footer() {
@@ -39,6 +39,7 @@ export default function Footer() {
               <li><Link to="/services" className="text-gray-400 hover:text-[#D4AF37] transition-colors">{siteContent.footer.servicesLink}</Link></li>
               <li><Link to="/about" className="text-gray-400 hover:text-[#D4AF37] transition-colors">{siteContent.footer.aboutLink}</Link></li>
               <li><Link to="/contact" className="text-gray-400 hover:text-[#D4AF37] transition-colors">{siteContent.footer.contactLink}</Link></li>
+              <li><Link to="/bulk-order" className="text-gray-400 hover:text-[#D4AF37] transition-colors flex items-center gap-2"><Building2 className="w-4 h-4" />Bulk Orders</Link></li>
             </ul>
           </div>
 

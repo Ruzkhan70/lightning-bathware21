@@ -1,8 +1,9 @@
 import { useState, memo, useCallback, useMemo } from "react";
-import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
+import { Heart, ShoppingCart, Eye, Sparkles, GitCompare } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useComparison } from "../context/ComparisonContext";
 import { Product, useAdmin } from "../context/AdminContext";
 import { toast } from "sonner";
 import ProductModal from "./ProductModal";
@@ -16,6 +17,7 @@ interface ProductCardProps {
 const ProductCardComponent = memo(function ProductCardComponent({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useComparison();
   const { getProductDiscount } = useAdmin();
   const [showModal, setShowModal] = useState(false);
   
@@ -25,6 +27,7 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
     : product.price;
   
   const inWishlist = isInWishlist(product.id);
+  const inCompare = isInCompare(product.id);
 
   const handleAddToCart = useCallback(() => {
     addToCart(product);
@@ -48,6 +51,21 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
   }, []);
+
+  const handleToggleCompare = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (inCompare) {
+      removeFromCompare(product.id);
+      toast.success("Removed from comparison");
+    } else {
+      if (canAddMore) {
+        addToCompare(product.id);
+        toast.success("Added to comparison");
+      } else {
+        toast.error("Maximum 4 products can be compared");
+      }
+    }
+  }, [inCompare, canAddMore, addToCompare, removeFromCompare, product.id]);
 
   return (
     <>
@@ -87,6 +105,18 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
                   : "text-black group-hover/heart:text-white"
               }`}
             />
+          </button>
+
+          <button
+            onClick={handleToggleCompare}
+            className={`absolute top-3 left-3 p-2 min-w-[36px] min-h-[36px] rounded-lg transition-all z-10 flex items-center justify-center ${
+              inCompare
+                ? "bg-[#D4AF37] text-black"
+                : "bg-white/90 hover:bg-[#D4AF37] text-black"
+            }`}
+            title={inCompare ? "Remove from comparison" : "Add to comparison"}
+          >
+            <GitCompare className="w-4 h-4" />
           </button>
 
           {discount.hasDiscount && discount.discountPercentage && (

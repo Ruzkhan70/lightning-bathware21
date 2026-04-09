@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { setMetaTags } from "../utils/seo";
 import { useSearchParams } from "react-router";
-import { Filter, X } from "lucide-react";
+import { Filter, X, Search, Star } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import {
   Select,
   SelectContent,
@@ -24,7 +25,49 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
+  const [customMinPrice, setCustomMinPrice] = useState<number | "">("");
+  const [customMaxPrice, setCustomMaxPrice] = useState<number | "">("");
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [localSearch, setLocalSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(localSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
+  // Get unique brands from products
+  const availableBrands = useMemo(() => {
+    const brands = new Set<string>();
+    safeProducts.forEach(p => {
+      if (p.brand) brands.add(p.brand);
+    });
+    return Array.from(brands).sort();
+  }, [safeProducts]);
+
+  // Rating options
+  const ratingOptions = [5, 4, 3, 2, 1];
+
+  const toggleBrand = (brand: string) => {
+    setSelectedBrands(prev =>
+      prev.includes(brand)
+        ? prev.filter(b => b !== brand)
+        : [...prev, brand]
+    );
+  };
+
+  const toggleRating = (rating: number) => {
+    setSelectedRatings(prev =>
+      prev.includes(rating)
+        ? prev.filter(r => r !== rating)
+        : [...prev, rating]
+    );
+  };
 
   // Initialize category from URL params ONCE on mount
   useEffect(() => {
@@ -52,15 +95,16 @@ export default function Products() {
   const filteredProducts = useMemo(() => {
     let result = [...safeProducts];
 
-    // Search filter from URL params
-    const searchQuery = searchParams.get("search");
+    // Search filter from URL params OR local search
+    const searchQuery = searchParams.get("search") || debouncedSearch;
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(lowerQuery) ||
           p.description.toLowerCase().includes(lowerQuery) ||
-          p.category.toLowerCase().includes(lowerQuery)
+          p.category.toLowerCase().includes(lowerQuery) ||
+          (p.brand && p.brand.toLowerCase().includes(lowerQuery))
       );
     }
 
@@ -71,7 +115,7 @@ export default function Products() {
       result = result.filter((p) => p.category === activeCategory);
     }
 
-    // Price range filter
+    // Price range filter - preset ranges
     if (priceRange !== "all") {
       if (priceRange === "0-5000") {
         result = result.filter((p) => p.price < 5000);
@@ -84,6 +128,25 @@ export default function Products() {
       }
     }
 
+    // Custom price range filter
+    if (customMinPrice !== "" || customMaxPrice !== "") {
+      result = result.filter((p) => {
+        const min = customMinPrice !== "" ? p.price >= customMinPrice : true;
+        const max = customMaxPrice !== "" ? p.price <= customMaxPrice : true;
+        return min && max;
+      });
+    }
+
+    // Brand filter
+    if (selectedBrands.length > 0) {
+      result = result.filter((p) => p.brand && selectedBrands.includes(p.brand));
+    }
+
+    // Rating filter
+    if (selectedRatings.length > 0) {
+      result = result.filter((p) => p.rating && selectedRatings.some(r => p.rating! >= r));
+    }
+
     // Sort (create a copy to avoid mutating original)
     if (sortBy === "price-low") {
       return [...result].sort((a, b) => a.price - b.price);
@@ -91,10 +154,12 @@ export default function Products() {
       return [...result].sort((a, b) => b.price - a.price);
     } else if (sortBy === "name") {
       return [...result].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "rating") {
+      return [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
 
     return result;
-  }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
+  }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange, customMinPrice, customMaxPrice, selectedBrands, selectedRatings, debouncedSearch]);
 
   useEffect(() => {
     setMetaTags(
@@ -107,7 +172,18 @@ export default function Products() {
     setSelectedCategory("all");
     setSortBy("default");
     setPriceRange("all");
+    setCustomMinPrice("");
+    setCustomMaxPrice("");
+    setSelectedBrands([]);
+    setSelectedRatings([]);
+    setLocalSearch("");
+    setDebouncedSearch("");
   };
+
+  const hasActiveFilters = selectedCategory !== "all" || priceRange !== "all" || 
+    customMinPrice !== "" || customMaxPrice !== "" || 
+    selectedBrands.length > 0 || selectedRatings.length > 0 || 
+    debouncedSearch !== "";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -143,12 +219,29 @@ export default function Products() {
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-bold text-lg">Filters</h2>
-                <button
-                  onClick={clearFilters}
-                  className="text-sm text-[#D4AF37] hover:underline"
-                >
-                  Clear All
-                </button>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-sm text-[#D4AF37] hover:underline"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              {/* Search Filter */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Search</h3>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search products..."
+                    value={localSearch}
+                    onChange={(e) => setLocalSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
               </div>
 
               {/* Category Filter */}
@@ -194,10 +287,93 @@ export default function Products() {
                         type="radio"
                         name="price"
                         checked={priceRange === range.value}
-                        onChange={() => setPriceRange(range.value)}
+                        onChange={() => {
+                          setPriceRange(range.value);
+                          setCustomMinPrice("");
+                          setCustomMaxPrice("");
+                        }}
                         className="w-4 h-4 accent-[#D4AF37]"
                       />
                       <span>{range.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {/* Custom Price Range */}
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-gray-600 mb-2">Custom Range</p>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={customMinPrice}
+                      onChange={(e) => {
+                        setCustomMinPrice(e.target.value ? Number(e.target.value) : "");
+                        setPriceRange("all");
+                      }}
+                      className="w-full"
+                    />
+                    <span className="text-gray-400">-</span>
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={customMaxPrice}
+                      onChange={(e) => {
+                        setCustomMaxPrice(e.target.value ? Number(e.target.value) : "");
+                        setPriceRange("all");
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Brand Filter */}
+              {availableBrands.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold mb-3">Brand</h3>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {availableBrands.map((brand) => (
+                      <label
+                        key={brand}
+                        className="flex items-center gap-2 cursor-pointer hover:text-[#D4AF37] transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedBrands.includes(brand)}
+                          onChange={() => toggleBrand(brand)}
+                          className="w-4 h-4 accent-[#D4AF37]"
+                        />
+                        <span className="text-sm">{brand}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rating Filter */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Rating</h3>
+                <div className="space-y-2">
+                  {ratingOptions.map((rating) => (
+                    <label
+                      key={rating}
+                      className="flex items-center gap-2 cursor-pointer hover:text-[#D4AF37] transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRatings.includes(rating)}
+                        onChange={() => toggleRating(rating)}
+                        className="w-4 h-4 accent-[#D4AF37]"
+                      />
+                      <span className="flex items-center gap-1">
+                        {[...Array(rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                        {[...Array(5 - rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 text-gray-300" />
+                        ))}
+                        <span className="text-sm ml-1">& up</span>
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -229,6 +405,9 @@ export default function Products() {
                   <SelectItem value="price-high">
                     Price (High to Low)
                   </SelectItem>
+                  <SelectItem value="rating">
+                    Highest Rated
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -241,6 +420,21 @@ export default function Products() {
                   <button onClick={() => setShowMobileFilters(false)}>
                     <X className="w-5 h-5" />
                   </button>
+                </div>
+
+                {/* Search Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold mb-3">Search</h3>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder="Search products..."
+                      value={localSearch}
+                      onChange={(e) => setLocalSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
 
                 {/* Category Filter */}
@@ -286,25 +480,115 @@ export default function Products() {
                           type="radio"
                           name="price-mobile"
                           checked={priceRange === range.value}
-                          onChange={() => setPriceRange(range.value)}
+                          onChange={() => {
+                            setPriceRange(range.value);
+                            setCustomMinPrice("");
+                            setCustomMaxPrice("");
+                          }}
                           className="w-4 h-4 accent-[#D4AF37]"
                         />
                         <span>{range.label}</span>
                       </label>
                     ))}
                   </div>
+                  {/* Custom Price Range */}
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-sm text-gray-600 mb-2">Custom Range</p>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        value={customMinPrice}
+                        onChange={(e) => {
+                          setCustomMinPrice(e.target.value ? Number(e.target.value) : "");
+                          setPriceRange("all");
+                        }}
+                        className="w-full"
+                      />
+                      <span className="text-gray-400">-</span>
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        value={customMaxPrice}
+                        onChange={(e) => {
+                          setCustomMaxPrice(e.target.value ? Number(e.target.value) : "");
+                          setPriceRange("all");
+                        }}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <Button
-                  onClick={() => {
-                    clearFilters();
-                    setShowMobileFilters(false);
-                  }}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Clear All Filters
-                </Button>
+                {/* Brand Filter */}
+                {availableBrands.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold mb-3">Brand</h3>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {availableBrands.map((brand) => (
+                        <label
+                          key={brand}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedBrands.includes(brand)}
+                            onChange={() => toggleBrand(brand)}
+                            className="w-4 h-4 accent-[#D4AF37]"
+                          />
+                          <span className="text-sm">{brand}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rating Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold mb-3">Rating</h3>
+                  <div className="space-y-2">
+                    {ratingOptions.map((rating) => (
+                      <label
+                        key={rating}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRatings.includes(rating)}
+                          onChange={() => toggleRating(rating)}
+                          className="w-4 h-4 accent-[#D4AF37]"
+                        />
+                        <span className="flex items-center gap-1">
+                          {[...Array(rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                          {[...Array(5 - rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 text-gray-300" />
+                          ))}
+                          <span className="text-sm ml-1">& up</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      clearFilters();
+                    }}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    Clear All
+                  </Button>
+                  <Button
+                    onClick={() => setShowMobileFilters(false)}
+                    className="flex-1"
+                  >
+                    Apply
+                  </Button>
+                </div>
               </div>
             )}
 

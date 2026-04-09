@@ -14,6 +14,7 @@ import {
 } from "../../components/ui/select";
 import { toast } from "sonner";
 import { generateProductDescription } from "../../../lib/openai";
+import { convertToWebPIfSupported, getImageSizeKB, isWebPSupported } from "../../utils/imageUtils";
 
 interface BulkProduct {
   id: string;
@@ -37,6 +38,8 @@ export default function AdminAddProduct() {
     isAvailable: true,
     description: "",
     image: "",
+    brand: "",
+    rating: 0,
   });
 
   const [showBulkUpload, setShowBulkUpload] = useState(false);
@@ -149,10 +152,23 @@ export default function AdminAddProduct() {
   };
 
   const handleImageUpload = async (productId: string, file: File) => {
-    const formData = new FormData();
-    formData.append("image", file);
-
     try {
+      let fileToUpload = file;
+      let wasConverted = false;
+      
+      const { file: convertedFile, converted } = await convertToWebPIfSupported(file, 0.85, 1200, 1200);
+      fileToUpload = convertedFile;
+      wasConverted = converted;
+
+      if (wasConverted) {
+        const originalSize = getImageSizeKB(file);
+        const newSize = getImageSizeKB(fileToUpload);
+        console.log(`Image converted to WebP: ${originalSize} → ${newSize}`);
+      }
+
+      const formData = new FormData();
+      formData.append("image", fileToUpload);
+
       const response = await fetch(
         `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
         { method: "POST", body: formData }
@@ -161,14 +177,12 @@ export default function AdminAddProduct() {
       
       if (data.success) {
         handleUpdateProduct(productId, "image", data.data.url);
-        toast.success("Image uploaded!");
+        toast.success(`Image uploaded${wasConverted ? " (WebP)" : ""}!`);
       } else {
-        // Fallback: use file URL
-        const url = URL.createObjectURL(file);
+        const url = URL.createObjectURL(fileToUpload);
         handleUpdateProduct(productId, "image", url);
       }
     } catch (error) {
-      // Fallback: use object URL
       const url = URL.createObjectURL(file);
       handleUpdateProduct(productId, "image", url);
     }
@@ -538,6 +552,8 @@ export default function AdminAddProduct() {
         ...formData,
         name: formData.name.trim(),
         description: formData.description.trim(),
+        brand: formData.brand.trim() || undefined,
+        rating: formData.rating || undefined,
       });
       toast.success("Product added successfully!");
 
@@ -548,6 +564,8 @@ export default function AdminAddProduct() {
         isAvailable: true,
         description: "",
         image: "",
+        brand: "",
+        rating: 0,
       });
     };
 
@@ -615,6 +633,31 @@ export default function AdminAddProduct() {
           />
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="brand">Brand</Label>
+            <Input
+              id="brand"
+              value={formData.brand}
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+              placeholder="e.g., Philips, Grohe"
+            />
+          </div>
+          <div>
+            <Label htmlFor="rating">Rating (1-5)</Label>
+            <Input
+              id="rating"
+              type="number"
+              min="1"
+              max="5"
+              step="0.5"
+              value={formData.rating || ""}
+              onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 })}
+              placeholder="e.g., 4.5"
+            />
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="description">
             Description <span className="text-red-500">*</span>
@@ -667,7 +710,7 @@ export default function AdminAddProduct() {
             type="button"
             size="lg"
             variant="outline"
-            onClick={() => setFormData({ name: "", category: "", price: 0, isAvailable: true, description: "", image: "" })}
+            onClick={() => setFormData({ name: "", category: "", price: 0, isAvailable: true, description: "", image: "", brand: "", rating: 0 })}
           >
             Clear Form
           </Button>
@@ -707,8 +750,21 @@ export default function AdminAddProduct() {
     const uploadImage = async (file: File) => {
       setIsUploading(true);
       try {
+        let fileToUpload = file;
+        let wasConverted = false;
+        
+        const { file: convertedFile, converted } = await convertToWebPIfSupported(file, 0.85, 1200, 1200);
+        fileToUpload = convertedFile;
+        wasConverted = converted;
+
+        if (wasConverted) {
+          const originalSize = getImageSizeKB(file);
+          const newSize = getImageSizeKB(fileToUpload);
+          toast.success(`Image optimized: ${originalSize} → ${newSize} (WebP)`, { duration: 3000 });
+        }
+
         const formDataObj = new FormData();
-        formDataObj.append("image", file);
+        formDataObj.append("image", fileToUpload);
 
         const response = await fetch(
           `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
@@ -720,8 +776,7 @@ export default function AdminAddProduct() {
           setFormData({ ...formData, image: data.data.url });
           toast.success("Image uploaded!");
         } else {
-          // Fallback
-          const url = URL.createObjectURL(file);
+          const url = URL.createObjectURL(fileToUpload);
           setFormData({ ...formData, image: url });
         }
       } catch (error) {

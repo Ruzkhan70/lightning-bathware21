@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useUser } from "./UserContext";
@@ -9,6 +9,9 @@ interface WishlistContextType {
   removeFromWishlist: (id: string) => void;
   isInWishlist: (id: string) => boolean;
   isLoading: boolean;
+  shareWishlist: () => string;
+  addMultipleToWishlist: (ids: string[]) => void;
+  getShareableUrl: () => string;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(
@@ -90,6 +93,47 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     return wishlist.includes(id);
   };
 
+  const getShareableUrl = useCallback(() => {
+    if (wishlist.length === 0) return "";
+    const baseUrl = window.location.origin;
+    const encodedIds = btoa(wishlist.join(","));
+    return `${baseUrl}?wishlist=${encodedIds}`;
+  }, [wishlist]);
+
+  const shareWishlist = useCallback(async () => {
+    if (wishlist.length === 0) return "";
+    
+    const url = getShareableUrl();
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "My Wishlist",
+          text: "Check out my wishlist from Lightning Bathware!",
+          url: url,
+        });
+        return url;
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          await navigator.clipboard.writeText(url);
+          return url;
+        }
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      return url;
+    }
+    return url;
+  }, [wishlist, getShareableUrl]);
+
+  const addMultipleToWishlist = useCallback((ids: string[]) => {
+    setWishlist((prev) => {
+      const uniqueIds = ids.filter((id) => !prev.includes(id));
+      if (uniqueIds.length === 0) return prev;
+      return [...prev, ...uniqueIds];
+    });
+  }, []);
+
   return (
     <WishlistContext.Provider
       value={{
@@ -98,6 +142,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         removeFromWishlist,
         isInWishlist,
         isLoading,
+        shareWishlist,
+        addMultipleToWishlist,
+        getShareableUrl,
       }}
     >
       {children}

@@ -3,10 +3,11 @@ import Header from "./Header";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
 import AnnouncementBanner from "./AnnouncementBanner";
+import CompareBar from "./CompareBar";
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white pb-16">
       <ScrollToTop />
       <Header />
       <AnnouncementBanner />
@@ -14,6 +15,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <CompareBar />
     </div>
   );
 }

@@ -39,6 +39,8 @@ export default function AdminProducts() {
     isAvailable: true,
     description: "",
     image: "",
+    brand: "",
+    rating: 0,
   });
 
   const safeProducts = products || [];
@@ -98,6 +100,8 @@ export default function AdminProducts() {
         isAvailable: product.isAvailable,
         description: product.description,
         image: product.image,
+        brand: product.brand || "",
+        rating: product.rating || 0,
       });
       setEditingProduct(productId);
     }
@@ -533,6 +537,35 @@ export default function AdminProducts() {
                     Not Available
                   </button>
                 </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-brand">Brand</Label>
+                <Input
+                  id="edit-brand"
+                  value={formData.brand}
+                  onChange={(e) =>
+                    setFormData({ ...formData, brand: e.target.value })
+                  }
+                  placeholder="e.g., Philips, Grohe"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-rating">Rating (1-5)</Label>
+                <Input
+                  id="edit-rating"
+                  type="number"
+                  min="1"
+                  max="5"
+                  step="0.5"
+                  value={formData.rating || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 })
+                  }
+                  placeholder="e.g., 4.5"
+                />
               </div>
             </div>
 
