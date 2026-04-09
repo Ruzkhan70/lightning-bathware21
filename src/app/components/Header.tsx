@@ -194,7 +194,7 @@ export default function Header() {
       >
         <div className="h-full flex flex-col">
           {/* Drawer Header */}
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-5 pt-6 pb-5 flex-shrink-0">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-5 pt-6 pb-6 flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <Link to="/" className="flex items-center gap-2" onClick={handleNavClick}>
                 {storeProfile.storeLogo ? (
@@ -258,16 +258,16 @@ export default function Header() {
                       key={link.path}
                       to={link.path}
                       onClick={handleNavClick}
-                      className={`flex items-center gap-3 px-3 py-3.5 rounded-xl transition-all min-h-[48px] ${
+                      className={`flex items-center gap-3 px-3 py-4 rounded-xl transition-all min-h-[52px] ${
                         isActive(link.path)
                           ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
                           : 'text-gray-700 active:bg-gray-100'
                       }`}
                     >
-                      <div className={`p-2 rounded-lg ${isActive(link.path) ? 'bg-[#D4AF37]/20' : 'bg-gray-100'}`}>
+                      <div className={`p-2.5 rounded-lg ${isActive(link.path) ? 'bg-[#D4AF37]/20' : 'bg-gray-100'}`}>
                         <Icon className={`w-5 h-5 ${isActive(link.path) ? 'text-[#D4AF37]' : 'text-gray-500'}`} />
                       </div>
-                      <span className="font-medium">{link.name}</span>
+                      <span className="font-medium text-base">{link.name}</span>
                     </Link>
                   );
                 })}
@@ -296,16 +296,16 @@ export default function Header() {
                       key={category.id}
                       to={`/products?category=${encodeURIComponent(category.name)}`}
                       onClick={handleNavClick}
-                      className="flex items-center gap-2.5 p-3 bg-white rounded-xl shadow-sm active:scale-[0.98] transition-transform min-h-[56px]"
+                      className="flex items-center gap-2.5 p-3 bg-white rounded-xl shadow-sm active:scale-[0.98] transition-transform min-h-[60px]"
                     >
                       {category.image ? (
-                        <img src={category.image} alt={category.name} className="w-9 h-9 rounded-lg object-cover" />
+                        <img src={category.image} alt={category.name} className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color.bg}`}>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color.bg}`}>
                           <span className={`${color.text} font-bold text-sm`}>{getCategoryInitial(category.name)}</span>
                         </div>
                       )}
-                      <span className="text-xs font-medium text-gray-700 line-clamp-1">{category.name}</span>
+                      <span className="text-sm font-medium text-gray-700 line-clamp-1">{category.name}</span>
                     </Link>
                   );
                 })}
@@ -322,20 +322,20 @@ export default function Header() {
                   <Link 
                     to="/account" 
                     onClick={handleNavClick} 
-                    className={`flex items-center gap-3 px-4 py-3.5 min-h-[48px] ${isActive("/account") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700 active:bg-gray-50'}`}
+                    className={`flex items-center gap-3 px-4 py-4 min-h-[52px] ${isActive("/account") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700 active:bg-gray-50'}`}
                   >
                     <div className="p-2 bg-gray-100 rounded-lg"><UserCircle className="w-5 h-5" /></div>
-                    <span className="font-medium">My Account</span>
+                    <span className="font-medium text-base">My Account</span>
                   </Link>
                   <Link 
                     to="/wishlist" 
                     onClick={handleNavClick} 
-                    className={`flex items-center gap-3 px-4 py-3.5 min-h-[48px] ${isActive("/wishlist") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700 active:bg-gray-50'}`}
+                    className={`flex items-center gap-3 px-4 py-4 min-h-[52px] ${isActive("/wishlist") ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'text-gray-700 active:bg-gray-50'}`}
                   >
                     <div className="p-2 bg-gray-100 rounded-lg"><Heart className="w-5 h-5" /></div>
-                    <span className="font-medium">Wishlist</span>
+                    <span className="font-medium text-base">Wishlist</span>
                     {wishlist.length > 0 && (
-                      <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                      <span className="ml-auto bg-[#D4AF37] text-black text-xs font-bold px-2.5 py-0.5 rounded-full">
                         {wishlist.length}
                       </span>
                     )}
@@ -343,20 +343,20 @@ export default function Header() {
                   <div className="h-px bg-gray-100 mx-4" />
                   <button 
                     onClick={handleLogout} 
-                    className="flex items-center gap-3 px-4 py-3.5 text-red-600 active:bg-red-50 w-full min-h-[48px]"
+                    className="flex items-center gap-3 px-4 py-4 text-red-600 active:bg-red-50 w-full min-h-[52px]"
                   >
                     <div className="p-2 bg-red-50 rounded-lg"><LogOut className="w-5 h-5" /></div>
-                    <span className="font-medium">Logout</span>
+                    <span className="font-medium text-base">Logout</span>
                   </button>
                 </div>
               ) : (
                 <Link 
                   to="/account" 
                   onClick={handleNavClick} 
-                  className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-xl text-black font-semibold active:scale-[0.98] transition-transform min-h-[48px]"
+                  className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#D4AF37] to-[#B8962E] rounded-xl text-black font-semibold active:scale-[0.98] transition-transform min-h-[52px]"
                 >
                   <UserCircle className="w-5 h-5" />
-                  <span>Login / Register</span>
+                  <span className="text-base">Login / Register</span>
                 </Link>
               )}
             </div>
@@ -367,12 +367,12 @@ export default function Header() {
       {/* MOBILE HEADER */}
       <header className="sticky top-0 z-50 bg-white shadow-sm md:hidden">
         {/* Mobile Top Row */}
-        <div className="px-4">
-          <div className="flex items-center justify-between h-14">
+        <div className="px-5 py-4">
+          <div className="flex items-center justify-between">
             {/* Hamburger Menu */}
             <button 
               onClick={() => setDrawerOpen(true)} 
-              className="p-2.5 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2"
+              className="p-3 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center -ml-2"
             >
               <Menu className="w-6 h-6 text-gray-700" />
             </button>
@@ -380,9 +380,9 @@ export default function Header() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
               {storeProfile.storeLogo ? (
-                <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-8 w-auto" />
+                <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-10 w-auto" />
               ) : (
-                <div className="text-lg font-bold text-center">
+                <div className="text-xl font-bold text-center">
                   <span className="text-black">{storeProfile.storeName}</span>
                   <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
                 </div>
@@ -390,17 +390,17 @@ export default function Header() {
             </Link>
 
             {/* Icons */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Link 
                 to="/account" 
-                className="p-2.5 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
               >
                 <User className="w-5 h-5 text-gray-700" />
               </Link>
 
               <Link 
                 to="/cart" 
-                className="p-2.5 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center relative"
+                className="p-3 hover:bg-gray-100 rounded-full active:bg-gray-200 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center relative"
               >
                 <ShoppingCart className="w-5 h-5 text-gray-700" />
                 {cartCount > 0 && (
@@ -414,20 +414,20 @@ export default function Header() {
         </div>
 
         {/* Mobile Search */}
-        <div className="px-4 pb-3" ref={searchRef}>
+        <div className="px-5 pb-4" ref={searchRef}>
           <form onSubmit={handleSearchSubmit} className="relative">
             <input
               type="text"
               placeholder="Search for products..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-4 pr-12 py-3 bg-gray-100 text-black border-0 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+              className="w-full pl-5 pr-14 py-4 bg-gray-100 text-black border-0 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
             />
             <button 
               type="submit"
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 bg-[#D4AF37] rounded-full active:bg-[#C5A028] transition-colors"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2.5 bg-[#D4AF37] rounded-full active:bg-[#C5A028] transition-colors"
             >
-              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
@@ -438,10 +438,10 @@ export default function Header() {
                     key={product.id}
                     type="button"
                     onClick={() => handleSuggestionClick(product.name)}
-                    className="w-full text-left px-4 py-3 active:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                    className="w-full text-left px-4 py-4 active:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
                   >
-                    <div className="font-medium text-sm text-gray-900">{product.name}</div>
-                    <div className="text-xs text-gray-500">{product.category}</div>
+                    <div className="font-medium text-base text-gray-900">{product.name}</div>
+                    <div className="text-sm text-gray-500">{product.category}</div>
                   </button>
                 ))}
               </div>
@@ -451,18 +451,18 @@ export default function Header() {
       </header>
 
       {/* DESKTOP HEADER */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm hidden md:block">
+      <header className="sticky top-0 z-50 bg-white shadow-md">
         {/* Top Row */}
         <div className="border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="flex items-center h-16">
+            <div className="flex items-center h-20">
               {/* Logo - Fixed Width */}
-              <div className="w-48 flex-shrink-0 pl-2">
+              <div className="w-56 flex-shrink-0 pl-4">
                 <Link to="/" className="flex items-center">
                   {storeProfile.storeLogo ? (
-                    <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-10 w-auto" />
+                    <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-12 w-auto" />
                   ) : (
-                    <div className="text-xl font-bold">
+                    <div className="text-2xl font-bold">
                       <span className="text-black">{storeProfile.storeName}</span>
                       <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
                     </div>
@@ -471,35 +471,35 @@ export default function Header() {
               </div>
 
               {/* Search Bar - Centered */}
-              <div className="flex-1 flex justify-center px-8" ref={searchRef}>
-                <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xl">
+              <div className="flex-1 flex justify-center px-10" ref={searchRef}>
+                <form onSubmit={handleSearchSubmit} className="relative w-full max-w-2xl">
                   <input
                     type="text"
                     placeholder="Search for products..."
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-                    className="w-full pl-5 pr-14 py-2.5 bg-gray-100 text-black border-0 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 transition-all placeholder:text-gray-400"
+                    className="w-full pl-6 pr-16 py-4 bg-gray-100 text-black border-0 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 transition-all placeholder:text-gray-400"
                   />
                   <button 
                     type="submit"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 bg-[#D4AF37] rounded-full hover:bg-[#C5A028] transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-[#D4AF37] rounded-full hover:bg-[#C5A028] transition-colors"
                   >
-                    <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   </button>
                   {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
                       {suggestions.map((product) => (
                         <button
                           key={product.id}
                           type="button"
                           onClick={() => handleSuggestionClick(product.name)}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                          className="w-full text-left px-5 py-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
                         >
-                          <div className="font-medium text-sm text-gray-900">{product.name}</div>
-                          <div className="text-xs text-gray-500">{product.category}</div>
+                          <div className="font-medium text-base text-gray-900">{product.name}</div>
+                          <div className="text-sm text-gray-500">{product.category}</div>
                         </button>
                       ))}
                     </div>
@@ -508,24 +508,24 @@ export default function Header() {
               </div>
 
               {/* Icons - Fixed Width */}
-              <div className="w-48 flex-shrink-0 flex items-center justify-end gap-3 pr-2">
-                <Link to="/account" className="p-2.5 hover:bg-gray-100 rounded-full transition-colors group">
-                  <User className="w-5 h-5 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
+              <div className="w-56 flex-shrink-0 flex items-center justify-end gap-4 pr-4">
+                <Link to="/account" className="p-3 hover:bg-gray-100 rounded-full transition-colors group">
+                  <User className="w-6 h-6 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
                 </Link>
 
-                <Link to="/wishlist" className="p-2.5 hover:bg-gray-100 rounded-full transition-colors group relative">
-                  <Heart className="w-5 h-5 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
+                <Link to="/wishlist" className="p-3 hover:bg-gray-100 rounded-full transition-colors group relative">
+                  <Heart className="w-6 h-6 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
                   {wishlist.length > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-[#D4AF37] text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    <span className="absolute -top-0.5 -right-0.5 bg-[#D4AF37] text-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
                       {wishlist.length}
                     </span>
                   )}
                 </Link>
 
-                <Link to="/cart" className="p-2.5 hover:bg-gray-100 rounded-full transition-colors group relative">
-                  <ShoppingCart className="w-5 h-5 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
+                <Link to="/cart" className="p-3 hover:bg-gray-100 rounded-full transition-colors group relative">
+                  <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-[#D4AF37] text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    <span className="absolute -top-0.5 -right-0.5 bg-[#D4AF37] text-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
                       {cartCount}
                     </span>
                   )}
@@ -538,7 +538,7 @@ export default function Header() {
         {/* Bottom Row - Navigation */}
         <div className="bg-black">
           <div className="max-w-7xl mx-auto px-6">
-            <nav className="flex items-center justify-center">
+            <nav className="flex items-center justify-center py-1">
               <ul className="flex items-center">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
@@ -554,20 +554,20 @@ export default function Header() {
                           onMouseLeave={() => setShowCategoriesDropdown(false)}
                         >
                           <button 
-                            className={`flex items-center gap-2 px-6 py-5 text-sm font-medium transition-colors ${
+                            className={`flex items-center gap-2 px-7 py-5 text-base font-medium transition-colors ${
                               isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
                             }`}
                           >
-                            <Icon className="w-4 h-4" />
+                            <Icon className="w-5 h-5" />
                             {link.name}
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
                           </button>
                           
                           {showCategoriesDropdown && (
                             <div 
-                              className="absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 mt-0.5"
+                              className="absolute left-1/2 -translate-x-1/2 top-full w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 mt-1"
                             >
-                              <div className="py-2">
+                              <div className="py-3">
                                 {safeCategories.filter(cat => cat.isActive).map((category) => {
                                   const color = getCategoryColor(category.name);
                                   return (
@@ -575,28 +575,28 @@ export default function Header() {
                                       key={category.id}
                                       to={`/products?category=${encodeURIComponent(category.name)}`}
                                       onClick={() => setShowCategoriesDropdown(false)}
-                                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                                     >
                                       {category.image ? (
-                                        <img src={category.image} alt={category.name} className="w-10 h-10 rounded-lg object-cover" />
+                                        <img src={category.image} alt={category.name} className="w-12 h-12 rounded-xl object-cover" />
                                       ) : (
-                                        <span className={`w-10 h-10 rounded-lg ${color.bg} flex items-center justify-center ${color.text} font-bold`}>
+                                        <span className={`w-12 h-12 rounded-xl ${color.bg} flex items-center justify-center ${color.text} font-bold text-lg`}>
                                           {getCategoryInitial(category.name)}
                                         </span>
                                       )}
-                                      <span className="font-medium text-sm">{category.name}</span>
+                                      <span className="font-medium text-base">{category.name}</span>
                                     </Link>
                                   );
                                 })}
                               </div>
-                              <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
+                              <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
                                 <Link 
                                   to="/categories" 
                                   onClick={() => setShowCategoriesDropdown(false)} 
-                                  className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium flex items-center justify-between"
+                                  className="text-base text-[#D4AF37] hover:text-[#B8962E] font-medium flex items-center justify-between"
                                 >
                                   View All Categories
-                                  <ChevronRight className="w-4 h-4" />
+                                  <ChevronRight className="w-5 h-5" />
                                 </Link>
                               </div>
                             </div>
@@ -605,11 +605,11 @@ export default function Header() {
                       ) : (
                         <Link 
                           to={link.path} 
-                          className={`flex items-center gap-2 px-6 py-5 text-sm font-medium transition-colors ${
+                          className={`flex items-center gap-2 px-7 py-5 text-base font-medium transition-colors ${
                             isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
                           }`}
                         >
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-5 h-5" />
                           {link.name}
                         </Link>
                       )}
