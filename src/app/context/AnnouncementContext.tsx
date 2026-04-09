@@ -55,13 +55,8 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
       return true;
     };
 
-    const q = query(
-      collection(db, "announcements"),
-      where("isActive", "==", true),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Simple query without orderBy to avoid needing composite index
+    const unsubscribe = onSnapshot(collection(db, "announcements"), (snapshot) => {
       if (snapshot.empty) {
         setCurrentAnnouncement(null);
         setIsLoading(false);
@@ -73,9 +68,16 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         ...docSnap.data()
       })) as Announcement[];
 
-      const activeAnnouncement = announcementsList.find(a => checkExpired(a) && checkDismissed(a));
+      // Filter for active and not expired, then sort by createdAt client-side
+      const activeAnnouncements = announcementsList
+        .filter(a => checkExpired(a) && checkDismissed(a))
+        .sort((a, b) => {
+          const aTime = a.createdAt?.toDate?.()?.getTime() || 0;
+          const bTime = b.createdAt?.toDate?.()?.getTime() || 0;
+          return bTime - aTime;
+        });
 
-      setCurrentAnnouncement(activeAnnouncement || null);
+      setCurrentAnnouncement(activeAnnouncements[0] || null);
       setIsLoading(false);
     }, (error) => {
       console.error("Announcements error:", error);
