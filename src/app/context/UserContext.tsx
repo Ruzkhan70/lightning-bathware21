@@ -239,9 +239,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (updates: Partial<User>) => {
-    if (user && firebaseUser) {
+    if (user) {
       try {
-        const userRef = doc(db, "users", firebaseUser.uid);
+        const userRef = doc(db, "users", user.id);
         await updateDoc(userRef, updates);
         
         setUser({ ...user, ...updates });
@@ -250,6 +250,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         console.error("Update profile error:", error);
         toast.error("Failed to update profile");
       }
+    } else {
+      toast.error("User not logged in");
     }
   };
 
