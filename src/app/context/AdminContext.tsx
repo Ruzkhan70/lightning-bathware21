@@ -803,6 +803,29 @@ const DEFAULT_PRODUCTS: Product[] = [
   { id: "40", name: "Circular Saw - 1200W", category: "Construction Tools", price: 14800, isAvailable: true, description: "1200W circular saw.", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500" },
 ];
 
+function deepMerge<T extends object>(target: T, source: Partial<T>): T {
+  const output = { ...target } as T;
+  for (const key in source) {
+    const sourceValue = (source as Record<string, unknown>)[key];
+    if (sourceValue !== undefined && sourceValue !== null) {
+      if (typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+        const targetValue = (target as Record<string, unknown>)[key];
+        if (typeof targetValue === 'object' && targetValue !== null) {
+          (output as Record<string, unknown>)[key] = deepMerge(
+            targetValue as object,
+            sourceValue as object
+          );
+        } else {
+          (output as Record<string, unknown>)[key] = sourceValue;
+        }
+      } else {
+        (output as Record<string, unknown>)[key] = sourceValue;
+      }
+    }
+  }
+  return output;
+}
+
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string>("");
@@ -1255,7 +1278,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const unsubscribe = onSnapshot(contentRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as SiteContent;
-          setSiteContent({ ...DEFAULT_SITE_CONTENT, ...data });
+          setSiteContent(deepMerge(DEFAULT_SITE_CONTENT, data));
         } else if (!isInitialized.current.siteContent) {
           setDoc(contentRef, DEFAULT_SITE_CONTENT);
         }
