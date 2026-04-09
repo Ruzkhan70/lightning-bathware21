@@ -19,6 +19,7 @@ import {
   Users,
   FileText,
   Shield,
+  Bell,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import ScrollToTop from "./ScrollToTop";
@@ -159,6 +160,11 @@ export default function AdminLayout() {
       icon: Tag,
       label: "Offers",
       path: "/admin/offers",
+    },
+    {
+      icon: Bell,
+      label: "Announcements",
+      path: "/admin/announcements",
     },
     {
       icon: Star,

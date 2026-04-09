@@ -33,6 +33,38 @@ const createGlobalNotification = async (
   }
 };
 
+const createAnnouncement = async (
+  title: string,
+  message: string,
+  type: "offer" | "terms" | "product" | "general",
+  expiresInHours: number = 72
+) => {
+  try {
+    const q = query(collection(db, "announcements"), where("isActive", "==", true));
+    const snapshot = await getDocs(q);
+    
+    for (const docSnap of snapshot.docs) {
+      await updateDoc(doc(db, "announcements", docSnap.id), { isActive: false });
+    }
+
+    const expiresAt = expiresInHours > 0
+      ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000).toISOString()
+      : null;
+
+    await addDoc(collection(db, "announcements"), {
+      title,
+      message,
+      type,
+      isActive: true,
+      createdAt: serverTimestamp(),
+      expiresAt,
+      createdBy: "system",
+    });
+  } catch (error) {
+    console.error("Error creating announcement:", error);
+  }
+};
+
 export interface Product {
   id: string;
   name: string;
@@ -2260,6 +2292,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           "Please review our updated Terms & Conditions",
           "terms"
         );
+        
+        await createAnnouncement(
+          "📜 Terms & Conditions Updated",
+          "We have updated our Terms & Conditions. Please review the changes.",
+          "terms",
+          168
+        );
       }
       
       logAdminAction(
@@ -2611,6 +2650,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           newOffer.id
         );
         
+        await createAnnouncement(
+          `🎉 New Offer: ${newOffer.title}`,
+          newOffer.description || `Don't miss out on this special deal!`,
+          "offer",
+          72
+        );
+        
         logOfferAction(
           'OFFER_ADD',
           adminUid || 'unknown',
@@ -2660,6 +2706,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `${previousOffer?.title || 'An offer'} has been updated - Check it out now!`,
         id
       );
+      
+      if (offer.isEnabled && previousOffer?.isEnabled !== false) {
+        await createAnnouncement(
+          `✨ Offer Updated: ${previousOffer?.title || 'Special Offer'}`,
+          offer.description || previousOffer?.description || "Check out our updated offer!",
+          "offer",
+          72
+        );
+      }
       
       logOfferAction(
         'OFFER_EDIT',

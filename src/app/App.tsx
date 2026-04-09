@@ -6,6 +6,7 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
 import { NotificationsProvider } from "./context/NotificationsContext";
+import { AnnouncementProvider } from "./context/AnnouncementContext";
 import { Toaster } from "./components/ui/sonner";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -90,20 +91,22 @@ function DataLoader({ children }: { children: React.ReactNode }) {
 function AppContent() {
   return (
     <ErrorBoundary>
-      <UserProvider>
-        <AdminProvider>
-          <NotificationsProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <DataLoader>
-                  <RouterProvider router={router} />
-                  <Toaster position="top-right" draggable />
-                </DataLoader>
-              </WishlistProvider>
-            </CartProvider>
-          </NotificationsProvider>
-        </AdminProvider>
-      </UserProvider>
+      <AnnouncementProvider>
+        <UserProvider>
+          <AdminProvider>
+            <NotificationsProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <DataLoader>
+                    <RouterProvider router={router} />
+                    <Toaster position="top-right" draggable />
+                  </DataLoader>
+                </WishlistProvider>
+              </CartProvider>
+            </NotificationsProvider>
+          </AdminProvider>
+        </UserProvider>
+      </AnnouncementProvider>
     </ErrorBoundary>
   );
 }
