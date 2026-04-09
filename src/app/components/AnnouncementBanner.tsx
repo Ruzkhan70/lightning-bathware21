@@ -15,19 +15,30 @@ export default function AnnouncementBanner() {
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
+    console.log('[Announcement] Debug:', {
+      isLoading,
+      currentAnnouncement,
+      isAdminLoggedIn,
+      localDismissed: localStorage.getItem(DISMISSAL_KEY)
+    });
+    
     if (!isLoading && currentAnnouncement && !isAdminLoggedIn) {
       const dismissedId = localStorage.getItem(DISMISSAL_KEY);
       const dismissedTime = localStorage.getItem(DISMISSAL_TIME_KEY);
       
+      console.log('[Announcement] Checking dismissed:', { dismissedId, currentId: currentAnnouncement.id });
+      
       if (dismissedId === currentAnnouncement.id && dismissedTime) {
         const dismissedAt = parseInt(dismissedTime);
         const hoursSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60);
+        console.log('[Announcement] Hours since dismissed:', hoursSinceDismissed);
         if (hoursSinceDismissed < 24) {
           setIsDismissed(true);
           return;
         }
       }
       
+      console.log('[Announcement] Setting visible');
       setIsVisible(true);
     }
   }, [currentAnnouncement, isLoading, isAdminLoggedIn]);
@@ -91,6 +102,14 @@ export default function AnnouncementBanner() {
   };
 
   if (isLoading || !isVisible || !currentAnnouncement || isDismissed || isAdminLoggedIn) {
+    if (!isLoading && currentAnnouncement && isAdminLoggedIn) {
+      console.log('[Announcement] Hidden because admin is logged in');
+    }
+    return null;
+  }
+
+  if (!currentAnnouncement.message || !currentAnnouncement.message.trim()) {
+    console.log('[Announcement] Hidden because message is empty');
     return null;
   }
 
