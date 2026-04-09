@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Offers() {
-  const { getActiveOffers, products } = useAdmin();
+  const { getActiveOffers, products, siteContent } = useAdmin();
   const safeProducts = products || [];
   const activeOffers = getActiveOffers() || [];
 
@@ -15,10 +15,10 @@ export default function Offers() {
         <ScrollAnimation animation="slideUp">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Special Offers & Promotions
+              {siteContent.offers.heroTitle}
             </h1>
             <p className="text-gray-600 text-lg">
-              Don't miss out on our amazing deals and discounts!
+              {siteContent.offers.heroSubtitle}
             </p>
           </div>
         </ScrollAnimation>
@@ -27,16 +27,16 @@ export default function Offers() {
           <ScrollAnimation animation="slideUp">
             <div className="text-center py-16 bg-white rounded-xl shadow-sm">
               <Tag className="w-24 h-24 mx-auto text-gray-300 mb-6" />
-              <h2 className="text-2xl font-bold mb-4">No Active Offers</h2>
+              <h2 className="text-2xl font-bold mb-4">{siteContent.offers.noOffersTitle}</h2>
               <p className="text-gray-600 mb-8">
-                Check back soon for exciting promotions!
+                {siteContent.offers.noOffersSubtitle}
               </p>
               <Link to="/products">
                 <Button
                   size="lg"
                   className="bg-black hover:bg-[#D4AF37] text-white"
                 >
-                  Browse Products
+                  {siteContent.offers.browseButton}
                 </Button>
               </Link>
             </div>
@@ -62,7 +62,7 @@ export default function Offers() {
                       {offer.discountPercentage && (
                         <div className="absolute top-6 left-6">
                           <div className="bg-red-500 text-white px-8 py-4 rounded-lg font-bold text-3xl shadow-lg">
-                            SAVE {offer.discountPercentage}%
+                            {siteContent.offers.saveText} {offer.discountPercentage}%
                           </div>
                         </div>
                       )}
@@ -76,7 +76,7 @@ export default function Offers() {
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="w-4 h-4" />
                           <span>
-                            Valid until{" "}
+                            {siteContent.offers.validUntilText}{" "}
                             {new Date(offer.endDate).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "long",
@@ -91,7 +91,7 @@ export default function Offers() {
                     <div className="p-6">
                       <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                         <ShoppingBag className="w-5 h-5 text-[#D4AF37]" />
-                        Featured Products ({offerProducts.length})
+                        {siteContent.offers.productsText} ({offerProducts.length})
                       </h3>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
@@ -147,7 +147,7 @@ export default function Offers() {
                             className="w-full bg-black hover:bg-[#D4AF37] text-white"
                             size="lg"
                           >
-                            View All {offerProducts.length} Products
+                            {siteContent.offers.viewAllPrefix} {offerProducts.length} {siteContent.offers.viewAllSuffix}
                           </Button>
                         </Link>
                       )}

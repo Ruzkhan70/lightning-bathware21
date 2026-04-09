@@ -215,16 +215,49 @@ export interface SiteContent {
     heroTitle: string;
     heroSubtitle: string;
     heroButtonText: string;
+    shopNowText: string;
+    featuresTitle: string;
+    featuresSubtitle: string;
+    features: { title: string; description: string }[];
+    shopByCategoryTitle: string;
+    shopByCategorySubtitle: string;
+    productsCount: string;
+    specialOffersTitle: string;
+    specialOffersSubtitle: string;
+    viewAllOffersText: string;
+    featuredProductsTitle: string;
+    featuredProductsSubtitle: string;
+    viewAllProductsText: string;
+    ctaTitle: string;
+    ctaSubtitle: string;
+    contactUsText: string;
   };
   about: {
+    heroTitle: string;
+    heroSubtitle: string;
     storyTitle: string;
     storyText: string;
     teamTitle: string;
     teamText: string;
+    missionTitle: string;
+    missionText: string;
+    visionTitle: string;
+    visionText: string;
+    valuesTitle: string;
+    valuesSubtitle: string;
+    values: { title: string; description: string }[];
+    statsLabels: { years: string; products: string; customers: string; authentic: string };
   };
   services: {
     title: string;
     subtitle: string;
+    whyChooseTitle: string;
+    whyChooseSubtitle: string;
+    whyChooseItems: { title: string; description: string }[];
+    ctaTitle: string;
+    ctaSubtitle: string;
+    callButtonText: string;
+    emailButtonText: string;
     items: {
       title: string;
       description: string;
@@ -235,6 +268,58 @@ export interface SiteContent {
     title: string;
     subtitle: string;
     mapUrl: string;
+    visitTitle: string;
+    callTitle: string;
+    emailTitle: string;
+    hoursTitle: string;
+    weekdayHours: string;
+    saturdayHours: string;
+    sundayHours: string;
+    country: string;
+    formTitle: string;
+    nameLabel: string;
+    emailLabel: string;
+    phoneLabel: string;
+    subjectLabel: string;
+    messageLabel: string;
+    sendButton: string;
+    findUsTitle: string;
+    storeLocationTitle: string;
+    storeLocationDesc: string;
+    parkingTitle: string;
+    parkingDesc: string;
+  };
+  footer: {
+    tagline: string;
+    quickLinksTitle: string;
+    productsLink: string;
+    categoriesLink: string;
+    servicesLink: string;
+    aboutLink: string;
+    contactLink: string;
+    categoriesTitle: string;
+    contactTitle: string;
+  };
+  categories: {
+    heroTitle: string;
+    heroSubtitle: string;
+    productsAvailable: string;
+    browseButton: string;
+    ctaTitle: string;
+    ctaSubtitle: string;
+    contactButton: string;
+  };
+  offers: {
+    heroTitle: string;
+    heroSubtitle: string;
+    noOffersTitle: string;
+    noOffersSubtitle: string;
+    browseButton: string;
+    saveText: string;
+    validUntilText: string;
+    productsText: string;
+    viewAllPrefix: string;
+    viewAllSuffix: string;
   };
   faq: {
     title: string;
@@ -421,16 +506,64 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     heroTitle: "Premium Lighting & Bathware",
     heroSubtitle: "Your one-stop destination for all bathroom fittings, lighting, electrical hardware, and construction tools in Sri Lanka.",
     heroButtonText: "Our Categories",
+    shopNowText: "Shop Now",
+    featuresTitle: "Why Choose Us",
+    featuresSubtitle: "Experience the difference with our commitment to quality and service",
+    features: [
+      { title: "Island-wide Delivery", description: "Fast and reliable delivery across Sri Lanka" },
+      { title: "Quality Guarantee", description: "100% authentic products from trusted brands" },
+      { title: "Expert Support", description: "Professional advice from our experienced team" },
+      { title: "Best Prices", description: "Competitive pricing on premium products" },
+    ],
+    shopByCategoryTitle: "Shop by Category",
+    shopByCategorySubtitle: "Explore our wide range of premium products",
+    productsCount: "Products",
+    specialOffersTitle: "Special Offers & Promotions",
+    specialOffersSubtitle: "Don't miss out on our amazing deals!",
+    viewAllOffersText: "View All Offers",
+    featuredProductsTitle: "Featured Products",
+    featuredProductsSubtitle: "Discover our most popular items",
+    viewAllProductsText: "View All Products",
+    ctaTitle: "Need Help Choosing the Right Product?",
+    ctaSubtitle: "Our expert team is ready to assist you with professional advice and product recommendations.",
+    contactUsText: "Contact Us Today",
   },
   about: {
+    heroTitle: "About Us",
+    heroSubtitle: "Sri Lanka's trusted name in quality hardware and building materials",
     storyTitle: "Our Story",
     storyText: "Lightning Bathware started with a simple vision: to bring high-quality, elegant, and durable hardware solutions to Sri Lanka. What began as a small boutique has grown into a leading supplier trusted by homeowners and contractors alike.",
     teamTitle: "Our Team",
     teamText: "Our team consists of industry experts dedicated to providing personalized service. We believe in building lasting relationships through quality products and expert advice.",
+    missionTitle: "Our Mission",
+    missionText: "To provide Sri Lanka with the highest quality hardware products at competitive prices, backed by exceptional customer service and expert knowledge. We strive to be the one-stop solution for all building and home improvement needs.",
+    visionTitle: "Our Vision",
+    visionText: "To become Sri Lanka's leading hardware retailer, known for innovation, reliability, and customer satisfaction. We aim to set new standards in the industry through continuous improvement and embracing new technologies.",
+    valuesTitle: "Our Values",
+    valuesSubtitle: "The principles that guide everything we do",
+    values: [
+      { title: "Quality", description: "We never compromise on product quality and authenticity" },
+      { title: "Customer First", description: "Customer satisfaction is at the heart of our business" },
+      { title: "Integrity", description: "Honest, transparent business practices in all we do" },
+      { title: "Innovation", description: "Constantly evolving to serve you better" },
+    ],
+    statsLabels: { years: "Years of Experience", products: "Products", customers: "Happy Customers", authentic: "Authentic Products" },
   },
   services: {
     title: "Our Services",
     subtitle: "Comprehensive solutions and support for all your hardware needs",
+    whyChooseTitle: "Why Choose Us?",
+    whyChooseSubtitle: "Your trusted partner for quality hardware solutions in Sri Lanka",
+    whyChooseItems: [
+      { title: "Wide Product Range", description: "Over 350+ premium products across lighting, bathroom, plumbing, electrical, and construction categories." },
+      { title: "Competitive Pricing", description: "Best prices in the market with special discounts for bulk orders and contractors." },
+      { title: "Expert Team", description: "Professional staff with years of experience in the hardware industry, ready to assist you." },
+      { title: "Customer Satisfaction", description: "Thousands of satisfied customers trust us for their hardware needs across Sri Lanka." },
+    ],
+    ctaTitle: "Ready to Get Started?",
+    ctaSubtitle: "Contact us today to learn more about our services and how we can help with your project",
+    callButtonText: "Call Now",
+    emailButtonText: "Email Us",
     items: [
       {
         title: "Island-wide Delivery",
@@ -498,6 +631,58 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     title: "Contact Us",
     subtitle: "Have questions? Our team is here to help you find the perfect solutions.",
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.5828941031!2d79.7861642!3d6.9219225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a7003%3A0x320b2e4d32d3838d!2sColombo!5e0!3m2!1sen!2slk!4v1647854652397!5m2!1sen!2slk",
+    visitTitle: "Visit Us",
+    callTitle: "Call Us",
+    emailTitle: "Email Us",
+    hoursTitle: "Business Hours",
+    weekdayHours: "Monday - Friday: 9:00 AM - 6:00 PM",
+    saturdayHours: "Saturday: 9:00 AM - 4:00 PM",
+    sundayHours: "Sunday: Closed",
+    country: "Sri Lanka",
+    formTitle: "Send Us a Message",
+    nameLabel: "Your Name",
+    emailLabel: "Email Address",
+    phoneLabel: "Phone Number",
+    subjectLabel: "Subject",
+    messageLabel: "Message",
+    sendButton: "Send Message",
+    findUsTitle: "Find Us",
+    storeLocationTitle: "Store Location",
+    storeLocationDesc: "Visit our showroom to explore our full range of products. Our friendly staff will be happy to assist you with product selection and technical advice.",
+    parkingTitle: "Parking Available",
+    parkingDesc: "Free parking available for customers",
+  },
+  footer: {
+    tagline: "Sri Lanka's premier destination for quality lightning products, bathroom fittings, plumbing items, electrical hardware, and construction tools.",
+    quickLinksTitle: "Quick Links",
+    productsLink: "Products",
+    categoriesLink: "Categories",
+    servicesLink: "Services",
+    aboutLink: "About Us",
+    contactLink: "Contact",
+    categoriesTitle: "Categories",
+    contactTitle: "Contact Us",
+  },
+  categories: {
+    heroTitle: "Product Categories",
+    heroSubtitle: "Explore our comprehensive range of hardware products organized by category",
+    productsAvailable: "Products Available",
+    browseButton: "Browse Products",
+    ctaTitle: "Can't Find What You're Looking For?",
+    ctaSubtitle: "Contact our expert team for personalized recommendations and bulk orders",
+    contactButton: "Contact Us",
+  },
+  offers: {
+    heroTitle: "Special Offers & Promotions",
+    heroSubtitle: "Don't miss out on our amazing deals and discounts!",
+    noOffersTitle: "No Active Offers",
+    noOffersSubtitle: "Check back soon for exciting promotions!",
+    browseButton: "Browse Products",
+    saveText: "SAVE",
+    validUntilText: "Valid until",
+    productsText: "Products",
+    viewAllPrefix: "View All",
+    viewAllSuffix: "Products",
   },
   faq: {
     title: "Frequently Asked Questions",

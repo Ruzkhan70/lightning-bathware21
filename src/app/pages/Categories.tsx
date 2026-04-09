@@ -16,7 +16,7 @@ import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Categories() {
-  const { products, categories } = useAdmin();
+  const { products, categories, siteContent } = useAdmin();
 
   useEffect(() => {
     setMetaTags(
@@ -48,11 +48,10 @@ export default function Categories() {
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Product Categories
+            {siteContent.categories.heroTitle}
           </h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Explore our comprehensive range of hardware products organized by
-            category
+            {siteContent.categories.heroSubtitle}
           </p>
         </div>
       </section>
@@ -91,7 +90,7 @@ export default function Categories() {
                       <p className="text-gray-600 mb-4">{category.description}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500">
-                          {productCount} Products Available
+                          {productCount} {siteContent.categories.productsAvailable}
                         </span>
                         <Link
                           to={`/products?category=${encodeURIComponent(
@@ -99,7 +98,7 @@ export default function Categories() {
                           )}`}
                         >
                           <Button className="bg-black hover:bg-[#D4AF37] text-white">
-                            Browse Products
+                            {siteContent.categories.browseButton}
                             <ArrowRight className="ml-2 w-4 h-4" />
                           </Button>
                         </Link>
@@ -118,18 +117,17 @@ export default function Categories() {
         <section className="py-16 bg-black text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Can't Find What You're Looking For?
+              {siteContent.categories.ctaTitle}
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Contact our expert team for personalized recommendations and bulk
-              orders
+              {siteContent.categories.ctaSubtitle}
             </p>
             <Link to="/contact">
               <Button
                 size="lg"
                 className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold"
               >
-                Contact Us
+                {siteContent.categories.contactButton}
               </Button>
             </Link>
           </div>

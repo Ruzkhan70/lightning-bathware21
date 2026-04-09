@@ -81,17 +81,17 @@ export default function Contact() {
   const contactInfo = [
     {
       icon: MapPin,
-      title: "Visit Us",
-      details: [storeProfile.addressStreet, storeProfile.addressCity, "Sri Lanka"],
+      title: siteContent.contact.visitTitle,
+      details: [storeProfile.addressStreet, storeProfile.addressCity, siteContent.contact.country],
     },
     {
       icon: Phone,
-      title: "Call Us",
-      details: [storeProfile.phone, storeProfile.secondaryPhone, "Mon-Sat: 9AM - 6PM"],
+      title: siteContent.contact.callTitle,
+      details: [storeProfile.phone, storeProfile.secondaryPhone],
     },
     {
       icon: Mail,
-      title: "Email Us",
+      title: siteContent.contact.emailTitle,
       details: [
         storeProfile.email,
         storeProfile.salesEmail,
@@ -100,11 +100,11 @@ export default function Contact() {
     },
     {
       icon: Clock,
-      title: "Business Hours",
+      title: siteContent.contact.hoursTitle,
       details: [
-        "Monday - Friday: 9:00 AM - 6:00 PM",
-        "Saturday: 9:00 AM - 4:00 PM",
-        "Sunday: Closed",
+        siteContent.contact.weekdayHours,
+        siteContent.contact.saturdayHours,
+        siteContent.contact.sundayHours,
       ],
     },
   ];
@@ -147,11 +147,11 @@ export default function Contact() {
             {/* Contact Form */}
             <ScrollAnimation animation="slideUp">
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
+                <h2 className="text-2xl font-bold mb-6">{siteContent.contact.formTitle}</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <Label htmlFor="name">
-                    Your Name <span className="text-red-500">*</span>
+                    {siteContent.contact.nameLabel} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
@@ -165,7 +165,7 @@ export default function Contact() {
 
                 <div>
                   <Label htmlFor="email">
-                    Email Address <span className="text-red-500">*</span>
+                    {siteContent.contact.emailLabel} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
@@ -179,7 +179,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">{siteContent.contact.phoneLabel}</Label>
                   <Input
                     id="phone"
                     name="phone"
@@ -191,7 +191,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <Label htmlFor="subject">Subject</Label>
+                  <Label htmlFor="subject">{siteContent.contact.subjectLabel}</Label>
                   <Input
                     id="subject"
                     name="subject"
@@ -203,7 +203,7 @@ export default function Contact() {
 
                 <div>
                   <Label htmlFor="message">
-                    Message <span className="text-red-500">*</span>
+                    {siteContent.contact.messageLabel} <span className="text-red-500">*</span>
                   </Label>
                   <Textarea
                     id="message"
@@ -222,7 +222,7 @@ export default function Contact() {
                   className="w-full bg-black hover:bg-[#D4AF37] text-white"
                 >
                   <Send className="w-5 h-5 mr-2" />
-                  Send Message
+                  {siteContent.contact.sendButton}
                 </Button>
                 </form>
               </div>
@@ -231,7 +231,7 @@ export default function Contact() {
             {/* Map */}
             <ScrollAnimation animation="slideUp" delay={100}>
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-bold mb-6">Find Us</h2>
+                <h2 className="text-2xl font-bold mb-6">{siteContent.contact.findUsTitle}</h2>
                 <div className="aspect-video bg-gray-200 rounded-lg mb-6 overflow-hidden">
                   <iframe
                     src={siteContent.contact.mapUrl}
@@ -246,16 +246,14 @@ export default function Contact() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-bold text-lg">Store Location</h3>
+                  <h3 className="font-bold text-lg">{siteContent.contact.storeLocationTitle}</h3>
                   <p className="text-gray-600">
-                    Visit our showroom to explore our full range of products.
-                    Our friendly staff will be happy to assist you with product
-                    selection and technical advice.
+                    {siteContent.contact.storeLocationDesc}
                   </p>
                   <div className="border-t pt-4">
-                    <h4 className="font-semibold mb-2">Parking Available</h4>
+                    <h4 className="font-semibold mb-2">{siteContent.contact.parkingTitle}</h4>
                     <p className="text-sm text-gray-600">
-                      Free parking available for customers
+                      {siteContent.contact.parkingDesc}
                     </p>
                   </div>
                 </div>

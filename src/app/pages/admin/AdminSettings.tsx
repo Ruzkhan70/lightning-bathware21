@@ -439,57 +439,464 @@ export default function AdminSettings() {
           {/* Page Content Section */}
           {activeSection === 'page-content' && (
             <form onSubmit={handleContentSave} className="max-w-4xl mx-auto space-y-6">
-              <Card title="Home Page" icon={<FileText className="w-5 h-5" />} description="Hero section content">
-                <div className="space-y-4">
-                  <div>
-                    <Label>Hero Title</Label>
-                    <Input value={contentForm.home.heroTitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, heroTitle: e.target.value}})} />
+              {/* Home Page */}
+              <Card title="Home Page" icon={<FileText className="w-5 h-5" />} description="Hero, features, and CTA sections">
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Hero Title</Label>
+                        <Input value={contentForm.home.heroTitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, heroTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Hero Subtitle</Label>
+                        <Textarea value={contentForm.home.heroSubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, heroSubtitle: e.target.value}})} rows={2} />
+                      </div>
+                      <div>
+                        <Label>Hero Button Text</Label>
+                        <Input value={contentForm.home.heroButtonText} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, heroButtonText: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Shop Now Button Text</Label>
+                        <Input value={contentForm.home.shopNowText} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, shopNowText: e.target.value}})} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Hero Subtitle</Label>
-                    <Textarea value={contentForm.home.heroSubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, heroSubtitle: e.target.value}})} rows={3} />
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Shop by Category</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Section Title</Label>
+                        <Input value={contentForm.home.shopByCategoryTitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, shopByCategoryTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Section Subtitle</Label>
+                        <Input value={contentForm.home.shopByCategorySubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, shopByCategorySubtitle: e.target.value}})} />
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Special Offers Banner</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input value={contentForm.home.specialOffersTitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, specialOffersTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subtitle</Label>
+                        <Input value={contentForm.home.specialOffersSubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, specialOffersSubtitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>View All Button Text</Label>
+                        <Input value={contentForm.home.viewAllOffersText} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, viewAllOffersText: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Featured Products</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Section Title</Label>
+                        <Input value={contentForm.home.featuredProductsTitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, featuredProductsTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Section Subtitle</Label>
+                        <Input value={contentForm.home.featuredProductsSubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, featuredProductsSubtitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>View All Button Text</Label>
+                        <Input value={contentForm.home.viewAllProductsText} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, viewAllProductsText: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
-                    <Label>Hero Button Text</Label>
-                    <Input value={contentForm.home.heroButtonText} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, heroButtonText: e.target.value}})} />
+                    <h4 className="font-semibold text-gray-800 mb-3">CTA Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input value={contentForm.home.ctaTitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, ctaTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subtitle</Label>
+                        <Textarea value={contentForm.home.ctaSubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, ctaSubtitle: e.target.value}})} rows={2} />
+                      </div>
+                      <div>
+                        <Label>Button Text</Label>
+                        <Input value={contentForm.home.contactUsText} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, contactUsText: e.target.value}})} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>
 
-              <Card title="About Page" icon={<FileText className="w-5 h-5" />} description="About page content">
-                <div className="space-y-4">
-                  <div>
-                    <Label>Story Title</Label>
-                    <Input value={contentForm.about.storyTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, storyTitle: e.target.value}})} />
+              {/* About Page */}
+              <Card title="About Page" icon={<FileText className="w-5 h-5" />} description="Hero, mission, vision, values, and stats">
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Hero Title</Label>
+                        <Input value={contentForm.about.heroTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, heroTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Hero Subtitle</Label>
+                        <Input value={contentForm.about.heroSubtitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, heroSubtitle: e.target.value}})} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Story Text</Label>
-                    <Textarea value={contentForm.about.storyText} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, storyText: e.target.value}})} rows={4} />
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Our Story</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Story Title</Label>
+                        <Input value={contentForm.about.storyTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, storyTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Story Text</Label>
+                        <Textarea value={contentForm.about.storyText} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, storyText: e.target.value}})} rows={3} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Team Title</Label>
-                    <Input value={contentForm.about.teamTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, teamTitle: e.target.value}})} />
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Our Team</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Team Title</Label>
+                        <Input value={contentForm.about.teamTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, teamTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Team Text</Label>
+                        <Textarea value={contentForm.about.teamText} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, teamText: e.target.value}})} rows={3} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Team Text</Label>
-                    <Textarea value={contentForm.about.teamText} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, teamText: e.target.value}})} rows={4} />
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Mission & Vision</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Mission Title</Label>
+                        <Input value={contentForm.about.missionTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, missionTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Mission Text</Label>
+                        <Textarea value={contentForm.about.missionText} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, missionText: e.target.value}})} rows={3} />
+                      </div>
+                      <div>
+                        <Label>Vision Title</Label>
+                        <Input value={contentForm.about.visionTitle} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, visionTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Vision Text</Label>
+                        <Textarea value={contentForm.about.visionText} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, visionText: e.target.value}})} rows={3} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Stats Labels</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label>Years Label</Label>
+                        <Input value={contentForm.about.statsLabels.years} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, statsLabels: {...contentForm.about.statsLabels, years: e.target.value}}})} />
+                      </div>
+                      <div>
+                        <Label>Products Label</Label>
+                        <Input value={contentForm.about.statsLabels.products} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, statsLabels: {...contentForm.about.statsLabels, products: e.target.value}}})} />
+                      </div>
+                      <div>
+                        <Label>Customers Label</Label>
+                        <Input value={contentForm.about.statsLabels.customers} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, statsLabels: {...contentForm.about.statsLabels, customers: e.target.value}}})} />
+                      </div>
+                      <div>
+                        <Label>Authentic Label</Label>
+                        <Input value={contentForm.about.statsLabels.authentic} onChange={(e) => setContentForm({...contentForm, about: {...contentForm.about, statsLabels: {...contentForm.about.statsLabels, authentic: e.target.value}}})} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>
 
-              <Card title="Contact Page" icon={<FileText className="w-5 h-5" />} description="Contact page content">
+              {/* Services Page */}
+              <Card title="Services Page" icon={<FileText className="w-5 h-5" />} description="Why Choose Us and CTA sections">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Main Title</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input value={contentForm.services.title} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, title: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subtitle</Label>
+                        <Input value={contentForm.services.subtitle} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, subtitle: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Why Choose Us Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Section Title</Label>
+                        <Input value={contentForm.services.whyChooseTitle} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, whyChooseTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Section Subtitle</Label>
+                        <Input value={contentForm.services.whyChooseSubtitle} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, whyChooseSubtitle: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">CTA Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input value={contentForm.services.ctaTitle} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, ctaTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subtitle</Label>
+                        <Textarea value={contentForm.services.ctaSubtitle} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, ctaSubtitle: e.target.value}})} rows={2} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Call Button Text</Label>
+                          <Input value={contentForm.services.callButtonText} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, callButtonText: e.target.value}})} />
+                        </div>
+                        <div>
+                          <Label>Email Button Text</Label>
+                          <Input value={contentForm.services.emailButtonText} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, emailButtonText: e.target.value}})} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Contact Page */}
+              <Card title="Contact Page" icon={<FileText className="w-5 h-5" />} description="Page title, contact info, and form labels">
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Page Header</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input value={contentForm.contact.title} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, title: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subtitle</Label>
+                        <Input value={contentForm.contact.subtitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, subtitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Google Maps Embed URL</Label>
+                        <Input value={contentForm.contact.mapUrl} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, mapUrl: e.target.value}})} placeholder="https://www.google.com/maps/embed?..." />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Contact Info Labels</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Visit Us Label</Label>
+                        <Input value={contentForm.contact.visitTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, visitTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Call Us Label</Label>
+                        <Input value={contentForm.contact.callTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, callTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Email Us Label</Label>
+                        <Input value={contentForm.contact.emailTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, emailTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Business Hours Label</Label>
+                        <Input value={contentForm.contact.hoursTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, hoursTitle: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Form Labels</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Form Title</Label>
+                        <Input value={contentForm.contact.formTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, formTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Name Label</Label>
+                        <Input value={contentForm.contact.nameLabel} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, nameLabel: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Email Label</Label>
+                        <Input value={contentForm.contact.emailLabel} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, emailLabel: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Phone Label</Label>
+                        <Input value={contentForm.contact.phoneLabel} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, phoneLabel: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subject Label</Label>
+                        <Input value={contentForm.contact.subjectLabel} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, subjectLabel: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Message Label</Label>
+                        <Input value={contentForm.contact.messageLabel} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, messageLabel: e.target.value}})} />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Label>Send Button Text</Label>
+                      <Input value={contentForm.contact.sendButton} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, sendButton: e.target.value}})} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Find Us Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Section Title</Label>
+                        <Input value={contentForm.contact.findUsTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, findUsTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Store Location Label</Label>
+                        <Input value={contentForm.contact.storeLocationTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, storeLocationTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Parking Label</Label>
+                        <Input value={contentForm.contact.parkingTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, parkingTitle: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Footer */}
+              <Card title="Footer" icon={<FileText className="w-5 h-5" />} description="Footer tagline and section titles">
                 <div className="space-y-4">
                   <div>
-                    <Label>Title</Label>
-                    <Input value={contentForm.contact.title} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, title: e.target.value}})} />
+                    <Label>Tagline</Label>
+                    <Textarea value={contentForm.footer.tagline} onChange={(e) => setContentForm({...contentForm, footer: {...contentForm.footer, tagline: e.target.value}})} rows={3} />
                   </div>
                   <div>
-                    <Label>Subtitle</Label>
-                    <Input value={contentForm.contact.subtitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, subtitle: e.target.value}})} />
+                    <Label>Quick Links Title</Label>
+                    <Input value={contentForm.footer.quickLinksTitle} onChange={(e) => setContentForm({...contentForm, footer: {...contentForm.footer, quickLinksTitle: e.target.value}})} />
                   </div>
                   <div>
-                    <Label>Google Maps Embed URL</Label>
-                    <Input value={contentForm.contact.mapUrl} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, mapUrl: e.target.value}})} placeholder="https://www.google.com/maps/embed?..." />
+                    <Label>Categories Title</Label>
+                    <Input value={contentForm.footer.categoriesTitle} onChange={(e) => setContentForm({...contentForm, footer: {...contentForm.footer, categoriesTitle: e.target.value}})} />
+                  </div>
+                  <div>
+                    <Label>Contact Us Title</Label>
+                    <Input value={contentForm.footer.contactTitle} onChange={(e) => setContentForm({...contentForm, footer: {...contentForm.footer, contactTitle: e.target.value}})} />
+                  </div>
+                </div>
+              </Card>
+
+              {/* Categories Page */}
+              <Card title="Categories Page" icon={<FileText className="w-5 h-5" />} description="Hero and CTA sections">
+                <div className="space-y-4">
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Hero Title</Label>
+                        <Input value={contentForm.categories.heroTitle} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, heroTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Hero Subtitle</Label>
+                        <Input value={contentForm.categories.heroSubtitle} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, heroSubtitle: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Category Cards</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Products Available Text</Label>
+                        <Input value={contentForm.categories.productsAvailable} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, productsAvailable: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Browse Button Text</Label>
+                        <Input value={contentForm.categories.browseButton} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, browseButton: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">CTA Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>CTA Title</Label>
+                        <Input value={contentForm.categories.ctaTitle} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, ctaTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>CTA Subtitle</Label>
+                        <Input value={contentForm.categories.ctaSubtitle} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, ctaSubtitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Contact Button Text</Label>
+                        <Input value={contentForm.categories.contactButton} onChange={(e) => setContentForm({...contentForm, categories: {...contentForm.categories, contactButton: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Offers Page */}
+              <Card title="Offers Page" icon={<FileText className="w-5 h-5" />} description="Hero, no offers state, and labels">
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Hero Title</Label>
+                        <Input value={contentForm.offers.heroTitle} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, heroTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Hero Subtitle</Label>
+                        <Input value={contentForm.offers.heroSubtitle} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, heroSubtitle: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">No Offers State</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input value={contentForm.offers.noOffersTitle} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, noOffersTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Subtitle</Label>
+                        <Input value={contentForm.offers.noOffersSubtitle} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, noOffersSubtitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Browse Button Text</Label>
+                        <Input value={contentForm.offers.browseButton} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, browseButton: e.target.value}})} />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Labels</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Save Text (e.g., "SAVE")</Label>
+                        <Input value={contentForm.offers.saveText} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, saveText: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Valid Until Text</Label>
+                        <Input value={contentForm.offers.validUntilText} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, validUntilText: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Products Text</Label>
+                        <Input value={contentForm.offers.productsText} onChange={(e) => setContentForm({...contentForm, offers: {...contentForm.offers, productsText: e.target.value}})} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>

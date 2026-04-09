@@ -84,9 +84,9 @@ export default function About() {
       {/* Hero */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{siteContent.about.heroTitle}</h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Sri Lanka's trusted name in quality hardware and building materials
+            {siteContent.about.heroSubtitle}
           </p>
         </div>
       </section>
@@ -117,12 +117,9 @@ export default function About() {
                 <div className="w-16 h-16 bg-[#D4AF37] rounded-lg flex items-center justify-center mb-6">
                   <Target className="w-8 h-8 text-black" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
+                <h3 className="text-2xl font-bold mb-4">{siteContent.about.missionTitle}</h3>
                 <p className="text-gray-600">
-                  To provide Sri Lanka with the highest quality hardware
-                  products at competitive prices, backed by exceptional customer
-                  service and expert knowledge. We strive to be the one-stop
-                  solution for all building and home improvement needs.
+                  {siteContent.about.missionText}
                 </p>
               </div>
 
@@ -130,12 +127,9 @@ export default function About() {
                 <div className="w-16 h-16 bg-[#D4AF37] rounded-lg flex items-center justify-center mb-6">
                   <Eye className="w-8 h-8 text-black" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Our Vision</h3>
+                <h3 className="text-2xl font-bold mb-4">{siteContent.about.visionTitle}</h3>
                 <p className="text-gray-600">
-                  To become Sri Lanka's leading hardware retailer, known for
-                  innovation, reliability, and customer satisfaction. We aim to
-                  set new standards in the industry through continuous
-                  improvement and embracing new technologies.
+                  {siteContent.about.visionText}
                 </p>
               </div>
             </div>
@@ -147,52 +141,28 @@ export default function About() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Values</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{siteContent.about.valuesTitle}</h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              The principles that guide everything we do
+              {siteContent.about.valuesSubtitle}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="w-10 h-10 text-black" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Quality</h3>
-              <p className="text-gray-600 text-sm">
-                We never compromise on product quality and authenticity
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-10 h-10 text-black" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Customer First</h3>
-              <p className="text-gray-600 text-sm">
-                Customer satisfaction is at the heart of our business
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-10 h-10 text-black" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Integrity</h3>
-              <p className="text-gray-600 text-sm">
-                Honest, transparent business practices in all we do
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Eye className="w-10 h-10 text-black" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Innovation</h3>
-              <p className="text-gray-600 text-sm">
-                Constantly evolving to serve you better
-              </p>
-            </div>
+            {siteContent.about.values.map((value, index) => {
+              const icons = [Award, Users, Target, Eye];
+              const Icon = icons[index % icons.length];
+              return (
+                <div key={index} className="text-center">
+                  <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icon className="w-10 h-10 text-black" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">{value.title}</h3>
+                  <p className="text-gray-600 text-sm">
+                    {value.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -215,7 +185,7 @@ export default function About() {
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Years of Experience</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.years}</div>
             </div>
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
@@ -224,7 +194,7 @@ export default function About() {
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Products</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.products}</div>
             </div>
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
@@ -233,7 +203,7 @@ export default function About() {
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Happy Customers</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.customers}</div>
             </div>
             <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
               <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
@@ -242,7 +212,7 @@ export default function About() {
                 </span>
                 <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">Authentic Products</div>
+              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.authentic}</div>
             </div>
           </div>
         </div>

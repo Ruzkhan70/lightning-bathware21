@@ -121,33 +121,33 @@ export default function Home() {
   const features = useMemo(() => [
     {
       icon: Truck,
-      title: "Island-wide Delivery",
-      description: "Fast and reliable delivery across Sri Lanka",
+      title: siteContent.home.features[0]?.title || "Island-wide Delivery",
+      description: siteContent.home.features[0]?.description || "Fast and reliable delivery across Sri Lanka",
     },
     {
       icon: Shield,
-      title: "Quality Guarantee",
-      description: "100% authentic products from trusted brands",
+      title: siteContent.home.features[1]?.title || "Quality Guarantee",
+      description: siteContent.home.features[1]?.description || "100% authentic products from trusted brands",
     },
     {
       icon: Award,
-      title: "Expert Support",
-      description: "Professional advice from our experienced team",
+      title: siteContent.home.features[2]?.title || "Expert Support",
+      description: siteContent.home.features[2]?.description || "Professional advice from our experienced team",
     },
     {
       icon: Star,
-      title: "Best Prices",
-      description: "Competitive pricing on premium products",
+      title: siteContent.home.features[3]?.title || "Best Prices",
+      description: siteContent.home.features[3]?.description || "Competitive pricing on premium products",
     },
-  ], []);
+  ], [siteContent.home.features]);
 
   // Memoize stats array
   const stats = useMemo(() => [
-    { value: storeProfile.statsYearsExperience, label: "Years of Experience" },
-    { value: storeProfile.statsProducts, label: "Products" },
-    { value: storeProfile.statsCustomers, label: "Happy Customers" },
-    { value: storeProfile.statsAuthentic, label: "Authentic Products" },
-  ], [storeProfile.statsYearsExperience, storeProfile.statsProducts, storeProfile.statsCustomers, storeProfile.statsAuthentic]);
+    { value: storeProfile.statsYearsExperience, label: siteContent.about.statsLabels.years },
+    { value: storeProfile.statsProducts, label: siteContent.about.statsLabels.products },
+    { value: storeProfile.statsCustomers, label: siteContent.about.statsLabels.customers },
+    { value: storeProfile.statsAuthentic, label: siteContent.about.statsLabels.authentic },
+  ], [storeProfile.statsYearsExperience, storeProfile.statsProducts, storeProfile.statsCustomers, storeProfile.statsAuthentic, siteContent.about.statsLabels]);
 
   const statsRef = useRef(null);
 
@@ -193,7 +193,7 @@ export default function Home() {
                   size="lg"
                   className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold px-8 py-7 text-lg rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300"
                 >
-                  Shop Now
+                  {siteContent.home.shopNowText}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
@@ -258,10 +258,10 @@ export default function Home() {
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-                Shop by Category
+                {siteContent.home.shopByCategoryTitle}
               </h2>
               <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Explore our wide range of premium products
+                {siteContent.home.shopByCategorySubtitle}
               </p>
               <div className="w-24 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
             </div>
@@ -294,7 +294,7 @@ export default function Home() {
                           {category.name}
                         </h3>
                         <p className="text-gray-300 text-sm font-medium">
-                          {category.count} Products
+                          {category.count} {siteContent.home.productsCount}
                         </p>
                       </div>
                     </div>
@@ -315,10 +315,10 @@ export default function Home() {
             <div className="text-center text-white mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center gap-2">
                 <PartyPopper className="w-8 h-8 text-yellow-300" />
-                Special Offers & Promotions
+                {siteContent.home.specialOffersTitle}
               </h2>
               <p className="text-lg md:text-xl mb-6">
-                Don't miss out on our amazing deals!
+                {siteContent.home.specialOffersSubtitle}
               </p>
             </div>
 
@@ -379,10 +379,10 @@ export default function Home() {
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Featured Products
+                {siteContent.home.featuredProductsTitle}
               </h2>
               <p className="text-gray-600 text-lg">
-                Discover our most popular items
+                {siteContent.home.featuredProductsSubtitle}
               </p>
             </div>
           </ScrollAnimation>
@@ -399,7 +399,7 @@ export default function Home() {
                 size="lg"
                 className="bg-black hover:bg-[#D4AF37] text-white"
               >
-                View All Products
+                {siteContent.home.viewAllProductsText}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
@@ -411,18 +411,17 @@ export default function Home() {
       <section className="py-16 bg-black text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Need Help Choosing the Right Product?
+            {siteContent.home.ctaTitle}
           </h2>
           <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Our expert team is ready to assist you with professional advice and
-            product recommendations.
+            {siteContent.home.ctaSubtitle}
           </p>
           <Link to="/contact">
             <Button
               size="lg"
               className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold"
             >
-              Contact Us Today
+              {siteContent.home.contactUsText}
             </Button>
           </Link>
         </div>

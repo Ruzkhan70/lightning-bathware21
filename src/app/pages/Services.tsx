@@ -60,29 +60,24 @@ export default function Services() {
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Why Choose {storeProfile.storeName} {storeProfile.storeNameAccent}?
+                {siteContent.services.whyChooseTitle}
               </h2>
               <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Your trusted partner for quality hardware solutions in Sri Lanka
+                {siteContent.services.whyChooseSubtitle}
               </p>
             </div>
           </ScrollAnimation>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {[
-              { num: "1", title: "Wide Product Range", desc: "Over 350+ premium products across lighting, bathroom, plumbing, electrical, and construction categories." },
-              { num: "2", title: "Competitive Pricing", desc: "Best prices in the market with special discounts for bulk orders and contractors." },
-              { num: "3", title: "Expert Team", desc: "Professional staff with years of experience in the hardware industry, ready to assist you." },
-              { num: "4", title: "Customer Satisfaction", desc: "Thousands of satisfied customers trust us for their hardware needs across Sri Lanka." },
-            ].map((item, index) => (
+            {siteContent.services.whyChooseItems.map((item, index) => (
               <ScrollAnimation key={index} animation="slideUp" delay={index * 100}>
                 <div className="flex gap-4">
                   <div className="w-12 h-12 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-black font-bold text-xl">{item.num}</span>
+                    <span className="text-black font-bold text-xl">{index + 1}</span>
                   </div>
                   <div>
                     <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                    <p className="text-gray-600">{item.desc}</p>
+                    <p className="text-gray-600">{item.description}</p>
                   </div>
                 </div>
               </ScrollAnimation>
@@ -96,21 +91,20 @@ export default function Services() {
         <section className="py-16 bg-black text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Get Started?
+              {siteContent.services.ctaTitle}
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Contact us today to learn more about our services and how we can
-              help with your project
+              {siteContent.services.ctaSubtitle}
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <a href={`tel:${storeProfile.phone}`}>
                 <button className="px-8 py-3 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold rounded-lg transition-colors hover:scale-105">
-                  Call: {storeProfile.phone}
+                  {siteContent.services.callButtonText}: {storeProfile.phone}
                 </button>
               </a>
               <a href={`mailto:${storeProfile.email}`}>
                 <button className="px-8 py-3 bg-white hover:bg-gray-100 text-black font-bold rounded-lg transition-colors hover:scale-105">
-                  Email Us
+                  {siteContent.services.emailButtonText}
                 </button>
               </a>
             </div>
