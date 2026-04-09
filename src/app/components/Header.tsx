@@ -451,7 +451,7 @@ export default function Header() {
       </header>
 
       {/* DESKTOP HEADER */}
-      <header className="sticky top-0 z-50 bg-white shadow-md">
+      <header className="sticky top-0 z-50 bg-white shadow-lg">
         {/* Top Row */}
         <div className="border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-6">
@@ -479,7 +479,7 @@ export default function Header() {
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-                    className="w-full pl-6 pr-16 py-4 bg-gray-100 text-black border-0 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 transition-all placeholder:text-gray-400"
+                    className="w-full pl-6 pr-16 py-6 bg-gray-100 text-black border-0 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 transition-all placeholder:text-gray-400"
                   />
                   <button 
                     type="submit"
@@ -538,7 +538,7 @@ export default function Header() {
         {/* Bottom Row - Navigation */}
         <div className="bg-black">
           <div className="max-w-7xl mx-auto px-6">
-            <nav className="flex items-center justify-center py-1">
+            <nav className="flex items-center justify-center py-0">
               <ul className="flex items-center">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
@@ -554,20 +554,20 @@ export default function Header() {
                           onMouseLeave={() => setShowCategoriesDropdown(false)}
                         >
                           <button 
-                            className={`flex items-center gap-2 px-7 py-5 text-base font-medium transition-colors ${
+                            className={`flex items-center gap-2 px-7 py-4 text-sm font-medium transition-colors ${
                               isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
                             }`}
                           >
-                            <Icon className="w-5 h-5" />
+                            <Icon className="w-4 h-4" />
                             {link.name}
-                            <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
                           </button>
                           
                           {showCategoriesDropdown && (
                             <div 
-                              className="absolute left-1/2 -translate-x-1/2 top-full w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 mt-1"
+                              className="absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 mt-0.5"
                             >
-                              <div className="py-3">
+                              <div className="py-2">
                                 {safeCategories.filter(cat => cat.isActive).map((category) => {
                                   const color = getCategoryColor(category.name);
                                   return (
@@ -575,28 +575,28 @@ export default function Header() {
                                       key={category.id}
                                       to={`/products?category=${encodeURIComponent(category.name)}`}
                                       onClick={() => setShowCategoriesDropdown(false)}
-                                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
+                                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
                                     >
                                       {category.image ? (
-                                        <img src={category.image} alt={category.name} className="w-12 h-12 rounded-xl object-cover" />
+                                        <img src={category.image} alt={category.name} className="w-10 h-10 rounded-lg object-cover" />
                                       ) : (
-                                        <span className={`w-12 h-12 rounded-xl ${color.bg} flex items-center justify-center ${color.text} font-bold text-lg`}>
+                                        <span className={`w-10 h-10 rounded-lg ${color.bg} flex items-center justify-center ${color.text} font-bold`}>
                                           {getCategoryInitial(category.name)}
                                         </span>
                                       )}
-                                      <span className="font-medium text-base">{category.name}</span>
+                                      <span className="font-medium text-sm">{category.name}</span>
                                     </Link>
                                   );
                                 })}
                               </div>
-                              <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
+                              <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
                                 <Link 
                                   to="/categories" 
                                   onClick={() => setShowCategoriesDropdown(false)} 
-                                  className="text-base text-[#D4AF37] hover:text-[#B8962E] font-medium flex items-center justify-between"
+                                  className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium flex items-center justify-between"
                                 >
                                   View All Categories
-                                  <ChevronRight className="w-5 h-5" />
+                                  <ChevronRight className="w-4 h-4" />
                                 </Link>
                               </div>
                             </div>
@@ -605,11 +605,11 @@ export default function Header() {
                       ) : (
                         <Link 
                           to={link.path} 
-                          className={`flex items-center gap-2 px-7 py-5 text-base font-medium transition-colors ${
+                          className={`flex items-center gap-2 px-7 py-4 text-sm font-medium transition-colors ${
                             isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
                           }`}
                         >
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-4 h-4" />
                           {link.name}
                         </Link>
                       )}
