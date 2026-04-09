@@ -64,10 +64,11 @@ export default function Products() {
       );
     }
 
-    // Category filter - only if NOT from URL params
+    // Category filter - from URL params OR selected category
     const categoryParam = searchParams.get("category");
-    if (!categoryParam && selectedCategory !== "all" && selectedCategory !== "All Categories") {
-      result = result.filter((p) => p.category === selectedCategory);
+    const activeCategory = categoryParam || selectedCategory;
+    if (activeCategory && activeCategory !== "all" && activeCategory !== "All Categories") {
+      result = result.filter((p) => p.category === activeCategory);
     }
 
     // Price range filter
@@ -114,7 +115,18 @@ export default function Products() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Our Products
+            {searchParams.get("category") || searchParams.get("search") ? (
+              <>
+                {searchParams.get("category") && (
+                  <span>{searchParams.get("category")}</span>
+                )}
+                {searchParams.get("search") && !searchParams.get("category") && (
+                  <span>Search: "{searchParams.get("search")}"</span>
+                )}
+              </>
+            ) : (
+              "Our Products"
+            )}
           </h1>
           {!isDataLoaded ? (
             <div className="h-6 w-48 bg-gray-200 animate-pulse rounded"></div>

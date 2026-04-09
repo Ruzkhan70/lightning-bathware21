@@ -114,6 +114,7 @@ export interface Category {
   image: string;
   color: string;
   isActive: boolean;
+  subcategories?: string[];
 }
 
 export interface ContactMessage {

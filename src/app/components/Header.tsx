@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router";
-import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid } from "lucide-react";
+import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid, ChevronRight, Lightbulb } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
@@ -16,6 +16,7 @@ export default function Header() {
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -384,11 +385,11 @@ export default function Header() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform ${
+        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform touch-none ${
           mobileMenuOpen 
             ? "translate-x-0" 
             : "translate-x-full"
-        } transition-[transform] duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)] shadow-[-8px_0_30px_rgba(0,0,0,0.3)]`}
+        } transition-transform duration-300 ease-out shadow-[-4px_0_20px_rgba(0,0,0,0.4)]`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <div className="text-lg font-bold">
@@ -427,14 +428,76 @@ export default function Header() {
               </Link>
             </li>
             <li>
-              <Link
-                to="/categories"
-                onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+              <button
+                onClick={() => {
+                  if (expandedCategories.includes('mobile-categories')) {
+                    setExpandedCategories(expandedCategories.filter(c => c !== 'mobile-categories'));
+                  } else {
+                    setExpandedCategories([...expandedCategories, 'mobile-categories']);
+                  }
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
               >
                 <LayoutGrid className="w-5 h-5 text-[#D4AF37]" />
-                <span className="font-medium">Categories</span>
-              </Link>
+                <span className="font-medium flex-1 text-left">Categories</span>
+                <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${expandedCategories.includes('mobile-categories') ? 'rotate-90' : ''}`} />
+              </button>
+              {expandedCategories.includes('mobile-categories') && (
+                <div className="ml-4 mt-1 space-y-1">
+                  {safeCategories.filter(c => c.isActive).map((category) => (
+                    <div key={category.id}>
+                      {category.subcategories && category.subcategories.length > 0 ? (
+                        <div>
+                          <button
+                            onClick={() => {
+                              if (expandedCategories.includes(category.id)) {
+                                setExpandedCategories(expandedCategories.filter(c => c !== category.id));
+                              } else {
+                                setExpandedCategories([...expandedCategories, category.id]);
+                              }
+                            }}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm"
+                          >
+                            <span className="text-gray-300">{category.name}</span>
+                            <ChevronRight className={`w-3 h-3 ml-auto transition-transform duration-200 ${expandedCategories.includes(category.id) ? 'rotate-90' : ''}`} />
+                          </button>
+                          {expandedCategories.includes(category.id) && (
+                            <div className="ml-4 space-y-1">
+                              {category.subcategories.map((subcat) => (
+                                <Link
+                                  key={subcat}
+                                  to={`/products?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(subcat)}`}
+                                  onClick={closeMobileMenu}
+                                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm text-gray-400"
+                                >
+                                  <span className="w-1 h-1 rounded-full bg-[#D4AF37]"></span>
+                                  {subcat}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Link
+                          to={`/products?category=${encodeURIComponent(category.name)}`}
+                          onClick={closeMobileMenu}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm"
+                        >
+                          <Lightbulb className="w-4 h-4 text-[#D4AF37]" />
+                          {category.name}
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                  <Link
+                    to="/categories"
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm text-[#D4AF37] border-t border-gray-800 mt-2 pt-2"
+                  >
+                    View All Categories →
+                  </Link>
+                </div>
+              )}
             </li>
             <li>
               <Link
