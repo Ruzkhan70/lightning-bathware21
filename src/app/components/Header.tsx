@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -7,6 +7,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const { storeProfile, categories, products } = useAdmin();
@@ -19,6 +20,13 @@ export default function Header() {
   const drawerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(path);
+  };
 
   const safeCategories = categories || [];
   const safeProducts = products || [];
@@ -207,15 +215,15 @@ export default function Header() {
         <div className="container mx-auto px-4">
           <ul className="flex items-center justify-center gap-8 py-3">
             <li>
-              <Link to="/" className="transition-colors font-medium relative group text-[#D4AF37]">
+              <Link to="/" className={`transition-colors font-medium relative group ${isActive("/") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Home
-                <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
             <li>
-              <Link to="/products" className="transition-colors font-medium relative group text-white hover:text-[#D4AF37]">
+              <Link to="/products" className={`transition-colors font-medium relative group ${isActive("/products") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Products
-                <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/products") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
             <li className="relative h-full">
@@ -256,27 +264,27 @@ export default function Header() {
               </div>
             </li>
             <li>
-              <Link to="/offers" className="transition-colors font-medium relative group text-white hover:text-[#D4AF37]">
+              <Link to="/offers" className={`transition-colors font-medium relative group ${isActive("/offers") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Offers
-                <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/offers") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
             <li>
-              <Link to="/services" className="transition-colors font-medium relative group text-white hover:text-[#D4AF37]">
+              <Link to="/services" className={`transition-colors font-medium relative group ${isActive("/services") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Services
-                <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/services") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
             <li>
-              <Link to="/about" className="transition-colors font-medium relative group text-white hover:text-[#D4AF37]">
+              <Link to="/about" className={`transition-colors font-medium relative group ${isActive("/about") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 About
-                <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/about") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
             <li>
-              <Link to="/contact" className="transition-colors font-medium relative group text-white hover:text-[#D4AF37]">
+              <Link to="/contact" className={`transition-colors font-medium relative group ${isActive("/contact") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Contact
-                <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/contact") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
           </ul>
