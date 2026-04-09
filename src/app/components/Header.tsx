@@ -1,10 +1,9 @@
-import { Link, useNavigate, useSearchParams, useLocation } from "react-router";
-import { ShoppingCart, Heart, Menu, User, X, ChevronDown, Home, Package, Grid3X3, Tag, Wrench, Info, Phone, LogOut, UserCircle, FileText, ChevronRight } from "lucide-react";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router";
+import { ShoppingCart, Heart, Menu, User, X, ChevronDown, Home, Package, Grid3X3, Tag, Wrench, Info, Phone, LogOut, UserCircle, ChevronRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
-import { Input } from "./ui/input";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -16,11 +15,12 @@ export default function Header() {
   const { wishlist } = useWishlist();
   const { isLoggedIn, user, logout } = useUser();
   const { products, storeProfile, categories } = useAdmin();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
+  
   const searchRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -99,7 +99,6 @@ export default function Header() {
 
   useEffect(() => {
     setDrawerOpen(false);
-    setMobileMenuOpen(false);
   }, [location.pathname]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -147,12 +146,10 @@ export default function Header() {
 
   const handleDrawerClose = useCallback(() => {
     setDrawerOpen(false);
-    setMobileMenuOpen(false);
   }, []);
 
   const handleNavClick = useCallback(() => {
     setDrawerOpen(false);
-    setMobileMenuOpen(false);
   }, []);
 
   const handleLogout = useCallback(async () => {
@@ -354,7 +351,7 @@ export default function Header() {
             <Link to="/" className="flex items-center gap-3">
               {storeProfile.storeLogo ? (
                 <>
-                  <img src={storeProfile.storeLogo} alt={`${storeProfile.storeName}`} className="h-10 md:h-12 w-auto object-contain" />
+                  <img src={storeProfile.storeLogo} alt={storeProfile.storeName} className="h-10 md:h-12 w-auto object-contain" />
                   <div className="text-xl md:text-2xl font-bold hidden sm:block">
                     <span className="text-white">{storeProfile.storeName}</span>
                     <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
@@ -370,7 +367,7 @@ export default function Header() {
 
             <div className="hidden md:flex flex-1 max-w-2xl relative" ref={searchRef}>
               <form onSubmit={handleSearchSubmit} className="relative w-full">
-                <Input
+                <input
                   type="text"
                   placeholder="Search for products..."
                   value={searchQuery}
@@ -383,6 +380,7 @@ export default function Header() {
                     {suggestions.map((product) => (
                       <button
                         key={product.id}
+                        type="button"
                         onClick={() => handleSuggestionClick(product.name)}
                         className="w-full text-left px-4 py-3 hover:bg-gray-100 text-black border-b border-gray-100 last:border-0"
                       >
@@ -426,7 +424,7 @@ export default function Header() {
 
           <div className="md:hidden mt-4 relative" ref={mobileSearchRef}>
             <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <Input
+              <input
                 type="text"
                 placeholder="Search for products..."
                 value={searchQuery}
