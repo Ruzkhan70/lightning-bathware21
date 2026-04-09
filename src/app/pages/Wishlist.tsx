@@ -1,53 +1,17 @@
 import { Link } from "react-router";
-import { ShoppingCart, X, Share2, Copy, Check } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback } from "react";
 import EmptyState, { WishlistEmpty } from "../components/EmptyState";
-import { setMetaTags } from "../utils/seo";
-import { useSearchParams } from "react-router";
 
 export default function Wishlist() {
-  const [searchParams] = useSearchParams();
-  const { wishlist, removeFromWishlist, shareWishlist, addMultipleToWishlist } = useWishlist();
+  const { wishlist, removeFromWishlist } = useWishlist();
   const { products } = useAdmin();
   const { addToCart } = useCart();
-  const [copied, setCopied] = useState(false);
-  const [sharedItemsCount, setSharedItemsCount] = useState(0);
-
-  useEffect(() => {
-    setMetaTags(
-      "My Wishlist | Lightning Bathware",
-      "View and manage your saved products wishlist"
-    );
-
-    const sharedWishlist = searchParams.get("wishlist");
-    if (sharedWishlist) {
-      try {
-        const decodedIds = atob(sharedWishlist);
-        const productIds = decodedIds.split(",").filter(id => id.trim());
-        const validIds = productIds.filter(id => {
-          return products.some(p => p.id === id);
-        });
-        
-        if (validIds.length > 0) {
-          const newItems = validIds.filter(id => !wishlist.includes(id));
-          if (newItems.length > 0) {
-            addMultipleToWishlist(newItems);
-            setSharedItemsCount(newItems.length);
-            toast.success(`${newItems.length} shared product(s) added to your wishlist!`);
-          } else {
-            toast.info("All shared products are already in your wishlist!");
-          }
-        }
-      } catch (error) {
-        console.error("Error loading shared wishlist:", error);
-      }
-    }
-  }, [searchParams, products, wishlist, addMultipleToWishlist]);
 
   const safeProducts = products || [];
   
@@ -66,19 +30,6 @@ export default function Wishlist() {
     toast.success(`${productName} removed from wishlist!`);
   }, [removeFromWishlist]);
 
-  const handleShare = useCallback(async () => {
-    if (wishlist.length === 0) {
-      toast.error("Your wishlist is empty");
-      return;
-    }
-    const url = await shareWishlist();
-    if (url) {
-      setCopied(true);
-      toast.success("Wishlist link copied to clipboard!");
-      setTimeout(() => setCopied(false), 3000);
-    }
-  }, [shareWishlist, wishlist.length]);
-
   if (wishlistProducts.length === 0) {
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -95,33 +46,12 @@ export default function Wishlist() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto px-4 py-12">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
-            <p className="text-gray-600">
-              {wishlistProducts.length}{" "}
-              {wishlistProducts.length === 1 ? "item" : "items"} saved
-            </p>
-          </div>
-          {wishlistProducts.length > 0 && (
-            <Button
-              onClick={handleShare}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-green-600" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-4 h-4" />
-                  Share Wishlist
-                </>
-              )}
-            </Button>
-          )}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
+          <p className="text-gray-600">
+            {wishlistProducts.length}{" "}
+            {wishlistProducts.length === 1 ? "item" : "items"} saved
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

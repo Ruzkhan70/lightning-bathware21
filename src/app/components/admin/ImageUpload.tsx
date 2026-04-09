@@ -2,7 +2,6 @@ import { useState, useCallback, useRef } from "react";
 import { Upload, X, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { handleError } from "../../../lib/errorHandler";
-import { convertToWebPIfSupported, getImageSizeKB, isWebPSupported } from "../../utils/imageUtils";
 
 interface ImageUploadProps {
   value: string;
@@ -28,20 +27,7 @@ export default function ImageUpload({
   const [urlInput, setUrlInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const compressImage = async (file: File): Promise<{ blob: Blob; converted: boolean; originalSize: string; newSize: string }> => {
-    const originalSize = getImageSizeKB(file);
-    
-    try {
-      const { file: convertedFile, converted } = await convertToWebPIfSupported(file, 0.85, 1920, 1920);
-      
-      if (converted) {
-        const newSize = getImageSizeKB(convertedFile);
-        return { blob: convertedFile, converted: true, originalSize, newSize };
-      }
-    } catch (error) {
-      console.warn("WebP conversion failed, falling back to JPEG compression:", error);
-    }
-
+  const compressImage = async (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -67,11 +53,8 @@ export default function ImageUpload({
         
         canvas.toBlob(
           (blob) => {
-            if (blob) {
-              resolve({ blob, converted: false, originalSize, newSize: getImageSizeKB(blob) });
-            } else {
-              reject(new Error("Failed to compress image"));
-            }
+            if (blob) resolve(blob);
+            else reject(new Error("Failed to compress image"));
           },
           "image/jpeg",
           0.85
@@ -126,18 +109,13 @@ export default function ImageUpload({
     }
 
     setIsUploading(true);
-    toast.info("Optimizing and uploading image...");
+    toast.info("Uploading image...");
 
     try {
-      const { blob: compressedFile, converted, originalSize, newSize } = await compressImage(file);
+      const compressedFile = await compressImage(file);
       const imageUrl = await uploadToImgBB(compressedFile);
       onChange(imageUrl);
-      
-      if (converted) {
-        toast.success(`Image optimized: ${originalSize} → ${newSize} (WebP)`, { duration: 3000 });
-      } else {
-        toast.success("Image uploaded successfully!");
-      }
+      toast.success("Image uploaded successfully!");
     } catch (error) {
       handleError(error, "Failed to upload image");
     } finally {
@@ -226,13 +204,13 @@ export default function ImageUpload({
             </button>
           </div>
         ) : !isUploading ? (
-            <div className="text-center">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Upload className="w-6 h-6 text-gray-500" />
-              </div>
-              <p className="text-sm font-medium text-gray-700">Drag & drop or click to upload</p>
-              <p className="text-xs text-gray-500 mt-1">Images auto-optimized to WebP for faster loading</p>
+          <div className="text-center">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Upload className="w-6 h-6 text-gray-500" />
             </div>
+            <p className="text-sm font-medium text-gray-700">Drag & drop or click to upload</p>
+            <p className="text-xs text-gray-500 mt-1">Images upload to fast CDN</p>
+          </div>
         ) : null}
       </div>
       

@@ -15,8 +15,6 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
-const Compare = lazy(() => import("./pages/Compare"));
-const BulkOrder = lazy(() => import("./pages/BulkOrder"));
 const Account = lazy(() => import("./pages/Account"));
 const Offers = lazy(() => import("./pages/Offers"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -40,7 +38,6 @@ const AdminActivityLogs = lazy(() => import("./pages/admin/AdminActivityLogs"));
 const AdminLoginAttempts = lazy(() => import("./pages/admin/AdminLoginAttempts"));
 const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
 const AdminAnnouncements = lazy(() => import("./pages/admin/AdminAnnouncements"));
-const AdminBulkOrders = lazy(() => import("./pages/admin/AdminBulkOrders"));
 
 
 // Content-only loader (NO min-h-screen - only fills parent container)
@@ -65,8 +62,6 @@ export const router = createHashRouter([
       { path: "cart", element: <Suspense fallback={<ContentLoaderWrapper />}><Cart /></Suspense> },
       { path: "checkout", element: <Suspense fallback={<ContentLoaderWrapper />}><Checkout /></Suspense> },
       { path: "wishlist", element: <Suspense fallback={<ContentLoaderWrapper />}><Wishlist /></Suspense> },
-      { path: "compare", element: <Suspense fallback={<ContentLoaderWrapper />}><Compare /></Suspense> },
-      { path: "bulk-order", element: <Suspense fallback={<ContentLoaderWrapper />}><BulkOrder /></Suspense> },
       { path: "account", element: <Suspense fallback={<ContentLoaderWrapper />}><Account /></Suspense> },
       { path: "terms", element: <Suspense fallback={<ContentLoaderWrapper />}><Terms /></Suspense> },
       { path: "invoice/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><Invoice /></Suspense> },
@@ -95,7 +90,6 @@ export const router = createHashRouter([
       { path: "login-attempts", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminLoginAttempts /></Suspense> },
       { path: "customers", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminCustomers /></Suspense> },
       { path: "announcements", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminAnnouncements /></Suspense> },
-      { path: "bulk-orders", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminBulkOrders /></Suspense> },
     ],
   },
 ]);

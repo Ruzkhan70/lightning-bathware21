@@ -73,8 +73,6 @@ export interface Product {
   isAvailable: boolean;
   description: string;
   image: string;
-  brand?: string;
-  rating?: number;
 }
 
 export interface Order {

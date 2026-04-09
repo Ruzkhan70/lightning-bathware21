@@ -3,7 +3,6 @@ import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
-import { ComparisonProvider } from "./context/ComparisonContext";
 import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
 import { NotificationsProvider } from "./context/NotificationsContext";
@@ -95,18 +94,16 @@ function AppContent() {
       <AnnouncementProvider>
         <UserProvider>
           <AdminProvider>
-              <NotificationsProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    <ComparisonProvider>
-                      <DataLoader>
-                        <RouterProvider router={router} />
-                        <Toaster position="top-right" draggable />
-                      </DataLoader>
-                    </ComparisonProvider>
-                  </WishlistProvider>
-                </CartProvider>
-              </NotificationsProvider>
+            <NotificationsProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <DataLoader>
+                    <RouterProvider router={router} />
+                    <Toaster position="top-right" draggable />
+                  </DataLoader>
+                </WishlistProvider>
+              </CartProvider>
+            </NotificationsProvider>
           </AdminProvider>
         </UserProvider>
       </AnnouncementProvider>
