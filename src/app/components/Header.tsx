@@ -1,10 +1,10 @@
 import { Link, useNavigate, useLocation } from "react-router";
-import { ShoppingCart, Heart, User, Home, Package, Grid3X3, Tag, Wrench, Info, Phone } from "lucide-react";
+import { ShoppingCart, Heart, User, Home, Package, Grid3X3, Tag, Wrench, Info, Phone, ChevronDown } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useUser } from "../context/UserContext";
 import { useAdmin } from "../context/AdminContext";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -12,8 +12,12 @@ export default function Header() {
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const { isLoggedIn } = useUser();
-  const { storeProfile } = useAdmin();
+  const { storeProfile, categories } = useAdmin();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+
+  const safeCategories = categories || [];
 
   const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +42,16 @@ export default function Header() {
     { name: "About", path: "/about", icon: Info },
     { name: "Contact", path: "/contact", icon: Phone },
   ];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
+        setShowCategoriesDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-black text-white shadow-lg">
@@ -105,6 +119,46 @@ export default function Header() {
           <ul className="flex items-center justify-center gap-8 py-3">
             {navLinks.map((link) => {
               const Icon = link.icon;
+              
+              if (link.name === "Categories") {
+                return (
+                  <li key={link.path} className="relative" ref={categoriesRef}>
+                    <button
+                      onClick={() => setShowCategoriesDropdown(!showCategoriesDropdown)}
+                      className={`flex items-center gap-2 transition-colors font-medium ${
+                        isActive(link.path) ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {link.name}
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showCategoriesDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {showCategoriesDropdown && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-xl shadow-xl overflow-hidden">
+                        {safeCategories.filter(cat => cat.isActive).slice(0, 6).map((category) => (
+                          <Link
+                            key={category.id}
+                            to={`/products?category=${encodeURIComponent(category.name)}`}
+                            onClick={() => setShowCategoriesDropdown(false)}
+                            className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] border-b border-gray-100 last:border-0"
+                          >
+                            {category.name}
+                          </Link>
+                        ))}
+                        <Link
+                          to="/categories"
+                          onClick={() => setShowCategoriesDropdown(false)}
+                          className="block px-4 py-3 text-center text-sm text-[#D4AF37] hover:bg-gray-50 bg-gray-50"
+                        >
+                          View All Categories
+                        </Link>
+                      </div>
+                    )}
+                  </li>
+                );
+              }
+
               return (
                 <li key={link.path}>
                   <Link 
