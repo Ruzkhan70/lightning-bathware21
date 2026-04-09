@@ -773,42 +773,51 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const deviceId = getOrCreateDeviceId();
     setCurrentDeviceId(deviceId);
 
+    // Ensure current device session exists in Firestore
+    const ensureCurrentSession = async () => {
+      try {
+        const { device, browser, os } = getDeviceInfo();
+        const now = new Date().toISOString();
+        
+        const q = query(
+          collection(db, DEVICE_SESSIONS_COLLECTION),
+          where('deviceId', '==', deviceId),
+          where('email', '==', adminEmail)
+        );
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+          await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
+            deviceId,
+            email: adminEmail,
+            device,
+            browser,
+            os,
+            status: 'active',
+            loginTime: now,
+            lastActive: now,
+          });
+        }
+      } catch (error) {
+        console.error("Error ensuring current session:", error);
+      }
+    };
+    
+    ensureCurrentSession();
+
     try {
-      // Query without status filter to avoid needing composite index
       const q = query(
         collection(db, DEVICE_SESSIONS_COLLECTION),
         where('email', '==', adminEmail),
-        orderBy('loginTime', 'desc')
+        where('status', '==', 'active')
       );
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        // Filter to only show active sessions in UI
-        const activeSessions: DeviceSession[] = [];
-        
-        snapshot.docs.forEach(docSnap => {
-          const data = docSnap.data();
-          if (data.status === 'active') {
-            activeSessions.push({
-              id: docSnap.id,
-              deviceId: data.deviceId,
-              email: data.email,
-              device: data.device,
-              browser: data.browser,
-              os: data.os,
-              isCurrentDevice: data.deviceId === deviceId,
-              status: data.status,
-              loginTime: data.loginTime,
-              lastActive: data.lastActive,
-              ipAddress: data.ipAddress,
-            } as DeviceSession);
-          }
-        });
-        
-        // Always include current device, even if not in Firestore yet
-        if (!activeSessions.some(s => s.deviceId === deviceId)) {
+        if (snapshot.empty) {
+          // Fallback: create and show local session
           const { device, browser, os } = getDeviceInfo();
-          activeSessions.unshift({
-            id: 'current-local',
+          setDeviceSessions([{
+            id: 'local',
             deviceId: deviceId,
             email: adminEmail,
             device,
@@ -818,12 +827,44 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             status: 'active',
             loginTime: new Date().toISOString(),
             lastActive: new Date().toISOString(),
-          });
+          }]);
+          return;
         }
         
-        setDeviceSessions(activeSessions);
+        const sessions: DeviceSession[] = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            deviceId: data.deviceId,
+            email: data.email,
+            device: data.device,
+            browser: data.browser,
+            os: data.os,
+            isCurrentDevice: data.deviceId === deviceId,
+            status: data.status,
+            loginTime: data.loginTime,
+            lastActive: data.lastActive,
+            ipAddress: data.ipAddress,
+          } as DeviceSession;
+        });
+        
+        setDeviceSessions(sessions);
       }, (error) => {
         console.error("Error loading device sessions:", error);
+        // Fallback on error
+        const { device, browser, os } = getDeviceInfo();
+        setDeviceSessions([{
+          id: 'local',
+          deviceId: deviceId,
+          email: adminEmail,
+          device,
+          browser,
+          os,
+          isCurrentDevice: true,
+          status: 'active',
+          loginTime: new Date().toISOString(),
+          lastActive: new Date().toISOString(),
+        }]);
       });
 
       return () => unsubscribe();
@@ -837,25 +878,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     if (!isAdminLoggedIn || !adminEmail) return;
 
     const deviceId = getOrCreateDeviceId();
-    const { device, browser, os } = getDeviceInfo();
 
-    // Update last active immediately
+    // Update last active immediately using predictable doc ID
     const updateLastActive = async () => {
       try {
-        const q = query(
-          collection(db, DEVICE_SESSIONS_COLLECTION),
-          where('deviceId', '==', deviceId),
-          where('email', '==', adminEmail)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const docId = snapshot.docs[0].id;
-          await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
-            lastActive: new Date().toISOString(),
-          });
-        }
+        const docId = `${adminEmail}_${deviceId}`;
+        await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
+          lastActive: new Date().toISOString(),
+        });
       } catch (error) {
-        // Ignore errors for last active updates
+        // Ignore errors for last active updates - session might not exist yet
       }
     };
 
@@ -1803,44 +1835,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         };
         localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
         
-        // Register device session in Firebase
+        // Register device session in Firebase immediately
         const deviceId = getOrCreateDeviceId();
         const { device, browser, os } = getDeviceInfo();
         const now = new Date().toISOString();
         
+        // Create session document with deviceId as the document ID for easy lookup
+        const sessionDocRef = doc(db, DEVICE_SESSIONS_COLLECTION, `${cleanEmail}_${deviceId}`);
         try {
-          // Check if this device already has a session
-          const existingQuery = query(
-            collection(db, DEVICE_SESSIONS_COLLECTION),
-            where('deviceId', '==', deviceId),
-            where('email', '==', cleanEmail)
-          );
-          const existingDocs = await getDocs(existingQuery);
-          
-          if (existingDocs.empty) {
-            // Create new device session
-            await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
-              deviceId,
-              email: cleanEmail,
-              device,
-              browser,
-              os,
-              status: 'active',
-              loginTime: now,
-              lastActive: now,
-            });
-          } else {
-            // Update existing device session
-            const docId = existingDocs.docs[0].id;
-            await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
-              status: 'active',
-              loginTime: now,
-              lastActive: now,
-              device,
-              browser,
-              os,
-            });
-          }
+          await setDoc(sessionDocRef, {
+            deviceId,
+            email: cleanEmail,
+            device,
+            browser,
+            os,
+            status: 'active',
+            loginTime: now,
+            lastActive: now,
+          }, { merge: true });
         } catch (error) {
           console.error("Error registering device session:", error);
         }
@@ -1938,54 +1950,92 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const removeDeviceSession = async (deviceId: string) => {
     try {
-      const q = query(
-        collection(db, DEVICE_SESSIONS_COLLECTION),
-        where('deviceId', '==', deviceId),
-        where('email', '==', adminEmail)
-      );
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, snapshot.docs[0].id));
-        toast.success("Device removed successfully");
-        
-        // If removing current device, logout
-        if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
-          await logout();
-        }
+      // Use the predictable document ID format
+      const docId = `${adminEmail}_${deviceId}`;
+      await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId));
+      toast.success("Device removed successfully");
+      
+      // If removing current device, logout
+      if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
+        await logout();
       }
     } catch (error) {
       console.error("Error removing device session:", error);
-      toast.error("Failed to remove device");
+      // Try alternate lookup
+      try {
+        const q = query(
+          collection(db, DEVICE_SESSIONS_COLLECTION),
+          where('deviceId', '==', deviceId),
+          where('email', '==', adminEmail)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, snapshot.docs[0].id));
+          toast.success("Device removed successfully");
+          if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
+            await logout();
+          }
+        }
+      } catch (e) {
+        console.error("Fallback remove also failed:", e);
+        toast.error("Failed to remove device");
+      }
     }
   };
 
   const logoutDeviceSession = async (deviceId: string) => {
     try {
-      const q = query(
-        collection(db, DEVICE_SESSIONS_COLLECTION),
-        where('deviceId', '==', deviceId),
-        where('email', '==', adminEmail)
-      );
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, snapshot.docs[0].id), {
-          status: 'logged_out',
-        });
-        toast.success("Device logged out successfully");
-        
-        // If logging out current device, logout
-        if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
-          await logout();
-        }
+      // Use the predictable document ID format
+      const docId = `${adminEmail}_${deviceId}`;
+      await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
+        status: 'logged_out',
+      });
+      toast.success("Device logged out successfully");
+      
+      // If logging out current device, logout
+      if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
+        await logout();
       }
     } catch (error) {
       console.error("Error logging out device session:", error);
-      toast.error("Failed to log out device");
+      // Try alternate lookup
+      try {
+        const q = query(
+          collection(db, DEVICE_SESSIONS_COLLECTION),
+          where('deviceId', '==', deviceId),
+          where('email', '==', adminEmail)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, snapshot.docs[0].id), {
+            status: 'logged_out',
+          });
+          toast.success("Device logged out successfully");
+          if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
+            await logout();
+          }
+        }
+      } catch (e) {
+        console.error("Fallback logout also failed:", e);
+        toast.error("Failed to log out device");
+      }
     }
   };
   
   const triggerLogout = async () => {
     try {
+      // Mark current device session as logged out
+      const deviceId = getOrCreateDeviceId();
+      const docId = `${adminEmail}_${deviceId}`;
+      try {
+        await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
+          status: 'logged_out',
+          lastActive: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.error("Error updating session on logout:", e);
+      }
+      
       await signOut(auth);
       setIsAdminLoggedIn(false);
       setFirebaseUser(null);
