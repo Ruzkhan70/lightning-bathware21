@@ -19,7 +19,10 @@ export default function Header() {
   const inputRef = useRef<HTMLInputElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
+  const touchStartTime = useRef(0);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -44,25 +47,91 @@ export default function Header() {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    const handleDocumentTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+      touchStartTime.current = Date.now();
+    };
+
+    const handleDocumentTouchMove = (e: TouchEvent) => {
+      touchEndX.current = e.touches[0].clientX;
+      touchEndY.current = e.touches[0].clientY;
+    };
+
+    const handleDocumentTouchEnd = () => {
+      if (drawerRef.current && drawerRef.current.contains(document.activeElement)) {
+        return;
+      }
+
+      const swipeThreshold = 60;
+      const timeThreshold = 500;
+      const diffX = touchEndX.current - touchStartX.current;
+      const diffY = Math.abs(touchEndY.current - touchStartY.current);
+      const timeDiff = Date.now() - touchStartTime.current;
+      
+      if (diffY > Math.abs(diffX) && diffY > 30) {
+        return;
+      }
+      
+      if (timeDiff > timeThreshold) {
+        return;
+      }
+      
+      if (mobileMenuOpen) {
+        if (diffX > swipeThreshold) {
+          closeMobileMenu();
+        }
+      } else {
+        if (diffX < -swipeThreshold) {
+          setMobileMenuOpen(true);
+        }
+      }
+    };
+
+    document.addEventListener("touchstart", handleDocumentTouchStart, { passive: true });
+    document.addEventListener("touchmove", handleDocumentTouchMove, { passive: true });
+    document.addEventListener("touchend", handleDocumentTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener("touchstart", handleDocumentTouchStart);
+      document.removeEventListener("touchmove", handleDocumentTouchMove);
+      document.removeEventListener("touchend", handleDocumentTouchEnd);
+    };
+  }, [mobileMenuOpen, closeMobileMenu]);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = () => {
-    const swipeThreshold = 50;
-    const diff = touchEndX.current - touchStartX.current;
-    const startPosition = touchStartX.current;
+    const swipeThreshold = 60;
+    const timeThreshold = 500;
+    const diffX = touchEndX.current - touchStartX.current;
+    const diffY = Math.abs(touchEndY.current - touchStartY.current);
+    const timeDiff = Date.now() - touchStartTime.current;
+    
+    if (diffY > Math.abs(diffX) && diffY > 30) {
+      return;
+    }
+    
+    if (timeDiff > timeThreshold) {
+      return;
+    }
     
     if (mobileMenuOpen) {
-      if (diff < -swipeThreshold) {
+      if (diffX < -swipeThreshold) {
         closeMobileMenu();
       }
     } else {
-      if (startPosition <= 30 && diff > swipeThreshold) {
+      if (diffX < -swipeThreshold) {
         setMobileMenuOpen(true);
       }
     }
@@ -177,11 +246,11 @@ export default function Header() {
             </Link>
 
             <button 
-              onClick={() => setMobileMenuOpen(true)} 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
               className="md:hidden p-2 -mr-2 hover:text-[#D4AF37] transition-colors active:bg-white/10 rounded-lg"
-              aria-label="Open menu"
+              aria-label="Toggle menu"
             >
-              <Menu className="w-6 h-6" />
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -310,11 +379,11 @@ export default function Header() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`md:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform ${
+        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform ${
           mobileMenuOpen 
             ? "translate-x-0" 
-            : "-translate-x-full"
-        } transition-[transform] duration-[350ms] ease-in-out shadow-2xl`}
+            : "translate-x-full"
+        } transition-[transform] duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)] shadow-[-8px_0_30px_rgba(0,0,0,0.3)]`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <div className="text-lg font-bold">
