@@ -54,12 +54,17 @@ export default function Header() {
 
   const handleTouchEnd = () => {
     const swipeThreshold = 50;
-    const diff = touchStartX.current - touchEndX.current;
+    const diff = touchEndX.current - touchStartX.current;
+    const startPosition = touchStartX.current;
     
-    if (diff > swipeThreshold && mobileMenuOpen) {
-      closeMobileMenu();
-    } else if (diff < -swipeThreshold && !mobileMenuOpen) {
-      setMobileMenuOpen(true);
+    if (mobileMenuOpen) {
+      if (diff < -swipeThreshold) {
+        closeMobileMenu();
+      }
+    } else {
+      if (startPosition <= 30 && diff > swipeThreshold) {
+        setMobileMenuOpen(true);
+      }
     }
   };
 
@@ -305,9 +310,11 @@ export default function Header() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`md:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 transform transition-transform duration-300 ease-out shadow-2xl ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`md:hidden fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform ${
+          mobileMenuOpen 
+            ? "translate-x-0" 
+            : "-translate-x-full"
+        } transition-[transform] duration-[350ms] ease-in-out shadow-2xl`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <div className="text-lg font-bold">

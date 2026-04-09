@@ -63,12 +63,17 @@ export default function AdminLayout() {
 
   const handleTouchEnd = () => {
     const swipeThreshold = 50;
-    const diff = touchStartX.current - touchEndX.current;
+    const diff = touchEndX.current - touchStartX.current;
+    const startPosition = touchStartX.current;
     
-    if (diff > swipeThreshold && mobileMenuOpen) {
-      closeMobileMenu();
-    } else if (diff < -swipeThreshold && !mobileMenuOpen) {
-      setMobileMenuOpen(true);
+    if (mobileMenuOpen) {
+      if (diff < -swipeThreshold) {
+        closeMobileMenu();
+      }
+    } else {
+      if (startPosition <= 30 && diff > swipeThreshold) {
+        setMobileMenuOpen(true);
+      }
     }
   };
 
@@ -293,7 +298,11 @@ export default function AdminLayout() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className={`lg:hidden fixed left-0 top-0 h-screen w-64 bg-black text-white flex flex-col z-50 transform transition-transform duration-300 ease-out shadow-2xl ${
+          className={`lg:hidden fixed left-0 top-0 h-screen w-64 bg-black text-white flex flex-col z-50 will-change-transform shadow-2xl ${
+            mobileMenuOpen 
+              ? "translate-x-0" 
+              : "-translate-x-full"
+          } transition-[transform] duration-[350ms] ease-in-out ${
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
