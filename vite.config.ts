@@ -19,6 +19,12 @@ export default defineConfig({
     keepNames: true,
   },
   build: {
-    minify: 'esbuild',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        dead_code: true,
+        drop_console: false,
+      },
+    },
   },
 })
