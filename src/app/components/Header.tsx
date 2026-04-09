@@ -62,10 +62,6 @@ export default function Header() {
     };
 
     const handleDocumentTouchEnd = () => {
-      if (drawerRef.current && drawerRef.current.contains(document.activeElement)) {
-        return;
-      }
-
       const swipeThreshold = 60;
       const timeThreshold = 500;
       const diffX = touchEndX.current - touchStartX.current;
@@ -385,7 +381,7 @@ export default function Header() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform touch-none flex flex-col ${
+        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform flex flex-col ${
           mobileMenuOpen 
             ? "translate-x-0" 
             : "translate-x-full"
