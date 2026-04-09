@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock, Truck, ExternalLink, Loader2 } from "lucide-react";
+import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock, Truck, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -31,6 +31,12 @@ export default function AdminOrders() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const [courierName, setCourierName] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    window.location.reload();
+  };
 
   const safeOrders = orders || [];
 
@@ -126,7 +132,15 @@ export default function AdminOrders() {
           <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
           <p className="text-gray-600">Track and manage customer orders</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
           <div className="text-center px-3 py-1 bg-orange-100 rounded-lg">
             <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
             <p className="text-xs text-orange-600">Pending</p>

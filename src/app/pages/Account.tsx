@@ -120,7 +120,6 @@ export default function Account() {
     e.preventDefault();
     const result = await login(loginEmail, loginPassword);
     if (result.success) {
-      toast.success("Welcome back!");
       setLoginEmail("");
       setLoginPassword("");
       if (user?.id) {
