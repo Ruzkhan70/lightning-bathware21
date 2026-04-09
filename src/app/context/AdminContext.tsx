@@ -3000,17 +3000,37 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const getActiveOffers = () => {
     const now = new Date();
-    return offers.filter(o => o.isEnabled && new Date(o.startDate) <= now && new Date(o.endDate) >= now);
+    return offers.filter(o => {
+      if (!o.isEnabled) return false;
+      
+      const startDate = new Date(o.startDate);
+      const endDate = new Date(o.endDate);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.warn('[Offers] Invalid date for offer:', o.id, o.title, 'start:', o.startDate, 'end:', o.endDate);
+        return false;
+      }
+      
+      return startDate <= now && endDate >= now;
+    });
   };
 
   const getProductDiscount = (productId: string) => {
     const now = new Date();
-    const activeOffers = offers.filter(
-      o => o.isEnabled && 
-           new Date(o.startDate) <= now && 
-           new Date(o.endDate) >= now && 
-           (o.applicableProducts.length === 0 || o.applicableProducts.includes(productId))
-    );
+    const activeOffers = offers.filter(o => {
+      if (!o.isEnabled) return false;
+      
+      const startDate = new Date(o.startDate);
+      const endDate = new Date(o.endDate);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return false;
+      }
+      
+      return startDate <= now && 
+             endDate >= now && 
+             (o.applicableProducts.length === 0 || o.applicableProducts.includes(productId));
+    });
     if (activeOffers.length > 0) {
       const offer = activeOffers[0];
       const originalPrice = products.find(p => p.id === productId)?.price || 0;
