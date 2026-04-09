@@ -88,12 +88,15 @@ export default function AdminAnnouncements() {
 
     setIsSubmitting(true);
     try {
-      const q = query(collection(db, "announcements"), where("isActive", "==", true));
+      // First, deactivate any existing active announcements
+      const q = query(collection(db, "announcements"));
       const snapshot = await getDocs(q);
       
-      for (const docSnap of snapshot.docs) {
-        await updateDoc(doc(db, "announcements", docSnap.id), { isActive: false });
-      }
+      const deactivatePromises = snapshot.docs
+        .filter(docSnap => docSnap.data().isActive === true)
+        .map(docSnap => updateDoc(doc(db, "announcements", docSnap.id), { isActive: false }));
+      
+      await Promise.all(deactivatePromises);
 
       const expiresAt = formData.expiresInHours > 0
         ? new Date(Date.now() + formData.expiresInHours * 60 * 60 * 1000).toISOString()
@@ -105,15 +108,15 @@ export default function AdminAnnouncements() {
         type: formData.type,
         isActive: true,
         createdAt: serverTimestamp(),
-        expiresAt,
+        expiresAt: expiresAt,
         createdBy: adminEmail || "admin",
       });
 
       toast.success("Announcement published!");
       setFormData({ title: "", message: "", type: "general", expiresInHours: 72 });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating announcement:", error);
-      toast.error("Failed to publish announcement");
+      toast.error(`Failed to publish: ${error.message || "Please try again"}`);
     } finally {
       setIsSubmitting(false);
     }

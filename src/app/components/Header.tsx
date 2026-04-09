@@ -385,7 +385,7 @@ export default function Header() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform touch-none ${
+        className={`md:hidden fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-black text-white z-50 will-change-transform touch-none flex flex-col ${
           mobileMenuOpen 
             ? "translate-x-0" 
             : "translate-x-full"
@@ -405,7 +405,7 @@ export default function Header() {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 min-h-0 overflow-y-auto py-4">
           <ul className="space-y-1 px-3">
             <li>
               <Link
