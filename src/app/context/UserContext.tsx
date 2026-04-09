@@ -274,10 +274,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  if (isLoading) {
-    return null;
-  }
-
   return (
     <UserContext.Provider
       value={{
