@@ -31,8 +31,8 @@ export default function Wishlist() {
     toast.success(`${productName} removed from wishlist!`);
   }, [removeFromWishlist]);
 
-  // Show skeleton while loading wishlist or products data
-  if (!isDataLoaded) {
+  // Show skeleton while loading wishlist OR products data
+  if (!isDataLoaded || isLoading) {
     return (
       <div className="bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-12">
@@ -45,8 +45,8 @@ export default function Wishlist() {
     );
   }
 
-  // Only show empty state if wishlist has loaded AND products are loaded AND no matching products
-  if (!isLoading && wishlistProducts.length === 0) {
+  // Only show empty state if BOTH wishlist and products have loaded AND no matching products
+  if (wishlistProducts.length === 0) {
     return (
       <div className="bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-12">

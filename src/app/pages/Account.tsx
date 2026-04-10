@@ -123,9 +123,11 @@ export default function Account() {
     if (result.success) {
       setLoginEmail("");
       setLoginPassword("");
+      // Sync cart in background without blocking
       if (user?.id) {
-        await syncCartWithFirebase(user.id);
-        toast.success("Your cart has been synced!");
+        syncCartWithFirebase(user.id).then(() => {
+          toast.success("Your cart has been synced!");
+        }).catch(console.error);
       }
     } else {
       toast.error(result.error || "Invalid email or password");
