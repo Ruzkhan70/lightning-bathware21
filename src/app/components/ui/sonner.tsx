@@ -11,7 +11,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       expand={true}
       richColors={true}
       draggable={true}
-      position="bottom-right"
+      position="top-right"
       {...props}
     />
   );
