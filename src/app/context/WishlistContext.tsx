@@ -42,51 +42,48 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Logged in: load from Firebase and set up real-time listener
+    // Logged in: Get authoritative server data FIRST, then set up listener
     const wishlistRef = doc(db, "wishlist", user.id);
-    let hasReceivedData = false;
     
-    // First, initialize the document if it doesn't exist
-    const initWishlist = async () => {
+    const loadWishlist = async () => {
       try {
+        // Get authoritative server data FIRST (not from cache)
         const wishlistDoc = await getDoc(wishlistRef);
-        if (!wishlistDoc.exists()) {
+        
+        if (wishlistDoc.exists() && wishlistDoc.data().items) {
+          setWishlist(wishlistDoc.data().items);
+        } else {
+          // Initialize empty wishlist for new users
           await setDoc(wishlistRef, { items: [] }, { merge: true });
+          setWishlist([]);
         }
-      } catch (error) {
-        console.error("Error initializing wishlist:", error);
-      }
-    };
-    
-    initWishlist();
-
-    // Set up real-time listener
-    const unsubscribe = onSnapshot(wishlistRef, (snapshot) => {
-      hasReceivedData = true;
-      if (snapshot.exists() && snapshot.data().items) {
-        setWishlist(snapshot.data().items);
-      } else {
-        setWishlist([]);
-      }
-      setIsLoading(false);
-      setIsWishlistConfirmed(true);
-    }, (error) => {
-      console.error("Error listening to wishlist:", error);
-      setIsLoading(false);
-      setIsWishlistConfirmed(true); // Confirm even on error to avoid infinite loading
-    });
-
-    // Timeout fallback - if no data received after 5 seconds, confirm anyway
-    const timeout = setTimeout(() => {
-      if (!hasReceivedData) {
+        
+        // NOW set as confirmed - we have authoritative data
         setIsLoading(false);
         setIsWishlistConfirmed(true);
-      }
-    }, 5000);
+        
+        // Set up real-time listener for future updates
+        const unsubscribe = onSnapshot(wishlistRef, (snapshot) => {
+          if (snapshot.exists() && snapshot.data().items) {
+            setWishlist(snapshot.data().items);
+          }
+        }, (error) => {
+          console.error("Error in wishlist listener:", error);
+        });
 
+        return unsubscribe;
+      } catch (error) {
+        console.error("Error loading wishlist:", error);
+        setIsLoading(false);
+        setIsWishlistConfirmed(true); // Confirm on error to avoid infinite loading
+        return () => {};
+      }
+    };
+
+    const unsubscribePromise = loadWishlist();
+    
     return () => {
-      unsubscribe();
-      clearTimeout(timeout);
+      unsubscribePromise.then(unsubscribe => unsubscribe());
     };
   }, [isLoggedIn, user?.id]);
 
