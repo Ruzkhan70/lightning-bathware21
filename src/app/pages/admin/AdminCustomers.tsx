@@ -5,6 +5,7 @@ import { Input } from "../../components/ui/input";
 import { toast } from "sonner";
 import { db } from "../../../firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import ContentLoader from "../../components/ContentLoader";
 
 interface Customer {
   id: string;
@@ -112,8 +113,12 @@ export default function AdminCustomers() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[#D4AF37]" />
+      <div className="p-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Customers</h1>
+          <p className="text-gray-600">Loading customers...</p>
+        </div>
+        <ContentLoader minHeight="min-h-[400px]" />
       </div>
     );
   }

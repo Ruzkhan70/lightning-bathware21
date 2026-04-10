@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
+import ContentLoader from "../../components/ContentLoader";
 
 interface Order {
   id: string;
@@ -144,11 +145,12 @@ export default function AdminOrders() {
 
   if (!isDataLoaded) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin mx-auto text-[#D4AF37]" />
-          <p className="mt-4 text-gray-600">Loading orders...</p>
+      <div className="p-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
+          <p className="text-gray-600">Track and manage customer orders</p>
         </div>
+        <TableSkeleton rows={8} cols={5} />
       </div>
     );
   }

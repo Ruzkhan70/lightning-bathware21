@@ -14,9 +14,10 @@ import {
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
+import { CategoryGridSkeleton, Skeleton } from "../components/Skeleton";
 
 export default function Categories() {
-  const { products, categories, siteContent } = useAdmin();
+  const { products, categories, siteContent, isDataLoaded } = useAdmin();
 
   useEffect(() => {
     setMetaTags(
@@ -29,6 +30,24 @@ export default function Categories() {
   const safeCategories = categories || [];
 
   const activeCategories = safeCategories.filter(c => c.isActive);
+
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <section className="bg-black text-white py-16 animate-pulse">
+          <div className="container mx-auto px-4 text-center">
+            <Skeleton className="h-12 w-64 mx-auto mb-4 bg-gray-700" />
+            <Skeleton className="h-6 w-96 mx-auto bg-gray-700" />
+          </div>
+        </section>
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <CategoryGridSkeleton count={6} />
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   // Map icon names/categories to Lucide icons
   const getIcon = (name: string) => {

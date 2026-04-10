@@ -20,6 +20,7 @@ import { useAdmin } from "../context/AdminContext";
 import ScrollAnimation from "../components/ScrollAnimation";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { setMetaTags } from "../utils/seo";
+import { HeroSkeleton, ProductGridSkeleton, Skeleton } from "../components/Skeleton";
 
 function AnimatedCounter({ value }: { value: string }) {
   const [displayValue, setDisplayValue] = useState("0");
@@ -63,10 +64,30 @@ function AnimatedCounter({ value }: { value: string }) {
 }
 
 export default function Home() {
-  const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile } = useAdmin();
+  const { products, getActiveOffers, storeAssets, siteContent, categories, storeProfile, isDataLoaded } = useAdmin();
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
   const safeProducts = products || [];
   const safeCategories = categories || [];
+
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen">
+        <HeroSkeleton />
+        <div className="container mx-auto px-4 py-16">
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-8">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-64" />
+              </div>
+              <Skeleton className="h-10 w-32 rounded-lg" />
+            </div>
+          </div>
+          <ProductGridSkeleton count={8} />
+        </div>
+      </div>
+    );
+  }
   
   useEffect(() => {
     setMetaTags(

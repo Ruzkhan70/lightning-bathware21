@@ -9,17 +9,26 @@ import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import { ShoppingBag, Truck, CreditCard } from "lucide-react";
+import { ShoppingBag, Truck, CreditCard, Loader2 } from "lucide-react";
 import { loadPayhereScript, initiatePayherePayment, onPayhereCompleted, onPayhereClosed, isPayhereConfigured } from "../../lib/payhere";
 import { sendOrderNotificationToAdmin } from "../../lib/emailNotifications";
+import ContentLoader from "../components/ContentLoader";
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
-  const { addOrder, createInvoice, storeProfile } = useAdmin();
+  const { addOrder, createInvoice, storeProfile, isDataLoaded } = useAdmin();
   const { user, isLoggedIn } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
+
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ContentLoader minHeight="min-h-[50vh]" />
+      </div>
+    );
+  }
 
   const isOnlinePaymentEnabled = storeProfile.enableOnlinePayment && isPayhereConfigured();
 
@@ -230,7 +239,17 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 relative">
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+            <Loader2 className="w-12 h-12 animate-spin text-[#D4AF37]" />
+            <p className="text-lg font-semibold">Processing your order...</p>
+            <p className="text-sm text-gray-500">Please do not close this window</p>
+          </div>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4">
         <h1 className="text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
 

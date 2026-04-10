@@ -13,6 +13,7 @@ import { db } from "../../firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Order } from "../context/AdminContext";
 import { cn } from "../../lib/utils";
+import ContentLoader from "../components/ContentLoader";
 
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
@@ -461,9 +462,8 @@ export default function Account() {
               </div>
               <div className="p-4 sm:p-6 md:p-8">
                 {isOrdersLoading ? (
-                  <div className="text-center py-8 sm:py-12">
-                    <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 animate-spin mx-auto text-[#D4AF37]" />
-                    <p className="mt-3 text-gray-600 text-sm sm:text-base">Loading your orders...</p>
+                  <div className="py-8 sm:py-12">
+                    <ContentLoader minHeight="min-h-[200px]" />
                   </div>
                 ) : userOrders.length === 0 ? (
                   <div className="text-center py-8 sm:py-12">

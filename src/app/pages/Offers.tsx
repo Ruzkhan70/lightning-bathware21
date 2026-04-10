@@ -3,11 +3,29 @@ import { useAdmin } from "../context/AdminContext";
 import { Tag, Calendar, ShoppingBag } from "lucide-react";
 import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
+import { ProductGridSkeleton, Skeleton } from "../components/Skeleton";
 
 export default function Offers() {
-  const { getActiveOffers, products, siteContent } = useAdmin();
+  const { getActiveOffers, products, siteContent, isDataLoaded } = useAdmin();
   const safeProducts = products || [];
   const activeOffers = getActiveOffers() || [];
+
+  if (!isDataLoaded) {
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center mb-12 animate-pulse">
+            <Skeleton className="h-12 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+          <div className="mb-8">
+            <Skeleton className="h-80 w-full rounded-xl" />
+          </div>
+          <ProductGridSkeleton count={4} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">

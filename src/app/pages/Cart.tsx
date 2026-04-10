@@ -1,12 +1,19 @@
 import { Link } from "react-router";
 import { Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import EmptyState, { CartEmpty } from "../components/EmptyState";
+import { CartSkeleton } from "../components/Skeleton";
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } =
     useCart();
+  const { isDataLoaded } = useAdmin();
+
+  if (!isDataLoaded) {
+    return <CartSkeleton />;
+  }
 
   if (cartItems.length === 0) {
     return (
