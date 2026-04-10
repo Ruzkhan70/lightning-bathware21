@@ -1,99 +1,90 @@
-import { useEffect, useState, useRef } from "react";
-import { useLocation } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PAGE_ORDER = ["/", "/products", "/categories", "/offers", "/services", "/about", "/contact"];
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [displayLocation, setDisplayLocation] = useState(location);
-  const [animationClass, setAnimationClass] = useState("");
+  const [transitioning, setTransitioning] = useState(false);
+  const [direction, setDirection] = useState(1);
   const previousPathRef = useRef(location.pathname);
   const isAnimatingRef = useRef(false);
 
   useEffect(() => {
     if (location.pathname !== displayLocation.pathname && !isAnimatingRef.current) {
       isAnimatingRef.current = true;
-      
+      setTransitioning(true);
+
       const currentIndex = PAGE_ORDER.indexOf(previousPathRef.current);
       const nextIndex = PAGE_ORDER.indexOf(location.pathname);
-      
-      let direction = "forward";
-      if (currentIndex !== -1 && nextIndex !== -1) {
-        if (nextIndex < currentIndex) {
-          direction = "backward";
-        }
+
+      if (currentIndex !== -1 && nextIndex !== -1 && nextIndex < currentIndex) {
+        setDirection(-1);
+      } else {
+        setDirection(1);
       }
-      
-      const enterClass = direction === "forward" ? "slide-in-from-right" : "slide-in-from-left";
-      const exitClass = direction === "forward" ? "slide-out-to-left" : "slide-out-to-right";
-      
-      setAnimationClass(exitClass);
-      
-      setTimeout(() => {
-        setDisplayLocation(location);
-        setAnimationClass(enterClass);
-        
-        setTimeout(() => {
-          setAnimationClass("");
-          isAnimatingRef.current = false;
-          previousPathRef.current = location.pathname;
-        }, 300);
-      }, 50);
+
+      previousPathRef.current = location.pathname;
     }
   }, [location, displayLocation]);
 
+  useEffect(() => {
+    if (transitioning) {
+      const timer = setTimeout(() => {
+        setDisplayLocation(location);
+        setTransitioning(false);
+        isAnimatingRef.current = false;
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [transitioning, location]);
+
+  const variants = {
+    initial: {
+      opacity: 0,
+      x: direction * 100,
+      scale: 0.98,
+    },
+    enter: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: [0.25, 1, 0.5, 1],
+      },
+    },
+    exit: {
+      opacity: 0,
+      x: direction * -100,
+      scale: 0.98,
+      transition: {
+        duration: 0.35,
+        ease: [0.25, 1, 0.5, 1],
+      },
+    },
+  };
+
   return (
-    <div className={`transition-container ${animationClass}`}>
-      <div className={`page-content ${animationClass}`} key={displayLocation.pathname}>
-        {children}
-      </div>
-      
-      <style>{`
-        .transition-container {
-          position: relative;
-          width: 100%;
-        }
-        
-        .page-content {
-          animation-fill-mode: both;
-        }
-        
-        /* Forward: Enter from right, Exit to left */
-        .slide-out-to-left {
-          animation: slideOutLeft 250ms ease-in-out forwards;
-        }
-        .slide-in-from-right {
-          animation: slideInRight 300ms ease-out forwards;
-        }
-        
-        /* Backward: Enter from left, Exit to right */
-        .slide-out-to-right {
-          animation: slideOutRight 250ms ease-in-out forwards;
-        }
-        .slide-in-from-left {
-          animation: slideInLeft 300ms ease-out forwards;
-        }
-        
-        @keyframes slideOutLeft {
-          from { opacity: 1; transform: translateX(0); }
-          to { opacity: 0; transform: translateX(-30px); }
-        }
-        
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        
-        @keyframes slideOutRight {
-          from { opacity: 1; transform: translateX(0); }
-          to { opacity: 0; transform: translateX(30px); }
-        }
-        
-        @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-      `}</style>
+    <div className="relative overflow-hidden w-full">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={displayLocation.pathname}
+          variants={variants}
+          initial="initial"
+          animate="enter"
+          exit="exit"
+          style={{
+            width: "100%",
+            willChange: "transform, opacity",
+          }}
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
