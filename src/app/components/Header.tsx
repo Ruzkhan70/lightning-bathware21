@@ -310,24 +310,27 @@ export default function Header() {
                 </button>
                 <div className={`absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 z-50 ${showCategoriesDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
                   <div className="py-2">
-                    {safeCategories.filter(cat => cat.isActive).map((category) => (
-                      <Link
-                        key={category.id}
-                        to={`/products?category=${encodeURIComponent(category.name)}`}
-                        onClick={() => setShowCategoriesDropdown(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#D4AF37] transition-colors"
-                      >
-                        {category.image ? (
-                          <img alt={category.name} className="w-10 h-10 rounded-lg object-cover" src={category.image} />
-                        ) : (
-                          <span className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
-                        )}
-                        <span className="font-medium">{category.name}</span>
-                      </Link>
-                    ))}
+                    {safeCategories.filter(cat => cat.isActive).map((category) => {
+                      const isCategoryActive = location.pathname === "/products" && location.search.includes(`category=${encodeURIComponent(category.name)}`);
+                      return (
+                        <Link
+                          key={category.id}
+                          to={`/products?category=${encodeURIComponent(category.name)}`}
+                          onClick={() => setShowCategoriesDropdown(false)}
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-gray-700 hover:bg-gray-50"}`}
+                        >
+                          {category.image ? (
+                            <img alt={category.name} className="w-10 h-10 rounded-lg object-cover" src={category.image} />
+                          ) : (
+                            <span className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
+                          )}
+                          <span className="font-medium">{category.name}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
                   <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                    <Link to="/categories" onClick={() => setShowCategoriesDropdown(false)} className="text-sm text-[#D4AF37] hover:text-[#B8962E] font-medium transition-colors flex items-center gap-1">
+                    <Link to="/categories" onClick={() => setShowCategoriesDropdown(false)} className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive("/categories") ? "text-[#D4AF37]" : "text-gray-600 hover:text-[#B8962E]"}`}>
                       View All Categories<span>→</span>
                     </Link>
                   </div>
@@ -469,21 +472,26 @@ export default function Header() {
                           )}
                         </div>
                       ) : (
-                        <Link
-                          to={`/products?category=${encodeURIComponent(category.name)}`}
-                          onClick={closeMobileMenu}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm"
-                        >
-                          <Lightbulb className="w-4 h-4 text-[#D4AF37]" />
-                          {category.name}
-                        </Link>
+                        (() => {
+                          const isCategoryActive = location.pathname === "/products" && location.search.includes(`category=${encodeURIComponent(category.name)}`);
+                          return (
+                            <Link
+                              to={`/products?category=${encodeURIComponent(category.name)}`}
+                              onClick={closeMobileMenu}
+                              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${isCategoryActive ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "hover:bg-gray-800 active:bg-gray-700"}`}
+                            >
+                              <Lightbulb className={`w-4 h-4 ${isCategoryActive ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
+                              {category.name}
+                            </Link>
+                          );
+                        })()
                       )}
                     </div>
                   ))}
                   <Link
                     to="/categories"
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm text-[#D4AF37] border-t border-gray-800 mt-2 pt-2"
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm border-t border-gray-800 mt-2 pt-2 ${isActive("/categories") ? "text-[#D4AF37] bg-gray-800" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
                   >
                     View All Categories →
                   </Link>
