@@ -44,7 +44,34 @@ interface OrderData {
   id: string;
   status: "Pending" | "Processing" | "Delivered";
   paymentStatus: "Pending" | "Paid";
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+interface RawInvoiceData {
+  id: string;
+  invoiceNumber?: string;
+  orderId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  address?: string;
+  products?: Array<{
+    id?: string;
+    name?: string;
+    quantity?: number;
+    unitPrice?: number;
+    price?: number;
+    total?: number;
+  }>;
+  subtotal?: number;
+  discount?: number;
+  tax?: number;
+  deliveryCost?: number;
+  grandTotal?: number;
+  paymentStatus?: string;
+  date?: string;
+  createdAt?: string;
+  [key: string]: unknown;
 }
 
 export default function Invoice() {
@@ -76,14 +103,14 @@ export default function Invoice() {
 
     const fetchInvoice = async () => {
       try {
-        let foundInvoice = getInvoiceById(id);
+        let foundInvoice: RawInvoiceData | null = getInvoiceById(id);
         
         if (!foundInvoice) {
           const invoiceRef = doc(db, "invoices", id);
           const invoiceSnap = await getDoc(invoiceRef);
           
           if (invoiceSnap.exists()) {
-            foundInvoice = { id: invoiceSnap.id, ...invoiceSnap.data() } as any;
+            foundInvoice = { id: invoiceSnap.id, ...invoiceSnap.data() } as RawInvoiceData;
           }
         }
 
@@ -96,7 +123,7 @@ export default function Invoice() {
             customerPhone: foundInvoice.customerPhone || "",
             customerEmail: foundInvoice.customerEmail,
             address: foundInvoice.address || "",
-            products: (foundInvoice.products || []).map((p: any) => ({
+            products: (foundInvoice.products || []).map((p) => ({
               id: p.id || "",
               name: p.name || "Unknown Product",
               quantity: p.quantity || 0,

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
+import { FirebaseError } from "firebase/app";
 import { db, auth } from "../../firebase";
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, getDocs, setDoc, where, serverTimestamp } from "firebase/firestore";
 import { 
@@ -1000,6 +1001,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAdminExists().then(exists => {
       setAdminExists(exists);
+    }).catch(error => {
+      console.error("Error checking admin exists:", error);
+      setAdminExists(false);
     });
   }, [checkAdminExists]);
 
@@ -1382,12 +1386,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             
             // Save demo offers to Firebase
             Promise.all(DEMO_OFFERS.map(offer => 
-              setDoc(doc(db, "offers", offer.id), offer).catch(err => {
-                console.error("[Firebase] Error saving demo offer:", err);
-              })
+              setDoc(doc(db, "offers", offer.id), offer)
             )).then(() => {
               console.log("[Firebase] Demo offers saved to Firebase");
-              // After saving, the listener will fire again with the new data
+            }).catch(err => {
+              console.error("[Firebase] Error saving demo offers:", err);
+              toast.error("Failed to initialize offers data");
             });
             
             // Show demo offers locally while Firebase saves them
@@ -1840,7 +1844,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         try {
           await addDoc(collection(db, "reviews"), reviewData);
           reviewsAdded++;
-        } catch (error: any) {
+        } catch (error) {
           console.error(`Error adding review for product ${product.id}:`, error);
           errorsCount++;
         }
@@ -2136,7 +2140,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       
       return { success: false, error: "Login failed" };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Admin login error:", error);
       
       const attempts = (failedAttempts[cleanEmail] || 0) + 1;
@@ -2144,18 +2148,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       let errorMessage = "Login failed. Please check your credentials.";
       
-      if (error.code === "auth/user-not-found") {
-        errorMessage = "No admin account found with this email";
-      } else if (error.code === "auth/wrong-password") {
-        errorMessage = "Incorrect password";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address";
-      } else if (error.code === "auth/too-many-requests") {
-        errorMessage = "Too many failed attempts. Please try again later.";
-      } else if (error.code === "auth/invalid-credential") {
-        errorMessage = "Invalid email or password";
-      } else if (error.code === "auth/network-request-failed") {
-        errorMessage = "Network error. Please check your connection.";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/user-not-found") {
+          errorMessage = "No admin account found with this email";
+        } else if (error.code === "auth/wrong-password") {
+          errorMessage = "Incorrect password";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address";
+        } else if (error.code === "auth/too-many-requests") {
+          errorMessage = "Too many failed attempts. Please try again later.";
+        } else if (error.code === "auth/invalid-credential") {
+          errorMessage = "Invalid email or password";
+        } else if (error.code === "auth/network-request-failed") {
+          errorMessage = "Network error. Please check your connection.";
+        }
       }
       
       await logAdminLogin(cleanEmail, "failed", errorMessage);
@@ -2373,19 +2379,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       
       return { success: false, error: "Setup failed" };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Setup admin error:", error);
       
       let errorMessage = "Setup failed. Please try again.";
       
-      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
-        errorMessage = "An account exists but the password is incorrect. Please use the correct password.";
-      } else if (error.code === "auth/weak-password") {
-        errorMessage = "Password should be at least 6 characters";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address";
-      } else if (error.code === "auth/network-request-failed") {
-        errorMessage = "Network error. Please check your connection.";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+          errorMessage = "An account exists but the password is incorrect. Please use the correct password.";
+        } else if (error.code === "auth/weak-password") {
+          errorMessage = "Password should be at least 6 characters";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address";
+        } else if (error.code === "auth/network-request-failed") {
+          errorMessage = "Network error. Please check your connection.";
+        }
       }
       
       await logAdminLogin(email, "failed", errorMessage);
@@ -2409,15 +2417,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await logPasswordChange(adminUid || 'unknown', adminEmail, 'success');
       toast.success("Password changed successfully!");
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Change password error:", error);
       
       let errorMessage = "Failed to change password.";
       
-      if (error.code === "auth/weak-password") {
-        errorMessage = "Password should be at least 6 characters";
-      } else if (error.code === "auth/requires-recent-login") {
-        errorMessage = "Please logout and login again before changing password.";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/weak-password") {
+          errorMessage = "Password should be at least 6 characters";
+        } else if (error.code === "auth/requires-recent-login") {
+          errorMessage = "Please logout and login again before changing password.";
+        }
       }
       
       await logPasswordChange(adminUid || 'unknown', adminEmail, 'failed');

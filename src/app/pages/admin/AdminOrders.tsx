@@ -22,6 +22,34 @@ import { toast } from "sonner";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
 
+interface Order {
+  id: string;
+  customerId?: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone: string;
+  items: Array<{
+    id?: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+  }>;
+  total: number;
+  subtotal?: number;
+  delivery?: number;
+  status: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
+  paymentStatus: "Pending" | "Paid";
+  paymentMethod?: string;
+  address?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  courierName?: string;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+  [key: string]: unknown;
+}
+
 export default function AdminOrders() {
   const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder, getInvoiceByOrderId, createInvoice, isDataLoaded } = useAdmin();
   const navigate = useNavigate();
@@ -60,7 +88,7 @@ export default function AdminOrders() {
     setDeletingOrder(null);
   };
 
-  const handleViewInvoice = async (order: any) => {
+  const handleViewInvoice = async (order: Order) => {
     let invoice = getInvoiceByOrderId(order.id);
     
     if (!invoice) {
@@ -103,7 +131,7 @@ export default function AdminOrders() {
     }
   };
 
-  const openTrackingDialog = (order: any) => {
+  const openTrackingDialog = (order: Order) => {
     setViewingOrder(order.id);
     setTrackingNumber(order.trackingNumber || "");
     setTrackingUrl(order.trackingUrl || "");

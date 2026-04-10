@@ -5,7 +5,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
 import { db } from "../../../firebase";
-import { collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, updateDoc, getDocs, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, updateDoc, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
 import { useAdmin } from "../../context/AdminContext";
 
 interface Announcement {
@@ -13,8 +13,8 @@ interface Announcement {
   title: string;
   message: string;
   type: "offer" | "terms" | "product" | "general";
-  createdAt: any;
-  expiresAt?: any;
+  createdAt: Timestamp | Date | null;
+  expiresAt?: Timestamp | Date | null;
   isActive: boolean;
   createdBy: string;
 }
@@ -111,9 +111,9 @@ export default function AdminAnnouncements() {
 
       toast.success("Announcement published!");
       setFormData({ title: "", message: "", type: "general", expiresInHours: 72 });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating announcement:", error);
-      toast.error(`Failed to publish: ${error.message || "Please try again"}`);
+      toast.error(`Failed to publish: ${error instanceof Error ? error.message : "Please try again"}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -143,9 +143,9 @@ export default function AdminAnnouncements() {
     await deleteDoc(doc(db, "announcements", id));
   };
 
-  const formatDate = (date: any) => {
+  const formatDate = (date: Timestamp | Date | null | undefined) => {
     if (!date) return "No expiry";
-    const d = date.toDate ? date.toDate() : new Date(date);
+    const d = date instanceof Timestamp ? date.toDate() : new Date(date);
     return d.toLocaleDateString() + " " + d.toLocaleTimeString();
   };
 
@@ -274,7 +274,7 @@ export default function AdminAnnouncements() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={(e) => handleSubmit(e as any, "preview")}
+                  onClick={() => handleSubmit(undefined, "preview")}
                   className="flex-1"
                 >
                   <Eye className="w-4 h-4 mr-2" />

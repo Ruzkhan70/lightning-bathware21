@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { db } from "../../firebase";
-import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { toast } from "sonner";
 import { useUser } from "./UserContext";
 
@@ -10,7 +10,7 @@ export interface Notification {
   message: string;
   type: "product" | "offer" | "terms" | "update" | "order";
   targetId?: string;
-  createdAt: any;
+  createdAt: Timestamp | Date | null;
   isActive: boolean;
 }
 

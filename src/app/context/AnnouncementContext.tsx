@@ -1,15 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { db } from "../../firebase";
-import { collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, updateDoc, getDocs } from "firebase/firestore";
-import { serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, updateDoc, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
 
 export interface Announcement {
   id: string;
   title: string;
   message: string;
   type: "offer" | "terms" | "product" | "general";
-  createdAt: any;
-  expiresAt?: any;
+  createdAt: Timestamp | Date | null;
+  expiresAt?: Timestamp | Date | null;
   isActive: boolean;
   createdBy: string;
 }

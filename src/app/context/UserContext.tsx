@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { FirebaseError } from "firebase/app";
 import { 
   auth, 
   db 
@@ -149,21 +150,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
       
       return { success: false, error: "Login failed" };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
       
       let errorMessage = "Login failed. Please check your credentials.";
       
-      if (error.code === "auth/user-not-found") {
-        errorMessage = "No account found with this email";
-      } else if (error.code === "auth/wrong-password") {
-        errorMessage = "Incorrect password";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address";
-      } else if (error.code === "auth/too-many-requests") {
-        errorMessage = "Too many failed attempts. Please try again later.";
-      } else if (error.code === "auth/invalid-credential") {
-        errorMessage = "Invalid email or password";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/user-not-found") {
+          errorMessage = "No account found with this email";
+        } else if (error.code === "auth/wrong-password") {
+          errorMessage = "Incorrect password";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address";
+        } else if (error.code === "auth/too-many-requests") {
+          errorMessage = "Too many failed attempts. Please try again later.";
+        } else if (error.code === "auth/invalid-credential") {
+          errorMessage = "Invalid email or password";
+        }
       }
       
       return { success: false, error: errorMessage };
@@ -214,17 +217,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
       
       return { success: false, error: "Registration failed" };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Registration error:", error);
       
       let errorMessage = "Registration failed. Please try again.";
       
-      if (error.code === "auth/email-already-in-use") {
-        errorMessage = "An account with this email already exists";
-      } else if (error.code === "auth/weak-password") {
-        errorMessage = "Password should be at least 6 characters";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/email-already-in-use") {
+          errorMessage = "An account with this email already exists";
+        } else if (error.code === "auth/weak-password") {
+          errorMessage = "Password should be at least 6 characters";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address";
+        }
       }
       
       return { success: false, error: errorMessage };
@@ -263,15 +268,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
       await sendPasswordResetEmail(auth, email);
       toast.success("Password reset email sent!");
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Reset password error:", error);
       
       let errorMessage = "Failed to send reset email.";
       
-      if (error.code === "auth/user-not-found") {
-        errorMessage = "No account found with this email";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/user-not-found") {
+          errorMessage = "No account found with this email";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address";
+        }
       }
       
       return { success: false, error: errorMessage };

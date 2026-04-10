@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useUser } from "./UserContext";
+import { toast } from "sonner";
 
 interface WishlistContextType {
   wishlist: string[];
@@ -64,6 +65,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     if (isLoggedIn && user?.id && initialLoadDone && wishlist.length >= 0) {
       setDoc(doc(db, "wishlist", user.id), { items: wishlist }, { merge: true }).catch(err => {
         console.error("Error saving wishlist:", err);
+        toast.error("Failed to save wishlist");
       });
     }
   }, [wishlist, isLoggedIn, user?.id, initialLoadDone]);

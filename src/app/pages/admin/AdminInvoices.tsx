@@ -27,6 +27,37 @@ import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 
+interface InvoiceProduct {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  total: number;
+}
+
+interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  orderId?: string;
+  customerId?: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone: string;
+  customerAddress?: string;
+  date: string | Date;
+  dueDate?: string | Date;
+  products: InvoiceProduct[];
+  subtotal: number;
+  delivery: number;
+  total: number;
+  paymentMethod?: string;
+  paymentStatus: "Paid" | "Pending";
+  paymentDate?: string;
+  notes?: string;
+  [key: string]: unknown;
+}
+
 export default function AdminInvoices() {
   const { invoices, updateInvoicePaymentStatus, updateOrderStatus, orders, storeProfile } = useAdmin();
   
@@ -36,7 +67,7 @@ export default function AdminInvoices() {
     start: "",
     end: "",
   });
-  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -76,7 +107,7 @@ export default function AdminInvoices() {
 
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
-  const generatePDF = (invoice: any, single: boolean = true) => {
+  const generatePDF = (invoice: Invoice, single: boolean = true) => {
     try {
       if (!invoice) {
         toast.error("Invoice data is missing");
@@ -98,7 +129,7 @@ export default function AdminInvoices() {
         customerPhone: invoice.customerPhone || "",
         customerEmail: invoice.customerEmail || "",
         address: invoice.address || "",
-        products: (invoice.products || []).map((p: any) => ({
+        products: (invoice.products || []).map((p: InvoiceProduct) => ({
           name: p.name || "Unknown",
           quantity: p.quantity || 0,
           unitPrice: p.unitPrice || p.price || 0,
@@ -170,7 +201,7 @@ export default function AdminInvoices() {
     
     yPos = 110;
     
-    const tableData = safeInvoice.products.map((product: any) => [
+    const tableData = safeInvoice.products.map((product: InvoiceProduct) => [
       product.name,
       product.quantity.toString(),
       `Rs. ${product.unitPrice.toLocaleString()}`,
@@ -334,7 +365,7 @@ export default function AdminInvoices() {
     }
   };
 
-  const viewInvoice = (invoice: any) => {
+  const viewInvoice = (invoice: Invoice) => {
     if (!invoice || !invoice.id) {
       toast.error("Invalid invoice data");
       return;
@@ -343,7 +374,7 @@ export default function AdminInvoices() {
     setShowInvoiceModal(true);
   };
 
-  const togglePaymentStatus = (invoice: any) => {
+  const togglePaymentStatus = (invoice: Invoice) => {
     if (!invoice || !invoice.id) {
       toast.error("Invalid invoice data");
       return;
@@ -685,7 +716,7 @@ export default function AdminInvoices() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(selectedInvoice.products || []).map((product: any, i: number) => (
+                      {(selectedInvoice.products || []).map((product: InvoiceProduct, i: number) => (
                         <tr key={product.id || i} className="border-t">
                           <td className="px-3 py-2">{product.name || "Unknown"}</td>
                           <td className="px-3 py-2 text-center">{product.quantity || 0}</td>
