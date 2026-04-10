@@ -139,7 +139,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const result = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       
       if (result.user) {
-        await syncUserData(result.user);
+        // Show toast IMMEDIATELY, then sync data in background
         toast.success("🎉 Welcome back!", {
           duration: 5000,
           style: {
@@ -148,6 +148,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
             fontWeight: 'bold',
           },
         });
+        // Sync data after showing toast (doesn't block the toast)
+        syncUserData(result.user);
         return { success: true };
       }
       

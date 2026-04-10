@@ -103,7 +103,9 @@ function AppContent() {
                       <TopBannerNotification />
                       <Toaster 
                         position="bottom-right" 
-                        draggable 
+                        expand={true}
+                        richColors={true}
+                        closeButton={true}
                         toastOptions={{
                           style: {
                             background: '#1f2937',
