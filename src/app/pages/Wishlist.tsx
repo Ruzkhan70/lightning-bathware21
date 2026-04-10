@@ -7,10 +7,11 @@ import { Button } from "../components/ui/button";
 import { toast } from "sonner";
 import { useMemo, useCallback } from "react";
 import EmptyState, { WishlistEmpty } from "../components/EmptyState";
+import { ProductGridSkeleton } from "../components/Skeleton";
 
 export default function Wishlist() {
-  const { wishlist, removeFromWishlist } = useWishlist();
-  const { products } = useAdmin();
+  const { wishlist, removeFromWishlist, isLoading } = useWishlist();
+  const { products, isDataLoaded } = useAdmin();
   const { addToCart } = useCart();
 
   const safeProducts = products || [];
@@ -29,6 +30,20 @@ export default function Wishlist() {
     removeFromWishlist(productId);
     toast.success(`${productName} removed from wishlist!`);
   }, [removeFromWishlist]);
+
+  // Show skeleton while loading wishlist or admin data
+  if (isLoading || !isDataLoaded) {
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="container mx-auto px-4 py-12">
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
+          </div>
+          <ProductGridSkeleton count={4} />
+        </div>
+      </div>
+    );
+  }
 
   if (wishlistProducts.length === 0) {
     return (
