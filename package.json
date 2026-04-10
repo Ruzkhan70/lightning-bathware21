@@ -82,6 +82,7 @@
     "gh-pages": "^6.3.0",
     "tailwindcss": "^4.1.12",
     "terser": "^5.46.1",
+    "typescript": "^6.0.2",
     "vite": "^6.3.5"
   },
   "peerDependencies": {

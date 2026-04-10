@@ -96,12 +96,13 @@ function AppContent() {
         <UserProvider>
           <AdminProvider>
             <NotificationsProvider>
-              <TopBannerNotification />
               <CartProvider>
                 <WishlistProvider>
                   <DataLoader>
-                    <RouterProvider router={router} />
-                    <Toaster position="top-right" draggable />
+                    <RouterProvider router={router}>
+                      <TopBannerNotification />
+                      <Toaster position="top-right" draggable />
+                    </RouterProvider>
                   </DataLoader>
                 </WishlistProvider>
               </CartProvider>
