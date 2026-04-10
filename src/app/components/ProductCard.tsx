@@ -27,8 +27,10 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
   const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = useCallback(() => {
+    console.log("🔔 TOAST DEBUG: Adding to cart, showing toast");
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
+    console.log("🔔 TOAST DEBUG: Toast called for add to cart");
   }, [addToCart, product]);
 
   const handleWishlist = useCallback(() => {

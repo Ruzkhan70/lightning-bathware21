@@ -3,6 +3,8 @@
 import { Toaster as Sonner, ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  console.log("🔔 TOAST DEBUG: Toaster component rendered", props);
+  
   return (
     <Sonner
       theme="light"
