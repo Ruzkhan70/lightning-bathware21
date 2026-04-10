@@ -2,3 +2,8 @@
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
+
+html, body, #root {
+  background-color: #ffffff;
+  min-height: 100vh;
+}
