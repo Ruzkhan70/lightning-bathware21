@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Mail, Search, Trash2, Eye, Check, CheckCheck, Clock, User, Phone, MessageSquare } from "lucide-react";
+import { Mail, Search, Trash2, Eye, Check, CheckCheck, Clock, User, Phone, MessageSquare, MailOpen } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -392,34 +392,26 @@ export default function AdminMessages() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 md:pt-4 border-t">
-                <div className="flex gap-2 flex-wrap sm:flex-nowrap">
-                  {currentMessage.status === "new" && (
-                    <Button
-                      onClick={() => markMessageAsRead(currentMessage.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 flex-1 sm:flex-none justify-center"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span className="hidden sm:inline">Mark as Read</span>
-                      <span className="sm:hidden">Read</span>
-                    </Button>
-                  )}
-                  {currentMessage.status !== "replied" && (
-                    <Button
-                      onClick={() => {
-                        markMessageAsReplied(currentMessage.id);
-                        window.open(`mailto:${currentMessage.email}?subject=${encodeURIComponent(currentMessage.subject ? `Re: ${currentMessage.subject}` : 'Contact Form Message')}`, "_blank");
-                      }}
-                      size="sm"
-                      className="bg-[#D4AF37] hover:bg-[#b8962f] text-black flex items-center gap-2 flex-1 sm:flex-none justify-center"
-                    >
-                      <Mail className="w-4 h-4" />
-                      <span className="hidden sm:inline">Mark as Replied</span>
-                      <span className="sm:hidden">Reply</span>
-                    </Button>
-                  )}
-                </div>
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentMessage.email)}&su=${encodeURIComponent(currentMessage.subject ? `Re: ${currentMessage.subject}` : 'Contact Form Message')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-[#D4AF37] hover:bg-[#b8962f] text-black font-medium px-4 py-2 rounded-lg transition-colors"
+                >
+                  <MailOpen className="w-4 h-4" />
+                  <span>Reply via Gmail</span>
+                </a>
+                <Button
+                  onClick={() => {
+                    markMessageAsReplied(currentMessage.id);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 justify-center"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Mark as Replied</span>
+                </Button>
                 <Button
                   onClick={() => {
                     setViewingMessage(null);
@@ -427,7 +419,7 @@ export default function AdminMessages() {
                   }}
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:bg-red-50 flex items-center gap-2 justify-center sm:ml-auto"
+                  className="text-red-600 hover:bg-red-50 flex items-center gap-2 justify-center"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
