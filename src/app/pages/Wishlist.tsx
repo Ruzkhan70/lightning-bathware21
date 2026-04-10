@@ -10,7 +10,7 @@ import EmptyState, { WishlistEmpty } from "../components/EmptyState";
 import { ProductGridSkeleton } from "../components/Skeleton";
 
 export default function Wishlist() {
-  const { wishlist, removeFromWishlist, isLoading } = useWishlist();
+  const { wishlist, removeFromWishlist, isWishlistConfirmed } = useWishlist();
   const { products, isDataLoaded } = useAdmin();
   const { addToCart } = useCart();
 
@@ -31,8 +31,8 @@ export default function Wishlist() {
     toast.success(`${productName} removed from wishlist!`);
   }, [removeFromWishlist]);
 
-  // Show skeleton while loading wishlist OR products data
-  if (!isDataLoaded || isLoading) {
+  // Show skeleton while products or wishlist data is not confirmed
+  if (!isDataLoaded || !isWishlistConfirmed) {
     return (
       <div className="bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-12">
@@ -45,7 +45,7 @@ export default function Wishlist() {
     );
   }
 
-  // Only show empty state if BOTH wishlist and products have loaded AND no matching products
+  // Only show empty state after both wishlist and products are confirmed loaded
   if (wishlistProducts.length === 0) {
     return (
       <div className="bg-gray-50 min-h-screen">

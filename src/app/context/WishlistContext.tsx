@@ -10,6 +10,7 @@ interface WishlistContextType {
   removeFromWishlist: (id: string) => void;
   isInWishlist: (id: string) => boolean;
   isLoading: boolean;
+  isWishlistConfirmed: boolean;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(
@@ -20,7 +21,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const { user, isLoggedIn } = useUser();
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dataLoadedFromFirebase, setDataLoadedFromFirebase] = useState(false);
+  const [isWishlistConfirmed, setIsWishlistConfirmed] = useState(false);
 
   // Load initial wishlist and set up real-time listener
   useEffect(() => {
@@ -37,12 +38,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         setWishlist([]);
       }
       setIsLoading(false);
-      setDataLoadedFromFirebase(false);
+      setIsWishlistConfirmed(true); // localStorage is instant confirmation
       return;
     }
 
     // Logged in: load from Firebase and set up real-time listener
     const wishlistRef = doc(db, "wishlist", user.id);
+    let hasReceivedData = false;
     
     // First, initialize the document if it doesn't exist
     const initWishlist = async () => {
@@ -60,19 +62,32 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
     // Set up real-time listener
     const unsubscribe = onSnapshot(wishlistRef, (snapshot) => {
+      hasReceivedData = true;
       if (snapshot.exists() && snapshot.data().items) {
         setWishlist(snapshot.data().items);
       } else {
         setWishlist([]);
       }
       setIsLoading(false);
-      setDataLoadedFromFirebase(true);
+      setIsWishlistConfirmed(true);
     }, (error) => {
       console.error("Error listening to wishlist:", error);
       setIsLoading(false);
+      setIsWishlistConfirmed(true); // Confirm even on error to avoid infinite loading
     });
 
-    return () => unsubscribe();
+    // Timeout fallback - if no data received after 5 seconds, confirm anyway
+    const timeout = setTimeout(() => {
+      if (!hasReceivedData) {
+        setIsLoading(false);
+        setIsWishlistConfirmed(true);
+      }
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, [isLoggedIn, user?.id]);
 
   // Sync to localStorage when not logged in
@@ -121,6 +136,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         removeFromWishlist,
         isInWishlist,
         isLoading,
+        isWishlistConfirmed,
       }}
     >
       {children}
