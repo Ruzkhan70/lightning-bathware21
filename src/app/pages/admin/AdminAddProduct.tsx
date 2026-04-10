@@ -29,7 +29,7 @@ interface BulkProduct {
 type UploadStep = "input" | "preview" | "uploading";
 
 export default function AdminAddProduct() {
-  const { addProduct, addMultipleProducts, categories, products } = useAdmin();
+  const { addProduct, categories, products } = useAdmin();
   const [formData, setFormData] = useState({
     name: "",
     category: "",

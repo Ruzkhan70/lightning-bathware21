@@ -132,7 +132,7 @@ export default function AdminProducts() {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-2xl font-bold text-[#D4AF37]">
-            {products.length} Products
+            {safeProducts.length} Products
           </div>
           {selectedProducts.length > 0 && (
             <Button
@@ -486,7 +486,7 @@ export default function AdminProducts() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
+                  {safeCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.name}>
                       {cat.name}
                     </SelectItem>

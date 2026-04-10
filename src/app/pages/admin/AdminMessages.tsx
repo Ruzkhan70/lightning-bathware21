@@ -196,7 +196,14 @@ export default function AdminMessages() {
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">{message.name}</p>
-                            <p className="text-sm text-gray-500">{message.email}</p>
+                            <a 
+                              href={`mailto:${message.email}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline cursor-pointer"
+                            >
+                              {message.email}
+                            </a>
                           </div>
                         </div>
                       </td>
@@ -260,7 +267,14 @@ export default function AdminMessages() {
                     </div>
                     <div className="min-w-0">
                       <p className="font-medium text-gray-900 truncate">{message.name}</p>
-                      <p className="text-sm text-gray-500 truncate">{message.email}</p>
+                      <a 
+                        href={`mailto:${message.email}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline truncate block"
+                      >
+                        {message.email}
+                      </a>
                     </div>
                   </div>
                   {getStatusBadge(message.status)}
@@ -338,7 +352,12 @@ export default function AdminMessages() {
                   <Mail className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm text-gray-500">Email Address</p>
-                    <a href={`mailto:${currentMessage.email}`} className="font-medium text-blue-600 hover:underline text-sm md:text-base break-all">
+                    <a 
+                      href={`mailto:${currentMessage.email}?subject=${encodeURIComponent(currentMessage.subject ? `Re: ${currentMessage.subject}` : 'Contact Form Message')}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="font-medium text-blue-600 hover:underline text-sm md:text-base break-all"
+                    >
                       {currentMessage.email}
                     </a>
                   </div>
@@ -390,7 +409,7 @@ export default function AdminMessages() {
                     <Button
                       onClick={() => {
                         markMessageAsReplied(currentMessage.id);
-                        window.open(`mailto:${currentMessage.email}?subject=Re: ${currentMessage.subject || "Contact Form Message"}`, "_blank");
+                        window.open(`mailto:${currentMessage.email}?subject=${encodeURIComponent(currentMessage.subject ? `Re: ${currentMessage.subject}` : 'Contact Form Message')}`, "_blank");
                       }}
                       size="sm"
                       className="bg-[#D4AF37] hover:bg-[#b8962f] text-black flex items-center gap-2 flex-1 sm:flex-none justify-center"

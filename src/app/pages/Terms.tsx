@@ -23,7 +23,7 @@ export default function Terms() {
           <section>
             <h2 className="text-2xl font-bold mb-4">Introduction</h2>
             <p className="text-gray-600">
-              {terms.introduction.replace("[Store Name]", `${storeProfile.storeName} ${storeProfile.storeNameAccent}`)}
+              {terms.introduction?.replace("[Store Name]", `${storeProfile.storeName} ${storeProfile.storeNameAccent}`) || "Welcome to our store."}
             </p>
           </section>
 

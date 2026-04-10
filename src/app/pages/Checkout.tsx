@@ -169,6 +169,7 @@ export default function Checkout() {
       }
     } catch (error) {
       setIsSubmitting(false);
+      console.error("Error placing order:", error);
       toast.error("Failed to place order. Please try again.");
     }
   };

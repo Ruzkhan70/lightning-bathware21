@@ -45,7 +45,7 @@ export default function Offers() {
           <div className="space-y-8">
             {activeOffers.map((offer, index) => {
               const offerProducts = safeProducts.filter((p) =>
-                offer.applicableProducts.includes(p.id)
+                offer.applicableProducts?.includes(p.id)
               );
 
               return (

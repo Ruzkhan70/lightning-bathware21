@@ -95,52 +95,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Offers Debug Section */}
-      {offers.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8"
-        >
-          <h3 className="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            Offers Debug Info
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {offers.map((offer) => {
-              const now = new Date();
-              const startDate = new Date(offer.startDate);
-              const endDate = new Date(offer.endDate);
-              const isStartValid = !isNaN(startDate.getTime());
-              const isEndValid = !isNaN(endDate.getTime());
-              const isActive = offer.isEnabled && isStartValid && isEndValid && startDate <= now && endDate >= now;
-              
-              return (
-                <div key={offer.id} className={`p-3 rounded-lg border ${isActive ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm truncate">{offer.title}</span>
-                    {isActive ? (
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-red-600" />
-                    )}
-                  </div>
-                  <div className="text-xs space-y-1 text-gray-600">
-                    <div>Enabled: <span className={offer.isEnabled ? 'text-green-600' : 'text-red-600'}>{offer.isEnabled ? 'Yes' : 'No'}</span></div>
-                    <div>Start: {isStartValid ? startDate.toLocaleDateString() : <span className="text-red-600">Invalid</span>}</div>
-                    <div>End: {isEndValid ? endDate.toLocaleDateString() : <span className="text-red-600">Invalid</span>}</div>
-                    <div>Current: {now.toLocaleDateString()}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-xs text-yellow-700 mt-3">
-            Note: Green = currently active on website, Red = not active
-          </p>
-        </motion.div>
-      )}
-
       {/* Unavailable Products Alert Banner */}
       {unavailableProducts.length > 0 && (
         <motion.div

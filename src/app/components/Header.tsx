@@ -4,7 +4,6 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
 import { useState, useRef, useEffect, useCallback } from "react";
-import NotificationBell from "./NotificationBell";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -221,10 +220,6 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="hidden md:block">
-              <NotificationBell />
-            </div>
-
             <Link to="/account" className="hidden md:block relative hover:text-[#D4AF37] transition-colors">
               <User className="w-6 h-6" />
             </Link>

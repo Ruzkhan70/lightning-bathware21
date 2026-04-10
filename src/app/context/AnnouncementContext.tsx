@@ -47,7 +47,9 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
     };
 
     const checkExpired = (announcement: Announcement) => {
-      if (!announcement.isActive) return false;
+      // Default to true if isActive is undefined
+      const isActive = announcement.isActive === undefined ? true : announcement.isActive;
+      if (!isActive) return false;
       if (announcement.expiresAt) {
         const expiresAt = announcement.expiresAt.toDate ? announcement.expiresAt.toDate() : new Date(announcement.expiresAt);
         if (expiresAt < new Date()) return false;
@@ -63,10 +65,15 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const announcementsList: Announcement[] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      })) as Announcement[];
+      const announcementsList: Announcement[] = snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        // Ensure isActive defaults to true if not present
+        return {
+          id: docSnap.id,
+          ...data,
+          isActive: data.isActive === undefined ? true : data.isActive
+        } as Announcement;
+      });
 
       // Filter for active and not expired, then sort by createdAt client-side
       const activeAnnouncements = announcementsList

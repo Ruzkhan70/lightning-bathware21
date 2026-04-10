@@ -380,7 +380,7 @@ export default function AdminLoginAttempts() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="font-medium">{log.emailMasked || log.email}</div>
-                        {log.emailMasked && (
+                        {log.emailMasked && log.email && log.email.includes("@") && (
                           <div className="text-xs text-gray-400" title={log.email}>
                             {log.email.substring(0, 3)}***@{log.email.split("@")[1]}
                           </div>

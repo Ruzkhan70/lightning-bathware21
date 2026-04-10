@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, ShoppingCart, Minus, Plus, Truck, Package } from "lucide-react";
-import { Product } from "../context/AdminContext";
+import { Product, useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -15,6 +15,10 @@ interface ProductModalProps {
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const { storeProfile, getProductDiscount } = useAdmin();
+  
+  const discount = getProductDiscount(product.id);
+  const displayPrice = discount.hasDiscount ? discount.discountedPrice : product.price;
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -106,8 +110,24 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </h2>
 
               {/* Price */}
-              <div className="text-4xl font-bold text-black mb-6">
-                Rs. {product.price.toLocaleString()}
+              <div className="mb-6">
+                {discount.hasDiscount ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-4xl font-bold text-green-600">
+                      Rs. {displayPrice.toLocaleString()}
+                    </span>
+                    <span className="text-xl text-gray-400 line-through">
+                      Rs. {product.price.toLocaleString()}
+                    </span>
+                    <span className="px-2 py-1 bg-red-100 text-red-600 text-sm font-semibold rounded">
+                      -{discount.discountPercentage}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-4xl font-bold text-black">
+                    Rs. {product.price.toLocaleString()}
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -142,11 +162,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex items-center justify-between">
                     <span>• Delivery within Colombo</span>
-                    <span className="font-semibold text-black">Rs. 500</span>
+                    <span className="font-semibold text-black">Rs. {(storeProfile?.deliveryColomboPrice || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>• Islandwide delivery</span>
-                    <span className="font-semibold text-black">Rs. 1,000</span>
+                    <span className="font-semibold text-black">Rs. {(storeProfile?.deliveryIslandwidePrice || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

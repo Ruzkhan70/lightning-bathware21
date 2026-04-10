@@ -239,7 +239,7 @@ export default function VerifyInvoice() {
           </div>
 
           <div className="bg-gray-50 px-6 py-4 flex justify-center">
-            <Link to={`/#/invoice/${invoice.id}`}>
+            <Link to={`/invoice/${invoice.id}`}>
               <Button className="bg-[#D4AF37] hover:bg-[#b8962f] text-white">
                 <FileText className="w-4 h-4 mr-2" />
                 View Full Invoice

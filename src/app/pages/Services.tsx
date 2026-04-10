@@ -6,7 +6,7 @@ export default function Services() {
   const { siteContent, storeProfile } = useAdmin();
   
   const icons = [Truck, Headphones, Wrench, Award, Clock, Shield];
-  const services = siteContent.services.items.map((item, index) => ({
+  const services = (siteContent?.services?.items || []).map((item, index) => ({
     icon: icons[index] || Truck,
     title: item.title,
     description: item.description,
@@ -18,9 +18,9 @@ export default function Services() {
       {/* Header */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{siteContent.services.title}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{siteContent?.services?.title || "Our Services"}</h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            {siteContent.services.subtitle}
+            {siteContent?.services?.subtitle || "Quality service for quality products"}
           </p>
         </div>
       </section>

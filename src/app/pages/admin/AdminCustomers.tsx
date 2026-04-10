@@ -4,7 +4,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { toast } from "sonner";
 import { db } from "../../../firebase";
-import { collection, getDocs, deleteDoc, doc, query } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 interface Customer {
   id: string;

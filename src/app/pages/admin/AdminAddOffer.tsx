@@ -144,7 +144,7 @@ export default function AdminAddOffer() {
     }
     acc[product.category].push(product);
     return acc;
-  }, {} as Record<string, typeof products>);
+  }, {} as Record<string, typeof safeProducts>);
 
   return (
     <div className="p-6 md:p-8">

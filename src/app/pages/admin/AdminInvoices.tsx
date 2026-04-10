@@ -509,7 +509,7 @@ export default function AdminInvoices() {
                     </TableCell>
                     <TableCell>{format(new Date(invoice.date), "dd MMM yyyy")}</TableCell>
                     <TableCell className="text-right font-semibold">
-                      Rs. {invoice.grandTotal.toLocaleString()}
+                      Rs. {(invoice.grandTotal || 0).toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -703,13 +703,13 @@ export default function AdminInvoices() {
                   <p className="text-xs text-gray-500 mb-1">QR Code</p>
                   <div className="bg-white p-2 rounded inline-block">
                     <QRCodeSVG
-                      value={`https://lightning-bathware.vercel.app/#/verify/${selectedInvoice.id}`}
+                      value={`${import.meta.env.VITE_SITE_URL}/verify/${selectedInvoice.id}`}
                       size={80}
                       level="H"
                     />
                   </div>
                   <Button
-                    onClick={() => window.open(`https://lightning-bathware.vercel.app/#/verify/${selectedInvoice.id}`, "_blank")}
+                    onClick={() => window.open(`${import.meta.env.VITE_SITE_URL}/verify/${selectedInvoice.id}`, "_blank")}
                     variant="outline"
                     size="sm"
                     className="mt-2 w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white text-xs"

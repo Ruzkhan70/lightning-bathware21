@@ -1588,41 +1588,38 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Mark message as read
   const markMessageAsRead = async (id: string) => {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "read" } : m));
     try {
       const messageRef = doc(db, "messages", id);
       await updateDoc(messageRef, { status: "read" });
-      setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "read" } : m));
     } catch (error) {
-      console.error("Error marking message as read:", error);
-      toast.error("Failed to update message");
+      console.error("Error updating in Firebase:", error);
     }
   };
 
   // Mark message as replied
   const markMessageAsReplied = async (id: string) => {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "replied" } : m));
     try {
       const messageRef = doc(db, "messages", id);
       await updateDoc(messageRef, { status: "replied" });
-      setMessages(prev => prev.map(m => m.id === id ? { ...m, status: "replied" } : m));
     } catch (error) {
-      console.error("Error marking message as replied:", error);
-      toast.error("Failed to update message");
+      console.error("Error updating in Firebase:", error);
     }
   };
 
   // Mark all messages as read
   const markAllMessagesAsRead = async () => {
+    setMessages(prev => prev.map(m => ({ ...m, status: "read" })));
+    toast.success("All messages marked as read");
     try {
       const unreadMessages = messages.filter(m => m.status === "new");
       for (const message of unreadMessages) {
         const messageRef = doc(db, "messages", message.id);
         await updateDoc(messageRef, { status: "read" });
       }
-      setMessages(prev => prev.map(m => ({ ...m, status: "read" })));
-      toast.success("All messages marked as read");
     } catch (error) {
-      console.error("Error marking all messages as read:", error);
-      toast.error("Failed to update messages");
+      console.error("Error marking all messages as read in Firebase:", error);
     }
   };
 

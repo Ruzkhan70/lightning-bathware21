@@ -601,7 +601,7 @@ export default function Account() {
                     <h3 className="font-semibold">Ordered Items</h3>
                   </div>
                   <div className="space-y-3">
-                    {(selectedOrder.products || []).map((product: any, index: number) => (
+                    {(selectedOrder.products || []).map((product: { id?: string; image?: string; name?: string; price?: number; quantity?: number }, index: number) => (
                       <div
                         key={product.id || index}
                         className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"

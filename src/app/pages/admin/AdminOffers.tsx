@@ -44,6 +44,16 @@ export default function AdminOffers() {
     return new Date(startDate) <= now && new Date(endDate) >= now;
   };
 
+  const formatDateSafe = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "Invalid date";
+      return date.toLocaleDateString();
+    } catch {
+      return "Invalid date";
+    }
+  };
+
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -163,8 +173,7 @@ export default function AdminOffers() {
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                     <Calendar className="w-4 h-4" />
                     <span>
-                      {new Date(offer.startDate).toLocaleDateString()} -{" "}
-                      {new Date(offer.endDate).toLocaleDateString()}
+                      {formatDateSafe(offer.startDate)} - {formatDateSafe(offer.endDate)}
                     </span>
                   </div>
 

@@ -73,7 +73,8 @@ export default function Contact() {
         subject: "",
         message: "",
       });
-    } catch {
+    } catch (error) {
+      console.error("Failed to send message:", error);
       toast.error("Failed to send message. Please try again.");
     }
   };

@@ -300,7 +300,7 @@ export default function AdminReviews() {
               className="pl-10"
             />
           </div>
-          <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
+          <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
             <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>

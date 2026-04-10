@@ -25,17 +25,22 @@ export default function AdminStatistics() {
 
   const productCategoryMap = new Map(safeProducts.map(p => [p.id, p.category]));
   
-  const getCategoryOrders = (categoryName: string) => {
-    let count = 0;
-    for (const order of safeOrders) {
-      for (const item of order.products) {
-        if (productCategoryMap.get(item.id) === categoryName) {
-          count++;
-          break;
-        }
+  const categoryOrderCounts = new Map<string, number>();
+  safeOrders.forEach(order => {
+    const categoriesInOrder = new Set<string>();
+    order.products.forEach(item => {
+      const category = productCategoryMap.get(item.id);
+      if (category) {
+        categoriesInOrder.add(category);
       }
-    }
-    return count;
+    });
+    categoriesInOrder.forEach(category => {
+      categoryOrderCounts.set(category, (categoryOrderCounts.get(category) || 0) + 1);
+    });
+  });
+  
+  const getCategoryOrders = (categoryName: string) => {
+    return categoryOrderCounts.get(categoryName) || 0;
   };
 
   const categoryStats = [

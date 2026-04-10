@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { db } from "../../firebase";
-import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "sonner";
 import { useUser } from "./UserContext";
 
@@ -16,27 +16,75 @@ export interface Notification {
 
 interface NotificationsContextType {
   notifications: Notification[];
-  unreadCount: number;
+  activeBanner: Notification | null;
   isLoading: boolean;
-  markAsRead: (notificationId: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  dismissNotification: (notificationId: string) => Promise<void>;
+  dismissBanner: (notificationId: string) => void;
   addNotification: (notification: Omit<Notification, "id" | "createdAt" | "isActive">) => Promise<void>;
-  isRead: (notificationId: string) => boolean;
+  hideBanner: () => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
+const BANNER_DISMISSED_KEY = "banner_dismissed_ids";
+const TRACKED_NOTIFICATIONS_KEY = "tracked_notification_ids";
+
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [userReadNotifications, setUserReadNotifications] = useState<string[]>([]);
+  const [activeBanner, setActiveBanner] = useState<Notification | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isLoggedIn } = useUser();
+  const [trackedIds, setTrackedIds] = useState<string[]>([]);
+
+  // Load dismissed IDs from localStorage
+  const getDismissedIds = useCallback((): string[] => {
+    try {
+      const stored = localStorage.getItem(BANNER_DISMISSED_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // Save dismissed ID to localStorage
+  const addDismissedId = useCallback((id: string) => {
+    try {
+      const dismissed = getDismissedIds();
+      if (!dismissed.includes(id)) {
+        dismissed.push(id);
+        localStorage.setItem(BANNER_DISMISSED_KEY, JSON.stringify(dismissed));
+      }
+    } catch (e) {
+      console.error("Error saving dismissed ID:", e);
+    }
+  }, [getDismissedIds]);
+
+  // Load tracked notification IDs from localStorage
+  const getTrackedIds = useCallback((): string[] => {
+    try {
+      const stored = localStorage.getItem(TRACKED_NOTIFICATIONS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // Save tracked ID to localStorage
+  const addTrackedId = useCallback((id: string) => {
+    try {
+      const tracked = getTrackedIds();
+      if (!tracked.includes(id)) {
+        tracked.push(id);
+        localStorage.setItem(TRACKED_NOTIFICATIONS_KEY, JSON.stringify(tracked));
+      }
+    } catch (e) {
+      console.error("Error saving tracked ID:", e);
+    }
+  }, [getTrackedIds]);
 
   useEffect(() => {
     if (!isLoggedIn) {
       setNotifications([]);
-      setUserReadNotifications([]);
+      setActiveBanner(null);
       setIsLoading(false);
       return;
     }
@@ -48,6 +96,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       const notifs: Notification[] = [];
+      const dismissedIds = getDismissedIds();
+      const previouslyTracked = getTrackedIds();
       
       snapshot.docs.forEach((docSnap) => {
         const data = docSnap.data();
@@ -60,14 +110,22 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       });
 
       setNotifications(notifs);
+      setTrackedIds(previouslyTracked);
 
-      const userNotifRef = doc(db, "userNotifications", user.id);
-      const userNotifDoc = await getDoc(userNotifRef);
-      
-      if (userNotifDoc.exists()) {
-        setUserReadNotifications(userNotifDoc.data().readNotifications || []);
-      } else {
-        setUserReadNotifications([]);
+      // Find the most recent notification that hasn't been dismissed or shown as banner
+      const newNotifications = notifs.filter(n => 
+        !dismissedIds.includes(n.id) && 
+        !previouslyTracked.includes(n.id)
+      );
+
+      if (newNotifications.length > 0) {
+        // Show the most recent one as banner
+        const newest = newNotifications[0];
+        setActiveBanner(newest);
+        
+        // Mark it as tracked so it won't be shown again
+        addTrackedId(newest.id);
+        setTrackedIds(prev => [...prev, newest.id]);
       }
       
       setIsLoading(false);
@@ -77,75 +135,31 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [isLoggedIn, user?.id]);
+  }, [isLoggedIn, user?.id, getDismissedIds, getTrackedIds, addTrackedId]);
 
-  const isRead = useCallback((notificationId: string) => {
-    return userReadNotifications.includes(notificationId);
-  }, [userReadNotifications]);
+  const dismissBanner = useCallback((notificationId: string) => {
+    setActiveBanner(null);
+    addDismissedId(notificationId);
+  }, [addDismissedId]);
 
-  const unreadCount = notifications.filter(n => !isRead(n.id)).length;
-
-  const markAsRead = async (notificationId: string) => {
-    if (!user || isRead(notificationId)) return;
-
-    try {
-      const userNotifRef = doc(db, "userNotifications", user.id);
-      await setDoc(userNotifRef, {
-        readNotifications: arrayUnion(notificationId),
-        lastUpdated: serverTimestamp(),
-      }, { merge: true });
-      
-      setUserReadNotifications(prev => [...prev, notificationId]);
-    } catch (error) {
-      console.error("Error marking as read:", error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    if (!user) return;
-
-    try {
-      const unreadIds = notifications.filter(n => !isRead(n.id)).map(n => n.id);
-      
-      if (unreadIds.length === 0) return;
-
-      const userNotifRef = doc(db, "userNotifications", user.id);
-      await setDoc(userNotifRef, {
-        readNotifications: [...new Set([...userReadNotifications, ...unreadIds])],
-        lastUpdated: serverTimestamp(),
-      }, { merge: true });
-      
-      setUserReadNotifications(prev => [...new Set([...prev, ...unreadIds])]);
-      toast.success("All notifications marked as read");
-    } catch (error) {
-      console.error("Error marking all as read:", error);
-    }
-  };
-
-  const dismissNotification = async (notificationId: string) => {
-    if (!user) return;
-
-    try {
-      const userNotifRef = doc(db, "userNotifications", user.id);
-      await setDoc(userNotifRef, {
-        dismissedNotifications: arrayUnion(notificationId),
-        lastUpdated: serverTimestamp(),
-      }, { merge: true });
-      
-      await markAsRead(notificationId);
-    } catch (error) {
-      console.error("Error dismissing notification:", error);
-    }
-  };
+  const hideBanner = useCallback(() => {
+    setActiveBanner(null);
+  }, []);
 
   const addNotification = async (notification: Omit<Notification, "id" | "createdAt" | "isActive">) => {
     try {
       const notificationsRef = collection(db, "notifications");
-      await addDoc(notificationsRef, {
+      const docRef = await addDoc(notificationsRef, {
         ...notification,
         isActive: true,
         createdAt: serverTimestamp(),
       });
+      
+      // Mark this new notification as tracked immediately so it won't show as banner
+      // (it will show through the real-time listener for other users)
+      addTrackedId(docRef.id);
+      setTrackedIds(prev => [...prev, docRef.id]);
+      
       toast.success("Notification sent to all users!");
     } catch (error) {
       console.error("Error adding notification:", error);
@@ -157,13 +171,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     <NotificationsContext.Provider
       value={{
         notifications,
-        unreadCount,
+        activeBanner,
         isLoading,
-        markAsRead,
-        markAllAsRead,
-        dismissNotification,
+        dismissBanner,
         addNotification,
-        isRead,
+        hideBanner,
       }}
     >
       {children}

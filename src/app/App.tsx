@@ -9,6 +9,7 @@ import { NotificationsProvider } from "./context/NotificationsContext";
 import { AnnouncementProvider } from "./context/AnnouncementContext";
 import { Toaster } from "./components/ui/sonner";
 import LoadingScreen from "./components/LoadingScreen";
+import TopBannerNotification from "./components/TopBannerNotification";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -95,6 +96,7 @@ function AppContent() {
         <UserProvider>
           <AdminProvider>
             <NotificationsProvider>
+              <TopBannerNotification />
               <CartProvider>
                 <WishlistProvider>
                   <DataLoader>
