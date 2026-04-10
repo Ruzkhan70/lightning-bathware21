@@ -26,13 +26,15 @@ export default function Products() {
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Initialize category from URL params ONCE on mount
+  // Update category from URL params when it changes
   useEffect(() => {
     const categoryParam = searchParams.get("category");
     if (categoryParam) {
       setSelectedCategory(categoryParam);
+    } else {
+      setSelectedCategory("all");
     }
-  }, []); // Only run once on mount
+  }, [searchParams]);
 
   // Memoize active categories to prevent recalculation
   const activeCategories = useMemo(() => [
