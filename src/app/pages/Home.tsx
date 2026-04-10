@@ -150,13 +150,23 @@ export default function Home() {
       }));
   }, [siteContent.home.features]);
 
-  // Memoize stats array
-  const stats = useMemo(() => [
-    { value: storeProfile.statsYearsExperience, label: siteContent.about.statsLabels.years },
-    { value: storeProfile.statsProducts, label: siteContent.about.statsLabels.products },
-    { value: storeProfile.statsCustomers, label: siteContent.about.statsLabels.customers },
-    { value: storeProfile.statsAuthentic, label: siteContent.about.statsLabels.authentic },
-  ], [storeProfile.statsYearsExperience, storeProfile.statsProducts, storeProfile.statsCustomers, storeProfile.statsAuthentic, siteContent.about.statsLabels]);
+  // Memoize stats array (only visible ones)
+  const stats = useMemo(() => {
+    const visibleStats = [];
+    if (storeProfile.statsYearsExperienceVisible !== false) {
+      visibleStats.push({ value: storeProfile.statsYearsExperience, label: siteContent.about.statsLabels.years });
+    }
+    if (storeProfile.statsProductsVisible !== false) {
+      visibleStats.push({ value: storeProfile.statsProducts, label: siteContent.about.statsLabels.products });
+    }
+    if (storeProfile.statsCustomersVisible !== false) {
+      visibleStats.push({ value: storeProfile.statsCustomers, label: siteContent.about.statsLabels.customers });
+    }
+    if (storeProfile.statsAuthenticVisible !== false) {
+      visibleStats.push({ value: storeProfile.statsAuthentic, label: siteContent.about.statsLabels.authentic });
+    }
+    return visibleStats;
+  }, [storeProfile.statsYearsExperience, storeProfile.statsProducts, storeProfile.statsCustomers, storeProfile.statsAuthentic, storeProfile.statsYearsExperienceVisible, storeProfile.statsProductsVisible, storeProfile.statsCustomersVisible, storeProfile.statsAuthenticVisible, siteContent.about.statsLabels]);
 
   const statsRef = useRef(null);
 
