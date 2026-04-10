@@ -138,29 +138,17 @@ export default function Home() {
       }));
   }, [safeCategories, safeProducts]);
 
-  // Memoize features array
-  const features = useMemo(() => [
-    {
-      icon: Truck,
-      title: siteContent.home.features[0]?.title || "Island-wide Delivery",
-      description: siteContent.home.features[0]?.description || "Fast and reliable delivery across Sri Lanka",
-    },
-    {
-      icon: Shield,
-      title: siteContent.home.features[1]?.title || "Quality Guarantee",
-      description: siteContent.home.features[1]?.description || "100% authentic products from trusted brands",
-    },
-    {
-      icon: Award,
-      title: siteContent.home.features[2]?.title || "Expert Support",
-      description: siteContent.home.features[2]?.description || "Professional advice from our experienced team",
-    },
-    {
-      icon: Star,
-      title: siteContent.home.features[3]?.title || "Best Prices",
-      description: siteContent.home.features[3]?.description || "Competitive pricing on premium products",
-    },
-  ], [siteContent.home.features]);
+  // Memoize features array (only visible ones)
+  const features = useMemo(() => {
+    const featureIcons = [Truck, Shield, Award, Star];
+    return siteContent.home.features
+      .filter(f => f.isVisible !== false)
+      .map((f, index) => ({
+        icon: featureIcons[index] || Star,
+        title: f.title,
+        description: f.description,
+      }));
+  }, [siteContent.home.features]);
 
   // Memoize stats array
   const stats = useMemo(() => [

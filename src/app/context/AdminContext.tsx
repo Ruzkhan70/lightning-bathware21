@@ -198,6 +198,10 @@ export interface StoreProfile {
   statsProducts: string;
   statsCustomers: string;
   statsAuthentic: string;
+  statsYearsExperienceVisible: boolean;
+  statsProductsVisible: boolean;
+  statsCustomersVisible: boolean;
+  statsAuthenticVisible: boolean;
   enableOnlinePayment: boolean;
   authorizedAdminEmail?: string;
 }
@@ -219,7 +223,7 @@ export interface SiteContent {
     shopNowText: string;
     featuresTitle: string;
     featuresSubtitle: string;
-    features: { title: string; description: string }[];
+    features: { title: string; description: string; isVisible: boolean }[];
     shopByCategoryTitle: string;
     shopByCategorySubtitle: string;
     productsCount: string;
@@ -485,6 +489,10 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   statsProducts: "350+",
   statsCustomers: "5,000+",
   statsAuthentic: "100%",
+  statsYearsExperienceVisible: true,
+  statsProductsVisible: true,
+  statsCustomersVisible: true,
+  statsAuthenticVisible: true,
   enableOnlinePayment: false,
   authorizedAdminEmail: "",
 };
@@ -511,10 +519,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     featuresTitle: "Why Choose Us",
     featuresSubtitle: "Experience the difference with our commitment to quality and service",
     features: [
-      { title: "Island-wide Delivery", description: "Fast and reliable delivery across Sri Lanka" },
-      { title: "Quality Guarantee", description: "100% authentic products from trusted brands" },
-      { title: "Expert Support", description: "Professional advice from our experienced team" },
-      { title: "Best Prices", description: "Competitive pricing on premium products" },
+      { title: "Island-wide Delivery", description: "Fast and reliable delivery across Sri Lanka", isVisible: true },
+      { title: "Quality Guarantee", description: "100% authentic products from trusted brands", isVisible: true },
+      { title: "Expert Support", description: "Professional advice from our experienced team", isVisible: true },
+      { title: "Best Prices", description: "Competitive pricing on premium products", isVisible: true },
     ],
     shopByCategoryTitle: "Shop by Category",
     shopByCategorySubtitle: "Explore our wide range of premium products",

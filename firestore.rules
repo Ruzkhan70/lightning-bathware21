@@ -53,9 +53,9 @@ service cloud.firestore {
       allow read, write: if isAuth();
     }
     
-    // Messages - public create (contact form), authenticated read/delete
+    // Messages - public create (contact form), authenticated read/update/delete
     match /messages/{messageId} {
-      allow read, delete: if isAuth();
+      allow read, delete, update: if isAuth();
       allow create: if true;
     }
     

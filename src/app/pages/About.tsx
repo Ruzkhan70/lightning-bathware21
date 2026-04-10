@@ -178,42 +178,50 @@ export default function About() {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
-              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
-                <span className="relative z-10">
-                  <AnimatedCounter value={storeProfile.statsYearsExperience} />
-                </span>
-                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+            {storeProfile.statsYearsExperienceVisible !== false && (
+              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+                <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                  <span className="relative z-10">
+                    <AnimatedCounter value={storeProfile.statsYearsExperience} />
+                  </span>
+                  <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+                </div>
+                <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.years}</div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.years}</div>
-            </div>
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
-              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
-                <span className="relative z-10">
-                  <AnimatedCounter value={storeProfile.statsProducts} />
-                </span>
-                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+            )}
+            {storeProfile.statsProductsVisible !== false && (
+              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+                <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                  <span className="relative z-10">
+                    <AnimatedCounter value={storeProfile.statsProducts} />
+                  </span>
+                  <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+                </div>
+                <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.products}</div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.products}</div>
-            </div>
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
-              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
-                <span className="relative z-10">
-                  <AnimatedCounter value={storeProfile.statsCustomers} />
-                </span>
-                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+            )}
+            {storeProfile.statsCustomersVisible !== false && (
+              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+                <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                  <span className="relative z-10">
+                    <AnimatedCounter value={storeProfile.statsCustomers} />
+                  </span>
+                  <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+                </div>
+                <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.customers}</div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.customers}</div>
-            </div>
-            <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
-              <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
-                <span className="relative z-10">
-                  <AnimatedCounter value={storeProfile.statsAuthentic} />
-                </span>
-                <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+            )}
+            {storeProfile.statsAuthenticVisible !== false && (
+              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+                <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
+                  <span className="relative z-10">
+                    <AnimatedCounter value={storeProfile.statsAuthentic} />
+                  </span>
+                  <div className="absolute inset-0 blur-2xl opacity-50 bg-[#D4AF37]"></div>
+                </div>
+                <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.authentic}</div>
               </div>
-              <div className="text-gray-300 text-base md:text-lg font-medium tracking-wide">{siteContent.about.statsLabels.authentic}</div>
-            </div>
+            )}
           </div>
         </div>
       </section>

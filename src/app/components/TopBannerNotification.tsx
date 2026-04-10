@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { X, Package, Tag, FileText, RefreshCw, TrendingUp, Bell } from "lucide-react";
-import { useNotifications, Notification } from "../context/NotificationsContext";
+import { X, Package, Tag, FileText, RefreshCw, TrendingUp, Bell, Info } from "lucide-react";
+import { useAnnouncement, Announcement } from "../context/AnnouncementContext";
 import { useUser } from "../context/UserContext";
 
-const getTypeConfig = (type: Notification["type"]) => {
+const getTypeConfig = (type: Announcement["type"]) => {
   switch (type) {
     case "product":
       return {
@@ -36,6 +36,12 @@ const getTypeConfig = (type: Notification["type"]) => {
         icon: TrendingUp,
         navigateTo: "/account",
       };
+    case "general":
+      return {
+        bgColor: "bg-gradient-to-r from-gray-700 to-gray-800",
+        icon: Info,
+        navigateTo: "/",
+      };
     default:
       return {
         bgColor: "bg-gradient-to-r from-gray-700 to-gray-800",
@@ -45,54 +51,68 @@ const getTypeConfig = (type: Notification["type"]) => {
   }
 };
 
+const DISMISSAL_KEY = "announcement_dismissed";
+
 export default function TopBannerNotification() {
   const navigate = useNavigate();
-  const { activeBanner, dismissBanner } = useNotifications();
+  const { currentAnnouncement, expireAnnouncement, isLoading } = useAnnouncement();
   const { isLoggedIn } = useUser();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (activeBanner && isLoggedIn) {
-      // Small delay to trigger animation
-      requestAnimationFrame(() => {
-        setIsVisible(true);
-        setIsAnimating(true);
-      });
+    if (currentAnnouncement && isLoggedIn && !isLoading) {
+      // Check if dismissed
+      const dismissedId = localStorage.getItem(DISMISSAL_KEY);
+      const dismissedTime = localStorage.getItem(`${DISMISSAL_KEY}_time`);
+      
+      let shouldShow = true;
+      if (dismissedId === currentAnnouncement.id && dismissedTime) {
+        const dismissedAt = parseInt(dismissedTime);
+        const hoursSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60);
+        if (hoursSinceDismissed < 24) {
+          shouldShow = false;
+        }
+      }
+      
+      if (shouldShow) {
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+          setIsAnimating(true);
+        });
+      }
     } else {
       setIsAnimating(false);
-      // Wait for animation to complete before hiding
       const timer = setTimeout(() => {
         setIsVisible(false);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [activeBanner, isLoggedIn]);
+  }, [currentAnnouncement, isLoggedIn, isLoading]);
 
   const handleBannerClick = () => {
-    if (!activeBanner) return;
+    if (!currentAnnouncement) return;
     
-    const config = getTypeConfig(activeBanner.type);
+    const config = getTypeConfig(currentAnnouncement.type);
     navigate(config.navigateTo);
-    dismissBanner(activeBanner.id);
+    // Dismiss banner
+    localStorage.setItem(DISMISSAL_KEY, currentAnnouncement.id);
+    localStorage.setItem(`${DISMISSAL_KEY}_time`, Date.now().toString());
   };
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (activeBanner) {
-      dismissBanner(activeBanner.id);
+    if (currentAnnouncement) {
+      localStorage.setItem(DISMISSAL_KEY, currentAnnouncement.id);
+      localStorage.setItem(`${DISMISSAL_KEY}_time`, Date.now().toString());
     }
   };
 
-  if (!isLoggedIn || !isVisible) {
+  if (!isLoggedIn || !isVisible || !currentAnnouncement) {
     return null;
   }
 
-  if (!activeBanner) {
-    return null;
-  }
-
-  const config = getTypeConfig(activeBanner.type);
+  const config = getTypeConfig(currentAnnouncement.type);
   const Icon = config.icon;
 
   return (
@@ -121,10 +141,10 @@ export default function TopBannerNotification() {
           {/* Center: Message */}
           <div className="flex-1 min-w-0 text-center">
             <p className="font-semibold text-sm sm:text-base truncate">
-              {activeBanner.title}
+              {currentAnnouncement.title}
             </p>
             <p className="text-xs sm:text-sm opacity-90 truncate">
-              {activeBanner.message}
+              {currentAnnouncement.message}
             </p>
           </div>
 

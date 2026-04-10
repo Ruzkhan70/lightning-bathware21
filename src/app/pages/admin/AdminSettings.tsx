@@ -387,22 +387,69 @@ export default function AdminSettings() {
               </Card>
 
               <Card title="Home Page Stats" icon={<Award className="w-5 h-5" />} description="Statistics displayed on your homepage">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label>Years Experience</Label>
-                    <Input value={profileForm.statsYearsExperience} onChange={(e) => setProfileForm({...profileForm, statsYearsExperience: e.target.value})} placeholder="10+" />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label>Years Experience</Label>
+                      <Input value={profileForm.statsYearsExperience} onChange={(e) => setProfileForm({...profileForm, statsYearsExperience: e.target.value})} placeholder="10+" />
+                    </div>
+                    <div>
+                      <Label>Products</Label>
+                      <Input value={profileForm.statsProducts} onChange={(e) => setProfileForm({...profileForm, statsProducts: e.target.value})} placeholder="350+" />
+                    </div>
+                    <div>
+                      <Label>Customers</Label>
+                      <Input value={profileForm.statsCustomers} onChange={(e) => setProfileForm({...profileForm, statsCustomers: e.target.value})} placeholder="5,000+" />
+                    </div>
+                    <div>
+                      <Label>Authentic %</Label>
+                      <Input value={profileForm.statsAuthentic} onChange={(e) => setProfileForm({...profileForm, statsAuthentic: e.target.value})} placeholder="100%" />
+                    </div>
                   </div>
-                  <div>
-                    <Label>Products</Label>
-                    <Input value={profileForm.statsProducts} onChange={(e) => setProfileForm({...profileForm, statsProducts: e.target.value})} placeholder="350+" />
-                  </div>
-                  <div>
-                    <Label>Customers</Label>
-                    <Input value={profileForm.statsCustomers} onChange={(e) => setProfileForm({...profileForm, statsCustomers: e.target.value})} placeholder="5,000+" />
-                  </div>
-                  <div>
-                    <Label>Authentic %</Label>
-                    <Input value={profileForm.statsAuthentic} onChange={(e) => setProfileForm({...profileForm, statsAuthentic: e.target.value})} placeholder="100%" />
+                  <div className="border-t pt-4 mt-4">
+                    <p className="text-sm text-gray-500 mb-3">Show/Hide Stats</p>
+                    <div className="flex flex-wrap gap-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setProfileForm({...profileForm, statsYearsExperienceVisible: !profileForm.statsYearsExperienceVisible})}
+                          className={profileForm.statsYearsExperienceVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                        >
+                          {profileForm.statsYearsExperienceVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                        </button>
+                        <span className="text-sm">Years</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setProfileForm({...profileForm, statsProductsVisible: !profileForm.statsProductsVisible})}
+                          className={profileForm.statsProductsVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                        >
+                          {profileForm.statsProductsVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                        </button>
+                        <span className="text-sm">Products</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setProfileForm({...profileForm, statsCustomersVisible: !profileForm.statsCustomersVisible})}
+                          className={profileForm.statsCustomersVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                        >
+                          {profileForm.statsCustomersVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                        </button>
+                        <span className="text-sm">Customers</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setProfileForm({...profileForm, statsAuthenticVisible: !profileForm.statsAuthenticVisible})}
+                          className={profileForm.statsAuthenticVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                        >
+                          {profileForm.statsAuthenticVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                        </button>
+                        <span className="text-sm">Authentic %</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -475,6 +522,54 @@ export default function AdminSettings() {
                         <Label>Section Subtitle</Label>
                         <Input value={contentForm.home.shopByCategorySubtitle} onChange={(e) => setContentForm({...contentForm, home: {...contentForm.home, shopByCategorySubtitle: e.target.value}})} />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Why Choose Us Features</h4>
+                    <div className="space-y-4">
+                      {contentForm.home.features.map((feature, index) => (
+                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="font-medium text-sm">Feature {index + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newFeatures = [...contentForm.home.features];
+                                newFeatures[index] = { ...newFeatures[index], isVisible: !newFeatures[index].isVisible };
+                                setContentForm({...contentForm, home: {...contentForm.home, features: newFeatures}});
+                              }}
+                              className={feature.isVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                            >
+                              {feature.isVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <Label>Title</Label>
+                              <Input 
+                                value={feature.title} 
+                                onChange={(e) => {
+                                  const newFeatures = [...contentForm.home.features];
+                                  newFeatures[index] = { ...newFeatures[index], title: e.target.value };
+                                  setContentForm({...contentForm, home: {...contentForm.home, features: newFeatures}});
+                                }} 
+                              />
+                            </div>
+                            <div>
+                              <Label>Description</Label>
+                              <Input 
+                                value={feature.description} 
+                                onChange={(e) => {
+                                  const newFeatures = [...contentForm.home.features];
+                                  newFeatures[index] = { ...newFeatures[index], description: e.target.value };
+                                  setContentForm({...contentForm, home: {...contentForm.home, features: newFeatures}});
+                                }} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
