@@ -1328,8 +1328,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for orders
+  // Firebase real-time sync for orders (admin only)
   useEffect(() => {
+    if (!isAdminLoggedIn) {
+      setFirebaseLoaded(prev => ({ ...prev, orders: true }));
+      return;
+    }
+    
     const q = query(collection(db, "orders"), orderBy("date", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const firebaseOrders: Order[] = snapshot.docs.map(doc => {
@@ -1343,7 +1348,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setFirebaseLoaded(prev => ({ ...prev, orders: true }));
     });
     return () => unsubscribe();
-  }, []);
+  }, [isAdminLoggedIn]);
 
   // Firebase real-time sync for offers
   useEffect(() => {
@@ -1443,8 +1448,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for invoices
+  // Firebase real-time sync for invoices (admin only)
   useEffect(() => {
+    if (!isAdminLoggedIn) {
+      setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
+      return;
+    }
+    
     try {
       const q = query(collection(db, "invoices"), orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -1463,10 +1473,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Firebase invoices sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
     }
-  }, []);
+  }, [isAdminLoggedIn]);
 
-  // Firebase real-time sync for contact messages
+  // Firebase real-time sync for contact messages (admin only)
   useEffect(() => {
+    if (!isAdminLoggedIn) {
+      setFirebaseLoaded(prev => ({ ...prev, messages: true }));
+      return;
+    }
+    
     try {
       const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -1485,7 +1500,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Firebase messages sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, messages: true }));
     }
-  }, []);
+  }, [isAdminLoggedIn]);
 
   // Firebase real-time sync for reviews
   useEffect(() => {
@@ -1509,8 +1524,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for activity logs
+  // Firebase real-time sync for activity logs (admin only)
   useEffect(() => {
+    if (!isAdminLoggedIn) {
+      setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
+      return;
+    }
+    
     try {
       const q = query(collection(db, "activityLogs"), orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -1537,10 +1557,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Firebase activityLogs sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
     }
-  }, []);
+  }, [isAdminLoggedIn]);
 
-  // Firebase real-time sync for users/customers
+  // Firebase real-time sync for users/customers (admin only)
   useEffect(() => {
+    if (!isAdminLoggedIn) {
+      setFirebaseLoaded(prev => ({ ...prev, users: true }));
+      return;
+    }
+    
     try {
       const q = query(collection(db, "users"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -1566,7 +1591,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Firebase users sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, users: true }));
     }
-  }, []);
+  }, [isAdminLoggedIn]);
 
   // Add a new contact message
   const addMessage = async (messageData: Omit<ContactMessage, "id" | "createdAt" | "status">) => {
