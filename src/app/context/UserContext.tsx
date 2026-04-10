@@ -235,10 +235,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       await signOut(auth);
       setUser(null);
-      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Failed to logout");
     }
   };
 
