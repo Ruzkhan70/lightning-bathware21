@@ -140,7 +140,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       if (result.user) {
         await syncUserData(result.user);
-        toast.success("Welcome back!");
+        toast.success("🎉 Welcome back!", {
+          duration: 5000,
+          style: {
+            background: '#D4AF37',
+            color: '#000',
+            fontWeight: 'bold',
+          },
+        });
         return { success: true };
       }
       
