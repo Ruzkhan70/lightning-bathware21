@@ -140,11 +140,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const result = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       
       if (result.user) {
-        // Show toast IMMEDIATELY, then sync data in background
-        console.log("🔔 TOAST DEBUG: Login success, showing welcome toast");
-        toast.success("Welcome back!");
-        console.log("🔔 TOAST DEBUG: Toast.success() called");
-        // Sync data after showing toast (doesn't block the toast)
+        // Show toast IMMEDIATELY using queueMicrotask to bypass React batching
+        queueMicrotask(() => {
+          toast.success("Welcome back!");
+        });
+        // Sync data after showing toast
         syncUserData(result.user);
         return { success: true };
       }
