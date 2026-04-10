@@ -101,19 +101,7 @@ function AppContent() {
                   <DataLoader>
                     <RouterProvider router={router}>
                       <TopBannerNotification />
-                      <Toaster 
-                        position="bottom-right" 
-                        expand={true}
-                        richColors={true}
-                        closeButton={true}
-                        toastOptions={{
-                          style: {
-                            background: '#1f2937',
-                            color: '#fff',
-                            border: 'none',
-                          },
-                        }}
-                      />
+                      <Toaster />
                     </RouterProvider>
                   </DataLoader>
                 </WishlistProvider>

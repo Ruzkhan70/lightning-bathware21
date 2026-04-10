@@ -140,14 +140,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       if (result.user) {
         // Show toast IMMEDIATELY, then sync data in background
-        toast.success("🎉 Welcome back!", {
-          duration: 5000,
-          style: {
-            background: '#D4AF37',
-            color: '#000',
-            fontWeight: 'bold',
-          },
-        });
+        toast.success("Welcome back!");
         // Sync data after showing toast (doesn't block the toast)
         syncUserData(result.user);
         return { success: true };
