@@ -92,6 +92,7 @@ function DataLoader({ children }: { children: React.ReactNode }) {
 function AppContent() {
   return (
     <ErrorBoundary>
+      <Toaster />
       <AnnouncementProvider>
         <UserProvider>
           <AdminProvider>
@@ -101,7 +102,6 @@ function AppContent() {
                   <DataLoader>
                     <RouterProvider router={router}>
                       <TopBannerNotification />
-                      <Toaster />
                     </RouterProvider>
                   </DataLoader>
                 </WishlistProvider>
