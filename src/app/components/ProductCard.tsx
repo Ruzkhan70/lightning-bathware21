@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from "react";
+import { useState } from "react";
 import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
@@ -12,7 +12,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-const ProductCardComponent = memo(function ProductCardComponent({ product }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { getProductDiscount } = useAdmin();
@@ -25,12 +25,12 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
   
   const inWishlist = isInWishlist(product.id);
 
-  const handleAddToCart = useCallback(() => {
+  const handleAddToCart = () => {
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
-  }, [addToCart, product]);
+  };
 
-  const handleWishlist = useCallback(() => {
+  const handleWishlist = () => {
     if (inWishlist) {
       removeFromWishlist(product.id);
       toast.success("Removed from wishlist");
@@ -38,7 +38,7 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
       addToWishlist(product.id);
       toast.success("Added to wishlist");
     }
-  }, [inWishlist, addToWishlist, removeFromWishlist, product.id]);
+  };
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -162,6 +162,4 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
       )}
     </>
   );
-});
-
-export default ProductCardComponent;
+}
