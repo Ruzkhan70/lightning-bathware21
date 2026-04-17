@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useOutlet } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -7,37 +7,27 @@ const PAGE_ORDER = ["/", "/products", "/categories", "/offers", "/services", "/a
 export default function PageTransition() {
   const location = useLocation();
   const outlet = useOutlet();
-  const [displayPage, setDisplayPage] = useState<{ pathname: string; content: React.ReactNode } | null>(null);
-  const directionRef = useRef(1);
-  const isFirstRender = useRef(true);
-
-  const currentPage = useMemo(() => ({
-    pathname: location.pathname,
-    content: outlet,
-  }), [location.pathname, outlet]);
+  const [key, setKey] = useState(location.pathname);
+  const [direction, setDirection] = useState(1);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      setDisplayPage(currentPage);
-      return;
-    }
-
     const currentIndex = PAGE_ORDER.indexOf(location.pathname);
-    const prevIndex = PAGE_ORDER.indexOf(displayPage?.pathname || "");
+    const prevIndex = PAGE_ORDER.indexOf(key);
 
     if (prevIndex !== -1 && currentIndex !== -1 && currentIndex < prevIndex) {
-      directionRef.current = -1;
+      setDirection(-1);
     } else {
-      directionRef.current = 1;
+      setDirection(1);
     }
 
-    setDisplayPage(currentPage);
+    setIsAnimating(true);
+    setKey(location.pathname);
   }, [location.pathname]);
 
   const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? "100%" : "-100%",
+    enter: (dir: number) => ({
+      x: dir > 0 ? "100%" : "-100%",
       opacity: 0,
       scale: 0.98,
     }),
@@ -46,31 +36,20 @@ export default function PageTransition() {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.4,
+        duration: 0.35,
         ease: [0.25, 1, 0.5, 1],
       },
     },
-    exit: (direction: number) => ({
-      x: direction > 0 ? "-100%" : "100%",
+    exit: (dir: number) => ({
+      x: dir > 0 ? "-100%" : "100%",
       opacity: 0,
       scale: 0.98,
       transition: {
-        duration: 0.35,
+        duration: 0.3,
         ease: [0.25, 1, 0.5, 1],
       },
     }),
   };
-
-  if (!displayPage) {
-    return (
-      <div 
-        className="relative w-full overflow-hidden"
-        style={{ backgroundColor: "white", minHeight: "100vh" }}
-      >
-        {currentPage.content}
-      </div>
-    );
-  }
 
   return (
     <div 
@@ -80,10 +59,10 @@ export default function PageTransition() {
         minHeight: "100vh"
       }}
     >
-      <AnimatePresence initial={false} custom={directionRef.current}>
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={displayPage.pathname}
-          custom={directionRef.current}
+          key={key}
+          custom={direction}
           variants={slideVariants}
           initial="enter"
           animate="center"
@@ -93,7 +72,7 @@ export default function PageTransition() {
             willChange: "transform, opacity",
           }}
         >
-          {displayPage.content}
+          {outlet}
         </motion.div>
       </AnimatePresence>
     </div>
