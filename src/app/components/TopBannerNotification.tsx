@@ -60,16 +60,11 @@ export default function TopBannerNotification() {
 
   useEffect(() => {
     if (currentAnnouncement && !isLoading) {
-      requestAnimationFrame(() => {
-        setIsVisible(true);
-        setIsAnimating(true);
-      });
+      setIsVisible(true);
+      setIsAnimating(true);
     } else {
+      setIsVisible(false);
       setIsAnimating(false);
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 300);
-      return () => clearTimeout(timer);
     }
   }, [currentAnnouncement, isLoading]);
 
@@ -105,8 +100,6 @@ export default function TopBannerNotification() {
         ${config.bgColor} 
         text-white 
         shadow-lg
-        transition-transform duration-300 ease-out
-        ${isAnimating ? "translate-y-0" : "-translate-y-full"}
       `}
     >
       <div 
