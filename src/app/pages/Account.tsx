@@ -30,6 +30,7 @@ export default function Account() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -282,6 +283,7 @@ export default function Account() {
   };
 
   const handleEditProfile = () => {
+    setEditName(user?.displayName || "");
     setEditPhone(user?.phone || "");
     setEditAddress(user?.address || "");
     setIsEditingProfile(true);
@@ -289,6 +291,12 @@ export default function Account() {
 
   const handleSaveProfile = async () => {
     const phoneRegex = /^(\+94|0)?[1-9][0-9]{8}$/;
+    
+    if (!editName.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
+    
     if (editPhone && !phoneRegex.test(editPhone.replace(/\s/g, ''))) {
       toast.error("Please enter a valid phone number");
       return;
@@ -302,6 +310,7 @@ export default function Account() {
     setIsSavingProfile(true);
     try {
       await updateProfile({
+        displayName: editName.trim(),
         phone: editPhone.trim(),
         address: editAddress.trim(),
       });
@@ -391,6 +400,15 @@ export default function Account() {
               {isEditingProfile ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
+                    <Label className="text-sm text-gray-500">Name</Label>
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Your name"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
                     <Label className="text-sm text-gray-500">Phone</Label>
                     <Input
                       value={editPhone}
@@ -399,7 +417,7 @@ export default function Account() {
                       className="mt-1"
                     />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <Label className="text-sm text-gray-500">Address</Label>
                     <Input
                       value={editAddress}
@@ -426,6 +444,13 @@ export default function Account() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <User className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Name</p>
+                      <p className="font-medium text-sm sm:text-base">{user.displayName || "Not set"}</p>
+                    </div>
+                  </div>
                   <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
                     <Mail className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
