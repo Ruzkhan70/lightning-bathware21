@@ -65,6 +65,14 @@ export default function AdminAnnouncements() {
 
   const activeAnnouncement = announcements.find(a => a.isActive);
 
+  const handlePreview = () => {
+    if (!formData.title.trim() || !formData.message.trim()) {
+      toast.error("Please enter both title and message for preview");
+      return;
+    }
+    setShowPreview(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent, action: "publish" | "preview") => {
     e.preventDefault();
     
@@ -78,8 +86,7 @@ export default function AdminAnnouncements() {
     }
 
     if (action === "preview") {
-      setShowPreview(true);
-      setTimeout(() => setShowPreview(false), 5000);
+      handlePreview();
       return;
     }
 
@@ -177,7 +184,15 @@ export default function AdminAnnouncements() {
             <p className="text-sm opacity-90">{formData.message || "Your message here"}</p>
           </div>
         </div>
-        <span className="text-sm bg-white/20 px-2 py-1 rounded">PREVIEW</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm bg-white/20 px-2 py-1 rounded">PREVIEW</span>
+          <button
+            onClick={() => setShowPreview(false)}
+            className="p-1 hover:bg-white/20 rounded"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -274,7 +289,7 @@ export default function AdminAnnouncements() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => handleSubmit(undefined, "preview")}
+                  onClick={handlePreview}
                   className="flex-1"
                 >
                   <Eye className="w-4 h-4 mr-2" />
