@@ -2,26 +2,21 @@ import { useEffect, useState } from "react";
 import { useLocation, useOutlet } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PAGE_ORDER = ["/", "/products", "/categories", "/offers", "/services", "/about", "/contact"];
-
 export default function PageTransition() {
   const location = useLocation();
   const outlet = useOutlet();
   const [key, setKey] = useState(location.pathname);
   const [direction, setDirection] = useState(1);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    const currentIndex = PAGE_ORDER.indexOf(location.pathname);
-    const prevIndex = PAGE_ORDER.indexOf(key);
-
-    if (prevIndex !== -1 && currentIndex !== -1 && currentIndex < prevIndex) {
+    const mainPages = ["/", "/about", "/contact"];
+    
+    if (mainPages.includes(location.pathname)) {
       setDirection(-1);
     } else {
       setDirection(1);
     }
 
-    setIsAnimating(true);
     setKey(location.pathname);
   }, [location.pathname]);
 
@@ -67,10 +62,7 @@ export default function PageTransition() {
           initial="enter"
           animate="center"
           exit="exit"
-          style={{
-            width: "100%",
-            willChange: "transform, opacity",
-          }}
+          style={{ width: "100%" }}
         >
           {outlet}
         </motion.div>
