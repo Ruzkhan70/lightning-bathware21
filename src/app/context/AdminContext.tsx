@@ -1125,7 +1125,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Error setting up device sessions listener:", error);
     }
     });
-  });
   }, [adminEmail, getOrCreateDeviceId, getDeviceInfo]);
 
   // Update last active on current device periodically
