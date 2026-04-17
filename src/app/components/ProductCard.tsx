@@ -1,4 +1,4 @@
-import { useState, memo, useCallback, useMemo } from "react";
+import { useState, memo, useCallback } from "react";
 import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
@@ -6,7 +6,6 @@ import { useWishlist } from "../context/WishlistContext";
 import { Product, useAdmin } from "../context/AdminContext";
 import { toast } from "sonner";
 import ProductModal from "./ProductModal";
-import { AnimatePresence } from "framer-motion";
 import LazyImage from "./LazyImage";
 
 interface ProductCardProps {
@@ -27,10 +26,8 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
   const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = useCallback(() => {
-    console.log("🔔 TOAST DEBUG: Adding to cart, showing toast");
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
-    console.log("🔔 TOAST DEBUG: Toast called for add to cart");
   }, [addToCart, product]);
 
   const handleWishlist = useCallback(() => {
@@ -43,13 +40,13 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
     }
   }, [inWishlist, addToWishlist, removeFromWishlist, product.id]);
 
-  const handleOpenModal = useCallback(() => {
+  const handleOpenModal = () => {
     setShowModal(true);
-  }, []);
+  };
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setShowModal(false);
-  }, []);
+  };
 
   return (
     <>
@@ -157,15 +154,12 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
         </div>
       </div>
 
-      <AnimatePresence>
-        {showModal && (
-          <ProductModal
-            key="product-modal"
-            product={product}
-            onClose={handleCloseModal}
-          />
-        )}
-      </AnimatePresence>
+      {showModal && (
+        <ProductModal
+          product={product}
+          onClose={handleCloseModal}
+        />
+      )}
     </>
   );
 });
