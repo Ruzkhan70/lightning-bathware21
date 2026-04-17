@@ -1,35 +1,39 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useLocation } from "react-router";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useLocation, useOutlet } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PAGE_ORDER = ["/", "/products", "/categories", "/offers", "/services", "/about", "/contact"];
 
-export default function PageTransition({ children }: { children: React.ReactNode }) {
+export default function PageTransition() {
   const location = useLocation();
-  const [displayLocation, setDisplayLocation] = useState(location.pathname);
+  const outlet = useOutlet();
+  const [displayPage, setDisplayPage] = useState<{ pathname: string; content: React.ReactNode } | null>(null);
   const directionRef = useRef(1);
   const isFirstRender = useRef(true);
+
+  const currentPage = useMemo(() => ({
+    pathname: location.pathname,
+    content: outlet,
+  }), [location.pathname, outlet]);
 
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
-      setDisplayLocation(location.pathname);
+      setDisplayPage(currentPage);
       return;
     }
 
-    if (location.pathname !== displayLocation) {
-      const currentIndex = PAGE_ORDER.indexOf(displayLocation);
-      const nextIndex = PAGE_ORDER.indexOf(location.pathname);
+    const currentIndex = PAGE_ORDER.indexOf(location.pathname);
+    const prevIndex = PAGE_ORDER.indexOf(displayPage?.pathname || "");
 
-      if (currentIndex !== -1 && nextIndex !== -1 && nextIndex < currentIndex) {
-        directionRef.current = -1;
-      } else {
-        directionRef.current = 1;
-      }
-
-      setDisplayLocation(location.pathname);
+    if (prevIndex !== -1 && currentIndex !== -1 && currentIndex < prevIndex) {
+      directionRef.current = -1;
+    } else {
+      directionRef.current = 1;
     }
-  }, [location.pathname, displayLocation]);
+
+    setDisplayPage(currentPage);
+  }, [location.pathname]);
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -57,6 +61,17 @@ export default function PageTransition({ children }: { children: React.ReactNode
     }),
   };
 
+  if (!displayPage) {
+    return (
+      <div 
+        className="relative w-full overflow-hidden"
+        style={{ backgroundColor: "white", minHeight: "100vh" }}
+      >
+        {currentPage.content}
+      </div>
+    );
+  }
+
   return (
     <div 
       className="relative w-full overflow-hidden"
@@ -65,9 +80,9 @@ export default function PageTransition({ children }: { children: React.ReactNode
         minHeight: "100vh"
       }}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence initial={false} custom={directionRef.current}>
         <motion.div
-          key={displayLocation}
+          key={displayPage.pathname}
           custom={directionRef.current}
           variants={slideVariants}
           initial="enter"
@@ -78,7 +93,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
             willChange: "transform, opacity",
           }}
         >
-          {children}
+          {displayPage.content}
         </motion.div>
       </AnimatePresence>
     </div>

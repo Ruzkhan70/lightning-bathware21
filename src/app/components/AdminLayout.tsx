@@ -63,7 +63,7 @@ export default function AdminLayout() {
   };
 
   const handleTouchEnd = () => {
-    const swipeThreshold = 50;
+    const swipeThreshold = 30;
     const diff = touchEndX.current - touchStartX.current;
     const startPosition = touchStartX.current;
     
@@ -72,7 +72,7 @@ export default function AdminLayout() {
         closeMobileMenu();
       }
     } else {
-      if (startPosition <= 30 && diff > swipeThreshold) {
+      if (startPosition <= 50 && diff > swipeThreshold) {
         setMobileMenuOpen(true);
       }
     }
@@ -304,13 +304,8 @@ export default function AdminLayout() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className={`lg:hidden fixed left-0 top-0 h-screen w-64 bg-black text-white flex flex-col z-50 will-change-transform shadow-2xl ${
-            mobileMenuOpen 
-              ? "translate-x-0" 
-              : "-translate-x-full"
-          } transition-[transform] duration-[350ms] ease-in-out ${
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`lg:hidden fixed left-0 top-0 h-screen w-72 bg-black text-white flex flex-col z-50 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+          style={{ boxShadow: mobileMenuOpen ? "0 0 20px rgba(0,0,0,0.5)" : "none", touchAction: "pan-y" }}
         >
           <div className="p-4 border-b border-gray-800 flex-shrink-0 flex items-center justify-between">
             <div>
@@ -334,9 +329,7 @@ export default function AdminLayout() {
                 const isActive = location.pathname === item.path;
                 return (
                   <li key={item.path}>
-                    <Link
-                      to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200 ${
+                    <Link to={item.path} onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200 ${
                         isActive
                           ? "bg-[#D4AF37] text-black font-semibold"
                           : "text-gray-300 hover:bg-gray-800 hover:text-white"

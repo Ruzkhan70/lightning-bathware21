@@ -64,7 +64,7 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
             className="w-full h-full group-hover:scale-110 transition-transform duration-500"
           />
 
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 sm:group-active:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 sm:group-[.touch]:opacity-100 group/touch transition-opacity duration-300 flex items-center justify-center gap-2">
             <Button
               onClick={handleOpenModal}
               size="sm"
@@ -144,6 +144,15 @@ const ProductCardComponent = memo(function ProductCardComponent({ product }: Pro
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
             {product.isAvailable ? "Add to Cart" : "Not Available"}
+          </Button>
+          
+          <Button
+            onClick={handleOpenModal}
+            variant="outline"
+            className="w-full min-h-[44px] mt-2 border-gray-300 hover:border-[#D4AF37] hover:text-[#D4AF37] active:scale-[0.98] transition-colors"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Quick View
           </Button>
         </div>
       </div>

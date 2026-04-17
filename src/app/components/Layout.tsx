@@ -1,4 +1,3 @@
-import { Outlet } from "react-router";
 import Header from "./Header";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
@@ -12,9 +11,7 @@ export default function Layout() {
       <Header />
       <AnnouncementBanner />
       <main className="flex-1">
-        <PageTransition>
-          <Outlet />
-        </PageTransition>
+        <PageTransition />
       </main>
       <Footer />
     </div>
