@@ -75,8 +75,9 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
       });
 
       // Filter for active and not expired, then sort by createdAt client-side
+      // Note: Removed checkDismissed() so announcements always show (can re-add dismissal check later)
       const activeAnnouncements = announcementsList
-        .filter(a => checkExpired(a) && checkDismissed(a))
+        .filter(a => checkExpired(a))
         .sort((a, b) => {
           const aTime = a.createdAt?.toDate?.()?.getTime() || 0;
           const bTime = b.createdAt?.toDate?.()?.getTime() || 0;

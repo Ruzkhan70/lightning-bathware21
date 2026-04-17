@@ -60,25 +60,10 @@ export default function TopBannerNotification() {
 
   useEffect(() => {
     if (currentAnnouncement && !isLoading) {
-      // Check if dismissed
-      const dismissedId = localStorage.getItem(DISMISSAL_KEY);
-      const dismissedTime = localStorage.getItem(`${DISMISSAL_KEY}_time`);
-      
-      let shouldShow = true;
-      if (dismissedId === currentAnnouncement.id && dismissedTime) {
-        const dismissedAt = parseInt(dismissedTime);
-        const hoursSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60);
-        if (hoursSinceDismissed < 24) {
-          shouldShow = false;
-        }
-      }
-      
-      if (shouldShow) {
-        requestAnimationFrame(() => {
-          setIsVisible(true);
-          setIsAnimating(true);
-        });
-      }
+      requestAnimationFrame(() => {
+        setIsVisible(true);
+        setIsAnimating(true);
+      });
     } else {
       setIsAnimating(false);
       const timer = setTimeout(() => {
