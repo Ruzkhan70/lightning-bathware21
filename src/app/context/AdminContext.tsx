@@ -1056,7 +1056,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
     };
     
-    ensureCurrentSession();
+    ensureCurrentSession().then(() => {
 
     try {
       const q = query(
@@ -1124,6 +1124,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error setting up device sessions listener:", error);
     }
+    });
+  });
   }, [adminEmail, getOrCreateDeviceId, getDeviceInfo]);
 
   // Update last active on current device periodically
