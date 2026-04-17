@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, ShoppingCart, Minus, Plus, Truck, Package } from "lucide-react";
 import { Product, useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
@@ -45,7 +46,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -59,7 +60,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/70 backdrop-blur-md"
         />
 
         {/* Modal */}
@@ -216,4 +217,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       </motion.div>
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

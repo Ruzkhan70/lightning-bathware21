@@ -142,7 +142,7 @@ export default function Products() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters - Desktop */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-bold text-lg">Filters</h2>
                 <button
