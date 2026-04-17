@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { X, Package, Tag, FileText, RefreshCw, TrendingUp, Bell, Info } from "lucide-react";
 import { useAnnouncement, Announcement } from "../context/AnnouncementContext";
-import { useUser } from "../context/UserContext";
 
 const getTypeConfig = (type: Announcement["type"]) => {
   switch (type) {
@@ -56,12 +55,11 @@ const DISMISSAL_KEY = "announcement_dismissed";
 export default function TopBannerNotification() {
   const navigate = useNavigate();
   const { currentAnnouncement, expireAnnouncement, isLoading } = useAnnouncement();
-  const { isLoggedIn } = useUser();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (currentAnnouncement && isLoggedIn && !isLoading) {
+    if (currentAnnouncement && !isLoading) {
       // Check if dismissed
       const dismissedId = localStorage.getItem(DISMISSAL_KEY);
       const dismissedTime = localStorage.getItem(`${DISMISSAL_KEY}_time`);
@@ -88,7 +86,7 @@ export default function TopBannerNotification() {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [currentAnnouncement, isLoggedIn, isLoading]);
+  }, [currentAnnouncement, isLoading]);
 
   const handleBannerClick = () => {
     if (!currentAnnouncement) return;
@@ -108,7 +106,7 @@ export default function TopBannerNotification() {
     }
   };
 
-  if (!isLoggedIn || !isVisible || !currentAnnouncement) {
+  if (!isVisible || !currentAnnouncement) {
     return null;
   }
 
