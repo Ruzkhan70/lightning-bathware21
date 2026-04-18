@@ -1,25 +1,33 @@
-import { useState, useEffect } from "react";
-import { Bell, Trash2, Eye, Info, Clock, Check, X, Loader2, Plus, Tag, FileText } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Bell, Trash2, Eye, Info, Clock, Check, X, Loader2, Plus, Tag, FileText, RefreshCw, Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
 import { db } from "../../../firebase";
 import { collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, updateDoc, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
-import { useAdmin } from "../../context/AdminContext";
+import { useAdmin, Offer, Product } from "../../context/AdminContext";
 
 interface Announcement {
   id: string;
   title: string;
   message: string;
   type: "offer" | "terms" | "product" | "general";
+  sourceId?: string;
   createdAt: Timestamp | Date | null;
   expiresAt?: Timestamp | Date | null;
   isActive: boolean;
   createdBy: string;
 }
 
-const typeOptions = [
+interface TypeOption {
+  value: Announcement["type"];
+  label: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+const typeOptions: TypeOption[] = [
   { value: "offer", label: "Special Offer", icon: Tag, color: "text-yellow-600 bg-yellow-50" },
   { value: "product", label: "New Product", icon: Plus, color: "text-blue-600 bg-blue-50" },
   { value: "terms", label: "Terms Update", icon: FileText, color: "text-purple-600 bg-purple-50" },
@@ -35,7 +43,7 @@ const expiryOptions = [
 ];
 
 export default function AdminAnnouncements() {
-  const { adminEmail } = useAdmin();
+  const { adminEmail, offers, products, storeProfile, siteContent } = useAdmin();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +54,30 @@ export default function AdminAnnouncements() {
     message: "",
     type: "general" as Announcement["type"],
     expiresInHours: 72,
+    sourceId: "",
   });
+
+  const safeOffers = offers || [];
+  const safeProducts = products || [];
+
+  const activeOffers = useMemo(() => 
+    safeOffers.filter(o => o.isEnabled), [safeOffers]);
+  
+  const latestOffer = useMemo(() => 
+    activeOffers[0] || null, [activeOffers]);
+  
+  const latestProduct = useMemo(() => 
+    [...safeProducts].sort((a, b) => {
+      const aId = parseInt(a.id) || 0;
+      const bId = parseInt(b.id) || 0;
+      return bId - aId;
+    })[0] || null, [safeProducts]);
+
+  const alreadyAnnouncedOffers = useMemo(() => 
+    announcements.filter(a => a.type === "offer" && a.isActive).map(a => a.sourceId).filter(Boolean), [announcements]);
+
+  const alreadyAnnouncedProducts = useMemo(() => 
+    announcements.filter(a => a.type === "product" && a.isActive).map(a => a.sourceId).filter(Boolean), [announcements]);
 
   useEffect(() => {
     const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
@@ -67,6 +98,102 @@ export default function AdminAnnouncements() {
   }, []);
 
   const activeAnnouncement = announcements.find(a => a.isActive);
+
+  const generateOfferMessage = (offer: Offer): string => {
+    const storeName = `${storeProfile.storeName} ${storeProfile.storeNameAccent}`;
+    let message = offer.description || "";
+    
+    if (offer.discountPercentage) {
+      message += message ? ` Get ${offer.discountPercentage}% off!` : `${offer.discountPercentage}% off on selected items!`;
+    }
+    
+    if (offer.promotionalPrice) {
+      message += message ? ` Special price: Rs. ${offer.promotionalPrice.toLocaleString()}!` : `Special price: Rs. ${offer.promotionalPrice.toLocaleString()}!`;
+    }
+    
+    const endDate = offer.endDate ? new Date(offer.endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "soon";
+    message += message ? ` Valid until ${endDate}.` : `Valid until ${endDate}.`;
+    
+    message += ` Shop now at ${storeName}!`;
+    return message;
+  };
+
+  const generateProductMessage = (product: Product): string => {
+    const storeName = `${storeProfile.storeName} ${storeProfile.storeNameAccent}`;
+    return `Introducing ${product.name} - ${product.category}. Now available for Rs. ${product.price.toLocaleString()}. Shop at ${storeName}!`;
+  };
+
+  const generateTermsMessage = (): string => {
+    const storeName = `${storeProfile.storeName} ${storeProfile.storeNameAccent}`;
+    return `We have updated our Terms & Conditions. Please review the changes. For questions, contact us at ${storeProfile.phone} or visit our store.`;
+  };
+
+  const handleAutoFill = (type: Announcement["type"]) => {
+    const storeName = `${storeProfile.storeName} ${storeProfile.storeNameAccent}`;
+    
+    if (type === "offer") {
+      if (!latestOffer) {
+        toast.error("No active offers found. Create an offer first.");
+        return;
+      }
+      if (alreadyAnnouncedOffers.includes(latestOffer.id)) {
+        toast.info("This offer has already been announced!");
+        setFormData({
+          ...formData,
+          type: "offer",
+          title: `🎉 ${latestOffer.title}`,
+          message: generateOfferMessage(latestOffer),
+          sourceId: latestOffer.id,
+        });
+        return;
+      }
+      setFormData({
+        ...formData,
+        type: "offer",
+        title: `🎉 ${latestOffer.title}`,
+        message: generateOfferMessage(latestOffer),
+        sourceId: latestOffer.id,
+      });
+      return;
+    }
+    
+    if (type === "product") {
+      if (!latestProduct) {
+        toast.error("No products found. Add a product first.");
+        return;
+      }
+      if (alreadyAnnouncedProducts.includes(latestProduct.id)) {
+        toast.info("This product has already been announced!");
+      }
+      setFormData({
+        ...formData,
+        type: "product",
+        title: `🆕 ${latestProduct.name}`,
+        message: generateProductMessage(latestProduct),
+        sourceId: latestProduct.id,
+      });
+      return;
+    }
+    
+    if (type === "terms") {
+      setFormData({
+        ...formData,
+        type: "terms",
+        title: "📜 Terms & Conditions Updated",
+        message: generateTermsMessage(),
+        sourceId: "terms-update",
+      });
+      return;
+    }
+    
+    setFormData({
+      ...formData,
+      type: "general",
+      title: "",
+      message: "",
+      sourceId: "",
+    });
+  };
 
   const handlePreview = () => {
     if (!formData.title.trim() || !formData.message.trim()) {
@@ -113,6 +240,7 @@ export default function AdminAnnouncements() {
         title: formData.title.trim(),
         message: formData.message.trim(),
         type: formData.type,
+        sourceId: formData.sourceId || null,
         isActive: true,
         createdAt: serverTimestamp(),
         expiresAt: expiresAt,
@@ -120,7 +248,7 @@ export default function AdminAnnouncements() {
       });
 
       toast.success("Announcement published!");
-      setFormData({ title: "", message: "", type: "general", expiresInHours: 72 });
+      setFormData({ title: "", message: "", type: "general", expiresInHours: 72, sourceId: "" });
     } catch (error) {
       console.error("Error creating announcement:", error);
       toast.error(`Failed to publish: ${error instanceof Error ? error.message : "Please try again"}`);
@@ -229,23 +357,53 @@ export default function AdminAnnouncements() {
 
             <form onSubmit={(e) => handleSubmit(e, "publish")} className="space-y-6">
               <div>
-                <Label>Announcement Type</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Announcement Type</Label>
+                  {formData.type !== "general" && (
+                    <button
+                      type="button"
+                      onClick={() => handleAutoFill(formData.type)}
+                      className="text-xs flex items-center gap-1 text-[#D4AF37] hover:text-[#B8962E] font-medium"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      Auto-fill
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-3 mt-2">
                   {typeOptions.map((option) => {
                     const Icon = option.icon;
+                    const isActive = formData.type === option.value;
+                    let badge = "";
+                    
+                    if (option.value === "offer" && latestOffer) {
+                      badge = alreadyAnnouncedOffers.includes(latestOffer.id) ? "✓ Announced" : "New";
+                    } else if (option.value === "product" && latestProduct) {
+                      badge = alreadyAnnouncedProducts.includes(latestProduct.id) ? "✓ Announced" : "New";
+                    }
+                    
                     return (
                       <button
                         key={option.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, type: option.value as Announcement["type"] })}
-                        className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
-                          formData.type === option.value
+                        className={`p-3 rounded-lg border-2 transition-all flex items-center justify-between ${
+                          isActive
                             ? "border-[#D4AF37] bg-[#D4AF37]/5"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <Icon className={`w-5 h-5 ${option.color.replace("bg-", "text-").replace("-50", "")}`} />
-                        <span className="text-sm font-medium">{option.label}</span>
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-5 h-5 ${option.color.replace("bg-", "text-").replace("-50", "")}`} />
+                          <span className="text-sm font-medium">{option.label}</span>
+                        </div>
+                        {badge && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            badge.includes("✓") ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                          }`}>
+                            {badge}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
