@@ -1015,7 +1015,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
   }, [checkAdminExists]);
 
-  // Firebase listener for device sessions
+// Firebase listener for device sessions
   useEffect(() => {
     if (!adminEmail) {
       setDeviceSessions([]);
@@ -1032,14 +1032,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const { device, browser, os } = getDeviceInfo();
         const now = new Date().toISOString();
         
-        const q = query(
-          collection(db, DEVICE_SESSIONS_COLLECTION),
-          where('deviceId', '==', deviceId),
-          where('email', '==', adminEmail)
-        );
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(collection(db, DEVICE_SESSIONS_COLLECTION));
+        const existingSession = snapshot.docs.find(doc => {
+          const data = doc.data();
+          return data.deviceId === deviceId && data.email === adminEmail;
+        });
         
-        if (snapshot.empty) {
+        if (!existingSession) {
           await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
             deviceId,
             email: adminEmail,
@@ -1054,35 +1053,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error("Error ensuring current session:", error);
       }
-    };
+};
     
-ensureCurrentSession().then(() => {
+    ensureCurrentSession().then(() => {
+      try {
+        const q = query(collection(db, DEVICE_SESSIONS_COLLECTION));
 
-    try {
-      const q = query(
-        collection(db, DEVICE_SESSIONS_COLLECTION),
-        where('email', '==', adminEmail)
-      );
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        if (snapshot.empty) {
-          const { device, browser, os } = getDeviceInfo();
-          setDeviceSessions([{
-            id: 'local',
-            deviceId: deviceId,
-            email: adminEmail,
-            device,
-            browser,
-            os,
-            isCurrentDevice: true,
-            status: 'active',
-            loginTime: new Date().toISOString(),
-            lastActive: new Date().toISOString(),
-          }]);
-          return;
-        }
-        
-        const sessions: DeviceSession[] = snapshot.docs
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          if (snapshot.empty) {
+            const { device, browser, os } = getDeviceInfo();
+            setDeviceSessions([{
+              id: 'local',
+              deviceId: deviceId,
+              email: adminEmail,
+              device,
+              browser,
+              os,
+              isCurrentDevice: true,
+              status: 'active',
+              loginTime: new Date().toISOString(),
+              lastActive: new Date().toISOString(),
+            }]);
+            return;
+          }
+          
+          const sessions: DeviceSession[] = snapshot.docs
           .map(docSnap => {
             const data = docSnap.data();
             return {
