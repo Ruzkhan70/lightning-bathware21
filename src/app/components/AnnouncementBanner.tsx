@@ -76,7 +76,7 @@ export default function AnnouncementBanner() {
     setIsDismissed(true);
   };
 
-  if (isLoading || !isVisible || !currentAnnouncement || isDismissed || isAdminLoggedIn) {
+  if (isLoading || !isVisible || !currentAnnouncement || isDismissed) {
     return null;
   }
 
