@@ -48,11 +48,16 @@ export default function AnnouncementBanner() {
     if (!isLoading && currentAnnouncement && !isAdminLoggedIn) {
       const dismissedId = localStorage.getItem(DISMISSAL_KEY);
       const dismissedTime = localStorage.getItem(DISMISSAL_TIME_KEY);
+      const createdAt = currentAnnouncement.createdAt?.toDate?.()?.getTime() || 0;
       
       if (dismissedId === currentAnnouncement.id && dismissedTime) {
         const dismissedAt = parseInt(dismissedTime);
         const hoursSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60);
-        if (hoursSinceDismissed < 24) {
+        
+        const announcementCreatedAt = currentAnnouncement.createdAt?.toDate?.()?.getTime() || Date.now();
+        const dismissedBeforeCreated = dismissedAt > announcementCreatedAt;
+        
+        if (hoursSinceDismissed < 24 && !dismissedBeforeCreated) {
           setIsDismissed(true);
           return;
         }
