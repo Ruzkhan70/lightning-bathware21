@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Tag, Plus, FileText, Info } from "lucide-react";
 import { useAnnouncement, Announcement } from "../context/AnnouncementContext";
-import { useAdmin } from "../context/AdminContext";
 
 const DISMISSAL_KEY = "announcement_dismissed";
 const DISMISSAL_TIME_KEY = "announcement_dismissed_time";
@@ -37,7 +36,6 @@ const getTypeConfig = (type: string) => {
 
 export default function AnnouncementBanner() {
   const { currentAnnouncement, isLoading } = useAnnouncement();
-  const { isAdminLoggedIn } = useAdmin();
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -45,7 +43,7 @@ export default function AnnouncementBanner() {
   const TypeIcon = config?.icon || Info;
 
   useEffect(() => {
-    if (!isLoading && currentAnnouncement && !isAdminLoggedIn) {
+    if (!isLoading && currentAnnouncement) {
       const dismissedId = localStorage.getItem(DISMISSAL_KEY);
       const dismissedTime = localStorage.getItem(DISMISSAL_TIME_KEY);
       const createdAt = currentAnnouncement.createdAt?.toDate?.()?.getTime() || 0;
@@ -65,7 +63,7 @@ export default function AnnouncementBanner() {
       
       setIsVisible(true);
     }
-  }, [currentAnnouncement, isLoading, isAdminLoggedIn]);
+  }, [currentAnnouncement, isLoading]);
 
   const handleDismiss = () => {
     if (currentAnnouncement) {
