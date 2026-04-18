@@ -74,11 +74,14 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         } as Announcement;
       });
 
-      // Filter for active and not expired, then sort by createdAt client-side
-      // Note: Removed checkDismissed() so announcements always show (can re-add dismissal check later)
+      // Filter for active and not expired, then sort by type priority (offer > product > terms > general) and createdAt
+      const typePriority: Record<string, number> = { offer: 0, product: 1, terms: 2, general: 3 };
       const activeAnnouncements = announcementsList
         .filter(a => checkExpired(a))
         .sort((a, b) => {
+          const aPriority = typePriority[a.type] ?? 4;
+          const bPriority = typePriority[b.type] ?? 4;
+          if (aPriority !== bPriority) return aPriority - bPriority;
           const aTime = a.createdAt?.toDate?.()?.getTime() || 0;
           const bTime = b.createdAt?.toDate?.()?.getTime() || 0;
           return bTime - aTime;

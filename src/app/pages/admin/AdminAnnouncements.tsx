@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Trash2, Eye, Info, Clock, Check, X, Loader2, Plus } from "lucide-react";
+import { Bell, Trash2, Eye, Info, Clock, Check, X, Loader2, Plus, Tag, FileText } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -20,6 +20,9 @@ interface Announcement {
 }
 
 const typeOptions = [
+  { value: "offer", label: "Special Offer", icon: Tag, color: "text-yellow-600 bg-yellow-50" },
+  { value: "product", label: "New Product", icon: Plus, color: "text-blue-600 bg-blue-50" },
+  { value: "terms", label: "Terms Update", icon: FileText, color: "text-purple-600 bg-purple-50" },
   { value: "general", label: "General Notice", icon: Info, color: "text-gray-600 bg-gray-50" },
 ];
 

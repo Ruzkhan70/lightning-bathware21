@@ -2596,6 +2596,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         newProduct.id
       );
       
+      await createAnnouncement(
+        `🆕 New Product: ${newProduct.name}`,
+        `Check out our latest addition - ${newProduct.name} only at ${storeProfile.storeName} ${storeProfile.storeNameAccent}!`,
+        "product",
+        48
+      );
+      
       await logProductAction(
         'PRODUCT_ADD',
         adminUid || 'unknown',
