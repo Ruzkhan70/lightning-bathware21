@@ -95,8 +95,8 @@ export default function Contact() {
       title: siteContent.contact.emailTitle,
       details: [
         storeProfile.email,
-        ...(storeProfile.showSalesEmail !== false ? [storeProfile.salesEmail] : []),
-        ...(storeProfile.showSupportEmail !== false ? [storeProfile.supportEmail] : []),
+        ...(storeProfile.showSalesEmail === true ? [storeProfile.salesEmail] : []),
+        ...(storeProfile.showSupportEmail === true ? [storeProfile.supportEmail] : []),
       ].filter(Boolean),
     },
     {
