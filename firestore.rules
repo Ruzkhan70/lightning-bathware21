@@ -50,7 +50,8 @@ service cloud.firestore {
     
     // Invoices - authenticated only
     match /invoices/{invoiceId} {
-      allow read, write: if isAuth();
+      allow read: if true;
+      allow write: if isAuth();
     }
     
     // Messages - public create (contact form), authenticated read/update/delete

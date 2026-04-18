@@ -67,6 +67,14 @@ export default function VerifyInvoice() {
           console.log("Found invoice by orderId match");
         }
       }
+      
+      // Also search by invoiceNumber if still not found
+      if (!foundInvoice && invoices && invoices.length > 0) {
+        foundInvoice = invoices.find(inv => inv.invoiceNumber === id || inv.invoiceNumber === id.toUpperCase());
+        if (foundInvoice) {
+          console.log("Found invoice by invoiceNumber match");
+        }
+      }
 
       if (foundInvoice) {
         setInvoice(foundInvoice);
