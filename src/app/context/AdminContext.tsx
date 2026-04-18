@@ -182,6 +182,8 @@ export interface StoreProfile {
   email: string;
   salesEmail: string;
   supportEmail: string;
+  showSalesEmail: boolean;
+  showSupportEmail: boolean;
   addressStreet: string;
   addressCity: string;
   addressCountry: string;
@@ -473,6 +475,8 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   email: "info@lightingbathware.lk",
   salesEmail: "sales@lightingbathware.lk",
   supportEmail: "support@lightingbathware.lk",
+  showSalesEmail: true,
+  showSupportEmail: true,
   addressStreet: "No. 456, Galle Road",
   addressCity: "Colombo 00300",
   addressCountry: "Sri Lanka",

@@ -258,13 +258,31 @@ export default function AdminSettings() {
                     <Label>General Email</Label>
                     <Input type="email" value={profileForm.email} onChange={(e) => setProfileForm({...profileForm, email: e.target.value})} />
                   </div>
-                  <div>
-                    <Label>Sales Email</Label>
-                    <Input type="email" value={profileForm.salesEmail} onChange={(e) => setProfileForm({...profileForm, salesEmail: e.target.value})} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label>Sales Email</Label>
+                      <Input type="email" value={profileForm.salesEmail} onChange={(e) => setProfileForm({...profileForm, salesEmail: e.target.value})} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setProfileForm({...profileForm, showSalesEmail: !profileForm.showSalesEmail})}
+                      className="ml-3 flex-shrink-0"
+                    >
+                      {profileForm.showSalesEmail ? <ToggleRight className="w-10 h-10 text-green-600" /> : <ToggleLeft className="w-10 h-10 text-gray-400" />}
+                    </button>
                   </div>
-                  <div>
-                    <Label>Support Email</Label>
-                    <Input type="email" value={profileForm.supportEmail} onChange={(e) => setProfileForm({...profileForm, supportEmail: e.target.value})} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label>Support Email</Label>
+                      <Input type="email" value={profileForm.supportEmail} onChange={(e) => setProfileForm({...profileForm, supportEmail: e.target.value})} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setProfileForm({...profileForm, showSupportEmail: !profileForm.showSupportEmail})}
+                      className="ml-3 flex-shrink-0"
+                    >
+                      {profileForm.showSupportEmail ? <ToggleRight className="w-10 h-10 text-green-600" /> : <ToggleLeft className="w-10 h-10 text-gray-400" />}
+                    </button>
                   </div>
                 </div>
               </Card>

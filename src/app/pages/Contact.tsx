@@ -95,9 +95,9 @@ export default function Contact() {
       title: siteContent.contact.emailTitle,
       details: [
         storeProfile.email,
-        storeProfile.salesEmail,
-        storeProfile.supportEmail,
-      ],
+        ...(storeProfile.showSalesEmail ? [storeProfile.salesEmail] : []),
+        ...(storeProfile.showSupportEmail ? [storeProfile.supportEmail] : []),
+      ].filter(Boolean),
     },
     {
       icon: Clock,
