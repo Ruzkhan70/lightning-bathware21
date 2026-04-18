@@ -283,7 +283,7 @@ export default function Account() {
   };
 
   const handleEditProfile = () => {
-    setEditName(user?.displayName || "");
+    setEditName(user?.name || "");
     setEditPhone(user?.phone || "");
     setEditAddress(user?.address || "");
     setIsEditingProfile(true);
@@ -310,7 +310,7 @@ export default function Account() {
     setIsSavingProfile(true);
     try {
       await updateProfile({
-        displayName: editName.trim(),
+        name: editName.trim(),
         phone: editPhone.trim(),
         address: editAddress.trim(),
       });
@@ -448,7 +448,7 @@ export default function Account() {
                     <User className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-gray-500">Name</p>
-                      <p className="font-medium text-sm sm:text-base">{user.displayName || "Not set"}</p>
+                      <p className="font-medium text-sm sm:text-base">{user.name || "Not set"}</p>
                     </div>
                   </div>
                   <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
