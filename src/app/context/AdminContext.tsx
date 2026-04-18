@@ -2004,7 +2004,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const getInvoiceById = (id: string) => {
     if (!id) return undefined;
     
-    const cleanId = id.replace(/-/g, "");
+    const cleanId = id.replace(/-/g, "").toUpperCase();
     
     return invoices.find(inv => {
       if (!inv) return false;
@@ -2012,8 +2012,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         inv.id === id ||
         inv.id === cleanId ||
         inv.id.endsWith(cleanId) ||
+        inv.invoiceNumber?.toUpperCase() === cleanId ||
         inv.invoiceNumber === id ||
-        inv.invoiceNumber === cleanId
+        inv.orderId === id ||
+        inv.orderId === cleanId
       );
     });
   };
