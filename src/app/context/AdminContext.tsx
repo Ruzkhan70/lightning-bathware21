@@ -1056,18 +1056,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
     };
     
-    ensureCurrentSession().then(() => {
+ensureCurrentSession().then(() => {
 
     try {
       const q = query(
         collection(db, DEVICE_SESSIONS_COLLECTION),
-        where('email', '==', adminEmail),
-        where('status', '==', 'active')
+        where('email', '==', adminEmail)
       );
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         if (snapshot.empty) {
-          // Fallback: create and show local session
           const { device, browser, os } = getDeviceInfo();
           setDeviceSessions([{
             id: 'local',
@@ -1084,24 +1082,42 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           return;
         }
         
-        const sessions: DeviceSession[] = snapshot.docs.map(docSnap => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            deviceId: data.deviceId,
-            email: data.email,
-            device: data.device,
-            browser: data.browser,
-            os: data.os,
-            isCurrentDevice: data.deviceId === deviceId,
-            status: data.status,
-            loginTime: data.loginTime,
-            lastActive: data.lastActive,
-            ipAddress: data.ipAddress,
-          } as DeviceSession;
-        });
+        const sessions: DeviceSession[] = snapshot.docs
+          .map(docSnap => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              deviceId: data.deviceId,
+              email: data.email,
+              device: data.device,
+              browser: data.browser,
+              os: data.os,
+              isCurrentDevice: data.deviceId === deviceId,
+              status: data.status,
+              loginTime: data.loginTime,
+              lastActive: data.lastActive,
+              ipAddress: data.ipAddress,
+            } as DeviceSession;
+          })
+          .filter(s => s.status === 'active');
         
-        setDeviceSessions(sessions);
+        if (sessions.length === 0) {
+          const { device, browser, os } = getDeviceInfo();
+          setDeviceSessions([{
+            id: 'local',
+            deviceId: deviceId,
+            email: adminEmail,
+            device,
+            browser,
+            os,
+            isCurrentDevice: true,
+            status: 'active',
+            loginTime: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+          }]);
+        } else {
+          setDeviceSessions(sessions);
+        }
       }, (error) => {
         console.error("Error loading device sessions:", error);
         // Fallback on error
