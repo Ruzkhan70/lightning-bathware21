@@ -36,14 +36,14 @@ const structureHints = [
 ];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { productName, category, index = 0 } = req.body;
+  const { productName, category, index = 0, productType: passedType } = req.body;
 
   if (!productName || !category) {
     return res.status(400).json({ error: 'Missing productName or category' });
   }
 
-  const productType = detectProductType(category, productName);
-  const typeFocus = typePrompts[productType];
+  const productType = passedType || detectProductType(category, productName);
+  const typeFocus = typePrompts[productType] || typePrompts.tap;
   const structure = structureHints[index % structureHints.length];
 
   if (!OPENAI_API_KEY || OPENAI_API_KEY.length < 10) {

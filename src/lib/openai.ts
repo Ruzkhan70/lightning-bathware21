@@ -19,13 +19,14 @@ const fallbackFeatures = [
 export async function generateProductDescription(
   productName: string, 
   category: string, 
-  productIndex: number = 0
+  productIndex: number = 0,
+  productType?: string
 ): Promise<string> {
   try {
     const response = await fetch(DESCRIBE_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productName, category, index: productIndex }),
+      body: JSON.stringify({ productName, category, index: productIndex, productType }),
     });
 
     if (!response.ok) {

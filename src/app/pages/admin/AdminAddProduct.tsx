@@ -26,6 +26,7 @@ interface BulkProduct {
   errors: string[];
   isUploading?: boolean;
   isDuplicate?: boolean;
+  productType?: string;
 }
 
 type UploadStep = "input" | "preview" | "uploading";
@@ -58,6 +59,37 @@ export default function AdminAddProduct() {
 
   const generateId = () => `bulk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+const typeKeywords: Record<string, string[]> = {
+  tap: ['tap', 'mixer', 'faucet', 'bib', 'valve', 'spout', 'bath', 'sink', 'basin', 'cock'],
+  shower: ['shower', 'head', 'rain', 'jet', 'handset', 'slide bar', 'diverter', 'multifunction'],
+  storage: ['holder', 'rack', 'shelf', 'hook', 'basket', 'stand', 'stool', 'plunger', 'brush', 'soap dish', 'towel ring', 'rod', 'rail'],
+  bidet: ['bidet', 'spray', 'jet', 'wash', 'sanit'],
+  accessories: ['soap', 'dish', 'tray', 'mat', 'curtain', 'rug', 'lamp', 'mirror', 'light'],
+};
+
+const detectProductType = (category: string, productName: string): string => {
+  const text = (category + ' ' + productName).toLowerCase();
+  for (const [type, keywords] of Object.entries(typeKeywords)) {
+    if (keywords.some(k => text.includes(k))) {
+      return type;
+    }
+  }
+  return 'tap';
+};
+
+const inferCategory = (productName: string, existingCategory: string): string => {
+  if (existingCategory) return existingCategory;
+  const detectedType = detectProductType('', productName);
+  const typeToCategory: Record<string, string> = {
+    tap: 'Bathroom Faucets',
+    shower: 'Shower Sets',
+    storage: 'Bathroom Accessories',
+    bidet: 'Bidet Sprays',
+    accessories: 'Bathroom Accessories',
+  };
+  return typeToCategory[detectedType] || 'Bathroom Fittings';
+};
+
   const parseBulkData = (data: string): BulkProduct[] => {
     const lines = data.trim().split("\n").filter(line => line.trim());
     const products: BulkProduct[] = [];
@@ -74,23 +106,27 @@ export default function AdminAddProduct() {
       }
 
       if (parts.length >= 2) {
+        const excelCategory = parts[1] || "";
+        const inferred = inferCategory(parts[0], excelCategory);
         const categoryMatch = safeCategories.find(
-          (c) => c.name.toLowerCase() === parts[1].toLowerCase() ||
-                 c.name.toLowerCase().includes(parts[1].toLowerCase()) ||
-                 parts[1].toLowerCase().includes(c.name.toLowerCase())
+          (c) => c.name.toLowerCase() === inferred.toLowerCase() ||
+                 c.name.toLowerCase().includes(inferred.toLowerCase()) ||
+                 inferred.toLowerCase().includes(c.name.toLowerCase())
         );
         
+        const detectedType = detectProductType(inferred, parts[0]);
         const price = parts.length >= 3 ? parseFloat(parts[2].replace(/[^0-9.]/g, "")) : 0;
         
         products.push({
           id: generateId(),
           name: parts[0],
-          category: categoryMatch?.name || "",
+          category: categoryMatch?.name || inferred,
           price: isNaN(price) ? 0 : price,
           description: "",
           image: "",
           isAvailable: true,
           errors: [],
+          productType: detectedType,
         });
       }
     }
@@ -108,23 +144,27 @@ export default function AdminAddProduct() {
       const parts = lines[i].split(delimiter).map(p => p.trim().replace(/^"|"$/g, ""));
       
       if (parts.length >= 2) {
+        const excelCategory = parts[1] || "";
+        const inferred = inferCategory(parts[0], excelCategory);
         const categoryMatch = safeCategories.find(
-          (c) => c.name.toLowerCase() === parts[1].toLowerCase() ||
-                 c.name.toLowerCase().includes(parts[1].toLowerCase()) ||
-                 parts[1].toLowerCase().includes(c.name.toLowerCase())
+          (c) => c.name.toLowerCase() === inferred.toLowerCase() ||
+                 c.name.toLowerCase().includes(inferred.toLowerCase()) ||
+                 inferred.toLowerCase().includes(c.name.toLowerCase())
         );
         
+        const detectedType = detectProductType(inferred, parts[0]);
         const price = parts.length >= 3 ? parseFloat(parts[2].replace(/[^0-9.]/g, "")) : 0;
         
         products.push({
           id: generateId(),
           name: parts[0],
-          category: categoryMatch?.name || "",
+          category: categoryMatch?.name || inferred,
           price: isNaN(price) ? 0 : price,
           description: "",
           image: "",
           isAvailable: true,
           errors: [],
+          productType: detectedType,
         });
       }
     }
@@ -298,7 +338,8 @@ export default function AdminAddProduct() {
 
     setGeneratingId(productId);
     try {
-      const description = await generateProductDescription(product.name, product.category);
+      const productIndex = 0;
+      const description = await generateProductDescription(product.name, product.category, productIndex, product.productType);
       handleUpdateProduct(productId, "description", description);
     } catch (error) {
       toast.error("Failed to generate description");
@@ -548,7 +589,7 @@ export default function AdminAddProduct() {
       const product = productsNeedingDescription[i];
       setGeneratingId(product.id);
       try {
-        const description = await generateProductDescription(product.name, product.category, startIndex + i);
+        const description = await generateProductDescription(product.name, product.category, startIndex + i, product.productType);
         handleUpdateProduct(product.id, "description", description);
       } catch (error) {
         console.error("Failed to generate description for", product.name);
