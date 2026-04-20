@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { PlusCircle, Upload, FileText, X, Check, Loader2, Sparkles, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { PlusCircle, Upload, FileText, X, Check, Loader2, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { toast } from "sonner";
-import { generateProductDescription } from "../../../lib/openai";
+
 
 interface BulkProduct {
   id: string;
@@ -47,8 +47,7 @@ export default function AdminAddProduct() {
   const [bulkProducts, setBulkProducts] = useState<BulkProduct[]>([]);
   const [uploadStep, setUploadStep] = useState<UploadStep>("input");
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
-  const [isGeneratingDescriptions, setIsGeneratingDescriptions] = useState(false);
-  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  
   const [isBulkImageDragging, setIsBulkImageDragging] = useState(false);
   const [isUploadingBulkImages, setIsUploadingBulkImages] = useState(false);
   const [isFileDragging, setIsFileDragging] = useState(false);
@@ -331,25 +330,6 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     return errors;
   };
 
-  const handleGenerateDescription = async (productId: string) => {
-    const product = bulkProducts.find(p => p.id === productId);
-    if (!product || !product.category) {
-      toast.error("Please set category first");
-      return;
-    }
-
-    setGeneratingId(productId);
-    try {
-      const productIndex = 0;
-      const description = await generateProductDescription(product.name, product.category, productIndex, product.productType);
-      handleUpdateProduct(productId, "description", description);
-    } catch (error) {
-      toast.error("Failed to generate description");
-    } finally {
-      setGeneratingId(null);
-    }
-  };
-
   const handleImageUpload = async (productId: string, file: File) => {
     const formData = new FormData();
     formData.append("image", file);
@@ -571,36 +551,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     setBulkProducts([]);
   };
 
-  const handleGenerateAllDescriptions = async () => {
-    const productsNeedingDescription = bulkProducts.filter(p => !p.description);
-    if (productsNeedingDescription.length === 0) {
-      toast.info("All products already have descriptions");
-      return;
-    }
-
-    const productsWithoutCategory = productsNeedingDescription.filter(p => !p.category);
-    if (productsWithoutCategory.length > 0) {
-      toast.error(`${productsWithoutCategory.length} products need a category first`);
-      return;
-    }
-
-    setIsGeneratingDescriptions(true);
-    const startIndex = bulkProducts.findIndex(p => p.id === productsNeedingDescription[0]?.id);
-    
-    for (let i = 0; i < productsNeedingDescription.length; i++) {
-      const product = productsNeedingDescription[i];
-      setGeneratingId(product.id);
-      try {
-        const description = await generateProductDescription(product.name, product.category, startIndex + i, product.productType);
-        handleUpdateProduct(product.id, "description", description);
-      } catch (error) {
-        console.error("Failed to generate description for", product.name);
-      }
-    }
-    setGeneratingId(null);
-    setIsGeneratingDescriptions(false);
-    toast.success("All descriptions generated!");
-  };
+  
 
   return (
     <div>
@@ -702,19 +653,6 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                       onClick={handleBackToInput}
                     >
                       Back
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleGenerateAllDescriptions}
-                      disabled={isGeneratingDescriptions}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                    >
-                      {isGeneratingDescriptions ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <Sparkles className="w-4 h-4 mr-2" />
-                      )}
-                      Generate All Descriptions
                     </Button>
                     <Button
                       onClick={handleUploadAll}
@@ -867,20 +805,6 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                                 placeholder="Description..."
                                 className="min-h-[60px] text-xs resize-none"
                               />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleGenerateDescription(product.id)}
-                                disabled={generatingId === product.id || !product.category}
-                                className="shrink-0"
-                                title="Generate AI description"
-                              >
-                                {generatingId === product.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Sparkles className="w-4 h-4" />
-                                )}
-                              </Button>
                             </div>
                           </td>
                           <td className="px-3 py-3">
@@ -1012,18 +936,6 @@ const inferCategory = (productName: string, existingCategory: string): string =>
       });
     };
 
-    const handleGenerateSingleDescription = async () => {
-      if (!formData.name || !formData.category) {
-        toast.error("Please enter product name and select category first");
-        return;
-      }
-
-      const category = safeCategories.find(c => c.name === formData.category);
-      const description = await generateProductDescription(formData.name, category?.name || formData.category);
-      setFormData(prev => ({ ...prev, description }));
-      toast.success("Description generated!");
-    };
-
     return (
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
         <div>
@@ -1080,8 +992,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
           <Label htmlFor="description">
             Description <span className="text-red-500">*</span>
           </Label>
-          <div className="flex gap-2">
-            <Textarea
+          <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1089,16 +1000,6 @@ const inferCategory = (productName: string, existingCategory: string): string =>
               className="min-h-[120px]"
               required
             />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGenerateSingleDescription}
-              className="shrink-0 h-10"
-              title="Generate AI description"
-            >
-              ✨
-            </Button>
-          </div>
         </div>
 
         <div>
