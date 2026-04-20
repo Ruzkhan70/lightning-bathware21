@@ -94,6 +94,7 @@ export default function AdminOffers() {
             Add New Offer
           </Button>
         </div>
+      </div>
 
       {/* Search */}
       <div className="mb-6">
