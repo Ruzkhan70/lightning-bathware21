@@ -1,5 +1,21 @@
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "";
 
+const fallbackOpenings = [
+  "Transform your bathroom routine with",
+  "Elevate your space using",
+  "Upgrade daily moments with",
+  "Experience the difference of",
+  "Add a touch of luxury to",
+];
+
+const fallbackFeatures = [
+  "designed for those who appreciate attention to detail",
+  "crafted with premium materials that stand the test of time", 
+  "featuring a sleek finish that complements any decor",
+  "built for effortless daily use",
+  "combining style with practical functionality",
+];
+
 interface OpenAIResponse {
   choices?: Array<{
     message?: {
@@ -22,8 +38,8 @@ export async function generateProductDescription(
   category: string, 
   productIndex: number = 0
 ): Promise<string> {
-  if (!OPENAI_API_KEY) {
-    return generateFallbackDescription(productName, category);
+  if (!OPENAI_API_KEY || OPENAI_API_KEY.length < 10) {
+    return generateFallbackDescription(productName, category, productIndex);
   }
 
   const style = variationStyles[productIndex % variationStyles.length];
@@ -67,6 +83,7 @@ Instructions:
     });
 
     if (!response.ok) {
+      console.error("OpenAI API error:", response.status);
       throw new Error("OpenAI API error");
     }
 
@@ -77,15 +94,17 @@ Instructions:
       return description;
     }
     
-    return generateFallbackDescription(productName, category);
+    return generateFallbackDescription(productName, category, productIndex);
   } catch (error) {
     console.error("OpenAI API error:", error);
-    return generateFallbackDescription(productName, category);
+    return generateFallbackDescription(productName, category, productIndex);
   }
 }
 
-function generateFallbackDescription(productName: string, category: string): string {
-  return `High-quality ${productName} from our ${category} collection. Perfect for modern homes. Durable construction with premium finish. Easy installation and maintenance. Ideal for both residential and commercial use.`;
+function generateFallbackDescription(productName: string, category: string, index: number = 0): string {
+  const opening = fallbackOpenings[index % fallbackOpenings.length];
+  const feature = fallbackFeatures[index % fallbackFeatures.length];
+  return `${opening} ${productName}, ${feature}. This ${category} piece brings functionality and style to any space. Perfect for everyday use and easy to maintain.`;
 }
 
 export async function generateBulkDescriptions(
