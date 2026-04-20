@@ -1,3 +1,4 @@
+// @ts-ignore
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const typeKeywords: Record<string, string[]> = {

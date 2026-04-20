@@ -116,13 +116,14 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         
         const detectedType = detectProductType(inferred, parts[0]);
         const price = parts.length >= 3 ? parseFloat(parts[2].replace(/[^0-9.]/g, "")) : 0;
+        const excelDescription = parts.length >= 4 ? parts[3].trim() : "";
         
         products.push({
           id: generateId(),
           name: parts[0],
           category: categoryMatch?.name || inferred,
           price: isNaN(price) ? 0 : price,
-          description: "",
+          description: excelDescription,
           image: "",
           isAvailable: true,
           errors: [],
@@ -154,13 +155,14 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         
         const detectedType = detectProductType(inferred, parts[0]);
         const price = parts.length >= 3 ? parseFloat(parts[2].replace(/[^0-9.]/g, "")) : 0;
+        const excelDescription = parts.length >= 4 ? parts[3].trim() : "";
         
         products.push({
           id: generateId(),
           name: parts[0],
           category: categoryMatch?.name || inferred,
           price: isNaN(price) ? 0 : price,
-          description: "",
+          description: excelDescription,
           image: "",
           isAvailable: true,
           errors: [],
