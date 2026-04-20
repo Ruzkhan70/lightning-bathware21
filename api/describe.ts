@@ -77,24 +77,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json({ description: fallbacks[productType][index % fallbacks[productType].length] });
   }
 
-  const systemPrompt = `You generate unique, human-written product descriptions for a bathroom hardware e-commerce store.
+  const systemPrompt = `You are a strict e-commerce description generator.
 
-CRITICAL RULES:
-1. LENGTH: 3-5 sentences
-2. TONE: Natural, conversational, realistic - like a real person recommending to a friend
-3. NEVER use banned phrases: "perfect for modern homes", "high-quality", "premium quality", "attention to detail", "transform your routine", "gets the job done", "simple solution"
+HARD RULES (NO EXCEPTIONS):
+- DO NOT use: "functionality and style", "perfect for everyday use", "transform your routine", "attention to detail", "premium materials", "elevate your space", "designed for those who"
+- NO sentence structure repetition
+- NO vague or generic lines
+- 3-4 sentences only
+- Natural, simple, human tone
+- Each sentence adds new value, no filler
 
-PRODUCT TYPE ENFORCEMENT:
-${typeFocus}
+PRODUCT TYPE: ${productType}
+FOCUS: ${typeFocus}
 
-STRUCTURE: ${structure}
-
-Make each description completely different from others.`;
+Write for REAL usage, not marketing.`;
 
   const userPrompt = `Product: ${productName}
 Category: ${category}
 
-Write a description NOW. Just the description. No labels.`;
+Description (3-4 sentences, unique, no templates):`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -109,23 +110,12 @@ Write a description NOW. Just the description. No labels.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_tokens: 180,
+max_tokens: 180,
         temperature: 0.95,
-        top_p: 0.95,
+        presence_penalty: 0.7,
+        frequency_penalty: 0.6,
       }),
     });
-
-    if (!response.ok) {
-      console.error('OpenAI error:', response.status);
-      const fallbacks = {
-        storage: [`This ${productName} helps you keep everything tidy. Mounts easily. Saves space.`],
-        bidet: [`This ${productName} gives you control over water. Easy to use and install.`],
-        shower: [`This ${productName} improves your shower. Good water flow and easy to adjust.`],
-        tap: [`This ${productName} works smoothly. Built for everyday use.`],
-        general: [`This ${productName} is practical for daily use.`],
-      };
-      return res.json({ description: fallbacks[productType][0] });
-    }
 
     const data = await response.json();
     let description = data.choices?.[0]?.message?.content?.trim() || '';
@@ -203,43 +193,38 @@ Write it now. No labels. No explanations. Just the description.`;
           { role: 'user', content: userPrompt },
         ],
         max_tokens: 180,
-        temperature: 0.9,
-        top_p: 0.95,
+        temperature: 0.95,
+        presence_penalty: 0.7,
+        frequency_penalty: 0.6,
       }),
     });
 
     if (!response.ok) {
-      console.error('OpenAI error:', response.status);
-      const fallbacks = [
-        `Keep your bathroom organized with this ${productName}. Simple design fits easily in any space. Easy to clean and maintain.`,
-        `Tired of clutter? This ${productName} solves the problem. Practical and straightforward for everyday use.`,
-        `A simple solution for daily needs. This ${productName} gets the job done without fuss. Built to last.`,
-      ];
-      return res.json({ description: fallbacks[index % fallbacks.length] });
+      const fallbacks = {
+        storage: [`This ${productName} helps organize.`],
+        bidet: [`This ${productName} controls water.`],
+        shower: [`This ${productName} improves shower.`],
+        tap: [`This ${productName} controls flow.`],
+        general: [`This ${productName} is useful.`],
+      };
+      return res.json({ description: fallbacks[productType][0] });
     }
 
     const data = await response.json();
     let description = data.choices?.[0]?.message?.content?.trim() || '';
 
-    const bannedPhrases = ['perfect for modern homes', 'high-quality', 'attention to detail', 'transform your routine', 'premium quality'];
-    for (const phrase of bannedPhrases) {
-      description = description.replace(new RegExp(phrase, 'gi'), '');
+    const banned = ['perfect for modern homes', 'high-quality', 'premium quality', 'attention to detail', 'transform your routine', 'gets the job done', 'simple solution', 'functionality and style', 'perfect for everyday use', 'elevate your space', 'designed for those who'];
+    for (const b of banned) {
+      description = description.replace(new RegExp(b, 'gi'), '');
     }
 
     if (description && description.length > 20) {
-      return res.json({ description: description.replace(/\[REMOVED\]/g, '') });
+      return res.json({ description });
     }
 
-    const fallbacks = {
-      storage: [`This ${productName} helps organize.`],
-      bidet: [`This ${productName} controls water.`],
-      shower: [`This ${productName} improves shower.`],
-      tap: [`This ${productName} controls flow.`],
-      general: [`This ${productName} is useful.`],
-    };
     return res.json({ description: fallbacks[productType][0] });
   } catch (error) {
     console.error('API error:', error);
-    return res.json({ description: `This ${productName} is practical for daily use.` });
+    return res.json({ description: `This ${productName} works well.` });
   }
 }
