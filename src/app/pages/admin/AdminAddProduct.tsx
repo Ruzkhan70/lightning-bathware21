@@ -542,10 +542,13 @@ export default function AdminAddProduct() {
     }
 
     setIsGeneratingDescriptions(true);
-    for (const product of productsNeedingDescription) {
+    const startIndex = bulkProducts.findIndex(p => p.id === productsNeedingDescription[0]?.id);
+    
+    for (let i = 0; i < productsNeedingDescription.length; i++) {
+      const product = productsNeedingDescription[i];
       setGeneratingId(product.id);
       try {
-        const description = await generateProductDescription(product.name, product.category);
+        const description = await generateProductDescription(product.name, product.category, startIndex + i);
         handleUpdateProduct(product.id, "description", description);
       } catch (error) {
         console.error("Failed to generate description for", product.name);
