@@ -17,12 +17,12 @@
   <title>Lightning Bathware - Sri Lanka's Premier Hardware Store</title>
   <meta name="description" content="Lightning Bathware is Sri Lanka's leading hardware store, offering premium lighting, bathroom fittings, plumbing, and electrical hardware. Explore our wide range of products and special offers." />
   <meta name="google-site-verification" content="SmhkE1y_ZF07BhXK5G-KYOGKaxA-orPqOQvs09x8jT8" />
-  <!-- Loading styles to prevent white flash -->
+  <!-- Loading styles to prevent flash -->
   <style>
     body {
       margin: 0;
       padding: 0;
-      background-color: #000;
+      background-color: #f9f9f9;
       min-height: 100vh;
     }
     #root {
@@ -34,14 +34,20 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
-      color: #fff;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #f9f9f9;
+      color: #333;
       font-family: system-ui, -apple-system, sans-serif;
+      z-index: 9999;
     }
     .loading-spinner {
       width: 50px;
       height: 50px;
-      border: 3px solid #333;
+      border: 3px solid #e5e5e5;
       border-top-color: #D4AF37;
       border-radius: 50%;
       animation: spin 1s linear infinite;
@@ -59,14 +65,24 @@
 </head>
 
 <body>
-  <div id="root">
-    <!-- Loading screen shown while React loads -->
-    <div class="loading-screen">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">LOADING...</div>
-    </div>
+  <!-- Loading screen shown immediately - outside React -->
+  <div class="loading-screen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">LOADING...</div>
   </div>
+  
+  <div id="root"></div>
+  
   <script type="module" src="/src/main.tsx"></script>
+  <script>
+    // Remove loading screen after React mounts
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const loading = document.querySelector('.loading-screen');
+        if (loading) loading.remove();
+      }, 100);
+    });
+  </script>
 </body>
 
 </html>

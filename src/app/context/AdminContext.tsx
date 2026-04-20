@@ -1059,25 +1059,40 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
 };
     
-    ensureCurrentSession().then(() => {
+    ensureCurrentSession().then(async () => {
       try {
         const q = query(collection(db, DEVICE_SESSIONS_COLLECTION));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
           if (snapshot.empty) {
             const { device, browser, os } = getDeviceInfo();
-            setDeviceSessions([{
-              id: 'local',
-              deviceId: deviceId,
-              email: adminEmail,
-              device,
-              browser,
-              os,
-              isCurrentDevice: true,
-              status: 'active',
-              loginTime: new Date().toISOString(),
-              lastActive: new Date().toISOString(),
-            }]);
+            const now = new Date().toISOString();
+            try {
+              await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
+                deviceId,
+                email: adminEmail,
+                device,
+                browser,
+                os,
+                status: 'active',
+                loginTime: now,
+                lastActive: now,
+              });
+            } catch (e) {
+              console.error("Failed to create session:", e);
+              setDeviceSessions([{
+                id: 'local',
+                deviceId: deviceId,
+                email: adminEmail,
+                device,
+                browser,
+                os,
+                isCurrentDevice: true,
+                status: 'active',
+                loginTime: now,
+                lastActive: now,
+              }]);
+            }
             return;
           }
           
