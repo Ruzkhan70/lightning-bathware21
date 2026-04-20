@@ -1042,7 +1042,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const { device, browser, os } = getDeviceInfo();
         const now = new Date().toISOString();
         
-        const snapshot = await getDocs(collection(db, DEVICE_SESSIONS_COLLECTION));
+        const snapshot = await getDocs(query(
+          collection(db, DEVICE_SESSIONS_COLLECTION),
+          where('email', '==', adminEmail)
+        ));
         const existingSession = snapshot.docs.find(doc => {
           const data = doc.data();
           return data.deviceId === deviceId && data.email === adminEmail;
