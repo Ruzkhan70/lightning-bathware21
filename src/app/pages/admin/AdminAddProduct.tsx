@@ -585,10 +585,10 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                 <div className="text-gray-600 text-sm space-y-2">
                   <p>Drag and drop a CSV file or paste data from Excel.</p>
                   <code className="bg-gray-100 px-2 py-1 rounded block">
-                    Product Name, Category, Price
+                    Product Name, Category, Price, Description
                   </code>
                   <p className="text-xs text-gray-500">
-                    Example: Chrome Bath Faucet, Bathroom Faucets, 2500
+                    Example: Chrome Bath Faucet, Bathroom Faucets, 2500, Control water flow easily with this faucet
                   </p>
                 </div>
               </div>
