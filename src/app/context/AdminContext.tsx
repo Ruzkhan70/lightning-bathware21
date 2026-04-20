@@ -317,6 +317,7 @@ export interface SiteContent {
     contactButton: string;
   };
   offers: {
+    isEnabled: boolean;
     heroTitle: string;
     heroSubtitle: string;
     noOffersTitle: string;
@@ -363,6 +364,7 @@ interface AdminContextType {
   updateStoreProfile: (profile: Partial<StoreProfile>) => void;
   products: Product[];
   addProduct: (product: Omit<Product, "id">) => void;
+  addMultipleProducts: (products: Omit<Product, "id">[]) => void;
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   bulkDeleteProducts: (ids: string[]) => void;
@@ -376,6 +378,8 @@ interface AdminContextType {
   updateOffer: (id: string, offer: Partial<Offer>) => void;
   deleteOffer: (id: string) => void;
   toggleOfferStatus: (id: string) => void;
+  toggleOffersPage: () => void;
+  addDemoOffers: () => Promise<void>;
   getActiveOffers: () => Offer[];
   getProductDiscount: (productId: string) => {
     hasDiscount: boolean;
@@ -421,6 +425,7 @@ interface AdminContextType {
   getAverageRating: (productId: string) => { average: number; count: number };
   seedDemoReviews: () => Promise<void>;
   activityLogs: ActivityLog[];
+  clearActivityLogs: () => Promise<void>;
   users: UserProfile[];
   deviceSessions: DeviceSession[];
   removeDeviceSession: (deviceId: string) => Promise<void>;
@@ -686,6 +691,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     contactButton: "Contact Us",
   },
   offers: {
+    isEnabled: true,
     heroTitle: "Special Offers & Promotions",
     heroSubtitle: "Don't miss out on our amazing deals and discounts!",
     noOffersTitle: "No Active Offers",
@@ -1601,6 +1607,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
     }
   }, [isAdminLoggedIn]);
+
+  const clearActivityLogs = async () => {
+    try {
+      const q = query(collection(db, "activityLogs"));
+      const snapshot = await getDocs(q);
+      const deletePromises = snapshot.docs.map(s => deleteDoc(doc(db, "activityLogs", s.id)));
+      await Promise.all(deletePromises);
+      toast.success("Activity logs cleared successfully");
+    } catch (error) {
+      console.error("Error clearing activity logs:", error);
+      toast.error("Failed to clear activity logs");
+    }
+  };
 
   // Firebase real-time sync for users/customers (admin only)
   useEffect(() => {
@@ -2615,7 +2634,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const addProduct = async (product: Omit<Product, "id">) => {
     const newProduct: Product = { ...product, id: generateUniqueId() };
-    const updated = [...products, newProduct];
+    const currentProducts = products;
+    const updated = [...currentProducts, newProduct];
     setProducts(updated);
     try {
       await updateDoc(doc(db, "storeData", "products"), { products: updated });
@@ -3078,6 +3098,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const toggleOffersPage = () => {
+    updateSiteContent({
+      offers: {
+        ...siteContent.offers,
+        isEnabled: !siteContent.offers.isEnabled,
+      },
+    });
+  };
+
   const getActiveOffers = () => {
     const now = new Date();
     return offers.filter(o => {
@@ -3294,6 +3323,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         updateOffer,
         deleteOffer,
         toggleOfferStatus,
+        toggleOffersPage,
         addDemoOffers,
         getActiveOffers,
         getProductDiscount,
@@ -3336,6 +3366,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         getAverageRating,
         seedDemoReviews,
         activityLogs,
+        clearActivityLogs,
         users,
       }}
     >

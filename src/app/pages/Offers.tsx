@@ -9,6 +9,31 @@ export default function Offers() {
   const { getActiveOffers, products, siteContent, isDataLoaded } = useAdmin();
   const safeProducts = products || [];
   const activeOffers = getActiveOffers() || [];
+  const isOffersPageEnabled = siteContent?.offers?.isEnabled ?? true;
+
+  if (!isOffersPageEnabled) {
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+            <Tag className="w-24 h-24 mx-auto text-gray-300 mb-6" />
+            <h2 className="text-2xl font-bold mb-4">Offers Disabled</h2>
+            <p className="text-gray-600 mb-8">
+              The offers page is currently disabled. Please check back later!
+            </p>
+            <Link to="/products">
+              <Button
+                size="lg"
+                className="bg-black hover:bg-[#D4AF37] text-white"
+              >
+                Browse Products
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isDataLoaded) {
     return (

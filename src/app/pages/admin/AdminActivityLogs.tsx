@@ -10,12 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Clock, Trash2 } from "lucide-react";
 
 const ITEMS_PER_PAGE = 20;
 
 export default function AdminActivityLogs() {
-  const { activityLogs } = useAdmin();
+  const { activityLogs, clearActivityLogs } = useAdmin();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [filterAction, setFilterAction] = useState<string>("all");
@@ -184,6 +184,17 @@ export default function AdminActivityLogs() {
           >
             <Download className="w-4 h-4 mr-2" />
             Export CSV
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (window.confirm("Are you sure you want to clear all activity logs? This action cannot be undone.")) {
+                await clearActivityLogs();
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear All
           </Button>
         </div>
       </div>

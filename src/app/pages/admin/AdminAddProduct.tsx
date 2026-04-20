@@ -32,7 +32,7 @@ interface BulkProduct {
 type UploadStep = "input" | "preview" | "uploading";
 
 export default function AdminAddProduct() {
-  const { addProduct, categories, products } = useAdmin();
+  const { addProduct, addMultipleProducts, categories, products } = useAdmin();
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -513,28 +513,19 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     setUploadStep("uploading");
     setIsBulkProcessing(true);
 
-    let uploadedCount = 0;
     try {
-      for (const product of bulkProducts) {
-        setBulkProducts(prev => prev.map(p => 
-          p.id === product.id ? { ...p, isUploading: true } : p
-        ));
-        
-        await addProduct({
-          name: product.name,
-          category: product.category,
-          price: product.price,
-          description: product.description,
-          image: product.image,
-          isAvailable: product.isAvailable,
-        });
-        
-        uploadedCount++;
-        setBulkProducts(prev => prev.map(p => 
-          p.id === product.id ? { ...p, isUploading: false } : p
-        ));
-      }
-      toast.success(`Successfully uploaded ${uploadedCount} products!`);
+      const productsToUpload = bulkProducts.map(p => ({
+        name: p.name,
+        category: p.category,
+        price: p.price,
+        description: p.description,
+        image: p.image,
+        isAvailable: p.isAvailable,
+      }));
+      
+      await addMultipleProducts(productsToUpload);
+      
+      toast.success(`Successfully uploaded ${bulkProducts.length} products!`);
       setBulkData("");
       setBulkProducts([]);
       setShowBulkUpload(false);

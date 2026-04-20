@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Edit, Trash2, Search, CheckSquare, Square, X, Filter } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -32,6 +32,8 @@ export default function AdminProducts() {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -63,11 +65,35 @@ export default function AdminProducts() {
     return matchesSearch && matchesCategory && matchesAvailability;
   });
 
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const pageRanges = useMemo(() => {
+    const ranges: { label: string; start: number; end: number }[] = [];
+    for (let i = 0; i < totalPages; i++) {
+      ranges.push({
+        label: `${i * ITEMS_PER_PAGE + 1}-${Math.min((i + 1) * ITEMS_PER_PAGE, filteredProducts.length)}`,
+        start: i * ITEMS_PER_PAGE,
+        end: Math.min((i + 1) * ITEMS_PER_PAGE, filteredProducts.length),
+      });
+    }
+    return ranges;
+  }, [totalPages]);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const handleSelectAll = () => {
-    if (selectedProducts.length === filteredProducts.length) {
+    if (selectedProducts.length === paginatedProducts.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(p => p.id));
+      setSelectedProducts(paginatedProducts.map(p => p.id));
     }
   };
 
@@ -168,12 +194,12 @@ export default function AdminProducts() {
             type="text"
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="pl-10"
           />
         </div>
         <div className="flex flex-wrap gap-4">
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <Select value={filterCategory} onValueChange={(val) => { setFilterCategory(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-48">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Category" />
@@ -186,7 +212,7 @@ export default function AdminProducts() {
             </SelectContent>
           </Select>
 
-          <Select value={filterStock} onValueChange={setFilterStock}>
+          <Select value={filterStock} onValueChange={(val) => { setFilterStock(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-48">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Availability" />
@@ -271,7 +297,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <tr key={product.id} className={`border-b hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
                   <td className="py-3 px-4">
                     <button
@@ -339,6 +365,49 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 py-3 border-t">
+            <div className="text-sm text-gray-600">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} products
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <div className="flex gap-1">
+                {pageRanges.map((range, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      currentPage === index + 1
+                        ? "bg-[#D4AF37] text-black font-medium"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {filteredProducts.length === 0 && (
           <div className="text-center py-12 text-gray-500">
             <p>No products found matching your criteria</p>

@@ -15,8 +15,9 @@ import { toast } from "sonner";
 
 export default function AdminOffers() {
   const navigate = useNavigate();
-  const { offers, deleteOffer, toggleOfferStatus, addDemoOffers } = useAdmin();
+  const { offers, deleteOffer, toggleOfferStatus, toggleOffersPage, siteContent, addDemoOffers } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
+  const isOffersPageEnabled = siteContent?.offers?.isEnabled ?? true;
 
   const safeOffers = offers || [];
 
@@ -63,14 +64,36 @@ export default function AdminOffers() {
             Manage promotional offers and discounts
           </p>
         </div>
-        <Button
-          onClick={() => navigate("/admin/add-offer")}
-          className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Add New Offer
-        </Button>
-      </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Offers Page:</span>
+            <button
+              onClick={() => {
+                toggleOffersPage();
+                toast.success(isOffersPageEnabled ? "Offers page disabled" : "Offers page enabled");
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isOffersPageEnabled ? "bg-green-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isOffersPageEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-medium ${isOffersPageEnabled ? "text-green-600" : "text-gray-500"}`}>
+              {isOffersPageEnabled ? "ON" : "OFF"}
+            </span>
+          </div>
+          <Button
+            onClick={() => navigate("/admin/add-offer")}
+            className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add New Offer
+          </Button>
+        </div>
 
       {/* Search */}
       <div className="mb-6">
