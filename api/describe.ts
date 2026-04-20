@@ -2,28 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const fallbackOpenings = [
-  "Transform your bathroom routine with",
-  "Elevate your space using",
-  "Upgrade daily moments with",
-  "Experience the difference of",
-  "Add a touch of luxury to",
-];
-
-const fallbackFeatures = [
-  "designed for those who appreciate attention to detail",
-  "crafted with premium materials that stand the test of time", 
-  "featuring a sleek finish that complements any decor",
-  "built for effortless daily use",
-  "combining style with practical functionality",
-];
-
-function generateFallback(productName: string, category: string, index: number): string {
-  const opening = fallbackOpenings[index % fallbackOpenings.length];
-  const feature = fallbackFeatures[index % fallbackFeatures.length];
-  return `${opening} ${productName}, ${feature}. This ${category} piece brings functionality and style to any space. Perfect for everyday use and easy to maintain.`;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { productName, category, index = 0 } = req.body;
 
@@ -31,10 +9,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing productName or category' });
   }
 
-  // Check if OpenAI key is available
   if (!OPENAI_API_KEY || OPENAI_API_KEY.length < 10) {
-    return res.json({ description: generateFallback(productName, category, index) });
+    const fallbacks = [
+      `Keep your bathroom organized with this ${productName}. Simple design fits easily in any space. Easy to clean and maintain.`,
+      `Tired of clutter? This ${productName} solves the problem. Practical and straightforward for everyday use.`,
+      `A simple solution for daily needs. This ${productName} gets the job done without fuss. Built to last.`,
+      `Designed for daily use. This ${productName} is straightforward and reliable. No complicated setup needed.`,
+      `Compact and practical. This ${productName} works quietly in the background. Easy to install anywhere.`,
+    ];
+    return res.json({ description: fallbacks[index % fallbacks.length] });
   }
+
+  const systemPrompt = `You are an intelligent backend assistant generating product descriptions.
+
+STRICT RULES:
+- Length: 3 to 5 sentences
+- Tone: natural, realistic, human-written
+- DO NOT use: "perfect for modern homes", "high-quality", "attention to detail", "transform your routine", "premium quality"
+- Must vary opening style: direct, problem-solution, functional, or minimal
+- Mix sentence lengths
+- Focus on practical usage and real benefits
+
+PRODUCT TYPE GUIDANCE:
+- Storage/organization items → focus on space saving, keeping things tidy
+- Water/hygiene items → focus on ease of use, control, keeping clean
+- Comfort items → focus on experience, relaxation
+- Durability items → focus on long-lasting, reliable`;
+
+  const userPrompt = `Generate a description for:
+- Product: ${productName}
+- Category: ${category}
+
+Previous descriptions from this batch: ${index > 0 ? "Make sure this is completely different from previous ones." : ""}
+
+Write it now. No labels. No explanations. Just the description.`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -46,48 +54,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: [
-          {
-            role: 'system',
-            content: 'You are a skilled e-commerce copywriter. Craft unique, natural-sounding product descriptions that feel human-written. Vary sentence structure, avoid templates, and never repeat generic phrases like "perfect for modern homes" or "durable construction".',
-          },
-          {
-            role: 'user',
-            content: `Generate a unique, high-quality product description.
-
-Product Name: ${productName}
-Category: ${category}
-
-Instructions:
-- Write in a natural, premium, and slightly persuasive tone.
-- DO NOT repeat generic phrases like "perfect for modern homes" or "durable construction".
-- Each description must be UNIQUE and different in structure and wording.
-- Mention specific use cases based on the product type.
-- Highlight 2–3 realistic features (design, usability, comfort, finish, water efficiency, etc.).
-- Keep it concise (3–5 sentences).
-- Make it sound human-written, not template-based.`,
-          },
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
         ],
-        max_tokens: 200,
-        temperature: 1.0,
+        max_tokens: 180,
+        temperature: 0.9,
         top_p: 0.95,
       }),
     });
 
     if (!response.ok) {
       console.error('OpenAI error:', response.status);
-      return res.json({ description: generateFallback(productName, category, index) });
+      const fallbacks = [
+        `Keep your bathroom organized with this ${productName}. Simple design fits easily in any space. Easy to clean and maintain.`,
+        `Tired of clutter? This ${productName} solves the problem. Practical and straightforward for everyday use.`,
+        `A simple solution for daily needs. This ${productName} gets the job done without fuss. Built to last.`,
+      ];
+      return res.json({ description: fallbacks[index % fallbacks.length] });
     }
 
     const data = await response.json();
-    const description = data.choices?.[0]?.message?.content?.trim();
+    let description = data.choices?.[0]?.message?.content?.trim() || '';
 
-    if (description) {
-      return res.json({ description });
+    const bannedPhrases = ['perfect for modern homes', 'high-quality', 'attention to detail', 'transform your routine', 'premium quality'];
+    for (const phrase of bannedPhrases) {
+      description = description.replace(new RegExp(phrase, 'gi', '[REMOVED]');
     }
 
-    return res.json({ description: generateFallback(productName, category, index) });
+    if (description && description.length > 20) {
+      return res.json({ description: description.replace(/\[REMOVED\]/g, '') });
+    }
+
+    const fallbacks = [
+      `Keep your bathroom organized with this ${productName}. Simple design fits easily in any space. Easy to clean and maintain.`,
+      `Tired of clutter? This ${productName} solves the problem. Practical and straightforward for everyday use.`,
+      `A simple solution for daily needs. This ${productName} gets the job done without fuss. Built to last.`,
+    ];
+    return res.json({ description: fallbacks[index % fallbacks.length] });
   } catch (error) {
     console.error('OpenAI API error:', error);
-    return res.json({ description: generateFallback(productName, category, index) });
+    const fallbacks = [
+      `Keep your bathroom organized with this ${productName}. Simple design fits easily in any space. Easy to clean and maintain.`,
+      `Tired of clutter? This ${productName} solves the problem. Practical and straightforward for everyday use.`,
+    ];
+    return res.json({ description: fallbacks[index % fallbacks.length] });
   }
 }
