@@ -1067,7 +1067,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     
     ensureCurrentSession().then(async () => {
       try {
-        const q = query(collection(db, DEVICE_SESSIONS_COLLECTION));
+        const q = query(
+          collection(db, DEVICE_SESSIONS_COLLECTION),
+          where('email', '==', adminEmail)
+        );
 
         const unsubscribe = onSnapshot(q, async (snapshot) => {
           if (snapshot.empty) {
