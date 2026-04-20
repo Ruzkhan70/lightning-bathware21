@@ -8,15 +8,13 @@ interface OpenAIResponse {
   }>;
 }
 
-const uniquenessAngles = [
-  "Focus on durability and long-lasting quality",
-  "Highlight modern design and aesthetic appeal",
-  "Emphasize easy installation and DIY-friendly features",
-  "Stress eco-friendly and water-saving benefits",
-  "Focus on premium materials and construction",
-  "Highlight warranty and customer support",
-  "Emphasize space-saving and compact design",
-  "Focus on versatility and multi-use features",
+const variationStyles = [
+  "Start with a question to engage the reader",
+  "Begin with a benefit statement",
+  "Start with a sensory detail",
+  "Open with a specific use case scenario",
+  "Begin with a comparison or contrast",
+  "Start with practical advice",
 ];
 
 export async function generateProductDescription(
@@ -28,10 +26,8 @@ export async function generateProductDescription(
     return generateFallbackDescription(productName, category);
   }
 
-  const angle = uniquenessAngles[productIndex % uniquenessAngles.length];
-  const variationTip = productIndex > 0 
-    ? ` Also try a slightly different writing style or structure than previous descriptions.` 
-    : "";
+  const style = variationStyles[productIndex % variationStyles.length];
+  const isFirst = productIndex === 0;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -45,15 +41,27 @@ export async function generateProductDescription(
         messages: [
           {
             role: "system",
-            content: "You are a professional product description writer. Write UNIQUE, SEO-friendly descriptions (60-120 words) with varying structures. Each description must be different from others - use different opening words, vary sentence lengths, and highlight different features.",
+            content: "You are a skilled e-commerce copywriter. Craft unique, natural-sounding product descriptions that feel human-written. Vary sentence structure, avoid templates, and never repeat generic phrases like 'perfect for modern homes' or 'durable construction'.",
           },
           {
             role: "user",
-            content: `Write a unique product description for: "${productName}" in category: "${category}". ${angle}. Make it distinct with your own wording - do NOT use generic phrases like "High-quality" or "Premium". Start with something fresh.${variationTip}`,
+            content: `Generate a unique, high-quality product description.
+
+Product Name: ${productName}
+Category: ${category}
+
+Instructions:
+- Write in a natural, premium, and slightly persuasive tone.
+- DO NOT repeat generic phrases like "perfect for modern homes" or "durable construction".
+- Each description must be UNIQUE and different in structure and wording.
+- Mention specific use cases based on the product type.
+- Highlight 2–3 realistic features (design, usability, comfort, finish, water efficiency, etc.).
+- Keep it concise (3–5 sentences).
+- Make it sound human-written, not template-based.`,
           },
         ],
-        max_tokens: 180,
-        temperature: 0.9,
+        max_tokens: 200,
+        temperature: 1.0,
         top_p: 0.95,
       }),
     });
