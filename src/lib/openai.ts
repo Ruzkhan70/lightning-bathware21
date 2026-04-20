@@ -8,10 +8,30 @@ interface OpenAIResponse {
   }>;
 }
 
-export async function generateProductDescription(productName: string, category: string): Promise<string> {
+const uniquenessAngles = [
+  "Focus on durability and long-lasting quality",
+  "Highlight modern design and aesthetic appeal",
+  "Emphasize easy installation and DIY-friendly features",
+  "Stress eco-friendly and water-saving benefits",
+  "Focus on premium materials and construction",
+  "Highlight warranty and customer support",
+  "Emphasize space-saving and compact design",
+  "Focus on versatility and multi-use features",
+];
+
+export async function generateProductDescription(
+  productName: string, 
+  category: string, 
+  productIndex: number = 0
+): Promise<string> {
   if (!OPENAI_API_KEY) {
     return generateFallbackDescription(productName, category);
   }
+
+  const angle = uniquenessAngles[productIndex % uniquenessAngles.length];
+  const variationTip = productIndex > 0 
+    ? ` Also try a slightly different writing style or structure than previous descriptions.` 
+    : "";
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -25,15 +45,16 @@ export async function generateProductDescription(productName: string, category: 
         messages: [
           {
             role: "system",
-            content: "You are a professional product description writer for a bathroom and hardware store. Write compelling, SEO-friendly product descriptions (50-100 words) that highlight key features and benefits.",
+            content: "You are a professional product description writer. Write UNIQUE, SEO-friendly descriptions (60-120 words) with varying structures. Each description must be different from others - use different opening words, vary sentence lengths, and highlight different features.",
           },
           {
             role: "user",
-            content: `Write a product description for: ${productName} in category: ${category}. Make it professional, concise, and appealing to customers.`,
+            content: `Write a unique product description for: "${productName}" in category: "${category}". ${angle}. Make it distinct with your own wording - do NOT use generic phrases like "High-quality" or "Premium". Start with something fresh.${variationTip}`,
           },
         ],
-        max_tokens: 150,
-        temperature: 0.7,
+        max_tokens: 180,
+        temperature: 0.9,
+        top_p: 0.95,
       }),
     });
 
@@ -67,16 +88,15 @@ export async function generateBulkDescriptions(
   
   for (let i = 0; i < products.length; i++) {
     const product = products[i];
-    const description = await generateProductDescription(product.name, product.category);
+    const description = await generateProductDescription(product.name, product.category, i);
     descriptions.push(description);
     
     if (onProgress) {
       onProgress(i + 1, products.length);
     }
     
-    // Small delay to avoid rate limiting
     if (i < products.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 700));
     }
   }
   
