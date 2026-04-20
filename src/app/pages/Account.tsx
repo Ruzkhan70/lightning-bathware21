@@ -178,84 +178,31 @@ export default function Account() {
   const handleSendCode = async () => {
     setIsSendingCode(true);
     
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
     try {
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        {
-          to_email: forgotEmail,
-          verification_code: code,
-          app_name: `${storeProfile.storeName} ${storeProfile.storeNameAccent}`,
-        },
-        EMAILJS_PUBLIC_KEY
-      );
-      
-      setSentCode(code);
-      localStorage.setItem("resetCode", JSON.stringify({ 
-        code, 
-        email: forgotEmail, 
-        timestamp: Date.now() 
-      }));
-      
-      toast.success("Verification code sent to your email!");
-      setForgotStep("verify");
+      const result = await resetPassword(forgotEmail);
+      if (result.success) {
+        toast.success("Password reset link sent to your email!");
+        setForgotStep("verify");
+      } else {
+        toast.error(result.error || "Failed to send reset email");
+      }
     } catch (error) {
-      console.error("EmailJS Error:", error);
-      toast.error("Failed to send email. Please check configuration.");
+      console.error("Reset password error:", error);
+      toast.error("Failed to send reset email");
     } finally {
       setIsSendingCode(false);
     }
   };
 
   const handleVerifyCode = () => {
-    const storedData = localStorage.getItem("resetCode");
-    if (!storedData) {
-      toast.error("Please request a new code");
-      return;
-    }
-
-    const { code, timestamp } = JSON.parse(storedData);
-    
-    // Code expires after 10 minutes
-    if (Date.now() - timestamp > 10 * 60 * 1000) {
-      toast.error("Code expired. Please request a new one.");
-      localStorage.removeItem("resetCode");
-      setForgotStep("email");
-      return;
-    }
-
-    if (verificationCode.trim() === code) {
-      setForgotStep("reset");
-      setShowForgotPasswordField(true);
-      toast.success("Code verified! Set your new password.");
-    } else {
-      toast.error("Invalid verification code");
-    }
+    toast.info("Please check your email for the password reset link");
+    setForgotStep("email");
+    closeForgotPassword();
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    if (forgotNewPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-    const result = await resetPassword(forgotEmail, forgotNewPassword);
-    if (result.success) {
-      toast.success("Password reset successfully! Please login.");
-      localStorage.removeItem("resetCode");
-      closeForgotPassword();
-      setIsLoginMode(true);
-    } else if (result.error === "email_not_found") {
-      toast.error("No account found with this email");
-    } else {
-      toast.error(`Error: ${result.error || "Please check Firebase rules"}`);
-    }
+    closeForgotPassword();
   };
 
   const closeForgotPassword = () => {
@@ -921,7 +868,7 @@ export default function Account() {
                 </>
               )}
 
-              {/* Step 2: Verify Code */}
+              {/* Step 2: Verify Code - Firebase sends reset link */}
               {forgotStep === "verify" && (
                 <>
                   <div className="flex items-center mb-4">
@@ -931,110 +878,32 @@ export default function Account() {
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-xl sm:text-2xl font-bold">Verify Code</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold">Check Your Email</h2>
                   </div>
                   <p className="text-gray-600 mb-6 text-sm sm:text-base break-all">
-                    Enter the 6-digit code sent to {forgotEmail}
+                    We've sent a password reset link to <strong>{forgotEmail}</strong>
                   </p>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Verification Code</label>
-                      <Input
-                        type="text"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                        placeholder="Enter 6-digit code"
-                        required
-                        maxLength={6}
-                        className="w-full text-center text-xl sm:text-2xl tracking-widest h-12"
-                      />
-                    </div>
-                    <Button
-                      onClick={handleVerifyCode}
-                      disabled={verificationCode.length !== 6}
-                      className="w-full bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
-                    >
-                      Verify Code
-                    </Button>
-                    <p className="text-sm text-gray-500 text-center">
-                      Didn't receive code?{" "}
-                      <button
-                        onClick={handleSendCode}
-                        className="text-[#D4AF37] hover:underline touch-manipulation"
-                      >
-                        Resend
-                      </button>
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-gray-600">
+                      Click the link in the email to reset your password. The link will expire in 1 hour.
                     </p>
                   </div>
-                </>
-              )}
-
-              {/* Step 3: Reset Password */}
-              {forgotStep === "reset" && (
-                <>
-                  <div className="flex items-center mb-4">
+                  <Button
+                    onClick={closeForgotPassword}
+                    className="w-full bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
+                  >
+                    Back to Login
+                  </Button>
+                  <p className="text-sm text-gray-500 text-center mt-4">
+                    Didn't receive email?{" "}
                     <button
-                      onClick={() => setForgotStep("verify")}
-                      className="mr-2 p-2 hover:bg-gray-100 rounded-full touch-manipulation"
+                      onClick={handleSendCode}
+                      disabled={isSendingCode}
+                      className="text-[#D4AF37] hover:underline touch-manipulation"
                     >
-                      <ArrowLeft className="w-5 h-5" />
+                      {isSendingCode ? "Sending..." : "Resend"}
                     </button>
-                    <h2 className="text-xl sm:text-2xl font-bold">Reset Password</h2>
-                  </div>
-                  <p className="text-gray-600 mb-6 text-sm sm:text-base break-all">
-                    Set your new password for {forgotEmail}
                   </p>
-                  <form onSubmit={handleResetPassword} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">New Password</label>
-                      <div className="relative">
-                        <Input
-                          type={showResetPassword ? "text" : "password"}
-                          value={forgotNewPassword}
-                          onChange={(e) => setForgotNewPassword(e.target.value)}
-                          placeholder="••••••••"
-                          required
-                          minLength={6}
-                          className="w-full pr-10 h-11 sm:h-12"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowResetPassword(!showResetPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 touch-manipulation"
-                        >
-                          {showResetPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Confirm New Password</label>
-                      <Input
-                        type="password"
-                        value={forgotConfirmPassword}
-                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        minLength={6}
-                        className="w-full h-11 sm:h-12"
-                      />
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Button
-                        type="button"
-                        onClick={closeForgotPassword}
-                        variant="outline"
-                        className="flex-1 h-11 sm:h-12"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="flex-1 bg-black hover:bg-[#D4AF37] text-white h-11 sm:h-12"
-                      >
-                        Reset Password
-                      </Button>
-                    </div>
-                  </form>
                 </>
               )}
             </div>

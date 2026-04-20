@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { PlusCircle, Upload, FileText, X, Check, Loader2, Sparkles, ImagePlus, Trash2 } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { PlusCircle, Upload, FileText, X, Check, Loader2, Sparkles, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -24,6 +24,8 @@ interface BulkProduct {
   image: string;
   isAvailable: boolean;
   errors: string[];
+  isUploading?: boolean;
+  isDuplicate?: boolean;
 }
 
 type UploadStep = "input" | "preview" | "uploading";
@@ -46,6 +48,11 @@ export default function AdminAddProduct() {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [isGeneratingDescriptions, setIsGeneratingDescriptions] = useState(false);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [isBulkImageDragging, setIsBulkImageDragging] = useState(false);
+  const [isUploadingBulkImages, setIsUploadingBulkImages] = useState(false);
+  const [isFileDragging, setIsFileDragging] = useState(false);
+  const [quickCategory, setQuickCategory] = useState<string>("");
+  const [existingProducts, setExistingProducts] = useState<Set<string>>(new Set());
 
   const safeCategories = categories || [];
 
@@ -90,19 +97,171 @@ export default function AdminAddProduct() {
     return products;
   };
 
+  const parseCSVOrTSV = (content: string): BulkProduct[] => {
+    const lines = content.trim().split("\n").filter(line => line.trim());
+    if (lines.length < 2) return [];
+    
+    const products: BulkProduct[] = [];
+    const delimiter = lines[0].includes("\t") ? "\t" : ",";
+    
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(delimiter).map(p => p.trim().replace(/^"|"$/g, ""));
+      
+      if (parts.length >= 2) {
+        const categoryMatch = safeCategories.find(
+          (c) => c.name.toLowerCase() === parts[1].toLowerCase() ||
+                 c.name.toLowerCase().includes(parts[1].toLowerCase()) ||
+                 parts[1].toLowerCase().includes(c.name.toLowerCase())
+        );
+        
+        const price = parts.length >= 3 ? parseFloat(parts[2].replace(/[^0-9.]/g, "")) : 0;
+        
+        products.push({
+          id: generateId(),
+          name: parts[0],
+          category: categoryMatch?.name || "",
+          price: isNaN(price) ? 0 : price,
+          description: "",
+          image: "",
+          isAvailable: true,
+          errors: [],
+        });
+      }
+    }
+    return products;
+  };
+
+  const detectDuplicates = (products: BulkProduct[]): BulkProduct[] => {
+    const nameCount: Record<string, number> = {};
+    const duplicates: BulkProduct[] = [];
+    
+    products.forEach(p => {
+      const normalizedName = p.name.toLowerCase().trim();
+      nameCount[normalizedName] = (nameCount[normalizedName] || 0) + 1;
+    });
+    
+    return products.map(p => {
+      const normalizedName = p.name.toLowerCase().trim();
+      if (nameCount[normalizedName] > 1) {
+        return { ...p, isDuplicate: true };
+      }
+      return p;
+    });
+  };
+
+  const checkExistingProducts = (products: BulkProduct[]): BulkProduct[] => {
+    return products.map(p => {
+      const exists = existingProducts.has(p.name.toLowerCase().trim());
+      return { ...p, isDuplicate: exists };
+    });
+  };
+
+  const handleFileDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsFileDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const file = files[0];
+    
+    if (!file) return;
+    
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    
+    if (extension === "csv" || extension === "tsv" || extension === "txt") {
+      const content = await file.text();
+      const parsed = parseCSVOrTSV(content);
+      
+      if (parsed.length === 0) {
+        toast.error("No valid products found in file");
+        return;
+      }
+      
+      setBulkProducts(parsed);
+      setUploadStep("preview");
+      toast.success(`Imported ${parsed.length} products from file!`);
+    } else if (extension === "xlsx" || extension === "xls") {
+      toast.info("Excel files need to be saved as CSV first. Please copy-paste the data.");
+    } else {
+      toast.error("Please upload a CSV, TSV, or TXT file");
+    }
+  }, [safeCategories]);
+
+  const handleQuickCategoryApply = () => {
+    if (!quickCategory) return;
+    
+    setBulkProducts(prev => prev.map(p => {
+      if (!p.category) {
+        const updated = { ...p, category: quickCategory };
+        updated.errors = validateProduct(updated);
+        return updated;
+      }
+      return p;
+    }));
+    toast.success("Category applied to all products without category");
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    
+    if (extension === "csv" || extension === "tsv" || extension === "txt") {
+      const content = await file.text();
+      const parsed = parseCSVOrTSV(content);
+      
+      if (parsed.length === 0) {
+        toast.error("No valid products found in file");
+        return;
+      }
+      
+      setBulkProducts(parsed);
+      setUploadStep("preview");
+      toast.success(`Imported ${parsed.length} products from file!`);
+    } else {
+      toast.error("Please upload a CSV, TSV, or TXT file");
+    }
+    
+    e.target.value = "";
+  };
+
   const handleProceed = () => {
     if (!bulkData.trim()) {
       toast.error("Please paste product data first");
       return;
     }
-    const parsed = parseBulkData(bulkData);
+    let parsed = parseBulkData(bulkData);
     if (parsed.length === 0) {
       toast.error("No valid products found. Format: Name | Category | Price");
       return;
     }
+    
+    parsed = detectDuplicates(parsed);
+    const duplicates = parsed.filter(p => p.isDuplicate);
+    if (duplicates.length > 0) {
+      toast.warning(`Found ${duplicates.length} duplicate product names in the list`);
+    }
+    
     setBulkProducts(parsed);
     setUploadStep("preview");
     toast.success(`Found ${parsed.length} products. Review and edit before uploading.`);
+  };
+
+  const handleProceedFromFile = (parsed: BulkProduct[]) => {
+    if (parsed.length === 0) {
+      toast.error("No valid products found");
+      return;
+    }
+    
+    let processed = detectDuplicates(parsed);
+    const duplicates = processed.filter(p => p.isDuplicate);
+    if (duplicates.length > 0) {
+      toast.warning(`Found ${duplicates.length} duplicate product names in the file`);
+    }
+    
+    setBulkProducts(processed);
+    setUploadStep("preview");
+    toast.success(`Found ${processed.length} products. Review and edit before uploading.`);
   };
 
   const handleUpdateProduct = (id: string, field: keyof BulkProduct, value: any) => {
@@ -174,12 +333,152 @@ export default function AdminAddProduct() {
     }
   };
 
+  const normalizeName = (name: string) => {
+    return name.toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+    };
+    
+    const findBestMatch = (fileName: string, productsNeedingImage: BulkProduct[]) => {
+      const normalizedFileName = normalizeName(fileName);
+      if (!normalizedFileName) return null;
+      
+      for (const product of productsNeedingImage) {
+        const normalizedProductName = normalizeName(product.name);
+        if (normalizedProductName && normalizedFileName.includes(normalizedProductName)) {
+          return product;
+        }
+      }
+      
+      const fileBaseName = normalizedFileName.split('.')[0];
+      if (!fileBaseName || fileBaseName.length < 3) return null;
+      
+      for (const product of productsNeedingImage) {
+        const normalizedProductName = normalizeName(product.name);
+        if (normalizedProductName && normalizedProductName.includes(fileBaseName)) {
+          return product;
+        }
+      }
+      
+      return null;
+    };
+
+  const handleBulkImageUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith("image/"));
+    if (fileArray.length === 0) {
+      toast.error("No image files found");
+      return;
+    }
+
+    let productsNeedingImage = bulkProducts.filter(p => !p.image);
+    if (productsNeedingImage.length === 0) {
+      toast.info("All products already have images");
+      return;
+    }
+
+    setIsUploadingBulkImages(true);
+    toast.info(`Uploading ${fileArray.length} images...`);
+
+    const matchedResults: { file: File; product: BulkProduct | null }[] = [];
+    const unmatchedFiles: File[] = [];
+
+    for (const file of fileArray) {
+      const bestMatch = findBestMatch(file.name, productsNeedingImage);
+      if (bestMatch) {
+        matchedResults.push({ file, product: bestMatch });
+        productsNeedingImage = productsNeedingImage.filter(p => p.id !== bestMatch.id);
+      } else {
+        unmatchedFiles.push(file);
+      }
+    }
+
+    for (const result of matchedResults) {
+      if (!result.product) continue;
+      
+      const formData = new FormData();
+      formData.append("image", result.file);
+
+      try {
+        const response = await fetch(
+          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+          { method: "POST", body: formData }
+        );
+        const data = await response.json();
+        
+        if (data.success) {
+          handleUpdateProduct(result.product.id, "image", data.data.url);
+        } else {
+          const url = URL.createObjectURL(result.file);
+          handleUpdateProduct(result.product.id, "image", url);
+        }
+      } catch (error) {
+        const url = URL.createObjectURL(result.file);
+        handleUpdateProduct(result.product.id, "image", url);
+      }
+    }
+
+    const remainingProducts = bulkProducts.filter(p => !p.image);
+    for (let i = 0; i < Math.min(unmatchedFiles.length, remainingProducts.length); i++) {
+      const file = unmatchedFiles[i];
+      const product = remainingProducts[i];
+      
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const response = await fetch(
+          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+          { method: "POST", body: formData }
+        );
+        const data = await response.json();
+        
+        if (data.success) {
+          handleUpdateProduct(product.id, "image", data.data.url);
+        } else {
+          const url = URL.createObjectURL(file);
+          handleUpdateProduct(product.id, "image", url);
+        }
+      } catch (error) {
+        const url = URL.createObjectURL(file);
+        handleUpdateProduct(product.id, "image", url);
+      }
+    }
+    
+    const matched = matchedResults.filter(r => r.product).length;
+    const uploaded = matched + Math.min(unmatchedFiles.length, remainingProducts.length);
+    toast.success(`Uploaded ${uploaded} images (${matched} matched by name, ${uploaded - matched} sequential)`);
+    setIsUploadingBulkImages(false);
+  };
+
+  const handleBulkImageDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsBulkImageDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      await handleBulkImageUpload(files);
+    }
+  }, [bulkProducts]);
+
+  const handleBulkImageFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await handleBulkImageUpload(files);
+      e.target.value = "";
+    }
+  };
+
   const handleRemoveProduct = (id: string) => {
     setBulkProducts(prev => prev.filter(p => p.id !== id));
   };
 
   const handleUploadAll = async () => {
     const invalidProducts = bulkProducts.filter(p => p.errors.length > 0 || !p.image);
+    const duplicates = bulkProducts.filter(p => p.isDuplicate);
+    
+    if (duplicates.length > 0) {
+      const proceed = confirm(`${duplicates.length} products have duplicate names. Upload anyway?`);
+      if (!proceed) return;
+    }
     
     if (invalidProducts.length > 0) {
       const missing = invalidProducts.filter(p => !p.image).length;
@@ -191,8 +490,13 @@ export default function AdminAddProduct() {
     setUploadStep("uploading");
     setIsBulkProcessing(true);
 
+    let uploadedCount = 0;
     try {
       for (const product of bulkProducts) {
+        setBulkProducts(prev => prev.map(p => 
+          p.id === product.id ? { ...p, isUploading: true } : p
+        ));
+        
         await addProduct({
           name: product.name,
           category: product.category,
@@ -201,8 +505,13 @@ export default function AdminAddProduct() {
           image: product.image,
           isAvailable: product.isAvailable,
         });
+        
+        uploadedCount++;
+        setBulkProducts(prev => prev.map(p => 
+          p.id === product.id ? { ...p, isUploading: false } : p
+        ));
       }
-      toast.success(`Successfully uploaded ${bulkProducts.length} products!`);
+      toast.success(`Successfully uploaded ${uploadedCount} products!`);
       setBulkData("");
       setBulkProducts([]);
       setShowBulkUpload(false);
@@ -275,16 +584,44 @@ export default function AdminAddProduct() {
           {uploadStep === "input" && (
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">Step 1: Paste Product Data</h2>
+                <h2 className="text-xl font-semibold mb-2">Step 1: Add Product Data</h2>
                 <div className="text-gray-600 text-sm space-y-2">
-                  <p>Copy products from Excel and paste below.</p>
+                  <p>Drag and drop a CSV file or paste data from Excel.</p>
                   <code className="bg-gray-100 px-2 py-1 rounded block">
-                    Product Name | Category | Price
+                    Product Name, Category, Price
                   </code>
                   <p className="text-xs text-gray-500">
-                    Example: Chrome Bath Faucet | Bathroom Faucets | 2500
+                    Example: Chrome Bath Faucet, Bathroom Faucets, 2500
                   </p>
                 </div>
+              </div>
+
+              <div 
+                onDragOver={(e) => { e.preventDefault(); setIsFileDragging(true); }}
+                onDragLeave={() => setIsFileDragging(false)}
+                onDrop={handleFileDrop}
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all mb-4 ${
+                  isFileDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-gray-300"
+                }`}
+              >
+                <FileSpreadsheet className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-600 mb-2">Drag and drop a CSV, TSV, or TXT file</p>
+                <p className="text-gray-500 text-sm mb-3">or</p>
+                <label className="cursor-pointer">
+                  <Button type="button" variant="outline" asChild>
+                    <span className="cursor-pointer">Select File</span>
+                  </Button>
+                  <input 
+                    type="file" 
+                    accept=".csv,.tsv,.txt" 
+                    className="hidden" 
+                    onChange={handleFileInputChange}
+                  />
+                </label>
+              </div>
+
+              <div className="text-center text-sm text-gray-500 mb-4">
+                — or paste data below —
               </div>
 
               <Textarea
@@ -307,43 +644,113 @@ export default function AdminAddProduct() {
 
           {uploadStep === "preview" && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
-                <div>
-                  <h3 className="font-semibold">Step 2: Preview & Edit</h3>
-                  <p className="text-sm text-gray-600">Review each product, add categories, images, and generate descriptions</p>
+              <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold">Step 2: Preview & Edit</h3>
+                    <p className="text-sm text-gray-600">Review each product, add categories, images, and generate descriptions</p>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      onClick={handleBackToInput}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleGenerateAllDescriptions}
+                      disabled={isGeneratingDescriptions}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                    >
+                      {isGeneratingDescriptions ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Sparkles className="w-4 h-4 mr-2" />
+                      )}
+                      Generate All Descriptions
+                    </Button>
+                    <Button
+                      onClick={handleUploadAll}
+                      disabled={isBulkProcessing || bulkProducts.length === 0}
+                      className="bg-black hover:bg-[#D4AF37] text-white"
+                    >
+                      {isBulkProcessing ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Upload className="w-4 h-4 mr-2" />
+                      )}
+                      Upload All ({bulkProducts.length})
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
+
+                <div className="flex items-center gap-3 bg-white p-3 rounded-lg">
+                  <span className="text-sm font-medium whitespace-nowrap">Quick Assign Category:</span>
+                  <Select value={quickCategory} onValueChange={setQuickCategory}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {safeCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleQuickCategoryApply}
                     variant="outline"
-                    onClick={handleBackToInput}
+                    size="sm"
+                    disabled={!quickCategory}
                   >
-                    Back
+                    Apply
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleGenerateAllDescriptions}
-                    disabled={isGeneratingDescriptions}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                  >
-                    {isGeneratingDescriptions ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <Sparkles className="w-4 h-4 mr-2" />
-                    )}
-                    Generate All Descriptions
-                  </Button>
-                  <Button
-                    onClick={handleUploadAll}
-                    disabled={isBulkProcessing || bulkProducts.length === 0}
-                    className="bg-black hover:bg-[#D4AF37] text-white"
-                  >
-                    {isBulkProcessing ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <Upload className="w-4 h-4 mr-2" />
-                    )}
-                    Upload All ({bulkProducts.length})
-                  </Button>
+                </div>
+
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsBulkImageDragging(true); }}
+                  onDragLeave={() => setIsBulkImageDragging(false)}
+                  onDrop={handleBulkImageDrop}
+                  className={`border-2 border-dashed rounded-lg p-4 transition-all ${
+                    isBulkImageDragging ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Images className="w-6 h-6 text-gray-500" />
+                      <div>
+                        <p className="font-medium text-sm">Drag & drop multiple images here</p>
+                        <p className="text-xs text-gray-500">Images will be assigned to products in order</p>
+                      </div>
+                    </div>
+                    <label className="cursor-pointer">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        disabled={isUploadingBulkImages}
+                        className="bg-white"
+                      >
+                        {isUploadingBulkImages ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Select Images"
+                        )}
+                      </Button>
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleBulkImageFileSelect}
+                      />
+                    </label>
+                  </div>
+                  {isUploadingBulkImages && (
+                    <p className="text-sm text-[#D4AF37] mt-2">Uploading images...</p>
+                  )}
                 </div>
               </div>
 
@@ -363,8 +770,16 @@ export default function AdminAddProduct() {
                     </thead>
                     <tbody>
                       {bulkProducts.map((product, index) => (
-                        <tr key={product.id} className={`border-b ${product.errors.length > 0 ? "bg-red-50" : ""}`}>
-                          <td className="px-3 py-3">{index + 1}</td>
+                        <tr key={product.id} className={`border-b ${product.errors.length > 0 ? "bg-red-50" : product.isDuplicate ? "bg-yellow-50" : ""}`}>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-1">
+                              {product.isDuplicate && (
+                                <AlertTriangle className="w-4 h-4 text-yellow-500" title="Duplicate name" />
+                              )}
+                              {product.isUploading && <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />}
+                              {index + 1}
+                            </div>
+                          </td>
                           <td className="px-3 py-3">
                             <Input
                               value={product.name}
