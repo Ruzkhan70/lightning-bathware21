@@ -1,7 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
 const typeKeywords: Record<string, string[]> = {
   tap: ['tap', 'mixer', 'faucet', 'bib', 'valve', 'spout', 'bath', 'sink', 'basin'],
   shower: ['shower', 'head', 'rain', 'jet', 'handset', 'slide', 'diverter'],
@@ -20,17 +18,6 @@ function getProductType(name: string, category: string): string {
   return 'tap';
 }
 
-function getFallback(name: string, type: string): string {
-  const fallbacks: Record<string, string[]> = {
-    tap: [`Control water flow easily with this ${name}. Smooth operation for everyday use.`, `This ${name} gives you reliable water control. Built for daily use.`],
-    shower: [`Enjoy a better shower with this ${name}. Good water flow and easy to use.`, `This ${name} improves your shower experience. Simple to install.`],
-    storage: [`Keep things organized with this ${name}. Easy to mount and clean.`, `This ${name} helps you stay organized. Compact design.`],
-    bidet: [`Get clean with this ${name}. Easy to use and install.`, `This ${name} gives you control. Hygienic and comfortable.`],
-    accessories: [`This ${name} is practical. Easy to use.`, `Add functionality with this ${name}. Simple and reliable.`],
-  };
-  return (fallbacks[type] || fallbacks.tap)[0];
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { productName, category, index = 0, productType } = req.body || {};
@@ -41,60 +28,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const detectedType = productType && productType.length > 0 ? productType : getProductType(productName, category || '');
 
-    if (!OPENAI_API_KEY || OPENAI_API_KEY.length < 10) {
-      return res.json({ description: getFallback(productName, detectedType) });
-    }
-
-    const typeFocus: Record<string, string> = {
-      tap: 'Focus on water control, smooth operation, durability. Use words like control, flow, smooth, reliable.',
-      shower: 'Focus on water flow, comfort, shower experience. Use words like flow, comfort, rinse, relax.',
-      storage: 'Focus on organization, space-saving. Use words like organize, tidy, space, mount.',
-      bidet: 'Focus on hygiene, water control, comfort. Use words like clean, spray, control, hygiene.',
-      accessories: 'Focus on daily use and practical benefits.',
+    const fallbacks: Record<string, string[]> = {
+      tap: [
+        `Control water flow easily with this ${productName}. Smooth operation for everyday use.`,
+        `This ${productName} gives you reliable water control. Built for daily use.`,
+        `Get smooth water control with this ${productName}. Durable and easy to operate.`,
+      ],
+      shower: [
+        `Enjoy a better shower with this ${productName}. Good water flow and easy to use.`,
+        `This ${productName} improves your shower experience. Simple to install.`,
+        `Feel the difference with this ${productName}. Multiple settings for your comfort.`,
+      ],
+      storage: [
+        `Keep things organized with this ${productName}. Easy to mount and clean.`,
+        `This ${productName} helps you stay organized. Compact design.`,
+        `Maximize your space with this ${productName}. Simple and practical.`,
+      ],
+      bidet: [
+        `Get clean with this ${productName}. Easy to use and install.`,
+        `This ${productName} gives you control. Hygienic and comfortable.`,
+        `Fresh and clean with this ${productName}. Simple attachment.`,
+      ],
+      accessories: [
+        `This ${productName} is practical. Easy to use.`,
+        `Add functionality with this ${productName}. Simple and reliable.`,
+        `A useful addition. This ${productName} works well.`,
+      ],
     };
 
-    const focus = typeFocus[detectedType] || typeFocus.tap;
-    const openings = [
-      `This ${productName}`,
-      `Looking for better water control? This ${productName}`,
-      `Need a practical solution? This ${productName}`,
-      `For everyday use, this ${productName}`,
-      `${productName} is designed`,
-    ];
-    const opening = openings[index % openings.length];
+    const typeFallbacks = fallbacks[detectedType] || fallbacks.tap;
+    const description = typeFallbacks[index % typeFallbacks.length];
 
-    const systemMsg = `You write product descriptions. 3-4 sentences. Natural tone. No generic phrases. ${focus}`;
-    const userMsg = `${opening}. Write a description.`;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: userMsg },
-        ],
-        max_tokens: 150,
-        temperature: 0.9,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.5,
-      }),
-    });
-
-    const data = await response.json();
-    const description = data.choices?.[0]?.message?.content?.trim();
-
-    if (description && description.length > 20) {
-      return res.json({ description });
-    }
-
-    return res.json({ description: getFallback(productName, detectedType) });
+    return res.json({ description });
   } catch (error) {
     console.error('Error:', error);
-    return res.json({ description: 'This product works well.' });
+    return res.json({ description: `This ${req.body?.productName || 'product'} works well.` });
   }
 }
