@@ -213,17 +213,7 @@ const safeCategories = categories || [];
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Category Banner Image</Label>
-                <button
-                  type="button"
-                  onClick={handleGeneratePrompts}
-                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  Generate
-                </button>
-              </div>
+              <Label>Category Banner Image</Label>
               <ImageUpload 
                 value={formData.image}
                 onChange={(val) => setFormData({ ...formData, image: val })}
