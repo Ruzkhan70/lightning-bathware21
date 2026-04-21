@@ -226,91 +226,57 @@ const safeCategories = categories || [];
                 <button
                   type="button"
                   onClick={handleGeneratePrompts}
-                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  disabled={isGeneratingAI || !formData.name}
+                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white disabled:opacity-50"
                 >
-                  <Sparkles className="w-3 h-3" />
+                  {isGeneratingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                   Generate
                 </button>
               </div>
-              <div className="flex gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setIconType("lucide")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                    iconType === "lucide" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Use Icon
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIconType("image")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
-                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <Upload className="w-4 h-4 mr-1" />
-                  Upload
-                </button>
+              <p className="text-xs text-gray-500 mb-2">Select an icon for this category</p>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { name: "Lightbulb", icon: Lightbulb },
+                  { name: "Bath", icon: Bath },
+                  { name: "Wrench", icon: Wrench },
+                  { name: "Zap", icon: Zap },
+                  { name: "HardHat", icon: HardHat },
+                ].map(({ name, icon: Icon }) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, icon: formData.icon === name ? "" : name })}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <Icon className="w-6 h-6 mx-auto" />
+                  </button>
+                ))}
               </div>
-              {iconType === "lucide" ? (
-                <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { name: "Lightbulb", icon: Lightbulb },
-                    { name: "Bath", icon: Bath },
-                    { name: "Wrench", icon: Wrench },
-                    { name: "Zap", icon: Zap },
-                    { name: "HardHat", icon: HardHat },
-                    { name: "Hammer", icon: Hammer },
-                    { name: "Drill", icon: Drill },
-                    { name: "Cable", icon: Cable },
-                    { name: "Power", icon: Power },
-                    { name: "Gauge", icon: Gauge },
-                  ].map(({ name, icon: Icon }) => (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, icon: name })}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <Icon className="w-6 h-6 mx-auto" />
-                    </button>
-                  ))}
-                </div>
-              ) : iconType === "image" ? (
-                <ImageUpload
-                  value={formData.icon}
-                  onChange={(val) => setFormData({ ...formData, icon: val })}
-                  label="Upload Icon"
-                  maxSizeMB={2}
-                />
-              ) : (
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    {formData.icon && formData.icon.startsWith("http") ? (
-                      <div className="space-y-3">
-                        <img src={formData.icon} alt="Generated Icon" className="w-20 h-20 mx-auto rounded-lg object-cover" />
-                        <p className="text-sm text-gray-600">Icon generated for: <strong>{formData.name}</strong></p>
-                        <Button type="button" onClick={handleGeneratePrompts} disabled={isGeneratingAI} variant="outline" className="w-full">
-                          {isGeneratingAI ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Regenerating...</> : <><Sparkles className="w-4 h-4 mr-2" />Regenerate Icon</>}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <Sparkles className="w-12 h-12 mx-auto text-gray-400" />
-                        <p className="text-sm text-gray-600">Enter a category name and click generate to create an AI icon</p>
-                        <Button type="button" onClick={handleGeneratePrompts} disabled={isGeneratingAI || !formData.name} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
-                          {isGeneratingAI ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Generating...</> : <><Sparkles className="w-4 h-4 mr-2" />Generate Icon with AI</>}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 text-center">Powered by Google Gemini</p>
-                </div>
-              )}
             </div>
+            {generatedTextPrompt && (
+              <div className="space-y-2">
+                <Label>AI Prompt</Label>
+                <div className="relative">
+                  <textarea
+                    readOnly
+                    value={generatedTextPrompt}
+                    className="w-full h-20 p-3 text-xs bg-gray-50 border rounded-lg resize-none pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedTextPrompt);
+                      toast.success("Prompt copied!");
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-[#D4AF37] rounded hover:bg-[#C5A028]"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
                <div className="space-y-2">
                  <Label>Accent Color</Label>
@@ -332,9 +298,9 @@ const safeCategories = categories || [];
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="rounded border-gray-300"
-                />
-                <Label htmlFor="isActive" className="cursor-pointer">Active Category</Label>
-              </div>
+                 />
+                 <Label htmlFor="isActive" className="cursor-pointer">Active Category</Label>
+               </div>
             </div>
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
@@ -382,147 +348,55 @@ const safeCategories = categories || [];
                 <button
                   type="button"
                   onClick={handleGeneratePrompts}
-                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  disabled={isGeneratingAI || !formData.name}
+                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white disabled:opacity-50"
                 >
-                  <Sparkles className="w-3 h-3" />
+                  {isGeneratingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                   Generate
                 </button>
               </div>
-              <div className="flex gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setIconType("lucide")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                    iconType === "lucide" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Use Icon
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIconType("image")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
-                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <Upload className="w-4 h-4 mr-1" />
-                  Upload
-                </button>
+              <p className="text-xs text-gray-500 mb-2">Select an icon for this category</p>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { name: "Lightbulb", icon: Lightbulb },
+                  { name: "Bath", icon: Bath },
+                  { name: "Wrench", icon: Wrench },
+                  { name: "Zap", icon: Zap },
+                  { name: "HardHat", icon: HardHat },
+                ].map(({ name, icon: Icon }) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, icon: formData.icon === name ? "" : name })}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <Icon className="w-6 h-6 mx-auto" />
+                  </button>
+                ))}
               </div>
-              {iconType === "lucide" ? (
-                <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { name: "Lightbulb", icon: Lightbulb },
-                    { name: "Bath", icon: Bath },
-                    { name: "Wrench", icon: Wrench },
-                    { name: "Zap", icon: Zap },
-                    { name: "HardHat", icon: HardHat },
-                    { name: "Hammer", icon: Hammer },
-                    { name: "Drill", icon: Drill },
-                    { name: "Cable", icon: Cable },
-                    { name: "Power", icon: Power },
-                    { name: "Gauge", icon: Gauge },
-                  ].map(({ name, icon: Icon }) => (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, icon: name })}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <Icon className="w-6 h-6 mx-auto" />
-                    </button>
-                  ))}
-                </div>
-              ) : iconType === "image" ? (
-                <ImageUpload
-                  value={formData.icon}
-                  onChange={(val) => setFormData({ ...formData, icon: val })}
-                  label="Upload Icon"
-                  maxSizeMB={2}
-                />
-              ) : (
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    {formData.icon && formData.icon.startsWith("http") ? (
-                      <div className="space-y-3">
-                        <img src={formData.icon} alt="Generated Icon" className="w-20 h-20 mx-auto rounded-lg object-cover" />
-                        <p className="text-sm text-gray-600">Icon generated for: <strong>{formData.name}</strong></p>
-                        <Button
-                          type="button"
-                          onClick={handleGeneratePrompts}
-                          disabled={isGeneratingAI}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          {isGeneratingAI ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              Regenerating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4 mr-2" />
-                              Regenerate Icon
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <Sparkles className="w-12 h-12 mx-auto text-gray-400" />
-                        <p className="text-sm text-gray-600">
-                          Enter a category name and click generate to create an AI icon
-                        </p>
-                        <Button
-                          type="button"
-                          onClick={handleGeneratePrompts}
-                          disabled={isGeneratingAI || !formData.name}
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                        >
-                          {isGeneratingAI ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4 mr-2" />
-                              Generate Icon with AI
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 text-center">
-                    Powered by Google Gemini • Generates unique icons based on category name
-                  </p>
-                </div>
-              )}
             </div>
             {generatedTextPrompt && (
               <div className="space-y-2">
-                <Label>AI Prompt (Copy & Use Elsewhere)</Label>
+                <Label>AI Prompt</Label>
                 <div className="relative">
                   <textarea
                     readOnly
                     value={generatedTextPrompt}
-                    className="w-full h-24 p-3 text-xs bg-gray-50 border rounded-lg resize-none pr-10"
+                    className="w-full h-20 p-3 text-xs bg-gray-50 border rounded-lg resize-none pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(generatedTextPrompt);
-                      toast.success("Prompt copied to clipboard!");
+                      toast.success("Prompt copied!");
                     }}
                     className="absolute top-2 right-2 p-1.5 bg-[#D4AF37] rounded hover:bg-[#C5A028]"
                   >
-                    <Copy className="w-4 h-4 text-black" />
+                    <Copy className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">Copy this prompt and use in DALL-E, Midjourney, Canva, or any AI image generator</p>
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
