@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -14,6 +14,7 @@ export default function AdminCategories() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [iconType, setIconType] = useState<"lucide" | "image">("lucide");
 
   const safeCategories = categories || [];
 
@@ -21,6 +22,7 @@ export default function AdminCategories() {
     name: "",
     description: "",
     image: "",
+    icon: "Lightbulb",
     color: "bg-blue-500",
     isActive: true
   });
@@ -56,6 +58,7 @@ export default function AdminCategories() {
       name: "",
       description: "",
       image: "",
+      icon: "Lightbulb",
       color: "bg-blue-500",
       isActive: true
     });
@@ -63,10 +66,13 @@ export default function AdminCategories() {
 
   const openEditDialog = (category: Category) => {
     setEditingCategory(category);
+    const isIconImage = category.icon && (category.icon.startsWith("http") || category.icon.startsWith("/"));
+    setIconType(isIconImage ? "image" : "lucide");
     setFormData({
       name: category.name,
       description: category.description,
       image: category.image,
+      icon: category.icon || "Lightbulb",
       color: category.color,
       isActive: category.isActive
     });
@@ -182,7 +188,7 @@ export default function AdminCategories() {
                 placeholder="e.g., Solar Lighting"
               />
             </div>
-            <div className="space-y-2">
+<div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea 
                 id="description" 
@@ -200,24 +206,81 @@ export default function AdminCategories() {
                 label="Category Banner"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                <Label>Accent Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((color) => (
+            <div className="space-y-2">
+              <Label>Category Icon</Label>
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setIconType("lucide")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    iconType === "lucide" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Use Icon
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIconType("image")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Upload Image
+                </button>
+              </div>
+              {iconType === "lucide" ? (
+                <div className="grid grid-cols-5 gap-2">
+                  {[
+                    { name: "Lightbulb", icon: Lightbulb },
+                    { name: "Bath", icon: Bath },
+                    { name: "Wrench", icon: Wrench },
+                    { name: "Zap", icon: Zap },
+                    { name: "HardHat", icon: HardHat },
+                    { name: "Hammer", icon: Hammer },
+                    { name: "Drill", icon: Drill },
+                    { name: "Cable", icon: Cable },
+                    { name: "Power", icon: Power },
+                    { name: "Gauge", icon: Gauge },
+                  ].map(({ name, icon: Icon }) => (
                     <button
-                      key={color}
+                      key={name}
                       type="button"
-                      className={`w-6 h-6 rounded-full ${color} ${formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''}`}
-                      onClick={() => setFormData({ ...formData, color })}
-                    />
+                      onClick={() => setFormData({ ...formData, icon: name })}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <Icon className="w-6 h-6 mx-auto" />
+                    </button>
                   ))}
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
-                  id="isActive"
+              ) : (
+                <ImageUpload
+                  value={formData.icon}
+                  onChange={(val) => setFormData({ ...formData, icon: val })}
+                  label="Upload Icon"
+                  maxSizeMB={2}
+                />
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label>Accent Color</Label>
+                 <div className="flex flex-wrap gap-2">
+                   {colors.map((color) => (
+                     <button
+                       key={color}
+                       type="button"
+                       className={`w-6 h-6 rounded-full ${color} ${formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''}`}
+                       onClick={() => setFormData({ ...formData, color })}
+                     />
+                   ))}
+                 </div>
+               </div>
+               <div className="flex items-center gap-2">
+                 <input 
+                   type="checkbox" 
+                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="rounded border-gray-300"
@@ -257,7 +320,7 @@ export default function AdminCategories() {
                 rows={3}
               />
             </div>
-            <div className="space-y-2">
+<div className="space-y-2">
               <Label>Category Image</Label>
               <ImageUpload 
                 value={formData.image}
@@ -265,30 +328,87 @@ export default function AdminCategories() {
                 label="Category Banner"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                <Label>Accent Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((color) => (
+            <div className="space-y-2">
+              <Label>Category Icon</Label>
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setIconType("lucide")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    iconType === "lucide" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Use Icon
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIconType("image")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Upload Image
+                </button>
+              </div>
+              {iconType === "lucide" ? (
+                <div className="grid grid-cols-5 gap-2">
+                  {[
+                    { name: "Lightbulb", icon: Lightbulb },
+                    { name: "Bath", icon: Bath },
+                    { name: "Wrench", icon: Wrench },
+                    { name: "Zap", icon: Zap },
+                    { name: "HardHat", icon: HardHat },
+                    { name: "Hammer", icon: Hammer },
+                    { name: "Drill", icon: Drill },
+                    { name: "Cable", icon: Cable },
+                    { name: "Power", icon: Power },
+                    { name: "Gauge", icon: Gauge },
+                  ].map(({ name, icon: Icon }) => (
                     <button
-                      key={color}
+                      key={name}
                       type="button"
-                      className={`w-6 h-6 rounded-full ${color} ${formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''}`}
-                      onClick={() => setFormData({ ...formData, color })}
-                    />
+                      onClick={() => setFormData({ ...formData, icon: name })}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <Icon className="w-6 h-6 mx-auto" />
+                    </button>
                   ))}
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
-                  id="edit-isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded border-gray-300"
+              ) : (
+                <ImageUpload
+                  value={formData.icon}
+                  onChange={(val) => setFormData({ ...formData, icon: val })}
+                  label="Upload Icon"
+                  maxSizeMB={2}
                 />
-                <Label htmlFor="edit-isActive" className="cursor-pointer">Active Category</Label>
-              </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label>Accent Color</Label>
+                 <div className="flex flex-wrap gap-2">
+                   {colors.map((color) => (
+                     <button
+                       key={color}
+                       type="button"
+                       className={`w-6 h-6 rounded-full ${color} ${formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''}`}
+                       onClick={() => setFormData({ ...formData, color })}
+                     />
+                   ))}
+                 </div>
+               </div>
+               <div className="flex items-center gap-2">
+                 <input 
+                   type="checkbox" 
+                   id="edit-isActive"
+                   checked={formData.isActive}
+                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                   className="rounded border-gray-300"
+                 />
+                 <Label htmlFor="edit-isActive" className="cursor-pointer">Active Category</Label>
+               </div>
             </div>
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => {

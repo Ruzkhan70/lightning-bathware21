@@ -6,6 +6,11 @@ import {
   Wrench,
   Zap,
   HardHat,
+  Hammer,
+  Drill,
+  Cable,
+  Power,
+  Gauge,
   ArrowRight,
   Star,
   Truck,
@@ -100,6 +105,7 @@ export default function Home() {
     if (storeAssets.heroImage && storeAssets.heroImage.trim() !== "") {
       const img = new Image();
       img.onload = () => setHeroImageLoaded(true);
+      img.onerror = () => setHeroImageLoaded(true);
       img.src = storeAssets.heroImage;
     }
   }, [storeAssets.heroImage]);
@@ -120,22 +126,40 @@ export default function Home() {
   const activeCategories = useMemo(() => {
     return safeCategories
       .filter((c) => c.isActive)
-      .map((c) => ({
-        ...c,
-        icon:
-          c.name === "Lighting"
-            ? Lightbulb
-            : c.name === "Bathroom Fittings"
-            ? Bath
-            : c.name === "Plumbing"
-            ? Wrench
-            : c.name === "Electrical Hardware"
-            ? Zap
-            : c.name === "Construction Tools"
-            ? HardHat
-            : Lightbulb,
-        count: safeProducts.filter((p) => p.category === c.name).length,
-      }));
+      .map((c) => {
+        const isIconImage = c.icon && (c.icon.startsWith("http") || c.icon.startsWith("/"));
+        let iconComponent;
+        if (isIconImage) {
+          iconComponent = c.icon;
+        } else {
+          iconComponent =
+            c.icon === "Bath"
+              ? Bath
+              : c.icon === "Wrench"
+              ? Wrench
+              : c.icon === "Zap"
+              ? Zap
+              : c.icon === "HardHat"
+              ? HardHat
+              : c.icon === "Hammer"
+              ? Hammer
+              : c.icon === "Drill"
+              ? Drill
+              : c.icon === "Cable"
+              ? Cable
+              : c.icon === "Power"
+              ? Power
+              : c.icon === "Gauge"
+              ? Gauge
+              : Lightbulb;
+        }
+        return {
+          ...c,
+          icon: iconComponent,
+          isIconImage,
+          count: safeProducts.filter((p) => p.category === c.name).length,
+        };
+      });
   }, [safeCategories, safeProducts]);
 
   // Memoize features array (only visible ones)
@@ -306,7 +330,11 @@ export default function Home() {
                       <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
-                            <CategoryIcon className="w-7 h-7 text-black" />
+                            {category.isIconImage ? (
+                              <img src={category.icon as string} alt={category.name} className="w-7 h-7 object-contain" />
+                            ) : (
+                              <CategoryIcon className="w-7 h-7 text-black" />
+                            )}
                           </div>
                         </div>
                         <h3 className="text-xl font-bold mb-1 group-hover:text-[#D4AF37] transition-colors duration-300">
