@@ -368,28 +368,13 @@ const safeCategories = categories || [];
                 rows={3}
               />
             </div>
-<div className="space-y-2">
+            <div className="space-y-2">
               <Label>Category Banner Image</Label>
-              <div className="flex gap-2 mb-2">
-                <div className="flex-1">
-                  <ImageUpload 
-                    value={formData.image}
-                    onChange={(val) => setFormData({ ...formData, image: val })}
-                    label=""
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleGeneratePrompts}
-                  disabled={isGeneratingAI}
-                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isGeneratingAI ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                  }`}
-                >
-                  {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  AI Banner
-                </button>
-              </div>
+              <ImageUpload 
+                value={formData.image}
+                onChange={(val) => setFormData({ ...formData, image: val })}
+                label=""
+              />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
