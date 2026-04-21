@@ -422,12 +422,27 @@ export default function AdminCategories() {
               />
             </div>
 <div className="space-y-2">
-              <Label>Category Image</Label>
-              <ImageUpload 
-                value={formData.image}
-                onChange={(val) => setFormData({ ...formData, image: val })}
-                label="Category Banner"
-              />
+              <Label>Category Banner Image</Label>
+              <div className="flex gap-2 mb-2">
+                <div className="flex-1">
+                  <ImageUpload 
+                    value={formData.image}
+                    onChange={(val) => setFormData({ ...formData, image: val })}
+                    label=""
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateAIBanner}
+                  disabled={isGeneratingBanner}
+                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isGeneratingBanner ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  }`}
+                >
+                  {isGeneratingBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  AI Banner
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Category Icon</Label>
