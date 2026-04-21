@@ -89,7 +89,9 @@ export async function generateCategoryIcon(
 
 async function uploadToImgBB(blob: Blob): Promise<string> {
   const formData = new FormData();
-  formData.append("image", blob);
+  const fileName = `icon_${Date.now()}.png`;
+  const file = new File([blob], fileName, { type: "image/png" });
+  formData.append("image", file);
   
   const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
   if (!apiKey) {
