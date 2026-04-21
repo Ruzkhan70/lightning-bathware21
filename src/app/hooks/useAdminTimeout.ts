@@ -18,8 +18,8 @@ export function useAdminTimeout(
   const [countdownTime, setCountdownTime] = useState(WARNING_COUNTDOWN);
   
   const lastActivityRef = useRef<number>(Date.now());
-  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isLoggedInRef = useRef(isLoggedIn);
   const warningShownRef = useRef(false);
   const hasLoggedOutRef = useRef(false);
@@ -40,7 +40,6 @@ export function useAdminTimeout(
   }, []);
 
   const logoutNow = useCallback(() => {
-    // Prevent multiple logout calls
     if (hasLoggedOutRef.current) return;
     hasLoggedOutRef.current = true;
     
@@ -52,51 +51,20 @@ export function useAdminTimeout(
     onLogout();
   }, [clearAllTimers, onLogout]);
 
-  const resetTimer = useCallback(() => {
-    hasLoggedOutRef.current = false;
-    lastActivityRef.current = Date.now();
-    warningShownRef.current = false;
-    setShowWarning(false);
-    setCountdownTime(WARNING_COUNTDOWN);
-    
-    // Also clear the countdown timer since resetTimer can be called during warning
-    if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
-      countdownTimerRef.current = null;
-    }
-    
-    if (inactivityTimerRef.current) {
-      clearInterval(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
-    }
-    
-    // Restart inactivity timer
-    inactivityTimerRef.current = setInterval(() => {
-      if (!isLoggedInRef.current || hasLoggedOutRef.current) return;
-
-      const now = Date.now();
-      const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
-      
-      if (elapsed >= INACTIVITY_TIMEOUT && !warningShownRef.current) {
-        startWarningCountdown();
-      }
-    }, 1000);
-    
-    console.log("Session timer reset - activity detected");
-  }, [startWarningCountdown]);
-
   const startWarningCountdown = useCallback(() => {
-    // Prevent multiple warning countdowns
     if (warningShownRef.current) return;
     
     warningShownRef.current = true;
     setShowWarning(true);
     setCountdownTime(WARNING_COUNTDOWN);
     
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+    }
+    
     countdownTimerRef.current = setInterval(() => {
       setCountdownTime((prev) => {
         if (prev <= 1) {
-          // Clear interval immediately before calling logout
           if (countdownTimerRef.current) {
             clearInterval(countdownTimerRef.current);
             countdownTimerRef.current = null;
@@ -109,34 +77,47 @@ export function useAdminTimeout(
     }, 1000);
   }, [logoutNow]);
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      resetTimer();
-      return;
-    }
-
-    // Reset logout flag when logging in
+  const resetTimer = useCallback(() => {
     hasLoggedOutRef.current = false;
     lastActivityRef.current = Date.now();
     warningShownRef.current = false;
+    setShowWarning(false);
+    setCountdownTime(WARNING_COUNTDOWN);
+    
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    
+    console.log("Session timer reset - activity detected");
+  }, []);
 
-    // Inactivity timer - checks every second
+  useEffect(() => {
+    if (!isLoggedIn) {
+      clearAllTimers();
+      return;
+    }
+
+    hasLoggedOutRef.current = false;
+    lastActivityRef.current = Date.now();
+    warningShownRef.current = false;
+    
+    clearAllTimers();
+    
     inactivityTimerRef.current = setInterval(() => {
-      if (!isLoggedInRef.current || hasLoggedOutRef.current) return;
+      if (!isLoggedInRef.current || hasLoggedOutRef.current) return; 
 
       const now = Date.now();
       const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
       
-      // If 2 minutes have passed and warning not shown yet
       if (elapsed >= INACTIVITY_TIMEOUT && !warningShownRef.current) {
         startWarningCountdown();
       }
     }, 1000);
 
     return () => clearAllTimers();
-  }, [isLoggedIn, clearAllTimers, resetTimer, startWarningCountdown]);
+  }, [isLoggedIn, clearAllTimers, startWarningCountdown]);
 
-  // Activity listener - only active when not showing warning
   useEffect(() => {
     if (!isLoggedIn || showWarning) return;
 
