@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -8,17 +8,45 @@ import { Textarea } from "../../components/ui/textarea";
 import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
-import { generateCategoryIcon, getCategoryColor, ICON_PROMPTS } from "../../../lib/iconGenerator";
+import { generateCategoryIcon, generateBannerImage, getCategoryColor, getTextPrompt, ICON_PROMPTS } from "../../../lib/iconGenerator";
 
 export default function AdminCategories() {
   const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [iconType, setIconType] = useState<"lucide" | "image" | "ai">("lucide");
+  const [iconType, setIconType] = useState<"lucide" | "ai">("lucide");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
+  const [generatedTextPrompt, setGeneratedTextPrompt] = useState<string>("");
 
   const safeCategories = categories || [];
+
+  const handleGenerateAIBanner = async () => {
+    if (!formData.name) {
+      toast.error("Please enter a category name first");
+      return;
+    }
+
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      toast.error("Gemini API key not configured");
+      return;
+    }
+
+    setIsGeneratingBanner(true);
+    try {
+      const bannerUrl = await generateBannerImage(formData.name, apiKey);
+      setFormData({ ...formData, image: bannerUrl });
+      toast.success("Banner generated successfully!");
+    } catch (error) {
+      console.error("Failed to generate banner:", error);
+      toast.error("Failed to generate banner. Using text prompt instead.");
+      setGeneratedTextPrompt(getTextPrompt(formData.name, "banner"));
+    } finally {
+      setIsGeneratingBanner(false);
+    }
+  };
 
   const handleGenerateAIIcon = async () => {
     if (!formData.name) {
@@ -33,12 +61,15 @@ export default function AdminCategories() {
     }
 
     setIsGeneratingAI(true);
+    setGeneratedTextPrompt("");
     try {
       const iconUrl = await generateCategoryIcon(formData.name, apiKey);
       setFormData({ ...formData, icon: iconUrl });
       toast.success("Icon generated successfully!");
     } catch (error) {
       console.error("Failed to generate icon:", error);
+      toast.error("Image generation failed. Here's a text prompt you can use elsewhere:");
+      setGeneratedTextPrompt(getTextPrompt(formData.name, "icon"));
     } finally {
       setIsGeneratingAI(false);
     }
@@ -200,7 +231,7 @@ export default function AdminCategories() {
 
       {/* Add Category Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
           </DialogHeader>
@@ -224,13 +255,28 @@ export default function AdminCategories() {
                 rows={3}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Category Image</Label>
-              <ImageUpload 
-                value={formData.image}
-                onChange={(val) => setFormData({ ...formData, image: val })}
-                label="Category Banner"
-              />
+<div className="space-y-2">
+              <Label>Category Banner Image</Label>
+              <div className="flex gap-2 mb-2">
+                <div className="flex-1">
+                  <ImageUpload 
+                    value={formData.image}
+                    onChange={(val) => setFormData({ ...formData, image: val })}
+                    label=""
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateAIBanner}
+                  disabled={isGeneratingBanner}
+                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isGeneratingBanner ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  }`}
+                >
+                  {isGeneratingBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  AI Banner
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Category Icon</Label>
@@ -258,15 +304,6 @@ export default function AdminCategories() {
                     <Sparkles className="w-4 h-4 inline mr-1" />
                   )}
                   Generate AI
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIconType("image")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Upload
                 </button>
               </div>
               {iconType === "lucide" ? (
@@ -362,7 +399,7 @@ export default function AdminCategories() {
 
       {/* Edit Category Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Category: {editingCategory?.name}</DialogTitle>
           </DialogHeader>
@@ -414,15 +451,6 @@ export default function AdminCategories() {
                 >
                   {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Sparkles className="w-4 h-4 mr-1" />}
                   Generate AI
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIconType("image")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Upload
                 </button>
               </div>
               {iconType === "lucide" ? (
@@ -518,6 +546,29 @@ export default function AdminCategories() {
                 </div>
               )}
             </div>
+            {generatedTextPrompt && (
+              <div className="space-y-2">
+                <Label>AI Prompt (Copy & Use Elsewhere)</Label>
+                <div className="relative">
+                  <textarea
+                    readOnly
+                    value={generatedTextPrompt}
+                    className="w-full h-24 p-3 text-xs bg-gray-50 border rounded-lg resize-none pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedTextPrompt);
+                      toast.success("Prompt copied to clipboard!");
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-[#D4AF37] rounded hover:bg-[#C5A028]"
+                  >
+                    <Copy className="w-4 h-4 text-black" />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">Copy this prompt and use in DALL-E, Midjourney, Canva, or any AI image generator</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
                <div className="space-y-2">
                  <Label>Accent Color</Label>
