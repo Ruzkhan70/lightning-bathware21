@@ -42,14 +42,17 @@ export async function generateCategoryIcon(
       temperature: 0.9,
       topP: 1,
       topK: 1,
-      maxOutputTokens: 8192
+      maxOutputTokens: 8192,
+      responseModalities: ["IMAGE"]
     },
-    responseModalities: ["image"]
+    systemInstruction: {
+      parts: [{ text: "You are an image generation model. Generate images as requested." }]
+    }
   };
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-0520:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
@@ -77,6 +80,11 @@ export async function generateCategoryIcon(
         const blob = new Blob([imageBlob], { type: part.inlineData.mimeType || "image/png" });
         return await uploadToImgBB(blob);
       }
+    }
+
+    if (result.error) {
+      console.error("Gemini API error:", result.error.message);
+      throw new Error(result.error.message);
     }
 
     throw new Error("No image generated from Gemini");
