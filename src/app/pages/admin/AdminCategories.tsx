@@ -19,24 +19,17 @@ export default function AdminCategories() {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [generatedTextPrompt, setGeneratedTextPrompt] = useState("");
 
-  const safeCategories = categories || [];
+const safeCategories = categories || [];
 
-  const handleGenerateAIPrompt = () => {
+  const handleGeneratePrompts = () => {
     if (!formData.name) {
       toast.error("Please enter a category name first");
       return;
     }
-    setGeneratedTextPrompt(getTextPrompt(formData.name, "icon"));
-    toast.success("Prompt generated!");
-  };
-
-  const handleGenerateBannerPrompt = () => {
-    if (!formData.name) {
-      toast.error("Please enter a category name first");
-      return;
-    }
-    setGeneratedTextPrompt(getTextPrompt(formData.name, "banner"));
-    toast.success("Banner prompt generated!");
+    const iconPrompt = getTextPrompt(formData.name, "icon");
+    const bannerPrompt = getTextPrompt(formData.name, "banner");
+    setGeneratedTextPrompt(`${iconPrompt}\n\n---\n\n${bannerPrompt}`);
+    toast.success("Prompts generated!");
   };
 
   const [formData, setFormData] = useState({
@@ -231,7 +224,7 @@ export default function AdminCategories() {
                 </div>
                 <button
                   type="button"
-                  onClick={handleGenerateBannerPrompt}
+                  onClick={handleGeneratePrompts}
                   disabled={isGeneratingAI}
                   className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                     isGeneratingAI ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
@@ -320,7 +313,7 @@ export default function AdminCategories() {
                       <div className="space-y-3">
                         <img src={formData.icon} alt="Generated Icon" className="w-20 h-20 mx-auto rounded-lg object-cover" />
                         <p className="text-sm text-gray-600">Icon generated for: <strong>{formData.name}</strong></p>
-                        <Button type="button" onClick={handleGenerateAIPrompt} disabled={isGeneratingAI} variant="outline" className="w-full">
+                        <Button type="button" onClick={handleGeneratePrompts} disabled={isGeneratingAI} variant="outline" className="w-full">
                           {isGeneratingAI ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Regenerating...</> : <><Sparkles className="w-4 h-4 mr-2" />Regenerate Icon</>}
                         </Button>
                       </div>
@@ -328,7 +321,7 @@ export default function AdminCategories() {
                       <div className="space-y-3">
                         <Sparkles className="w-12 h-12 mx-auto text-gray-400" />
                         <p className="text-sm text-gray-600">Enter a category name and click generate to create an AI icon</p>
-                        <Button type="button" onClick={handleGenerateAIPrompt} disabled={isGeneratingAI || !formData.name} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                        <Button type="button" onClick={handleGeneratePrompts} disabled={isGeneratingAI || !formData.name} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
                           {isGeneratingAI ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Generating...</> : <><Sparkles className="w-4 h-4 mr-2" />Generate Icon with AI</>}
                         </Button>
                       </div>
@@ -407,7 +400,7 @@ export default function AdminCategories() {
                 </div>
                 <button
                   type="button"
-                  onClick={handleGenerateBannerPrompt}
+                  onClick={handleGeneratePrompts}
                   disabled={isGeneratingAI}
                   className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                     isGeneratingAI ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
@@ -484,7 +477,7 @@ export default function AdminCategories() {
                         <p className="text-sm text-gray-600">Icon generated for: <strong>{formData.name}</strong></p>
                         <Button
                           type="button"
-                          onClick={handleGenerateAIPrompt}
+                          onClick={handleGeneratePrompts}
                           disabled={isGeneratingAI}
                           variant="outline"
                           className="w-full"
@@ -510,7 +503,7 @@ export default function AdminCategories() {
                         </p>
                         <Button
                           type="button"
-                          onClick={handleGenerateAIPrompt}
+                          onClick={handleGeneratePrompts}
                           disabled={isGeneratingAI || !formData.name}
                           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                         >
