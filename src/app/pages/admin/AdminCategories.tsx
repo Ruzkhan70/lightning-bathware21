@@ -204,7 +204,7 @@ const safeCategories = categories || [];
             </div>
 <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea 
+<Textarea 
                 id="description" 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -212,31 +212,36 @@ const safeCategories = categories || [];
                 rows={3}
               />
             </div>
-<div className="space-y-2">
-              <Label>Category Banner Image</Label>
-              <div className="flex gap-2 mb-2">
-                <div className="flex-1">
-                  <ImageUpload 
-                    value={formData.image}
-                    onChange={(val) => setFormData({ ...formData, image: val })}
-                    label=""
-                  />
-                </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Category Banner Image</Label>
                 <button
                   type="button"
                   onClick={handleGeneratePrompts}
-                  disabled={isGeneratingAI}
-                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isGeneratingAI ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                  }`}
+                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                 >
-                  {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  AI Banner
+                  <Sparkles className="w-3 h-3" />
+                  Generate
                 </button>
               </div>
+              <ImageUpload 
+                value={formData.image}
+                onChange={(val) => setFormData({ ...formData, image: val })}
+                label=""
+              />
             </div>
             <div className="space-y-2">
-              <Label>Category Icon</Label>
+              <div className="flex items-center justify-between">
+                <Label>Category Icon</Label>
+                <button
+                  type="button"
+                  onClick={handleGeneratePrompts}
+                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Generate
+                </button>
+              </div>
               <div className="flex gap-2 mb-2">
                 <button
                   type="button"
@@ -246,21 +251,6 @@ const safeCategories = categories || [];
                   }`}
                 >
                   Use Icon
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIconType("ai")}
-                  disabled={isGeneratingAI}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
-                    iconType === "ai" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  } ${isGeneratingAI ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  {isGeneratingAI ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 inline mr-1" />
-                  )}
-                  Generate AI
                 </button>
                 <button
                   type="button"
@@ -412,7 +402,17 @@ const safeCategories = categories || [];
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Category Icon</Label>
+              <div className="flex items-center justify-between">
+                <Label>Category Icon</Label>
+                <button
+                  type="button"
+                  onClick={handleGeneratePrompts}
+                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Generate
+                </button>
+              </div>
               <div className="flex gap-2 mb-2">
                 <button
                   type="button"
@@ -425,14 +425,13 @@ const safeCategories = categories || [];
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIconType("ai")}
-                  disabled={isGeneratingAI}
+                  onClick={() => setIconType("image")}
                   className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
-                    iconType === "ai" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  } ${isGeneratingAI ? "opacity-50 cursor-not-allowed" : ""}`}
+                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
                 >
-                  {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Sparkles className="w-4 h-4 mr-1" />}
-                  Generate AI
+                  <Upload className="w-4 h-4 mr-1" />
+                  Upload
                 </button>
               </div>
               {iconType === "lucide" ? (
