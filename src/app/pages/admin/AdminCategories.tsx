@@ -21,15 +21,35 @@ export default function AdminCategories() {
 
 const safeCategories = categories || [];
 
+  const getCategoryIcon = (icon: string | undefined, name: string) => {
+    if (icon) return icon;
+    const lower = name.toLowerCase();
+    if (lower.includes("light")) return "Lightbulb";
+    if (lower.includes("bath") || lower.includes("shower") || lower.includes("toilet")) return "Bath";
+    if (lower.includes("plumb") || lower.includes("valve") || lower.includes("drain") || lower.includes("water") || lower.includes("tap") || lower.includes("mixer")) return "Wrench";
+    if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) return "Zap";
+    if (lower.includes("construct") || lower.includes("tool") || lower.includes("paint") || lower.includes("hardhat") || lower.includes("appliance")) return "HardHat";
+    return "Lightbulb";
+  };
+
+  const autoAssignIcons = () => {
+    safeCategories.forEach(category => {
+      const icon = getCategoryIcon(undefined, category.name);
+      if (category.icon !== icon) {
+        updateCategory(category.id, { ...category, icon });
+      }
+    });
+    toast.success("Icons assigned to all categories!");
+  };
+
   const handleGeneratePrompts = () => {
     if (!formData.name) {
       toast.error("Please enter a category name first");
       return;
     }
-    const iconPrompt = getTextPrompt(formData.name, "icon");
     const bannerPrompt = getTextPrompt(formData.name, "banner");
-    setGeneratedTextPrompt(`${iconPrompt}\n\n---\n\n${bannerPrompt}`);
-    toast.success("Prompts generated!");
+    setGeneratedTextPrompt(bannerPrompt);
+    toast.success("Banner prompt generated!");
   };
 
   const [formData, setFormData] = useState({
@@ -119,6 +139,14 @@ const safeCategories = categories || [];
           <Plus className="w-4 h-4 mr-2" />
           Add Category
         </Button>
+        <Button 
+          onClick={autoAssignIcons}
+          variant="outline"
+          className="border-purple-500 text-purple-600 hover:bg-purple-50"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Auto-Assign Icons
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -139,7 +167,11 @@ const safeCategories = categories || [];
             <div className="p-6 flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-8 h-8 ${category.color} rounded-lg flex items-center justify-center`}>
-                  <List className="w-4 h-4 text-white" />
+                  {getCategoryIcon(category.icon, category.name) === "Bath" && <Bath className="w-4 h-4 text-white" />}
+                  {getCategoryIcon(category.icon, category.name) === "Wrench" && <Wrench className="w-4 h-4 text-white" />}
+                  {getCategoryIcon(category.icon, category.name) === "Zap" && <Zap className="w-4 h-4 text-white" />}
+                  {getCategoryIcon(category.icon, category.name) === "HardHat" && <HardHat className="w-4 h-4 text-white" />}
+                  {getCategoryIcon(category.icon, category.name) === "Lightbulb" && <Lightbulb className="w-4 h-4 text-white" />}
                 </div>
                 <h2 className="text-xl font-bold">{category.name}</h2>
               </div>
@@ -257,7 +289,7 @@ const safeCategories = categories || [];
             </div>
             {generatedTextPrompt && (
               <div className="space-y-2">
-                <Label>AI Prompt</Label>
+                <Label>Banner Prompt</Label>
                 <div className="relative">
                   <textarea
                     readOnly
@@ -379,7 +411,7 @@ const safeCategories = categories || [];
             </div>
             {generatedTextPrompt && (
               <div className="space-y-2">
-                <Label>AI Prompt</Label>
+                <Label>Banner Prompt</Label>
                 <div className="relative">
                   <textarea
                     readOnly
