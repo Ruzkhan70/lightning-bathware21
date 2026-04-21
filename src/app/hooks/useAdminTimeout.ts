@@ -58,9 +58,32 @@ export function useAdminTimeout(
     warningShownRef.current = false;
     setShowWarning(false);
     setCountdownTime(WARNING_COUNTDOWN);
-    clearAllTimers();
+    
+    // Also clear the countdown timer since resetTimer can be called during warning
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    
+    if (inactivityTimerRef.current) {
+      clearInterval(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    
+    // Restart inactivity timer
+    inactivityTimerRef.current = setInterval(() => {
+      if (!isLoggedInRef.current || hasLoggedOutRef.current) return;
+
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
+      
+      if (elapsed >= INACTIVITY_TIMEOUT && !warningShownRef.current) {
+        startWarningCountdown();
+      }
+    }, 1000);
+    
     console.log("Session timer reset - activity detected");
-  }, [clearAllTimers]);
+  }, [startWarningCountdown]);
 
   const startWarningCountdown = useCallback(() => {
     // Prevent multiple warning countdowns

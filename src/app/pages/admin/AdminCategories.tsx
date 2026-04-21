@@ -93,7 +93,7 @@ export default function AdminCategories() {
   const openEditDialog = (category: Category) => {
     setEditingCategory(category);
     const isIconImage = category.icon && (category.icon.startsWith("http") || category.icon.startsWith("/"));
-    setIconType(isIconImage ? "image" : "lucide");
+    setIconType(isIconImage ? "ai" : "lucide");
     setFormData({
       name: category.name,
       description: category.description,
@@ -406,12 +406,23 @@ export default function AdminCategories() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setIconType("ai")}
+                  disabled={isGeneratingAI}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
+                    iconType === "ai" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  } ${isGeneratingAI ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                  Generate AI
+                </button>
+                <button
+                  type="button"
                   onClick={() => setIconType("image")}
                   className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                     iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  Upload Image
+                  Upload
                 </button>
               </div>
               {iconType === "lucide" ? (
