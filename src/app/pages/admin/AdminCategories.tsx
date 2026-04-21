@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2 } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -8,15 +8,41 @@ import { Textarea } from "../../components/ui/textarea";
 import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import { generateCategoryIcon, getCategoryColor, ICON_PROMPTS } from "../../../lib/iconGenerator";
 
 export default function AdminCategories() {
   const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [iconType, setIconType] = useState<"lucide" | "image">("lucide");
+  const [iconType, setIconType] = useState<"lucide" | "image" | "ai">("lucide");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const safeCategories = categories || [];
+
+  const handleGenerateAIIcon = async () => {
+    if (!formData.name) {
+      toast.error("Please enter a category name first");
+      return;
+    }
+
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      toast.error("Gemini API key not configured. Please add VITE_GEMINI_API_KEY to environment variables.");
+      return;
+    }
+
+    setIsGeneratingAI(true);
+    try {
+      const iconUrl = await generateCategoryIcon(formData.name, apiKey);
+      setFormData({ ...formData, icon: iconUrl });
+      toast.success("Icon generated successfully!");
+    } catch (error) {
+      console.error("Failed to generate icon:", error);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -220,12 +246,27 @@ export default function AdminCategories() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setIconType("ai")}
+                  disabled={isGeneratingAI}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
+                    iconType === "ai" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  } ${isGeneratingAI ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isGeneratingAI ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 inline mr-1" />
+                  )}
+                  Generate AI
+                </button>
+                <button
+                  type="button"
                   onClick={() => setIconType("image")}
                   className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                     iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  Upload Image
+                  Upload
                 </button>
               </div>
               {iconType === "lucide" ? (
@@ -254,13 +295,36 @@ export default function AdminCategories() {
                     </button>
                   ))}
                 </div>
-              ) : (
+              ) : iconType === "image" ? (
                 <ImageUpload
                   value={formData.icon}
                   onChange={(val) => setFormData({ ...formData, icon: val })}
                   label="Upload Icon"
                   maxSizeMB={2}
                 />
+              ) : (
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    {formData.icon && formData.icon.startsWith("http") ? (
+                      <div className="space-y-3">
+                        <img src={formData.icon} alt="Generated Icon" className="w-20 h-20 mx-auto rounded-lg object-cover" />
+                        <p className="text-sm text-gray-600">Icon generated for: <strong>{formData.name}</strong></p>
+                        <Button type="button" onClick={handleGenerateAIIcon} disabled={isGeneratingAI} variant="outline" className="w-full">
+                          {isGeneratingAI ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Regenerating...</> : <><Sparkles className="w-4 h-4 mr-2" />Regenerate Icon</>}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Sparkles className="w-12 h-12 mx-auto text-gray-400" />
+                        <p className="text-sm text-gray-600">Enter a category name and click generate to create an AI icon</p>
+                        <Button type="button" onClick={handleGenerateAIIcon} disabled={isGeneratingAI || !formData.name} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                          {isGeneratingAI ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Generating...</> : <><Sparkles className="w-4 h-4 mr-2" />Generate Icon with AI</>}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">Powered by Google Gemini</p>
+                </div>
               )}
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -376,13 +440,71 @@ export default function AdminCategories() {
                     </button>
                   ))}
                 </div>
-              ) : (
+              ) : iconType === "image" ? (
                 <ImageUpload
                   value={formData.icon}
                   onChange={(val) => setFormData({ ...formData, icon: val })}
                   label="Upload Icon"
                   maxSizeMB={2}
                 />
+              ) : (
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    {formData.icon && formData.icon.startsWith("http") ? (
+                      <div className="space-y-3">
+                        <img src={formData.icon} alt="Generated Icon" className="w-20 h-20 mx-auto rounded-lg object-cover" />
+                        <p className="text-sm text-gray-600">Icon generated for: <strong>{formData.name}</strong></p>
+                        <Button
+                          type="button"
+                          onClick={handleGenerateAIIcon}
+                          disabled={isGeneratingAI}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          {isGeneratingAI ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Regenerate Icon
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Sparkles className="w-12 h-12 mx-auto text-gray-400" />
+                        <p className="text-sm text-gray-600">
+                          Enter a category name and click generate to create an AI icon
+                        </p>
+                        <Button
+                          type="button"
+                          onClick={handleGenerateAIIcon}
+                          disabled={isGeneratingAI || !formData.name}
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                        >
+                          {isGeneratingAI ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Generate Icon with AI
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    Powered by Google Gemini • Generates unique icons based on category name
+                  </p>
+                </div>
               )}
             </div>
             <div className="grid grid-cols-2 gap-4">
