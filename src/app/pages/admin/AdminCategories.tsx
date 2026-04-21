@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -15,7 +15,7 @@ export default function AdminCategories() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [iconType, setIconType] = useState<"lucide" | "ai">("lucide");
+  const [iconType, setIconType] = useState<"lucide" | "ai" | "image">("lucide");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
   const [generatedTextPrompt, setGeneratedTextPrompt] = useState<string>("");
@@ -304,6 +304,16 @@ export default function AdminCategories() {
                     <Sparkles className="w-4 h-4 inline mr-1" />
                   )}
                   Generate AI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIconType("image")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
+                    iconType === "image" ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  <Upload className="w-4 h-4 mr-1" />
+                  Upload
                 </button>
               </div>
               {iconType === "lucide" ? (
