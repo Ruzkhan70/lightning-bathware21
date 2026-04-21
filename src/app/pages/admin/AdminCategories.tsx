@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -9,6 +9,29 @@ import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { generatePrompt, getCategoryColor, getTextPrompt, ICON_PROMPTS } from "../../../lib/iconGenerator";
+
+const ICON_OPTIONS = [
+  { name: "Lightbulb", icon: Lightbulb },
+  { name: "Bath", icon: Bath },
+  { name: "Wrench", icon: Wrench },
+  { name: "Zap", icon: Zap },
+  { name: "HardHat", icon: HardHat },
+  { name: "Hammer", icon: Hammer },
+  { name: "Drill", icon: Drill },
+  { name: "Cable", icon: Cable },
+  { name: "Power", icon: Power },
+  { name: "Gauge", icon: Gauge },
+  { name: "Droplets", icon: Droplets },
+  { name: "Waves", icon: Waves },
+  { name: "Paintbrush", icon: Paintbrush },
+  { name: "Scissors", icon: Scissors },
+  { name: "Package", icon: Package },
+  { name: "Box", icon: Box },
+  { name: "Timer", icon: Timer },
+  { name: "Thermometer", icon: Thermometer },
+  { name: "Fan", icon: Fan },
+  { name: "Snowflake", icon: Snowflake },
+];
 
 export default function AdminCategories() {
   const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
@@ -30,6 +53,11 @@ const safeCategories = categories || [];
     if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) return "Zap";
     if (lower.includes("construct") || lower.includes("tool") || lower.includes("paint") || lower.includes("hardhat") || lower.includes("appliance")) return "HardHat";
     return "Lightbulb";
+  };
+
+  const getIconComponent = (iconName: string) => {
+    const found = ICON_OPTIONS.find(opt => opt.name === iconName);
+    return found ? found.icon : Lightbulb;
   };
 
   const autoAssignIcons = () => {
@@ -132,21 +160,23 @@ const safeCategories = categories || [];
           <h1 className="text-3xl font-bold">Category Management</h1>
           <p className="text-gray-600">Add, edit, and manage your product categories</p>
         </div>
-        <Button 
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-black hover:bg-[#D4AF37] text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Category
-        </Button>
-        <Button 
-          onClick={autoAssignIcons}
-          variant="outline"
-          className="border-purple-500 text-purple-600 hover:bg-purple-50"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Auto-Assign Icons
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={autoAssignIcons}
+            variant="outline"
+            className="border-purple-500 text-purple-600 hover:bg-purple-50"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Auto-Assign Icons
+          </Button>
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)}
+            className="bg-black hover:bg-[#D4AF37] text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Category
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -167,11 +197,10 @@ const safeCategories = categories || [];
             <div className="p-6 flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-8 h-8 ${category.color} rounded-lg flex items-center justify-center`}>
-                  {getCategoryIcon(category.icon, category.name) === "Bath" && <Bath className="w-4 h-4 text-white" />}
-                  {getCategoryIcon(category.icon, category.name) === "Wrench" && <Wrench className="w-4 h-4 text-white" />}
-                  {getCategoryIcon(category.icon, category.name) === "Zap" && <Zap className="w-4 h-4 text-white" />}
-                  {getCategoryIcon(category.icon, category.name) === "HardHat" && <HardHat className="w-4 h-4 text-white" />}
-                  {getCategoryIcon(category.icon, category.name) === "Lightbulb" && <Lightbulb className="w-4 h-4 text-white" />}
+                  {(() => {
+                    const IconComp = getIconComponent(getCategoryIcon(category.icon, category.name));
+                    return <IconComp className="w-4 h-4 text-white" />;
+                  })()}
                 </div>
                 <h2 className="text-xl font-bold">{category.name}</h2>
               </div>
@@ -234,9 +263,9 @@ const safeCategories = categories || [];
                 placeholder="e.g., Solar Lighting"
               />
             </div>
-<div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-<Textarea 
+              <Textarea 
                 id="description" 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -267,13 +296,7 @@ const safeCategories = categories || [];
               </div>
               <p className="text-xs text-gray-500 mb-2">Select an icon for this category</p>
               <div className="grid grid-cols-5 gap-2">
-                {[
-                  { name: "Lightbulb", icon: Lightbulb },
-                  { name: "Bath", icon: Bath },
-                  { name: "Wrench", icon: Wrench },
-                  { name: "Zap", icon: Zap },
-                  { name: "HardHat", icon: HardHat },
-                ].map(({ name, icon: Icon }) => (
+                {ICON_OPTIONS.map(({ name, icon: Icon }) => (
                   <button
                     key={name}
                     type="button"
@@ -281,6 +304,7 @@ const safeCategories = categories || [];
                     className={`p-3 rounded-lg border-2 transition-all ${
                       formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
                     }`}
+                    title={name}
                   >
                     <Icon className="w-6 h-6 mx-auto" />
                   </button>
@@ -327,9 +351,9 @@ const safeCategories = categories || [];
                  <input 
                    type="checkbox" 
                    id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded border-gray-300"
+                   checked={formData.isActive}
+                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                   className="rounded border-gray-300"
                  />
                  <Label htmlFor="isActive" className="cursor-pointer">Active Category</Label>
                </div>
@@ -389,13 +413,7 @@ const safeCategories = categories || [];
               </div>
               <p className="text-xs text-gray-500 mb-2">Select an icon for this category</p>
               <div className="grid grid-cols-5 gap-2">
-                {[
-                  { name: "Lightbulb", icon: Lightbulb },
-                  { name: "Bath", icon: Bath },
-                  { name: "Wrench", icon: Wrench },
-                  { name: "Zap", icon: Zap },
-                  { name: "HardHat", icon: HardHat },
-                ].map(({ name, icon: Icon }) => (
+                {ICON_OPTIONS.map(({ name, icon: Icon }) => (
                   <button
                     key={name}
                     type="button"
@@ -403,6 +421,7 @@ const safeCategories = categories || [];
                     className={`p-3 rounded-lg border-2 transition-all ${
                       formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
                     }`}
+                    title={name}
                   >
                     <Icon className="w-6 h-6 mx-auto" />
                   </button>

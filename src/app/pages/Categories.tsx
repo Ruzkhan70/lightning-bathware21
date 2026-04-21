@@ -8,6 +8,21 @@ import {
   Wrench,
   Zap,
   HardHat,
+  Hammer,
+  Drill,
+  Cable,
+  Power,
+  Gauge,
+  Droplets,
+  Waves,
+  Paintbrush,
+  Scissors,
+  Package,
+  Box,
+  Timer,
+  Thermometer,
+  Fan,
+  Snowflake,
   ArrowRight,
   List,
 } from "lucide-react";
@@ -15,6 +30,29 @@ import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import ScrollAnimation from "../components/ScrollAnimation";
 import { CategoryGridSkeleton, Skeleton } from "../components/Skeleton";
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Lightbulb,
+  Bath,
+  Wrench,
+  Zap,
+  HardHat,
+  Hammer,
+  Drill,
+  Cable,
+  Power,
+  Gauge,
+  Droplets,
+  Waves,
+  Paintbrush,
+  Scissors,
+  Package,
+  Box,
+  Timer,
+  Thermometer,
+  Fan,
+  Snowflake,
+};
 
 export default function Categories() {
   const { products, categories, siteContent, isDataLoaded } = useAdmin();
@@ -49,16 +87,19 @@ export default function Categories() {
     );
   }
 
-  // Map icon names/categories to Lucide icons
-  const getIcon = (name: string) => {
-    switch (name) {
-      case "Lighting": return Lightbulb;
-      case "Bathroom Fittings": return Bath;
-      case "Plumbing": return Wrench;
-      case "Electrical Hardware": return Zap;
-      case "Construction Tools": return HardHat;
-      default: return List;
+  // Map icon names to Lucide icons
+  const getIcon = (iconName?: string, categoryName?: string) => {
+    if (iconName && ICON_MAP[iconName]) {
+      return ICON_MAP[iconName];
     }
+    // Fallback to category name matching
+    const lower = (categoryName || "").toLowerCase();
+    if (lower.includes("light")) return Lightbulb;
+    if (lower.includes("bath") || lower.includes("shower") || lower.includes("toilet")) return Bath;
+    if (lower.includes("plumb") || lower.includes("valve") || lower.includes("drain") || lower.includes("water") || lower.includes("tap") || lower.includes("mixer")) return Wrench;
+    if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) return Zap;
+    if (lower.includes("construct") || lower.includes("tool") || lower.includes("paint") || lower.includes("hardhat") || lower.includes("appliance")) return HardHat;
+    return List;
   };
 
   return (
@@ -80,7 +121,7 @@ export default function Categories() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {activeCategories.map((category, index) => {
-              const CategoryIcon = getIcon(category.name);
+              const CategoryIcon = getIcon(category.icon, category.name);
               const productCount = safeProducts.filter((p) => p.category === category.name).length;
               
               return (
