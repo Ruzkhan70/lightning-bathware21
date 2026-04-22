@@ -4,16 +4,18 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 
 export interface CartItem {
   id: string;
+  product_id?: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
   isAvailable: boolean;
+  selected_color?: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Omit<CartItem, "quantity">) => void;
+  addToCart: (product: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -154,17 +156,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cartItems, saveCartToFirebaseDebounced]);
 
-  const addToCart = (product: Omit<CartItem, "quantity">) => {
+  const addToCart = (product: Omit<CartItem, "quantity"> & { quantity?: number }) => {
+    const qty = product.quantity || 1;
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
         return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + qty }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: qty }];
     });
   };
 

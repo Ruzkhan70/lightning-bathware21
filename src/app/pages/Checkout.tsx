@@ -113,6 +113,7 @@ export default function Checkout() {
           quantity: item.quantity,
           price: item.price,
           image: item.image,
+          selected_color: item.selected_color,
         })),
         total: grandTotal,
         deliveryOption: selectedDelivery?.label || "",

@@ -31,6 +31,12 @@ interface BulkProduct {
 
 type UploadStep = "input" | "preview" | "uploading";
 
+interface ProductVariant {
+  id: string;
+  color: string;
+  images: string[];
+}
+
 export default function AdminAddProduct() {
   const { addProduct, addMultipleProducts, categories, products } = useAdmin();
   const [formData, setFormData] = useState({
@@ -53,6 +59,10 @@ export default function AdminAddProduct() {
   const [isFileDragging, setIsFileDragging] = useState(false);
   const [quickCategory, setQuickCategory] = useState<string>("");
   const [existingProducts, setExistingProducts] = useState<Set<string>>(new Set());
+  const [enableVariants, setEnableVariants] = useState(false);
+  const [variants, setVariants] = useState<ProductVariant[]>([
+    { id: "1", color: "", images: [] }
+  ]);
 
   const safeCategories = categories || [];
 
@@ -877,6 +887,87 @@ const inferCategory = (productName: string, existingCategory: string): string =>
   function SingleProductForm() {
     const safeCategories = categories || [];
 
+    const addVariant = () => {
+      setVariants([...variants, { id: Date.now().toString(), color: "", images: [] }]);
+    };
+
+    const removeVariant = (id: string) => {
+      if (variants.length > 1) {
+        setVariants(variants.filter(v => v.id !== id));
+      }
+    };
+
+    const updateVariantColor = (id: string, color: string) => {
+      setVariants(variants.map(v => v.id === id ? { ...v, color } : v));
+    };
+
+    const uploadVariantImage = async (variantId: string, file: File) => {
+      const formDataImg = new FormData();
+      formDataImg.append("image", file);
+
+      try {
+        const response = await fetch(
+          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+          { method: "POST", body: formDataImg }
+        );
+        const data = await response.json();
+        
+        if (data.success) {
+          setVariants(variants.map(v => {
+            if (v.id === variantId) {
+              return { ...v, images: [...v.images, data.data.url] };
+            }
+            return v;
+          }));
+        } else {
+          const url = URL.createObjectURL(file);
+          setVariants(variants.map(v => {
+            if (v.id === variantId) {
+              return { ...v, images: [...v.images, url] };
+            }
+            return v;
+          }));
+        }
+      } catch (error) {
+        const url = URL.createObjectURL(file);
+        setVariants(variants.map(v => {
+          if (v.id === variantId) {
+            return { ...v, images: [...v.images, url] };
+          }
+          return v;
+        }));
+      }
+    };
+
+    const removeVariantImage = (variantId: string, imageIndex: number) => {
+      setVariants(variants.map(v => {
+        if (v.id === variantId) {
+          return { ...v, images: v.images.filter((_, i) => i !== imageIndex) };
+        }
+        return v;
+      }));
+    };
+
+    const validateVariants = (): string[] => {
+      const errors: string[] = [];
+      if (enableVariants) {
+        const colors = variants.map(v => v.color.toLowerCase().trim());
+        const duplicates = colors.filter((c, i) => c && colors.indexOf(c) !== i);
+        if (duplicates.length > 0) {
+          errors.push("Duplicate colors found");
+        }
+        const emptyColors = variants.filter(v => !v.color.trim());
+        if (emptyColors.length > 0) {
+          errors.push("All colors must have a name");
+        }
+        const noImages = variants.filter(v => v.images.length === 0);
+        if (noImages.length > 0) {
+          errors.push("Each color must have at least one image");
+        }
+      }
+      return errors;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
 
@@ -905,15 +996,32 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         return;
       }
 
-      if (!formData.image) {
+      if (!formData.image && !enableVariants) {
         toast.error("Please upload a product image");
         return;
       }
+
+      const variantErrors = validateVariants();
+      if (variantErrors.length > 0) {
+        variantErrors.forEach(err => toast.error(err));
+        return;
+      }
+
+      const productVariants = enableVariants ? variants
+        .filter(v => v.color.trim())
+        .map(v => ({ color: v.color.trim(), images: v.images })) : undefined;
+
+      const mainImage = enableVariants && productVariants && productVariants.length > 0 
+        ? productVariants[0].images[0] 
+        : formData.image;
 
       await addProduct({
         ...formData,
         name: formData.name.trim(),
         description: formData.description.trim(),
+        image: mainImage,
+        has_variants: enableVariants,
+        variants: productVariants,
       });
       toast.success("Product added successfully!");
 
@@ -925,6 +1033,8 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         description: "",
         image: "",
       });
+      setVariants([{ id: "1", color: "", images: [] }]);
+      setEnableVariants(false);
     };
 
     return (
@@ -994,8 +1104,107 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         </div>
 
         <div>
-          <Label>Product Image <span className="text-red-500">*</span></Label>
-          <ImageUploadComponent />
+          <Label>Product Image {!enableVariants && <span className="text-red-500">*</span>}</Label>
+          {!enableVariants && <ImageUploadComponent />}
+          {enableVariants && (
+            <p className="text-sm text-gray-500 mb-2">Upload images in the color variants section below</p>
+          )}
+        </div>
+
+        <div className="border-t pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              id="enableVariants"
+              type="checkbox"
+              checked={enableVariants}
+              onChange={(e) => {
+                setEnableVariants(e.target.checked);
+                if (!e.target.checked) {
+                  setVariants([{ id: "1", color: "", images: [] }]);
+                }
+              }}
+              className="w-5 h-5"
+            />
+            <Label htmlFor="enableVariants" className="text-base font-semibold">
+              Enable Color Variants
+            </Label>
+          </div>
+
+          {enableVariants && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Add different color options for this product. Each color can have multiple images.
+              </p>
+              
+              {variants.map((variant, index) => (
+                <div key={variant.id} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1">
+                      <Label>Color {index + 1} <span className="text-red-500">*</span></Label>
+                      <Input
+                        value={variant.color}
+                        onChange={(e) => updateVariantColor(variant.id, e.target.value)}
+                        placeholder="e.g., Chrome, Black, White"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label>Images <span className="text-red-500">*</span> (min 1)</Label>
+                      <div className="mt-1">
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {variant.images.map((img, imgIdx) => (
+                            <div key={imgIdx} className="relative group">
+                              <img src={img} alt={`${variant.color} ${imgIdx + 1}`} className="w-16 h-16 object-cover rounded" />
+                              <button
+                                type="button"
+                                onClick={() => removeVariantImage(variant.id, imgIdx)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                          <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-[#D4AF37] hover:bg-gray-50 transition-colors">
+                            <ImagePlus className="w-5 h-5 text-gray-400" />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadVariantImage(variant.id, file);
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    {variants.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeVariant(variant.id)}
+                        className="text-red-500 hover:text-red-700 mt-6"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addVariant}
+                className="w-full"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Add Another Color
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

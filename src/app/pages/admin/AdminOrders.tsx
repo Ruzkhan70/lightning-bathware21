@@ -29,12 +29,21 @@ interface Order {
   customerName: string;
   customerEmail?: string;
   customerPhone: string;
-  items: Array<{
+  products?: Array<{
     id?: string;
     name: string;
     price: number;
     quantity: number;
     image?: string;
+    selected_color?: string;
+  }>;
+  items?: Array<{
+    id?: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+    selected_color?: string;
   }>;
   total: number;
   subtotal?: number;
@@ -453,7 +462,7 @@ export default function AdminOrders() {
               <div>
                 <h3 className="font-semibold mb-3">Ordered Products</h3>
                 <div className="space-y-3">
-                  {currentOrder.products.map((product, idx) => (
+                  {(currentOrder.products || currentOrder.items || []).map((product, idx) => (
                     <div
                       key={product.id || `product-${idx}`}
                       className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
@@ -466,6 +475,11 @@ export default function AdminOrders() {
                       <div className="flex-1">
                         <p className="font-semibold">{product.name}</p>
                         <p className="text-sm text-gray-600">
+                          {product.selected_color && (
+                            <span className="text-[#D4AF37] font-medium">
+                              {product.selected_color} × {" "}
+                            </span>
+                          )}
                           Quantity: {product.quantity} × Rs.{" "}
                           {product.price.toLocaleString()}
                         </p>

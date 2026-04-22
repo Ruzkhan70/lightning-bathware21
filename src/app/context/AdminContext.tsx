@@ -66,6 +66,11 @@ const createAnnouncement = async (
   }
 };
 
+export interface ProductVariant {
+  color: string;
+  images: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -74,6 +79,10 @@ export interface Product {
   isAvailable: boolean;
   description: string;
   image: string;
+  product_code?: string;
+  has_variants?: boolean;
+  variants?: ProductVariant[];
+  created_at?: string;
 }
 
 export interface Order {
@@ -88,6 +97,7 @@ export interface Order {
     quantity: number;
     price: number;
     image: string;
+    selected_color?: string;
   }>;
   total: number;
   status: "Pending" | "Processing" | "Delivered";
@@ -2650,7 +2660,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const newProduct: Product = { ...product, id: generateUniqueId() };
+    const productCode = generateProductCode(product.category);
+    const newProduct: Product = { 
+      ...product, 
+      id: generateUniqueId(),
+      product_code: productCode,
+      created_at: new Date().toISOString()
+    };
     const currentProducts = products;
     const updated = [...currentProducts, newProduct];
     setProducts(updated);
@@ -2702,7 +2718,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const productsWithIds = newProducts.map(p => ({ ...p, id: generateUniqueId() }));
+    const productsWithIds = newProducts.map(p => ({ 
+      ...p, 
+      id: generateUniqueId(),
+      product_code: generateProductCode(p.category),
+      created_at: new Date().toISOString()
+    }));
     const updated = [...products, ...productsWithIds];
     setProducts(updated);
     try {
@@ -2939,6 +2960,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+  };
+
+  const CATEGORY_CODES: Record<string, string> = {
+    'Lighting': 'LGT',
+    'Bathroom Fittings': 'BTH',
+    'Plumbing': 'PLB',
+    'Electrical Hardware': 'ELC',
+    'Construction Tools': 'TOL',
+    'Bidet Sprays': 'BID',
+    'Bathroom Accessories': 'ACY',
+    'Shower Sets': 'SHR',
+    'Bathroom Faucets': 'FAU',
+  };
+
+  const generateProductCode = (category: string): string => {
+    const prefix = CATEGORY_CODES[category] || 'PRD';
+    const random = Math.floor(10000 + Math.random() * 90000);
+    return `${prefix}-${random}`;
   };
 
   const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">): Promise<Order> => {
