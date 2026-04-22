@@ -629,10 +629,12 @@ export default function AdminAddProduct() {
           <Label htmlFor="name">
             Product Name <span className="text-red-500">*</span>
           </Label>
-          <Input
+          <input
+            type="text"
             id="name"
             ref={nameRef}
             placeholder="e.g., LED Ceiling Light - Modern Round"
+            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
             required
           />
         </div>
@@ -661,13 +663,14 @@ export default function AdminAddProduct() {
           <Label htmlFor="price">
             Price (LKR) <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="price"
+          <input
             type="number"
+            id="price"
             min="0"
             step="1"
             ref={priceRef}
             placeholder="e.g., 2500"
+            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
             required
           />
         </div>
@@ -677,11 +680,11 @@ export default function AdminAddProduct() {
           <Label htmlFor="description">
             Description <span className="text-red-500">*</span>
           </Label>
-          <Textarea
+          <textarea
             id="description"
             ref={descRef}
             placeholder="Enter product description..."
-            className="min-h-[120px]"
+            className="flex min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
             required
           />
         </div>
