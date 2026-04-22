@@ -1078,20 +1078,29 @@ const inferCategory = (productName: string, existingCategory: string): string =>
 
       const mainImage = enableVariants && productVariants && productVariants.length > 0 
         ? productVariants[0].images[0] 
-        : formData.image;
+        : document.getElementById('product-image')?.getAttribute('src') || formData.image;
 
-      const formValues = getFormValues();
+      // Get values directly from DOM
+      const formName = nameRef.current?.value || "";
+      const formDesc = descRef.current?.value || "";
+      const formPrice = parseFloat(priceRef.current?.value) || 0;
       
       await addProduct({
-        ...formValues,
-        name: formValues.name.trim(),
-        description: formValues.description.trim(),
+        name: formName.trim(),
+        category: formData.category,
+        price: formPrice,
+        isAvailable: formData.isAvailable,
+        description: formDesc.trim(),
         image: mainImage,
         has_variants: enableVariants,
         variants: productVariants,
       });
       toast.success("Product added successfully!");
 
+      // Clear form inputs directly
+      if (nameRef.current) nameRef.current.value = "";
+      if (descRef.current) descRef.current.value = "";
+      if (priceRef.current) priceRef.current.value = "";
       setFormData({
         name: "",
         category: "",
@@ -1103,9 +1112,6 @@ const inferCategory = (productName: string, existingCategory: string): string =>
       setVariantColors([""]);
       setVariants([{ id: "1", color: "", images: [] }]);
       setEnableVariants(false);
-      if (nameRef.current) nameRef.current.value = "";
-      if (descRef.current) descRef.current.value = "";
-      if (priceRef.current) priceRef.current.value = "";
     };
 
     return (
