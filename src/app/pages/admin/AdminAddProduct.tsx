@@ -60,9 +60,24 @@ export default function AdminAddProduct() {
   const [quickCategory, setQuickCategory] = useState<string>("");
   const [existingProducts, setExistingProducts] = useState<Set<string>>(new Set());
   const [enableVariants, setEnableVariants] = useState(false);
+  const [variantColors, setVariantColors] = useState<string[]>([""]);
   const [variants, setVariants] = useState<ProductVariant[]>([
     { id: "1", color: "", images: [] }
   ]);
+
+  const updateColorAtIndex = (index: number, color: string) => {
+    const newColors = [...variantColors];
+    newColors[index] = color;
+    setVariantColors(newColors);
+    
+    setVariants(prev => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], color };
+      }
+      return updated;
+    });
+  };
 
   const safeCategories = categories || [];
 
@@ -888,20 +903,32 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     const safeCategories = categories || [];
 
     const addVariant = () => {
+      setVariantColors([...variantColors, ""]);
       setVariants([...variants, { id: Date.now().toString(), color: "", images: [] }]);
     };
 
     const removeVariant = (id: string) => {
       if (variants.length > 1) {
+        const idx = variants.findIndex(v => v.id === id);
+        if (idx >= 0) {
+          const newColors = [...variantColors];
+          newColors.splice(idx, 1);
+          setVariantColors(newColors);
+        }
         setVariants(variants.filter(v => v.id !== id));
       }
     };
 
     const updateVariantColor = (id: string, color: string) => {
-      console.log("updateVariantColor:", id, color);
-      setVariants(prev => {
-        console.log("prev variants:", prev);
-        return prev.map(v => v.id === id ? { ...v, color } : v);
+      const idx = variants.findIndex(v => v.id === id);
+      if (idx >= 0) {
+        const newColors = [...variantColors];
+        newColors[idx] = color;
+        setVariantColors(newColors);
+      }
+      setVariants(current => {
+        const updated = current.map(v => v.id === id ? { ...v, color } : v);
+        return [...updated];
       });
     };
 
@@ -1037,6 +1064,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         description: "",
         image: "",
       });
+      setVariantColors([""]);
       setVariants([{ id: "1", color: "", images: [] }]);
       setEnableVariants(false);
     };
@@ -1124,6 +1152,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
               onChange={(e) => {
                 setEnableVariants(e.target.checked);
                 if (!e.target.checked) {
+                  setVariantColors([""]);
                   setVariants([{ id: "1", color: "", images: [] }]);
                 }
               }}
@@ -1146,8 +1175,8 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                     <div className="flex-1">
                       <Label>Color {index + 1} <span className="text-red-500">*</span></Label>
                       <Input
-                        value={variant.color}
-                        onChange={(e) => updateVariantColor(variant.id, e.target.value)}
+                        value={variantColors[index] || ""}
+                        onChange={(e) => updateColorAtIndex(index, e.target.value)}
                         placeholder="e.g., Chrome, Black, White"
                         className="mt-1"
                       />
