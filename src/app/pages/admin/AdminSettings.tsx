@@ -406,7 +406,6 @@ export default function AdminSettings() {
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium">Show Offers Page</p>
-                    <p className="text-sm text-gray-500">Display the Offers page for customers</p>
                   </div>
                   <button
                     type="button"

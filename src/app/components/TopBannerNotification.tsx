@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { X, Package, Tag, FileText, RefreshCw, TrendingUp, Bell, Info } from "lucide-react";
 import { useAnnouncement, Announcement } from "../context/AnnouncementContext";
+import { useAdmin } from "../context/AdminContext";
 
 const getTypeConfig = (type: Announcement["type"]) => {
   switch (type) {
@@ -55,18 +56,26 @@ const DISMISSAL_KEY = "announcement_dismissed";
 export default function TopBannerNotification() {
   const navigate = useNavigate();
   const { currentAnnouncement, expireAnnouncement, isLoading } = useAnnouncement();
+  const { storeProfile } = useAdmin();
+  const offersEnabled = storeProfile.enableOffersPage !== false;
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     if (currentAnnouncement && !isLoading) {
+      // Don't show offer banners if offers are disabled
+      if (currentAnnouncement.type === "offer" && !offersEnabled) {
+        setIsVisible(false);
+        setIsAnimating(false);
+        return;
+      }
       setIsVisible(true);
       setIsAnimating(true);
     } else {
       setIsVisible(false);
       setIsAnimating(false);
     }
-  }, [currentAnnouncement, isLoading]);
+  }, [currentAnnouncement, isLoading, offersEnabled]);
 
   const handleBannerClick = () => {
     if (!currentAnnouncement) return;

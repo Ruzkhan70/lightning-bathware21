@@ -406,6 +406,7 @@ export default function Home() {
             </div>
 
             <div className="text-center">
+              {storeProfile.enableOffersPage !== false && (
               <Link to="/offers">
                 <Button
                   size="lg"
@@ -415,6 +416,7 @@ export default function Home() {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
+              )}
             </div>
           </div>
         </section>
