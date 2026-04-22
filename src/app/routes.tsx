@@ -1,9 +1,11 @@
 import { createHashRouter } from "react-router";
 import { lazy, Suspense } from "react";
+import { Link } from "react-router";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 import ContentLoader from "./components/ContentLoader";
 import { ProtectedAdminRoute } from "./components/ProtectedAdminRoute";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 
 // Lazy load all pages with optimized loading
 const Home = lazy(() => import("./pages/Home"));
@@ -47,10 +49,35 @@ const ContentLoaderWrapper = () => (
   </div>
 );
 
+// Custom error page for customer routes
+function ErrorPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-10 h-10 text-orange-500" />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-3">Page Not Found</h1>
+        <p className="text-gray-600 mb-6">
+          Oops! The page you're looking for doesn't exist or might have been moved.
+        </p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold px-6 py-3 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Home
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export const router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Suspense fallback={<ContentLoaderWrapper />}><Home /></Suspense> },
       { path: "products", element: <Suspense fallback={<ContentLoaderWrapper />}><Products /></Suspense> },
