@@ -51,6 +51,19 @@ export default function AdminAddProduct() {
 
   return (
     <div className="max-w-3xl">
+      {/* Toggle between Single and Bulk */}
+      <div className="flex justify-end mb-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm"
+          onClick={() => setShowBulkUpload(true)}
+          className="text-sm"
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Bulk Upload
+        </Button>
+      </div>
       <SingleProductForm key="single-form" />
     </div>
   );
