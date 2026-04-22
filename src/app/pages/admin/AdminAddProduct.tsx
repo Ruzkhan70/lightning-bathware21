@@ -73,14 +73,19 @@ export default function AdminAddProduct() {
   const descRef = useRef<HTMLTextAreaElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   
-  const getFormValues = () => ({
-    name: nameRef.current?.value || "",
-    category: formData.category,
-    price: parseFloat(priceRef.current?.value) || 0,
-    isAvailable: formData.isAvailable,
-    description: descRef.current?.value || "",
-    image: formData.image,
-  });
+  const getFormValues = () => {
+    const values = {
+      name: nameRef.current?.value || "",
+      category: formData.category,
+      price: parseFloat(priceRef.current?.value) || 0,
+      isAvailable: formData.isAvailable,
+      description: descRef.current?.value || "",
+      image: formData.image,
+    };
+    // Sync to formData so validation and reset work
+    setFormData(values);
+    return values;
+  };
 
   const handleFormChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -1078,7 +1083,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
       const formValues = getFormValues();
       
       await addProduct({
-        ...formData,
+        ...formValues,
         name: formValues.name.trim(),
         description: formValues.description.trim(),
         image: mainImage,
