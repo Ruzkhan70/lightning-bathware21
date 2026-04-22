@@ -1031,28 +1031,31 @@ const inferCategory = (productName: string, existingCategory: string): string =>
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      
+      // FIRST: Sync refs to formData so validation works
+      const formValues = getFormValues();
 
-      if (!formData.name || formData.name.trim().length < 2) {
+      if (!formValues.name || formValues.name.trim().length < 2) {
         toast.error("Product name must be at least 2 characters");
         return;
       }
 
-      if (!formData.category) {
+      if (!formValues.category) {
         toast.error("Please select a category");
         return;
       }
 
-      if (formData.price <= 0) {
+      if (formValues.price <= 0) {
         toast.error("Price must be greater than 0");
         return;
       }
 
-      if (formData.price > 10000000) {
+      if (formValues.price > 10000000) {
         toast.error("Price cannot exceed 10,000,000 LKR");
         return;
       }
 
-      if (!formData.description || formData.description.trim().length < 10) {
+      if (!formValues.description || formValues.description.trim().length < 10) {
         toast.error("Description must be at least 10 characters");
         return;
       }
@@ -1080,7 +1083,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         ? productVariants[0].images[0] 
         : formData.image;
 
-      const formValues = getFormValues();
+      // Reuse formValues from beginning of handleSubmit
       
       await addProduct({
         ...formValues,
