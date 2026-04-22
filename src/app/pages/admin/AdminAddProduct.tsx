@@ -65,10 +65,21 @@ export default function AdminAddProduct() {
     { id: "1", color: "", images: [] }
   ]);
 
-  // Stable setFormData to prevent re-renders
+  // Local input states to prevent re-render during typing
+  const [localName, setLocalName] = useState(formData.name);
+  const [localDesc, setLocalDesc] = useState(formData.description);
+  
   const handleFormChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
+
+  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalName(e.target.value);
+  };
+  
+  const onNameBlur = () => {
+    handleFormChange("name", localName);
+  };
 
   const updateColorAtIndex = useCallback((index: number, color: string) => {
     setVariantColors(prev => {
@@ -1083,8 +1094,9 @@ const inferCategory = (productName: string, existingCategory: string): string =>
           </Label>
           <Input
             id="name"
-            value={formData.name}
-            onChange={(e) => handleFormChange("name", e.target.value)}
+            value={localName}
+            onChange={onNameChange}
+            onBlur={onNameBlur}
             placeholder="e.g., LED Ceiling Light - Modern Round"
             required
           />
