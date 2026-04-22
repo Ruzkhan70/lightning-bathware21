@@ -3148,6 +3148,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const getProductDiscount = (productId: string) => {
+    // If offers page is disabled, return no discount
+    if (siteContent?.offers?.isEnabled === false) {
+      return { hasDiscount: false, discountPercentage: 0, discountedPrice: 0, offerTitle: "" };
+    }
+    
     const now = new Date();
     const activeOffers = offers.filter(o => {
       if (!o.isEnabled) return false;
