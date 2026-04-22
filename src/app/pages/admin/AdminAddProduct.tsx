@@ -64,6 +64,9 @@ export default function AdminAddProduct() {
   const [variants, setVariants] = useState<ProductVariant[]>([
     { id: "1", color: "", images: [] }
   ]);
+  
+  // Variant image drag state
+  const [variantDragging, setVariantDragging] = useState<{[key: string]: boolean}>({});
 
   // Completely uncontrolled - only use state on submit
   const nameRef = useRef<HTMLInputElement>(null);
@@ -1210,7 +1213,19 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                     </div>
                     <div className="flex-1">
                       <Label>Images <span className="text-red-500">*</span> (min 1)</Label>
-                      <div className="mt-1">
+                      <div 
+                        className="mt-1"
+                        onDragOver={(e) => { e.preventDefault(); setVariantDragging(prev => ({...prev, [variant.id]: true})); }}
+                        onDragLeave={() => setVariantDragging(prev => ({...prev, [variant.id]: false}))}
+                        onDrop={async (e) => {
+                          e.preventDefault();
+                          setVariantDragging(prev => ({...prev, [variant.id]: false}));
+                          const file = e.dataTransfer.files[0];
+                          if (file && file.type.startsWith("image/")) {
+                            await uploadVariantImage(variant.id, file);
+                          }
+                        }}
+                      >
                         <div className="flex flex-wrap gap-2 mb-2">
                           {variant.images.map((img, imgIdx) => (
                             <div key={imgIdx} className="relative group">
@@ -1224,7 +1239,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                               </button>
                             </div>
                           ))}
-                          <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-[#D4AF37] hover:bg-gray-50 transition-colors">
+                          <label className={`flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed rounded cursor-pointer transition-colors ${variantDragging[variant.id] ? 'border-[#D4AF37] bg-[#D4AF37]/5' : 'border-gray-300 hover:border-[#D4AF37] hover:bg-gray-50'}`}>
                             <ImagePlus className="w-5 h-5 text-gray-400" />
                             <input
                               type="file"
