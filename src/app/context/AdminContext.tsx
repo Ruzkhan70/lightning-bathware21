@@ -3173,12 +3173,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return { hasDiscount: false };
   };
 
-  const addCategory = (category: Omit<Category, "id">) => {
+  const addCategory = async (category: Omit<Category, "id">) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const newCategory: Category = { ...category, id: Date.now().toString() };
     const updated = [...categories, newCategory];
     setCategories(updated);
     try {
-      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       toast.success("Category added!");
       logCategoryAction(
         'CATEGORY_ADD',
@@ -3190,7 +3196,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error saving category:", error);
-      setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      toast.error("Failed to save category to database");
       logCategoryAction(
         'CATEGORY_ADD',
         adminUid || 'unknown',
