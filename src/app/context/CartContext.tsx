@@ -11,6 +11,7 @@ export interface CartItem {
   quantity: number;
   isAvailable: boolean;
   selected_color?: string;
+  selected_size?: string;
 }
 
 interface CartContextType {

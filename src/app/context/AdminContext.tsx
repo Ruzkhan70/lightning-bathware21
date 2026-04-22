@@ -71,6 +71,11 @@ export interface ProductVariant {
   images: string[];
 }
 
+export interface ProductSize {
+  size: string;
+  images: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -81,7 +86,9 @@ export interface Product {
   image: string;
   product_code?: string;
   has_variants?: boolean;
+  has_sizes?: boolean;
   variants?: ProductVariant[];
+  sizes?: ProductSize[];
   created_at?: string;
 }
 
@@ -98,6 +105,7 @@ export interface Order {
     price: number;
     image: string;
     selected_color?: string;
+    selected_size?: string;
   }>;
   total: number;
   status: "Pending" | "Processing" | "Delivered";

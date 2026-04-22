@@ -491,6 +491,10 @@ export default function AdminAddProduct() {
     const [variants, setVariants] = useState<ProductVariant[]>([
       { id: "1", color: "", images: [] }
     ]);
+    const [enableSizes, setEnableSizes] = useState(false);
+    const [sizes, setSizes] = useState<{id: string; size: string; images: string[]}[]>([
+      { id: "1", size: "", images: [] }
+    ]);
     const [isUploading, setIsUploading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [variantDragging, setVariantDragging] = useState<{[key: string]: boolean}>({});
@@ -516,6 +520,13 @@ export default function AdminAddProduct() {
       }
     };
 
+    const handleToggleSizes = () => {
+      setEnableSizes(prev => !prev);
+      if (!enableSizes) {
+        setSizes([{ id: "1", size: "", images: [] }]);
+      }
+    };
+
     const addVariant = () => {
       setVariants(prev => [...prev, { id: Date.now().toString(), color: "", images: [] }]);
     };
@@ -528,6 +539,20 @@ export default function AdminAddProduct() {
 
     const updateVariantColorDirect = (id: string, color: string) => {
       setVariants(prev => prev.map(v => v.id === id ? { ...v, color } : v));
+    };
+
+    const addSize = () => {
+      setSizes(prev => [...prev, { id: Date.now().toString(), size: "", images: [] }]);
+    };
+
+    const removeSize = (id: string) => {
+      if (sizes.length > 1) {
+        setSizes(prev => prev.filter(s => s.id !== id));
+      }
+    };
+
+    const updateSizeDirect = (id: string, size: string) => {
+      setSizes(prev => prev.map(s => s.id === id ? { ...s, size } : s));
     };
 
     const uploadMainImage = async (file: File) => {
@@ -643,14 +668,24 @@ export default function AdminAddProduct() {
           toast.error("All colors must have a name");
           return;
         }
-        const noImages = variants.filter(v => v.images.length === 0);
-        if (noImages.length > 0) {
-          toast.error("Each color must have at least one image");
+      }
+
+      // Validate sizes
+      if (enableSizes) {
+        const sizeNames = sizes.map(s => s.size.toLowerCase().trim());
+        const duplicates = sizeNames.filter((s, i) => s && sizeNames.indexOf(s) !== i);
+        if (duplicates.length > 0) {
+          toast.error("Duplicate sizes found");
+          return;
+        }
+        const emptySizes = sizes.filter(s => !s.size.trim());
+        if (emptySizes.length > 0) {
+          toast.error("All sizes must have a name");
           return;
         }
       }
 
-      if (!formData.image && !enableVariants) {
+      if (!formData.image && !enableVariants && !enableSizes) {
         toast.error("Please upload a product image");
         return;
       }
@@ -660,9 +695,16 @@ export default function AdminAddProduct() {
         .filter(v => v.color.trim())
         .map(v => ({ color: v.color.trim(), images: v.images })) : undefined;
 
-      const mainImage = enableVariants && productVariants && productVariants.length > 0 
-        ? productVariants[0].images[0] 
-        : formData.image;
+      const productSizes = enableSizes ? sizes
+        .filter(s => s.size.trim())
+        .map(s => ({ size: s.size.trim(), images: s.images })) : undefined;
+
+      let mainImage = formData.image;
+      if (enableVariants && productVariants && productVariants.length > 0 && productVariants[0].images.length > 0) {
+        mainImage = productVariants[0].images[0];
+      } else if (enableSizes && productSizes && productSizes.length > 0 && productSizes[0].images.length > 0) {
+        mainImage = productSizes[0].images[0];
+      }
 
       try {
         await addProduct({
@@ -673,7 +715,9 @@ export default function AdminAddProduct() {
           description: description.trim(),
           image: mainImage,
           has_variants: enableVariants,
+          has_sizes: enableSizes,
           variants: productVariants,
+          sizes: productSizes,
         });
         
         toast.success("Product added successfully!");
@@ -689,6 +733,8 @@ export default function AdminAddProduct() {
         });
         setEnableVariants(false);
         setVariants([{ id: "1", color: "", images: [] }]);
+        setEnableSizes(false);
+        setSizes([{ id: "1", size: "", images: [] }]);
         
         // Clear DOM inputs
         if (nameRef.current) nameRef.current.value = "";
@@ -711,6 +757,8 @@ export default function AdminAddProduct() {
       });
       setEnableVariants(false);
       setVariants([{ id: "1", color: "", images: [] }]);
+      setEnableSizes(false);
+      setSizes([{ id: "1", size: "", images: [] }]);
       
       if (nameRef.current) nameRef.current.value = "";
       if (descRef.current) descRef.current.value = "";
@@ -948,6 +996,67 @@ export default function AdminAddProduct() {
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Add Another Color
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Size Variants Toggle */}
+        <div className="border-t pt-6">
+          <div className="flex items-center gap-3">
+            <input
+              id="enableSizes"
+              type="checkbox"
+              checked={enableSizes}
+              onChange={handleToggleSizes}
+              className="w-5 h-5"
+            />
+            <Label htmlFor="enableSizes" className="text-base font-semibold">
+              Enable Size Variants
+            </Label>
+          </div>
+
+          {enableSizes && (
+            <div className="space-y-4 mt-4">
+              <p className="text-sm text-gray-600">
+                Add different size options for this product (e.g., 500mm, 400mm, 300mm). Each size can have its own images.
+              </p>
+              
+              {sizes.map((sizeItem, index) => (
+                <div key={sizeItem.id} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1">
+                      <Label>Size {index + 1} <span className="text-red-500">*</span></Label>
+                      <Input
+                        value={sizeItem.size}
+                        onChange={(e) => updateSizeDirect(sizeItem.id, e.target.value)}
+                        placeholder="e.g., 500mm, 400mm, Large, Small"
+                        className="mt-1"
+                      />
+                    </div>
+                    {sizes.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSize(sizeItem.id)}
+                        className="text-red-500 hover:text-red-700 mt-6"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addSize}
+                className="w-full"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Add Another Size
               </Button>
             </div>
           )}
