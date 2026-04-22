@@ -10,7 +10,7 @@ export default function Header() {
   const location = useLocation();
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
-  const { storeProfile, categories, products } = useAdmin();
+  const { storeProfile, categories, products, siteContent } = useAdmin();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
@@ -337,7 +337,7 @@ export default function Header() {
                 </div>
               </div>
             </li>
-            {storeProfile.enableOffersPage !== false && (
+            {(siteContent?.offers?.isEnabled ?? true) && (
             <li>
               <Link to="/offers" className={`transition-colors font-medium relative group ${isActive("/offers") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Offers
@@ -500,7 +500,7 @@ export default function Header() {
                 </div>
               )}
             </li>
-            {storeProfile.enableOffersPage !== false && (
+            {(siteContent?.offers?.isEnabled ?? true) && (
             <li>
               <Link
                 to="/offers"

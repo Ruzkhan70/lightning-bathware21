@@ -406,7 +406,7 @@ export default function Home() {
             </div>
 
             <div className="text-center">
-              {storeProfile.enableOffersPage !== false && (
+              {(siteContent?.offers?.isEnabled ?? true) && (
               <Link to="/offers">
                 <Button
                   size="lg"

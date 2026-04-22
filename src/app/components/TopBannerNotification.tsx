@@ -56,8 +56,8 @@ const DISMISSAL_KEY = "announcement_dismissed";
 export default function TopBannerNotification() {
   const navigate = useNavigate();
   const { currentAnnouncement, expireAnnouncement, isLoading } = useAnnouncement();
-  const { storeProfile } = useAdmin();
-  const offersEnabled = storeProfile.enableOffersPage !== false;
+  const { siteContent } = useAdmin();
+  const offersEnabled = siteContent?.offers?.isEnabled ?? true;
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
