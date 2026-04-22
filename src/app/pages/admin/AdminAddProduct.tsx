@@ -75,6 +75,29 @@ export default function AdminAddProduct() {
     const [isBulkProcessing, setIsBulkProcessing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploadingImages, setIsUploadingImages] = useState(false);
+    const [rowDragging, setRowDragging] = useState<string | null>(null);
+
+    const handleRowImageUpload = async (productId: string, file: File) => {
+      try {
+        const formDataImg = new FormData();
+        formDataImg.append("image", file);
+        const response = await fetch(
+          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+          { method: "POST", body: formDataImg }
+        );
+        const data = await response.json();
+        if (data.success) {
+          setBulkProducts(prev => prev.map(p => 
+            p.id === productId ? { ...p, image: data.data.url } : p
+          ));
+        }
+      } catch (error) {
+        const url = URL.createObjectURL(file);
+        setBulkProducts(prev => prev.map(p => 
+          p.id === productId ? { ...p, image: url } : p
+        ));
+      }
+    };
 
     const parseCSVOrTSV = (content: string): BulkProduct[] => {
       const lines = content.trim().split("\n");
@@ -178,6 +201,12 @@ export default function AdminAddProduct() {
         }
         return p;
       }));
+    };
+
+    const handleDescriptionChange = (id: string, description: string) => {
+      setBulkProducts(prev => prev.map(p => 
+        p.id === id ? { ...p, description } : p
+      ));
     };
 
     const handleSelectAllImages = async () => {
@@ -289,9 +318,54 @@ export default function AdminAddProduct() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-gray-600">{bulkProducts.length} products ready to upload</p>
-                  <Button variant="outline" onClick={handleSelectAllImages} disabled={isUploadingImages}>
-                    {isUploadingImages ? "Adding..." : "Add Sample Images"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <label className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 text-sm">
+                      <span>{isUploadingImages ? "Uploading..." : "Upload Images"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length === 0) return;
+                          setIsUploadingImages(true);
+                          
+                          for (let i = 0; i < Math.min(files.length, bulkProducts.length); i++) {
+                            const file = files[i];
+                            const product = bulkProducts[i];
+                            
+                            const formDataImg = new FormData();
+                            formDataImg.append("image", file);
+                            
+                            try {
+                              const response = await fetch(
+                                `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+                                { method: "POST", body: formDataImg }
+                              );
+                              const data = await response.json();
+                              if (data.success) {
+                                setBulkProducts(prev => prev.map(p => 
+                                  p.id === product.id ? { ...p, image: data.data.url } : p
+                                ));
+                              }
+                            } catch (error) {
+                              const url = URL.createObjectURL(file);
+                              setBulkProducts(prev => prev.map(p => 
+                                p.id === product.id ? { ...p, image: url } : p
+                              ));
+                            }
+                          }
+                          setIsUploadingImages(false);
+                          toast.success(`${Math.min(files.length, bulkProducts.length)} images uploaded!`);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                    <Button variant="outline" onClick={handleSelectAllImages} disabled={isUploadingImages}>
+                      {isUploadingImages ? "Adding..." : "Sample Images"}
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="border rounded-lg overflow-hidden">
@@ -301,6 +375,7 @@ export default function AdminAddProduct() {
                         <th className="px-3 py-3 text-left text-sm font-semibold">Product Name</th>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Category</th>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Price</th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold">Description</th>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Image</th>
                         <th className="px-3 py-3 text-center text-sm font-semibold">Action</th>
                       </tr>
@@ -340,10 +415,55 @@ export default function AdminAddProduct() {
                             />
                           </td>
                           <td className="px-3 py-3">
+                            <textarea
+                              value={product.description}
+                              onChange={(e) => handleDescriptionChange(product.id, e.target.value)}
+                              placeholder="Description..."
+                              className="w-32 h-12 text-sm border rounded p-1 resize-none"
+                            />
+                          </td>
+                          <td 
+                            className="px-3 py-3"
+                            onDragOver={(e) => { e.preventDefault(); setRowDragging(product.id); }}
+                            onDragLeave={() => setRowDragging(null)}
+                            onDrop={async (e) => {
+                              e.preventDefault();
+                              setRowDragging(null);
+                              const file = e.dataTransfer.files[0];
+                              if (file && file.type.startsWith("image/")) {
+                                await handleRowImageUpload(product.id, file);
+                              }
+                            }}
+                          >
                             {product.image ? (
-                              <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                              <div className="relative group">
+                                <img src={product.image} alt={product.name} className={`w-12 h-12 object-cover rounded ${rowDragging === product.id ? 'ring-2 ring-[#D4AF37]' : ''}`} />
+                                <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/50 rounded flex items-center justify-center">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) await handleRowImageUpload(product.id, file);
+                                    }}
+                                  />
+                                  <span className="text-white text-xs">Change</span>
+                                </label>
+                              </div>
                             ) : (
-                              <p className="text-gray-400 text-sm">No image</p>
+                              <label className={`w-12 h-12 border-2 border-dashed rounded flex items-center justify-center cursor-pointer ${rowDragging === product.id ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-gray-300 hover:border-[#D4AF37]'}`}>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) await handleRowImageUpload(product.id, file);
+                                  }}
+                                />
+                                <span className="text-gray-400 text-xs">+</span>
+                              </label>
                             )}
                           </td>
                           <td className="px-3 py-3 text-center">

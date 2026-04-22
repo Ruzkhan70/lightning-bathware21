@@ -32,15 +32,27 @@ export default function AdminProducts() {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editVariants, setEditVariants] = useState<{color: string; images: string[]}[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    category: string;
+    price: number;
+    isAvailable: boolean;
+    description: string;
+    image: string;
+    has_variants: boolean;
+    variants: { color: string; images: string[] }[];
+  }>({
     name: "",
     category: "",
     price: 0,
     isAvailable: true,
     description: "",
     image: "",
+    has_variants: false,
+    variants: [],
   });
 
   const safeProducts = products || [];
@@ -117,6 +129,7 @@ export default function AdminProducts() {
   const handleEdit = (productId: string) => {
     const product = safeProducts.find((p) => p.id === productId);
     if (product) {
+      const variants = product.variants || [];
       setFormData({
         name: product.name,
         category: product.category,
@@ -124,8 +137,53 @@ export default function AdminProducts() {
         isAvailable: product.isAvailable,
         description: product.description,
         image: product.image,
+        has_variants: product.has_variants || false,
+        variants: variants,
       });
+      setEditVariants(variants);
       setEditingProduct(productId);
+    }
+  };
+
+  const updateVariantColor = (index: number, color: string) => {
+    setEditVariants(prev => prev.map((v, i) => i === index ? { ...v, color } : v));
+  };
+
+  const addVariantImage = async (index: number, file: File) => {
+    try {
+      const formDataImg = new FormData();
+      formDataImg.append("image", file);
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+        { method: "POST", body: formDataImg }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setEditVariants(prev => prev.map((v, i) => 
+          i === index ? { ...v, images: [...v.images, data.data.url] } : v
+        ));
+      }
+    } catch (error) {
+      const url = URL.createObjectURL(file);
+      setEditVariants(prev => prev.map((v, i) => 
+        i === index ? { ...v, images: [...v.images, url] } : v
+      ));
+    }
+  };
+
+  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
+    setEditVariants(prev => prev.map((v, i) => 
+      i === variantIndex ? { ...v, images: v.images.filter((_, idx) => idx !== imageIndex) } : v
+    ));
+  };
+
+  const addNewVariant = () => {
+    setEditVariants(prev => [...prev, { color: "", images: [] }]);
+  };
+
+  const removeVariant = (index: number) => {
+    if (editVariants.length > 1) {
+      setEditVariants(prev => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -137,7 +195,16 @@ export default function AdminProducts() {
       return;
     }
 
-    updateProduct(editingProduct, formData);
+    const updatedData = {
+      ...formData,
+      variants: editVariants,
+      has_variants: editVariants.length > 0,
+      image: editVariants.length > 0 && editVariants[0].images.length > 0 
+        ? editVariants[0].images[0] 
+        : formData.image,
+    };
+
+    updateProduct(editingProduct, updatedData);
     toast.success("Product updated successfully!");
     setEditingProduct(null);
   };
@@ -623,6 +690,79 @@ export default function AdminProducts() {
                 value={formData.image}
                 onChange={(val) => setFormData({ ...formData, image: val })}
               />
+            </div>
+
+            {/* Color Variants Section */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-base font-semibold">
+                  Color Variants ({editVariants.length})
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addNewVariant}
+                >
+                  + Add Color
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {editVariants.map((variant, idx) => (
+                  <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        value={variant.color}
+                        onChange={(e) => updateVariantColor(idx, e.target.value)}
+                        placeholder="Color name (e.g., Black, White)"
+                        className="flex-1"
+                      />
+                      {editVariants.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeVariant(idx)}
+                          className="text-red-500"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {variant.images.map((img, imgIdx) => (
+                        <div key={imgIdx} className="relative group">
+                          <img 
+                            src={img} 
+                            alt={`${variant.color} ${imgIdx + 1}`} 
+                            className="w-16 h-16 object-cover rounded" 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeVariantImage(idx, imgIdx)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-gray-50">
+                        <span className="text-gray-400 text-xs">+Add</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) addVariantImage(idx, file);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>
