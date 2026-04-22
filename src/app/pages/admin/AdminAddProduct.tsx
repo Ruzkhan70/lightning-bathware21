@@ -1001,12 +1001,15 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     const validateVariants = (): string[] => {
       const errors: string[] = [];
       if (enableVariants) {
-        const colors = variants.map(v => v.color.toLowerCase().trim());
+        // Get colors from DOM
+        const colorInputs = document.querySelectorAll('[data-color-index]');
+        const colors = Array.from(colorInputs).map((input) => (input as HTMLInputElement).value.toLowerCase().trim());
+        
         const duplicates = colors.filter((c, i) => c && colors.indexOf(c) !== i);
         if (duplicates.length > 0) {
           errors.push("Duplicate colors found");
         }
-        const emptyColors = variants.filter(v => !v.color.trim());
+        const emptyColors = colors.filter(c => !c);
         if (emptyColors.length > 0) {
           errors.push("All colors must have a name");
         }
@@ -1057,9 +1060,13 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         return;
       }
 
-      const productVariants = enableVariants ? variants
-        .filter(v => v.color.trim())
-        .map(v => ({ color: v.color.trim(), images: v.images })) : undefined;
+      const colorInputs = document.querySelectorAll('[data-color-index]');
+      const productVariants = enableVariants ? Array.from(colorInputs)
+        .map((input, idx) => ({
+          color: (input as HTMLInputElement).value.trim(),
+          images: variants[idx]?.images || []
+        }))
+        .filter(v => v.color) : undefined;
 
       const mainImage = enableVariants && productVariants && productVariants.length > 0 
         ? productVariants[0].images[0] 
@@ -1196,10 +1203,9 @@ const inferCategory = (productName: string, existingCategory: string): string =>
                     <div className="flex-1">
                       <Label>Color {index + 1} <span className="text-red-500">*</span></Label>
                       <Input
-                        value={variantColors[index] || ""}
-                        onChange={(e) => updateColorAtIndex(index, e.target.value)}
                         placeholder="e.g., Chrome, Black, White"
                         className="mt-1"
+                        data-color-index={index}
                       />
                     </div>
                     <div className="flex-1">
