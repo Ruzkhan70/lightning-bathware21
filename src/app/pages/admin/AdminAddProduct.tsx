@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { PlusCircle, Upload, FileText, X, Check, Loader2, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -65,19 +65,25 @@ export default function AdminAddProduct() {
     { id: "1", color: "", images: [] }
   ]);
 
-  const updateColorAtIndex = (index: number, color: string) => {
-    const newColors = [...variantColors];
-    newColors[index] = color;
-    setVariantColors(newColors);
-    
-    setVariants(prev => {
-      const updated = [...prev];
-      if (updated[index]) {
-        updated[index] = { ...updated[index], color };
-      }
-      return updated;
+  // Stable setFormData to prevent re-renders
+  const handleFormChange = useCallback((field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const updateColorAtIndex = useCallback((index: number, color: string) => {
+    setVariantColors(prev => {
+      const newColors = [...prev];
+      newColors[index] = color;
+      return newColors;
     });
-  };
+    setVariants(prev => {
+      const updates = [...prev];
+      if (updates[index]) {
+        updates[index] = { ...updates[index], color };
+      }
+      return updates;
+    });
+  }, []);
 
   const safeCategories = categories || [];
 
@@ -1078,7 +1084,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => handleFormChange("name", e.target.value)}
             placeholder="e.g., LED Ceiling Light - Modern Round"
             required
           />
