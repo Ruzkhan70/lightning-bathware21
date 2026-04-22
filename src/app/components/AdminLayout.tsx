@@ -36,7 +36,7 @@ export default function AdminLayout() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const { showWarning, remainingTime, resetTimer, logoutNow } = useAdminTimeout(
+  const { showWarning, remainingTime, resetTimer, logoutNow, isRememberMe, setRememberMe } = useAdminTimeout(
     isAdminLoggedIn,
     logout
   );

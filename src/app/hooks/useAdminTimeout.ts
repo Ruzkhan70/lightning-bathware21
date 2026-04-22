@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const INACTIVITY_TIMEOUT = 120; // 2 minutes in seconds
+const DEFAULT_TIMEOUT = 30 * 60; // 30 minutes in seconds
+const REMEMBER_ME_TIMEOUT = 24 * 60 * 60; // 24 hours in seconds
 const WARNING_COUNTDOWN = 30; // 30 seconds countdown after warning
 
 interface UseAdminTimeoutReturn {
@@ -8,6 +9,8 @@ interface UseAdminTimeoutReturn {
   remainingTime: number;
   resetTimer: () => void;
   logoutNow: () => void;
+  isRememberMe: boolean;
+  setRememberMe: (value: boolean) => void;
 }
 
 export function useAdminTimeout(
@@ -16,6 +19,12 @@ export function useAdminTimeout(
 ): UseAdminTimeoutReturn {
   const [showWarning, setShowWarning] = useState(false);
   const [countdownTime, setCountdownTime] = useState(WARNING_COUNTDOWN);
+  const [isRememberMe, setIsRememberMe] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("adminRememberMe") === "true";
+    }
+    return false;
+  });
   
   const lastActivityRef = useRef<number>(Date.now());
   const inactivityTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -23,10 +32,25 @@ export function useAdminTimeout(
   const isLoggedInRef = useRef(isLoggedIn);
   const warningShownRef = useRef(false);
   const hasLoggedOutRef = useRef(false);
+  const sessionStartRef = useRef<number>(Date.now());
+
+  const getTimeout = useCallback(() => {
+    return isRememberMe ? REMEMBER_ME_TIMEOUT : DEFAULT_TIMEOUT;
+  }, [isRememberMe]);
 
   useEffect(() => {
     isLoggedInRef.current = isLoggedIn;
+    if (isLoggedIn) {
+      sessionStartRef.current = Date.now();
+    }
   }, [isLoggedIn]);
+
+  const setRememberMe = useCallback((value: boolean) => {
+    setIsRememberMe(value);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("adminRememberMe", value.toString());
+    }
+  }, []);
 
   const clearAllTimers = useCallback(() => {
     if (inactivityTimerRef.current) {
@@ -80,6 +104,7 @@ export function useAdminTimeout(
   const resetTimer = useCallback(() => {
     hasLoggedOutRef.current = false;
     lastActivityRef.current = Date.now();
+    sessionStartRef.current = Date.now();
     warningShownRef.current = false;
     setShowWarning(false);
     setCountdownTime(WARNING_COUNTDOWN);
@@ -100,6 +125,7 @@ export function useAdminTimeout(
 
     hasLoggedOutRef.current = false;
     lastActivityRef.current = Date.now();
+    sessionStartRef.current = Date.now();
     warningShownRef.current = false;
     
     clearAllTimers();
@@ -110,13 +136,13 @@ export function useAdminTimeout(
       const now = Date.now();
       const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
       
-      if (elapsed >= INACTIVITY_TIMEOUT && !warningShownRef.current) {
+      if (elapsed >= getTimeout() && !warningShownRef.current) {
         startWarningCountdown();
       }
     }, 1000);
 
     return () => clearAllTimers();
-  }, [isLoggedIn, clearAllTimers, startWarningCountdown]);
+  }, [isLoggedIn, clearAllTimers, startWarningCountdown, getTimeout]);
 
   useEffect(() => {
     if (!isLoggedIn || showWarning) return;
@@ -154,6 +180,8 @@ export function useAdminTimeout(
     remainingTime: countdownTime,
     resetTimer,
     logoutNow,
+    isRememberMe,
+    setRememberMe,
   };
 }
 

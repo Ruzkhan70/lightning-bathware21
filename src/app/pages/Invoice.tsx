@@ -10,7 +10,7 @@ import {
   Clock, MapPin, Phone, Mail, Package, Zap, AlertCircle 
 } from "lucide-react";
 import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import ContentLoader from "../components/ContentLoader";
 import { cn } from "../../lib/utils";
 
@@ -77,22 +77,29 @@ interface RawInvoiceData {
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getInvoiceById, storeProfile, invoices, orders } = useAdmin();
+  const { getInvoiceById, storeProfile } = useAdmin();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string>("");
 
-  // Separate effect to update order status when orders change
+  // Real-time listener for order status - THE FIX
   useEffect(() => {
-    if (!invoice?.orderId || !orders.length) return;
+    if (!orderId) return;
     
-    const updatedOrder = orders.find(o => o.id === invoice.orderId);
-    if (updatedOrder && updatedOrder.id !== order?.id) {
-      setOrder(updatedOrder as OrderData);
-    }
-  }, [orders, invoice?.orderId]);
+    // Always fetch fresh order data directly from Firebase using real-time listener
+    const orderRef = doc(db, "orders", orderId);
+    const unsubscribe = onSnapshot(orderRef, (snap) => {
+      if (snap.exists()) {
+        const orderData = { id: snap.id, ...snap.data() };
+        setOrder(orderData as OrderData);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [orderId]);
 
   useEffect(() => {
     if (!id) {
@@ -103,7 +110,7 @@ export default function Invoice() {
 
     const fetchInvoice = async () => {
       try {
-        let foundInvoice: RawInvoiceData | null = getInvoiceById(id);
+        let foundInvoice: RawInvoiceData | null = getInvoiceById(id) || null;
         
         if (!foundInvoice) {
           const invoiceRef = doc(db, "invoices", id);
@@ -140,22 +147,9 @@ export default function Invoice() {
           };
           setInvoice(validatedInvoice);
           
-          // Fetch the associated order for live status
-          const orderId = foundInvoice.orderId;
-          if (orderId) {
-            // First check local orders
-            const localOrder = orders.find(o => o.id === orderId);
-            if (localOrder) {
-              setOrder(localOrder as OrderData);
-            } else {
-              // Fetch from Firebase
-              const orderRef = doc(db, "orders", orderId);
-              const orderSnap = await getDoc(orderRef);
-              if (orderSnap.exists()) {
-                const orderData = { id: orderSnap.id, ...orderSnap.data() } as OrderData;
-                setOrder(orderData);
-              }
-            }
+          // Set orderId to trigger real-time listener
+          if (foundInvoice.orderId) {
+            setOrderId(foundInvoice.orderId);
           }
         } else {
           setError("Invoice not found");
@@ -168,7 +162,7 @@ export default function Invoice() {
     };
 
     fetchInvoice();
-  }, [id, invoices, orders, getInvoiceById]);
+  }, [id, getInvoiceById]);
 
   const formatPrice = (price: number) => {
     return `Rs. ${(price || 0).toLocaleString()}`;

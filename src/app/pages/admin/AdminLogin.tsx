@@ -20,6 +20,12 @@ export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("adminRememberMe") === "true";
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (isAdminDataLoaded) {
@@ -196,6 +202,24 @@ export default function AdminLogin() {
                 />
               </div>
             </div>
+
+            {!isSetupMode && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => {
+                    setRememberMe(e.target.checked);
+                    localStorage.setItem("adminRememberMe", e.target.checked.toString());
+                  }}
+                  className="rounded border-gray-300 w-4 h-4 text-black focus:ring-black"
+                />
+                <Label htmlFor="rememberMe" className="cursor-pointer text-sm text-gray-600">
+                  Remember me for 24 hours
+                </Label>
+              </div>
+            )}
 
             <Button
               type="submit"

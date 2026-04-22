@@ -41,8 +41,63 @@ export default function AdminCategories() {
   const [iconType, setIconType] = useState<"lucide" | "ai" | "image">("lucide");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [generatedTextPrompt, setGeneratedTextPrompt] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
 
 const safeCategories = categories || [];
+
+  const filteredCategories = safeCategories.filter(cat => 
+    cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    cat.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleSelectCategory = (id: string) => {
+    const newSet = new Set(selectedCategories);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedCategories(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCategories.size === filteredCategories.length) {
+      setSelectedCategories(new Set());
+    } else {
+      setSelectedCategories(new Set(filteredCategories.map(c => c.id)));
+    }
+  };
+
+  const bulkEnable = () => {
+    selectedCategories.forEach(id => {
+      const cat = safeCategories.find(c => c.id === id);
+      if (cat && !cat.isActive) {
+        toggleCategoryStatus(id);
+      }
+    });
+    toast.success(`${selectedCategories.size} categories enabled`);
+    setSelectedCategories(new Set());
+  };
+
+  const bulkDisable = () => {
+    selectedCategories.forEach(id => {
+      const cat = safeCategories.find(c => c.id === id);
+      if (cat && cat.isActive) {
+        toggleCategoryStatus(id);
+      }
+    });
+    toast.success(`${selectedCategories.size} categories disabled`);
+    setSelectedCategories(new Set());
+  };
+
+  const bulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedCategories.size} categories?`)) {
+      selectedCategories.forEach(id => deleteCategory(id));
+      toast.success(`${selectedCategories.size} categories deleted`);
+      setSelectedCategories(new Set());
+    }
+  };
 
   const getCategoryIcon = (icon: string | undefined, name: string) => {
     if (icon) return icon;
@@ -155,7 +210,7 @@ const safeCategories = categories || [];
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Category Management</h1>
           <p className="text-gray-600">Add, edit, and manage your product categories</p>
@@ -179,9 +234,38 @@ const safeCategories = categories || [];
         </div>
       </div>
 
+      {/* Search and Bulk Actions */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+        {selectedCategories.size > 0 && (
+          <div className="flex gap-2">
+            <Button onClick={toggleSelectAll} variant="outline" size="sm">
+              {selectedCategories.size === filteredCategories.length ? "Deselect All" : "Select All"}
+            </Button>
+            <Button onClick={bulkEnable} variant="outline" className="text-green-600 hover:bg-green-50" size="sm">
+              Enable ({selectedCategories.size})
+            </Button>
+            <Button onClick={bulkDisable} variant="outline" className="text-yellow-600 hover:bg-yellow-50" size="sm">
+              Disable ({selectedCategories.size})
+            </Button>
+            <Button onClick={bulkDelete} variant="outline" className="text-red-600 hover:bg-red-50" size="sm">
+              Delete ({selectedCategories.size})
+            </Button>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {safeCategories.map((category) => (
-          <div key={category.id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col">
+        {filteredCategories.map((category) => (
+          <div key={category.id} className={`bg-white rounded-xl shadow-lg overflow-hidden border-2 flex flex-col ${selectedCategories.has(category.id) ? 'border-[#D4AF37]' : 'border-gray-100'}`}>
             <div className="relative h-40">
               <img 
                 src={category.image || "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500"} 
@@ -189,7 +273,15 @@ const safeCategories = categories || [];
                 className={`w-full h-full object-cover ${!category.isActive ? 'grayscale' : ''}`}
               />
               <div className="absolute inset-0 bg-black/20" />
-              <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${category.isActive ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+              <div className="absolute top-4 left-4 z-10">
+              <input
+                type="checkbox"
+                checked={selectedCategories.has(category.id)}
+                onChange={() => toggleSelectCategory(category.id)}
+                className="w-5 h-5 rounded border-gray-300 accent-black cursor-pointer"
+              />
+            </div>
+            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${category.isActive ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                 {category.isActive ? 'Active' : 'Disabled'}
               </div>
             </div>

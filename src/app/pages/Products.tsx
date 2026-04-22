@@ -99,11 +99,34 @@ export default function Products() {
   }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
 
   useEffect(() => {
-    setMetaTags(
-      "Our Products | Lightning Bathware",
-      "Browse our extensive collection of premium lighting, bathroom fittings, plumbing, and electrical hardware at Lightning Bathware."
-    );
-  }, []);
+    const categoryParam = searchParams.get("category");
+    const searchParam = searchParams.get("search");
+    
+    if (categoryParam) {
+      const category = safeCategories.find(c => c.name === categoryParam);
+      if (category) {
+        setMetaTags(
+          `${category.name} | Lightning Bathware`,
+          `Shop our premium ${category.name.toLowerCase()} products. ${category.description || `Browse our extensive collection of ${category.name.toLowerCase()} at Lightning Bathware.`}`
+        );
+      } else {
+        setMetaTags(
+          `${categoryParam} | Lightning Bathware`,
+          `Browse our ${categoryParam} products at Lightning Bathware.`
+        );
+      }
+    } else if (searchParam) {
+      setMetaTags(
+        `Search: ${searchParam} | Lightning Bathware`,
+        `Search results for "${searchParam}" - Browse our premium products at Lightning Bathware.`
+      );
+    } else {
+      setMetaTags(
+        "Our Products | Lightning Bathware",
+        "Browse our extensive collection of premium lighting, bathroom fittings, plumbing, and electrical hardware at Lightning Bathware."
+      );
+    }
+  }, [searchParams, safeCategories]);
 
   const clearFilters = () => {
     setSelectedCategory("all");

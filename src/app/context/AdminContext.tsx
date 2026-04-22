@@ -2640,6 +2640,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const addProduct = async (product: Omit<Product, "id">) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const newProduct: Product = { ...product, id: generateUniqueId() };
     const currentProducts = products;
     const updated = [...currentProducts, newProduct];
@@ -2686,6 +2692,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const addMultipleProducts = async (newProducts: Omit<Product, "id">[]) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
     const productsWithIds = newProducts.map(p => ({ ...p, id: generateUniqueId() }));
     const updated = [...products, ...productsWithIds];
     setProducts(updated);
