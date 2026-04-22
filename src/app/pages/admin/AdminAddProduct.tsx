@@ -210,31 +210,7 @@ export default function AdminAddProduct() {
     };
 
     const handleSelectAllImages = async () => {
-      const validProducts = bulkProducts.filter(p => p.errors.length === 0);
-      if (validProducts.length === 0) {
-        toast.error("No valid products to upload");
-        return;
-      }
-      
-      setIsUploadingImages(true);
-      
-      for (let i = 0; i < validProducts.length; i++) {
-        const product = validProducts[i];
-        
-        const imageUrl = `https://via.placeholder.com/400x400?text=${encodeURIComponent(product.name)}`;
-        
-        setBulkProducts(prev => prev.map(p => {
-          if (p.id === product.id) {
-            return { ...p, image: imageUrl };
-          }
-          return p;
-        }));
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      setIsUploadingImages(false);
-      toast.success("Images added to all products!");
+      toast.info("Please use 'Upload Images' button to add images for products");
     };
 
     const handleUpload = async () => {
@@ -362,9 +338,7 @@ export default function AdminAddProduct() {
                         }}
                       />
                     </label>
-                    <Button variant="outline" onClick={handleSelectAllImages} disabled={isUploadingImages}>
-                      {isUploadingImages ? "Adding..." : "Sample Images"}
-                    </Button>
+                    
                   </div>
                 </div>
 
