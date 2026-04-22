@@ -303,7 +303,10 @@ export default function Header() {
                 onMouseEnter={() => setShowCategoriesDropdown(true)}
                 onMouseLeave={() => setShowCategoriesDropdown(false)}
               >
-                <button className="transition-colors font-medium relative group flex items-center gap-1 h-full py-1 text-white hover:text-[#D4AF37]">
+                <button 
+                  className="transition-colors font-medium relative group flex items-center gap-1 h-full py-1 text-white hover:text-[#D4AF37]"
+                  onClick={() => setShowCategoriesDropdown(!showCategoriesDropdown)}
+                >
                   Categories
                   <ChevronDown className="w-4 h-4 transition-transform duration-200" />
                   <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
