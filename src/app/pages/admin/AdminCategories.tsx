@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -9,51 +9,6 @@ import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { generatePrompt, getCategoryColor, getTextPrompt, ICON_PROMPTS } from "../../../lib/iconGenerator";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  horizontalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-
-interface SortableItemProps {
-  id: string;
-  children: React.ReactNode;
-}
-
-function SortableItem({ id, children }: SortableItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
-    </div>
-  );
-}
 
 const ICON_OPTIONS = [
   { name: "Lightbulb", icon: Lightbulb },
@@ -79,7 +34,7 @@ const ICON_OPTIONS = [
 ];
 
 export default function AdminCategories() {
-  const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus, reorderCategories } = useAdmin();
+  const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -186,28 +141,8 @@ const safeCategories = categories || [];
     image: "",
     icon: "Lightbulb",
     color: "bg-blue-500",
-    isActive: true,
-    order: 0
+    isActive: true
   });
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-    if (active.id !== over.id) {
-      const oldIndex = filteredCategories.findIndex((c) => c.id === active.id);
-      const newIndex = filteredCategories.findIndex((c) => c.id === over.id);
-      const newOrder = arrayMove(filteredCategories, oldIndex, newIndex);
-      reorderCategories(newOrder);
-      toast.success("Category order saved");
-    }
-  };
 
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,8 +177,7 @@ const safeCategories = categories || [];
       image: "",
       icon: "Lightbulb",
       color: "bg-blue-500",
-      isActive: true,
-      order: safeCategories.length
+      isActive: true
     });
   };
 
@@ -257,8 +191,7 @@ const safeCategories = categories || [];
       image: category.image,
       icon: category.icon || "Lightbulb",
       color: category.color,
-      isActive: category.isActive,
-      order: (category as any).order ?? safeCategories.length
+      isActive: category.isActive
     });
     setIsEditDialogOpen(true);
   };
@@ -330,19 +263,9 @@ const safeCategories = categories || [];
         )}
       </div>
 
-      <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={filteredCategories.map(c => c.id)}
-            strategy={horizontalListSortingStrategy}
-          >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCategories.map((category) => (
-              <SortableItem key={category.id} id={category.id}>
-              <div className={`bg-white rounded-xl shadow-lg overflow-hidden border-2 flex flex-col ${selectedCategories.has(category.id) ? 'border-[#D4AF37]' : 'border-gray-100'}`}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCategories.map((category) => (
+          <div key={category.id} className={`bg-white rounded-xl shadow-lg overflow-hidden border-2 flex flex-col ${selectedCategories.has(category.id) ? 'border-[#D4AF37]' : 'border-gray-100'}`}>
             <div className="relative h-40">
               <img 
                 src={category.image || "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500"} 
@@ -411,12 +334,10 @@ const safeCategories = categories || [];
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-</div>
-              </SortableItem>
-            ))}
+            </div>
           </div>
-          </SortableContext>
-        </DndContext>
+        ))}
+      </div>
 
       {/* Add Category Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
