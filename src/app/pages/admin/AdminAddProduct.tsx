@@ -65,21 +65,22 @@ export default function AdminAddProduct() {
     { id: "1", color: "", images: [] }
   ]);
 
-  // Local input states to prevent re-render during typing
-  const [localName, setLocalName] = useState(formData.name);
-  const [localDesc, setLocalDesc] = useState(formData.description);
+  // Completely uncontrolled - only use state on submit
+  const nameRef = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
   
+  const getFormValues = () => ({
+    name: nameRef.current?.value || "",
+    category: formData.category,
+    price: formData.price,
+    isAvailable: formData.isAvailable,
+    description: descRef.current?.value || "",
+    image: formData.image,
+  });
+
   const handleFormChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
-
-  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalName(e.target.value);
-  };
-  
-  const onNameBlur = () => {
-    handleFormChange("name", localName);
-  };
 
   const updateColorAtIndex = useCallback((index: number, color: string) => {
     setVariantColors(prev => {
@@ -1063,10 +1064,12 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         ? productVariants[0].images[0] 
         : formData.image;
 
+      const formValues = getFormValues();
+      
       await addProduct({
         ...formData,
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+        name: formValues.name.trim(),
+        description: formValues.description.trim(),
         image: mainImage,
         has_variants: enableVariants,
         variants: productVariants,
@@ -1084,6 +1087,8 @@ const inferCategory = (productName: string, existingCategory: string): string =>
       setVariantColors([""]);
       setVariants([{ id: "1", color: "", images: [] }]);
       setEnableVariants(false);
+      if (nameRef.current) nameRef.current.value = "";
+      if (descRef.current) descRef.current.value = "";
     };
 
     return (
@@ -1095,9 +1100,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
           <input
             type="text"
             id="name"
-            value={localName}
-            onChange={onNameChange}
-            onBlur={onNameBlur}
+            ref={nameRef}
             placeholder="e.g., LED Ceiling Light - Modern Round"
             className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             required
