@@ -1150,8 +1150,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
           </Label>
           <Textarea
               id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              ref={descRef}
               placeholder="Enter product description..."
               className="min-h-[120px]"
               required
