@@ -419,7 +419,7 @@ export default function AdminAddProduct() {
                               value={product.description}
                               onChange={(e) => handleDescriptionChange(product.id, e.target.value)}
                               placeholder="Description..."
-                              className="w-64 min-h-[60px] text-sm border rounded p-2"
+                              className="w-64 text-sm border rounded p-2 h-auto"
                             />
                           </td>
                           <td 
