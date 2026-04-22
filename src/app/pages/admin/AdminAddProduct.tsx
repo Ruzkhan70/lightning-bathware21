@@ -73,19 +73,14 @@ export default function AdminAddProduct() {
   const descRef = useRef<HTMLTextAreaElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   
-  const getFormValues = () => {
-    const values = {
+  const getFormValues = () => ({
       name: nameRef.current?.value || "",
       category: formData.category,
       price: parseFloat(priceRef.current?.value) || 0,
       isAvailable: formData.isAvailable,
       description: descRef.current?.value || "",
       image: formData.image,
-    };
-    // Sync to formData so validation and reset work
-    setFormData(values);
-    return values;
-  };
+  });
 
   const handleFormChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -1032,30 +1027,32 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       
-      // FIRST: Sync refs to formData so validation works
-      const formValues = getFormValues();
+      // Read directly from refs for validation
+      const name = nameRef.current?.value || "";
+      const description = descRef.current?.value || "";
+      const price = parseFloat(priceRef.current?.value) || 0;
 
-      if (!formValues.name || formValues.name.trim().length < 2) {
+      if (!name || name.trim().length < 2) {
         toast.error("Product name must be at least 2 characters");
         return;
       }
 
-      if (!formValues.category) {
+      if (!formData.category) {
         toast.error("Please select a category");
         return;
       }
 
-      if (formValues.price <= 0) {
+      if (price <= 0) {
         toast.error("Price must be greater than 0");
         return;
       }
 
-      if (formValues.price > 10000000) {
+      if (price > 10000000) {
         toast.error("Price cannot exceed 10,000,000 LKR");
         return;
       }
 
-      if (!formValues.description || formValues.description.trim().length < 10) {
+      if (!description || description.trim().length < 10) {
         toast.error("Description must be at least 10 characters");
         return;
       }
@@ -1083,7 +1080,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         ? productVariants[0].images[0] 
         : formData.image;
 
-      // Reuse formValues from beginning of handleSubmit
+      const formValues = getFormValues();
       
       await addProduct({
         ...formValues,
