@@ -68,11 +68,12 @@ export default function AdminAddProduct() {
   // Completely uncontrolled - only use state on submit
   const nameRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
   
   const getFormValues = () => ({
     name: nameRef.current?.value || "",
     category: formData.category,
-    price: formData.price,
+    price: parseFloat(priceRef.current?.value) || 0,
     isAvailable: formData.isAvailable,
     description: descRef.current?.value || "",
     image: formData.image,
@@ -1089,6 +1090,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
       setEnableVariants(false);
       if (nameRef.current) nameRef.current.value = "";
       if (descRef.current) descRef.current.value = "";
+      if (priceRef.current) priceRef.current.value = "";
     };
 
     return (
@@ -1137,8 +1139,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
             type="number"
             min="0"
             step="1"
-            value={formData.price || ""}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            ref={priceRef}
             placeholder="e.g., 2500"
             required
           />
@@ -1284,7 +1285,12 @@ const inferCategory = (productName: string, existingCategory: string): string =>
             type="button"
             size="lg"
             variant="outline"
-            onClick={() => setFormData({ name: "", category: "", price: 0, isAvailable: true, description: "", image: "" })}
+            onClick={() => {
+              setFormData({ name: "", category: "", price: 0, isAvailable: true, description: "", image: "" });
+              if (nameRef.current) nameRef.current.value = "";
+              if (descRef.current) descRef.current.value = "";
+              if (priceRef.current) priceRef.current.value = "";
+            }}
           >
             Clear Form
           </Button>
