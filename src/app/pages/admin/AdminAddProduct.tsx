@@ -898,7 +898,11 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     };
 
     const updateVariantColor = (id: string, color: string) => {
-      setVariants(variants.map(v => v.id === id ? { ...v, color } : v));
+      console.log("updateVariantColor:", id, color);
+      setVariants(prev => {
+        console.log("prev variants:", prev);
+        return prev.map(v => v.id === id ? { ...v, color } : v);
+      });
     };
 
     const uploadVariantImage = async (variantId: string, file: File) => {
@@ -913,7 +917,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         const data = await response.json();
         
         if (data.success) {
-          setVariants(variants.map(v => {
+          setVariants(prev => prev.map(v => {
             if (v.id === variantId) {
               return { ...v, images: [...v.images, data.data.url] };
             }
@@ -921,7 +925,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
           }));
         } else {
           const url = URL.createObjectURL(file);
-          setVariants(variants.map(v => {
+          setVariants(prev => prev.map(v => {
             if (v.id === variantId) {
               return { ...v, images: [...v.images, url] };
             }
@@ -930,7 +934,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
         }
       } catch (error) {
         const url = URL.createObjectURL(file);
-        setVariants(variants.map(v => {
+        setVariants(prev => prev.map(v => {
           if (v.id === variantId) {
             return { ...v, images: [...v.images, url] };
           }
@@ -940,7 +944,7 @@ const inferCategory = (productName: string, existingCategory: string): string =>
     };
 
     const removeVariantImage = (variantId: string, imageIndex: number) => {
-      setVariants(variants.map(v => {
+      setVariants(prev => prev.map(v => {
         if (v.id === variantId) {
           return { ...v, images: v.images.filter((_, i) => i !== imageIndex) };
         }
