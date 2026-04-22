@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -34,7 +34,7 @@ const ICON_OPTIONS = [
 ];
 
 export default function AdminCategories() {
-  const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus, reorderCategories } = useAdmin();
+  const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -67,16 +67,6 @@ const safeCategories = categories || [];
     } else {
       setSelectedCategories(new Set(filteredCategories.map(c => c.id)));
     }
-  };
-
-  const moveCategory = (index: number, direction: "up" | "down") => {
-    if (direction === "up" && index === 0) return;
-    if (direction === "down" && index === filteredCategories.length - 1) return;
-    const newOrder = [...filteredCategories];
-    const swapIndex = direction === "up" ? index - 1 : index + 1;
-    [newOrder[index], newOrder[swapIndex]] = [newOrder[swapIndex], newOrder[index]];
-    reorderCategories(newOrder);
-    toast.success(`Category moved ${direction}!`);
   };
 
   const bulkEnable = () => {
@@ -274,26 +264,8 @@ const safeCategories = categories || [];
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCategories.map((category, index) => (
+        {filteredCategories.map((category) => (
           <div key={category.id} className={`bg-white rounded-xl shadow-lg overflow-hidden border-2 flex flex-col ${selectedCategories.has(category.id) ? 'border-[#D4AF37]' : 'border-gray-100'}`}>
-            <div className="absolute top-4 left-4 z-10 flex gap-1">
-              <button
-                type="button"
-                onClick={() => moveCategory(index, "up")}
-                disabled={index === 0}
-                className="p-1 bg-white rounded shadow hover:bg-gray-100 disabled:opacity-30"
-              >
-                <ArrowUp className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => moveCategory(index, "down")}
-                disabled={index === filteredCategories.length - 1}
-                className="p-1 bg-white rounded shadow hover:bg-gray-100 disabled:opacity-30"
-              >
-                <ArrowDown className="w-4 h-4" />
-              </button>
-            </div>
             <div className="relative h-40">
               <img 
                 src={category.image || "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500"} 
