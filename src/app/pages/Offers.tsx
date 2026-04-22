@@ -6,10 +6,10 @@ import ScrollAnimation from "../components/ScrollAnimation";
 import { ProductGridSkeleton, Skeleton } from "../components/Skeleton";
 
 export default function Offers() {
-  const { getActiveOffers, products, siteContent, isDataLoaded } = useAdmin();
+  const { getActiveOffers, products, siteContent, storeProfile, isDataLoaded } = useAdmin();
   const safeProducts = products || [];
   const activeOffers = getActiveOffers() || [];
-  const isOffersPageEnabled = siteContent?.offers?.isEnabled ?? true;
+  const isOffersPageEnabled = (siteContent?.offers?.isEnabled ?? true) && (storeProfile?.enableOffersPage ?? true);
 
   if (!isOffersPageEnabled) {
     return (

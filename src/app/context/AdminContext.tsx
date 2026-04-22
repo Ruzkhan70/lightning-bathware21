@@ -148,6 +148,7 @@ export interface Category {
   icon: string;
   color: string;
   isActive: boolean;
+  order: number;
   subcategories?: string[];
 }
 
@@ -206,6 +207,7 @@ export interface StoreProfile {
   statsCustomersVisible: boolean;
   statsAuthenticVisible: boolean;
   enableOnlinePayment: boolean;
+  enableOffersPage: boolean;
   authorizedAdminEmail?: string;
 }
 
@@ -397,6 +399,7 @@ interface AdminContextType {
   updateCategory: (id: string, category: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
   toggleCategoryStatus: (id: string) => void;
+  reorderCategories: (categories: Category[]) => void;
   showAdminLogin: boolean;
   setShowAdminLogin: (show: boolean) => void;
   isDataLoaded: boolean;
@@ -504,6 +507,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   statsCustomersVisible: true,
   statsAuthenticVisible: true,
   enableOnlinePayment: false,
+  enableOffersPage: true,
   authorizedAdminEmail: "",
 };
 
@@ -773,11 +777,11 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
 };
 
 const DEFAULT_CATEGORIES: Category[] = [
-  { id: "1", name: "Lighting", description: "Modern and traditional lightning solutions", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500", icon: "Lightbulb", color: "bg-yellow-500", isActive: true },
-  { id: "2", name: "Bathroom Fittings", description: "Premium bathroom fixtures", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500", icon: "Bath", color: "bg-blue-500", isActive: true },
-  { id: "3", name: "Plumbing", description: "Complete plumbing solutions", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500", icon: "Wrench", color: "bg-green-500", isActive: true },
-  { id: "4", name: "Electrical Hardware", description: "Smart switches and wiring", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500", icon: "Zap", color: "bg-orange-500", isActive: true },
-  { id: "5", name: "Construction Tools", description: "Professional-grade tools", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500", icon: "HardHat", color: "bg-red-500", isActive: true }
+  { id: "1", name: "Lighting", description: "Modern and traditional lightning solutions", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500", icon: "Lightbulb", color: "bg-yellow-500", isActive: true, order: 0 },
+  { id: "2", name: "Bathroom Fittings", description: "Premium bathroom fixtures", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500", icon: "Bath", color: "bg-blue-500", isActive: true, order: 1 },
+  { id: "3", name: "Plumbing", description: "Complete plumbing solutions", image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=500", icon: "Wrench", color: "bg-green-500", isActive: true, order: 2 },
+  { id: "4", name: "Electrical Hardware", description: "Smart switches and wiring", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=500", icon: "Zap", color: "bg-orange-500", isActive: true, order: 3 },
+  { id: "5", name: "Construction Tools", description: "Professional-grade tools", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=500", icon: "HardHat", color: "bg-red-500", isActive: true, order: 4 }
 ];
 
 const DEFAULT_PRODUCTS: Product[] = [
@@ -3209,6 +3213,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const reorderCategories = async (newOrder: Category[]) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
+    const reordered = newOrder.map((cat, index) => ({ ...cat, order: index }));
+    setCategories(reordered);
+    try {
+      await setDoc(doc(db, "storeData", "categories"), { categories: reordered }, { merge: true });
+      toast.success("Categories reordered!");
+    } catch (error) {
+      console.error("Error reordering categories:", error);
+      toast.error("Failed to save category order");
+    }
+  };
+
   const updateCategory = async (id: string, category: Partial<Category>) => {
     const authReady = await waitForAuth();
     if (!authReady) {
@@ -3364,6 +3386,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         updateCategory,
         deleteCategory,
         toggleCategoryStatus,
+        reorderCategories,
         isDataLoaded,
         topSellingProducts,
         getOrdersByStatus,

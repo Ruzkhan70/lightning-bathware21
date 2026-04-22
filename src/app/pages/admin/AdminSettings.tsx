@@ -402,6 +402,20 @@ export default function AdminSettings() {
                     </p>
                   </div>
                 )}
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">Show Offers Page</p>
+                    <p className="text-sm text-gray-500">Display the Offers page for customers</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProfileForm({...profileForm, enableOffersPage: !profileForm.enableOffersPage})}
+                    className={profileForm.enableOffersPage ? 'text-green-600' : 'text-gray-400'}
+                  >
+                    {profileForm.enableOffersPage ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
+                  </button>
+                </div>
               </Card>
 
               <Card title="Home Page Stats" icon={<Award className="w-5 h-5" />} description="Statistics displayed on your homepage">
