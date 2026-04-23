@@ -1985,8 +1985,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         quantity: p.quantity || 1,
         unitPrice: p.price || 0,
         total: (p.price || 0) * (p.quantity || 1),
-        selected_color: p.selected_color,
-        selected_size: p.selected_size,
+        selected_color: p.selected_color || "",
+        selected_size: p.selected_size || "",
       }));
       const subtotal = products.reduce((sum, p) => sum + p.total, 0);
       
@@ -2039,8 +2039,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           quantity: p.quantity || 1,
           unitPrice: p.price || 0,
           total: (p.price || 0) * (p.quantity || 1),
-          selected_color: p.selected_color,
-          selected_size: p.selected_size,
+          selected_color: p.selected_color || "",
+          selected_size: p.selected_size || "",
         })),
         subtotal: (order.total || 0) - (order.deliveryCost || 0),
         discount: 0,
