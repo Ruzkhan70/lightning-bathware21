@@ -356,7 +356,7 @@ export default function Home() {
       </section>
 
       {/* Active Offers Banner */}
-      {(siteContent?.offers?.isEnabled ?? true) && activeOffers.length > 0 && (
+      {activeOffers.length > 0 && (
         <section className="py-16 bg-gradient-to-r from-red-600 via-red-500 to-orange-500">
           <div className="container mx-auto px-4">
             <div className="text-center text-white mb-8">

@@ -340,14 +340,12 @@ export default function Header() {
                 </div>
               </div>
             </li>
-            {(siteContent?.offers?.isEnabled ?? true) && (
             <li>
               <Link to="/offers" className={`transition-colors font-medium relative group ${isActive("/offers") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Offers
                 <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 ${isActive("/offers") ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </li>
-            )}
             <li>
               <Link to="/services" className={`transition-colors font-medium relative group ${isActive("/services") ? "text-[#D4AF37]" : "text-white hover:text-[#D4AF37]"}`}>
                 Services
@@ -503,7 +501,6 @@ export default function Header() {
                 </div>
               )}
             </li>
-            {(siteContent?.offers?.isEnabled ?? true) && (
             <li>
               <Link
                 to="/offers"
@@ -514,7 +511,6 @@ export default function Header() {
                 <span className="font-medium">Offers</span>
               </Link>
             </li>
-            )}
             <li>
               <Link
                 to="/about"
