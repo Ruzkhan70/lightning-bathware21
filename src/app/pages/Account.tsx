@@ -575,7 +575,7 @@ export default function Account() {
                     <h3 className="font-semibold">Ordered Items</h3>
                   </div>
                   <div className="space-y-3">
-                    {(selectedOrder.products || []).map((product: { id?: string; image?: string; name?: string; price?: number; quantity?: number }, index: number) => (
+                    {(selectedOrder.products || []).map((product: { id?: string; image?: string; name?: string; price?: number; quantity?: number; selected_color?: string; selected_size?: string }, index: number) => (
                       <div
                         key={product.id || index}
                         className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -587,6 +587,13 @@ export default function Account() {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm sm:text-base truncate">{product.name || "Unknown Product"}</p>
+                          {(product.selected_color || product.selected_size) && (
+                            <p className="text-xs sm:text-sm text-[#D4AF37] font-medium">
+                              {product.selected_color && `Color: ${product.selected_color}`}
+                              {product.selected_color && product.selected_size && ' / '}
+                              {product.selected_size && `Size: ${product.selected_size}`}
+                            </p>
+                          )}
                           <p className="text-xs sm:text-sm text-gray-500">Qty: {product.quantity || 1}</p>
                         </div>
                         <p className="font-semibold text-[#D4AF37] text-sm sm:text-base whitespace-nowrap">
