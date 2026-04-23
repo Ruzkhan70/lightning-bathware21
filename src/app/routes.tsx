@@ -5,7 +5,7 @@ import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 import ContentLoader from "./components/ContentLoader";
 import { ProtectedAdminRoute } from "./components/ProtectedAdminRoute";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 // Lazy load all pages with optimized loading
 const Home = lazy(() => import("./pages/Home"));
@@ -63,10 +63,11 @@ function ErrorPage() {
         </p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold px-6 py-3 rounded-lg transition-colors"
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold px-6 py-3 rounded-lg transition-colors cursor-pointer"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Home
+          <RefreshCw className="w-5 h-5" />
+          Refresh
         </Link>
       </div>
     </div>
