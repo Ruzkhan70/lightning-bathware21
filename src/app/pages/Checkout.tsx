@@ -198,7 +198,7 @@ export default function Checkout() {
           console.error("Invoice creation failed:", invoiceError);
           clearCart();
           setIsSubmitting(false);
-          toast.success("Order placed successfully! Invoice will be generated shortly.");
+          toast.success("Order placed successfully!");
           navigate("/account");
         }
       }

@@ -2023,9 +2023,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return savedInvoice;
     } catch (error) {
       console.error("Error creating invoice:", error);
-      if (!silent) {
-        toast.error("Failed to create invoice - your order is saved");
-      }
+      // Silent fallback - don't show toast here, let checkout handle the message
       
       // Create and save fallback invoice to Firebase
       const fallbackInvoice = {
