@@ -2026,10 +2026,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (!silent) {
         toast.error("Failed to create invoice - your order is saved");
       }
-      // Return a placeholder invoice object so checkout doesn't crash
-      return {
-        id: `temp-${Date.now()}`,
-        invoiceNumber: invoiceNumber || `INV-TEMP-${Date.now()}`,
+      
+      // Create and save fallback invoice to Firebase
+      const fallbackInvoice = {
+        invoiceNumber,
         orderId: order.id || "",
         customerName: order.customerName || "Unknown",
         customerPhone: order.phone || "",
@@ -2049,10 +2049,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         tax: 0,
         deliveryCost: order.deliveryCost || 0,
         grandTotal: order.total || 0,
-        paymentStatus: "Pending" as const,
+        paymentStatus: "Pending" as "Pending" | "Paid",
         date: order.date || new Date().toISOString(),
         createdAt: new Date().toISOString(),
       };
+      
+      try {
+        const docRef = await addDoc(collection(db, "invoices"), fallbackInvoice);
+        const savedFallback: Invoice = { ...fallbackInvoice, id: docRef.id };
+        setInvoices(prev => [savedFallback, ...prev]);
+        return savedFallback;
+      } catch (saveError) {
+        console.error("Failed to save fallback invoice:", saveError);
+        // Return invoice with temp ID as last resort (won't be accessible but checkout won't crash)
+        return {
+          ...fallbackInvoice,
+          id: `temp-${Date.now()}`,
+        } as Invoice;
+      }
     }
   };
 
