@@ -101,9 +101,15 @@ export default function Checkout() {
 
     setIsSubmitting(true);
 
+    if (!user?.id) {
+      toast.error("Please log in to place an order");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const orderData = {
-        userId: user?.id,
+        userId: user.id,
         customerName: formData.customerName,
         phone: formData.phone,
         address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,
