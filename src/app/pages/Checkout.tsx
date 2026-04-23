@@ -188,11 +188,19 @@ export default function Checkout() {
           toast.info("Payment cancelled. Your order is saved.");
         });
       } else {
-        const invoice = await createInvoice(savedOrder, formData.email);
-        clearCart();
-        setIsSubmitting(false);
-        toast.success("Order placed successfully! Invoice generated.");
-        navigate(`/invoice/${invoice.id}`);
+        try {
+          const invoice = await createInvoice(savedOrder, formData.email);
+          clearCart();
+          setIsSubmitting(false);
+          toast.success("Order placed successfully! Invoice generated.");
+          navigate(`/invoice/${invoice.id}`);
+        } catch (invoiceError) {
+          console.error("Invoice creation failed:", invoiceError);
+          clearCart();
+          setIsSubmitting(false);
+          toast.success("Order placed successfully! Invoice will be generated shortly.");
+          navigate("/account");
+        }
       }
     } catch (error) {
       setIsSubmitting(false);

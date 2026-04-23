@@ -1970,6 +1970,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const createInvoice = async (order: Order, customerEmail: string = "", silent: boolean = false) => {
+    const invoiceNumber = generateInvoiceNumber();
+    
     try {
       // Check if invoice already exists for this order
       const existingInvoice = invoices.find(inv => inv.orderId === order.id);
@@ -1977,7 +1979,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return existingInvoice;
       }
       
-      const invoiceNumber = generateInvoiceNumber();
       const products = order.products.map(p => ({
         id: p.id || "",
         name: p.name || "Unknown Product",
@@ -2023,9 +2024,35 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error creating invoice:", error);
       if (!silent) {
-        toast.error("Failed to create invoice");
+        toast.error("Failed to create invoice - your order is saved");
       }
-      throw error;
+      // Return a placeholder invoice object so checkout doesn't crash
+      return {
+        id: `temp-${Date.now()}`,
+        invoiceNumber: invoiceNumber || `INV-TEMP-${Date.now()}`,
+        orderId: order.id || "",
+        customerName: order.customerName || "Unknown",
+        customerPhone: order.phone || "",
+        customerEmail: customerEmail || "",
+        address: order.address || "",
+        products: order.products.map(p => ({
+          id: p.id || "",
+          name: p.name || "Unknown Product",
+          quantity: p.quantity || 1,
+          unitPrice: p.price || 0,
+          total: (p.price || 0) * (p.quantity || 1),
+          selected_color: p.selected_color,
+          selected_size: p.selected_size,
+        })),
+        subtotal: (order.total || 0) - (order.deliveryCost || 0),
+        discount: 0,
+        tax: 0,
+        deliveryCost: order.deliveryCost || 0,
+        grandTotal: order.total || 0,
+        paymentStatus: "Pending" as const,
+        date: order.date || new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
     }
   };
 
