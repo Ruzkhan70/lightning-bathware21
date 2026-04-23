@@ -303,33 +303,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
               </div>
 
-              {/* Quantity Selector (for non-variant or size-only mode) */}
-              {product.isAvailable && !hasVariants && !hasSizes && (
-                <div className="mb-6">
-                  <label className="block font-semibold mb-3">Quantity:</label>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border-2 border-gray-300 rounded-lg">
-                      <button
-                        onClick={decrementQuantity}
-                        disabled={quantity <= 1}
-                        className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Minus className="w-5 h-5" />
-                      </button>
-                      <span className="px-6 font-bold text-xl">{quantity}</span>
-                      <button
-                        onClick={incrementQuantity}
-                        className="p-3 hover:bg-gray-100 transition-colors"
-                      >
-                        <Plus className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Quantity Selector for Size Variants */}
-              {product.isAvailable && hasSizes && (
+              {/* Quantity Selector (for non-variant or variant mode) */}
+              {product.isAvailable && (hasVariants || hasSizes) && (
                 <div className="mb-6">
                   <label className="block font-semibold mb-3">Quantity:</label>
                   <div className="flex items-center gap-4">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -31,6 +31,16 @@ const ICON_OPTIONS = [
   { name: "Thermometer", icon: Thermometer },
   { name: "Fan", icon: Fan },
   { name: "Snowflake", icon: Snowflake },
+  { name: "Settings", icon: Settings },
+  { name: "Cog", icon: Cog },
+  { name: "SprayCan", icon: SprayCan },
+  { name: "PaintBucket", icon: PaintBucket },
+  { name: "Flame", icon: Flame },
+  { name: "Shield", icon: Shield },
+  { name: "Pencil", icon: Pencil },
+  { name: "Leaf", icon: Leaf },
+  { name: "Utensils", icon: Utensils },
+  { name: "ArrowRight", icon: ArrowRight },
 ];
 
 export default function AdminCategories() {

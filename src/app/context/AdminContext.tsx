@@ -166,7 +166,7 @@ export interface Category {
   icon: string;
   color: string;
   isActive: boolean;
-  order: number;
+  order?: number;
   subcategories?: string[];
 }
 
