@@ -108,6 +108,8 @@ export default function Checkout() {
     }
 
     try {
+      console.log("[Checkout] Starting order placement...");
+      
       const orderData = {
         userId: user.id,
         customerName: formData.customerName,
@@ -127,7 +129,9 @@ export default function Checkout() {
         deliveryCost: deliveryCost,
       };
       
+      console.log("[Checkout] Order data:", orderData);
       const savedOrder = await addOrder(orderData);
+      console.log("[Checkout] Order saved:", savedOrder.id);
       
       const orderNotification = {
         orderId: savedOrder.id || `ORD-${Date.now()}`,

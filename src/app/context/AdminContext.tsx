@@ -3037,12 +3037,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       status: "Pending",
       paymentStatus: "Pending",
     };
+    
+    // Immediately update local state
     setOrders(prev => [...prev, newOrder]);
+    
     try {
       await setDoc(doc(db, "orders", newOrder.id), newOrder);
+      console.log("[Orders] Order saved to Firebase:", newOrder.id);
     } catch (error) {
-      console.error("Error saving order:", error);
+      console.error("[Orders] Error saving order to Firebase:", error);
+      // Order is still valid in local state
     }
+    
     return newOrder;
   };
 
