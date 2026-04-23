@@ -13,12 +13,6 @@ interface ProductModalProps {
   onClose: () => void;
 }
 
-interface VariantQuantity {
-  color: string;
-  quantity: number;
-  selected: boolean;
-}
-
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
@@ -28,12 +22,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const displayPrice = discount.hasDiscount ? (discount.discountedPrice || product.price) : product.price;
 
   const hasVariants = product.has_variants && product.variants && product.variants.length > 0;
+  const hasSizes = product.has_sizes && product.sizes && product.sizes.length > 0;
   const variants = product.variants || [];
+  const sizes = product.sizes || [];
   
   const [selectedColor, setSelectedColor] = useState<string>(variants[0]?.color || "");
-  const [variantQuantities, setVariantQuantities] = useState<VariantQuantity[]>(
-    variants.map(v => ({ color: v.color, quantity: 1, selected: false }))
-  );
+  const [selectedSize, setSelectedSize] = useState<string>(sizes[0]?.size || "");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -49,63 +43,47 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
+    setQuantity(1);
     setCurrentImageIndex(0);
   };
 
-  const toggleVariantSelection = (color: string) => {
-    setVariantQuantities(prev => prev.map(vq => 
-      vq.color === color ? { ...vq, selected: !vq.selected } : vq
-    ));
-  };
-
-  const updateVariantQuantity = (color: string, qty: number) => {
-    setVariantQuantities(prev => prev.map(vq => 
-      vq.color === color ? { ...vq, quantity: Math.max(1, qty) } : vq
-    ));
-  };
-
-  const getSelectedVariants = (): VariantQuantity[] => {
-    return variantQuantities.filter(vq => vq.selected);
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
+    setQuantity(1);
   };
 
   const handleAddToCart = () => {
+    if (hasVariants && hasSizes) {
+      toast.error("Please select a color OR size, not both");
+      return;
+    }
+    
     if (hasVariants) {
-      const selected = getSelectedVariants();
-      
-      if (selected.length === 0) {
-        const variant = variants.find(v => v.color === selectedColor);
-        const image = variant?.images?.[0] || product.image;
-        addToCart({
-          id: product.id,
-          product_id: product.id,
-          name: product.name,
-          price: displayPrice,
-          image: image,
-          quantity: quantity,
-          isAvailable: product.isAvailable,
-          selected_color: selectedColor,
-        });
-        toast.success(`${quantity} x ${product.name} (${selectedColor}) added to cart!`);
-      } else {
-        let totalQty = 0;
-        selected.forEach(sv => {
-          const variant = variants.find(v => v.color === sv.color);
-          const image = variant?.images?.[0] || product.image;
-          addToCart({
-            id: product.id,
-            product_id: product.id,
-            name: product.name,
-            price: displayPrice,
-            image: image,
-            quantity: sv.quantity,
-            isAvailable: product.isAvailable,
-            selected_color: sv.color,
-          });
-          totalQty += sv.quantity;
-        });
-        const colorsStr = selected.map(s => `${s.color} (x${s.quantity})`).join(", ");
-        toast.success(`${product.name}: ${colorsStr} added to cart!`);
-      }
+      const variant = variants.find(v => v.color === selectedColor);
+      const image = variant?.images?.[0] || product.image;
+      addToCart({
+        id: product.id,
+        product_id: product.id,
+        name: product.name,
+        price: displayPrice,
+        image: image,
+        quantity: quantity,
+        isAvailable: product.isAvailable,
+        selected_color: selectedColor,
+      });
+      toast.success(`${quantity} x ${product.name} (${selectedColor}) added to cart!`);
+    } else if (hasSizes) {
+      addToCart({
+        id: product.id,
+        product_id: product.id,
+        name: product.name,
+        price: displayPrice,
+        image: product.image,
+        quantity: quantity,
+        isAvailable: product.isAvailable,
+        selected_size: selectedSize,
+      });
+      toast.success(`${quantity} x ${product.name} (${selectedSize}) added to cart!`);
     } else {
       addToCart({
         id: product.id,
@@ -130,9 +108,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       setQuantity(quantity - 1);
     }
   };
-
-  const selectedTotal = variantQuantities.reduce((sum, vq) => sum + (vq.selected ? vq.quantity : 0), 0);
-  const finalTotal = hasVariants ? selectedTotal || quantity : quantity;
 
   const modalContent = (
     <AnimatePresence>
@@ -265,52 +240,24 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
               )}
 
-              {/* Multi-Color Selection */}
-              {hasVariants && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold mb-3">
-                    Order Multiple Colors:
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Select colors and quantities below
-                  </p>
-                  <div className="space-y-3">
-                    {variants.map((variant) => {
-                      const vq = variantQuantities.find(v => v.color === variant.color);
-                      const isSelected = vq?.selected || false;
-                      const qty = vq?.quantity || 1;
-                      
-                      return (
-                        <div key={variant.color} className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleVariantSelection(variant.color)}
-                            className="w-5 h-5 rounded"
-                          />
-                          <span className="w-20 font-medium">{variant.color}</span>
-                          {isSelected ? (
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => updateVariantQuantity(variant.color, qty - 1)}
-                                className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100"
-                              >
-                                <Minus className="w-4 h-4" />
-                              </button>
-                              <span className="w-8 text-center font-semibold">{qty}</span>
-                              <button
-                                onClick={() => updateVariantQuantity(variant.color, qty + 1)}
-                                className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 text-sm">(not selected)</span>
-                          )}
-                        </div>
-                      );
-                    })}
+              {/* Size Variants Selector */}
+              {hasSizes && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-3">Select Size:</h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {sizes.map((sz) => (
+                      <button
+                        key={sz.size}
+                        onClick={() => handleSizeSelect(sz.size)}
+                        className={`px-4 py-2 rounded-full border-2 transition-all ${
+                          selectedSize === sz.size
+                            ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                      >
+                        {sz.size}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -356,8 +303,33 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
               </div>
 
-              {/* Quantity Selector (only for non-variant mode) */}
-              {product.isAvailable && !hasVariants && (
+              {/* Quantity Selector (for non-variant or size-only mode) */}
+              {product.isAvailable && !hasVariants && !hasSizes && (
+                <div className="mb-6">
+                  <label className="block font-semibold mb-3">Quantity:</label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border-2 border-gray-300 rounded-lg">
+                      <button
+                        onClick={decrementQuantity}
+                        disabled={quantity <= 1}
+                        className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Minus className="w-5 h-5" />
+                      </button>
+                      <span className="px-6 font-bold text-xl">{quantity}</span>
+                      <button
+                        onClick={incrementQuantity}
+                        className="p-3 hover:bg-gray-100 transition-colors"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Quantity Selector for Size Variants */}
+              {product.isAvailable && hasSizes && (
                 <div className="mb-6">
                   <label className="block font-semibold mb-3">Quantity:</label>
                   <div className="flex items-center gap-4">
@@ -389,9 +361,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 {product.isAvailable 
-                  ? hasVariants 
-                    ? `Add to Cart - Rs. ${(displayPrice * finalTotal).toLocaleString()}`
-                    : `Add to Cart - Rs. ${(displayPrice * quantity).toLocaleString()}`
+                  ? `Add to Cart - Rs. ${(displayPrice * quantity).toLocaleString()}`
                   : "Not Available"
                 }
               </Button>

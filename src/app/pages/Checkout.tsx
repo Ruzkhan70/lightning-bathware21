@@ -114,6 +114,7 @@ export default function Checkout() {
           price: item.price,
           image: item.image,
           selected_color: item.selected_color,
+          selected_size: item.selected_size,
         })),
         total: grandTotal,
         deliveryOption: selectedDelivery?.label || "",
@@ -466,6 +467,13 @@ export default function Checkout() {
                         <p className="font-semibold text-sm line-clamp-2">
                           {item.name}
                         </p>
+                        {(item.selected_color || item.selected_size) && (
+                          <p className="text-xs text-[#D4AF37] font-medium">
+                            {item.selected_color && `Color: ${item.selected_color}`}
+                            {item.selected_color && item.selected_size && ' / '}
+                            {item.selected_size && `Size: ${item.selected_size}`}
+                          </p>
+                        )}
                         <p className="text-sm text-gray-600">
                           Qty: {item.quantity}
                         </p>

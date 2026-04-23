@@ -54,6 +54,13 @@ export default function Cart() {
                   {/* Details */}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
+                    {(item.selected_color || item.selected_size) && (
+                      <p className="text-sm text-[#D4AF37] font-medium mb-2">
+                        {item.selected_color && `Color: ${item.selected_color}`}
+                        {item.selected_color && item.selected_size && ' / '}
+                        {item.selected_size && `Size: ${item.selected_size}`}
+                      </p>
+                    )}
                     <p className="text-2xl font-bold text-black mb-4">
                       Rs. {item.price.toLocaleString()}
                     </p>

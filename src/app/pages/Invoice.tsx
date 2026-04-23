@@ -20,6 +20,8 @@ interface InvoiceProduct {
   quantity: number;
   unitPrice: number;
   total: number;
+  selected_color?: string;
+  selected_size?: string;
 }
 
 interface InvoiceData {
@@ -62,6 +64,9 @@ interface RawInvoiceData {
     unitPrice?: number;
     price?: number;
     total?: number;
+    selected_color?: string;
+    selected_size?: string;
+    color?: string;
   }>;
   subtotal?: number;
   discount?: number;
@@ -136,6 +141,8 @@ export default function Invoice() {
               quantity: p.quantity || 0,
               unitPrice: p.unitPrice || p.price || 0,
               total: p.total || (p.unitPrice || p.price || 0) * (p.quantity || 1),
+              selected_color: p.selected_color || p.color,
+              selected_size: p.selected_size,
             })),
             subtotal: foundInvoice.subtotal || 0,
             discount: foundInvoice.discount || 0,
@@ -359,7 +366,12 @@ export default function Invoice() {
         const isEven = index % 2 === 0;
         doc.setFillColor(...(isEven ? white : [248, 248, 248]));
         
-        const productName = product.name || "Unknown Product";
+        let productName = product.name || "Unknown Product";
+        if (product.selected_color) {
+          productName += ` (${product.selected_color})`;
+        } else if (product.selected_size) {
+          productName += ` (${product.selected_size})`;
+        }
         const nameLines = doc.splitTextToSize(productName, colQty - colProduct - 5);
         const rowHeight = Math.max(12, nameLines.length * 5 + 6);
         
@@ -674,7 +686,15 @@ export default function Invoice() {
                     <tbody>
                       {invoice.products.map((product, index) => (
                         <tr key={product.id || index} className="border-b">
-                          <td className="px-3 py-3 text-sm whitespace-normal break-normal">{product.name}</td>
+                          <td className="px-3 py-3 text-sm whitespace-normal break-normal">
+                            {product.name}
+                            {(product.selected_color || product.selected_size) && (
+                              <span className="text-[#D4AF37] font-medium">
+                                {" "}
+                                ({product.selected_color || product.selected_size})
+                              </span>
+                            )}
+                          </td>
                           <td className="px-3 py-3 text-sm text-center">{product.quantity}</td>
                           <td className="px-3 py-3 text-sm text-right whitespace-nowrap">{formatPrice(product.unitPrice)}</td>
                           <td className="px-3 py-3 text-sm text-right font-semibold whitespace-nowrap">
