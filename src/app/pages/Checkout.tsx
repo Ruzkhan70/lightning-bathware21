@@ -11,7 +11,7 @@ import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
 import { ShoppingBag, Truck, CreditCard, Loader2 } from "lucide-react";
 import { loadPayhereScript, initiatePayherePayment, onPayhereCompleted, onPayhereClosed, isPayhereConfigured } from "../../lib/payhere";
-import { sendOrderNotificationToAdmin } from "../../lib/emailNotifications";
+import { sendOrderNotificationToAdmin, sendOrderConfirmationToCustomer } from "../../lib/emailNotifications";
 import ContentLoader from "../components/ContentLoader";
 
 export default function Checkout() {
@@ -149,6 +149,16 @@ export default function Checkout() {
       
       // Send notification to admin
       sendOrderNotificationToAdmin(orderNotification);
+      
+      // Send confirmation email to customer
+      if (formData.email) {
+        sendOrderConfirmationToCustomer(
+          formData.email,
+          formData.customerName,
+          savedOrder.id || `ORD-${Date.now()}`,
+          grandTotal
+        );
+      }
       
       if (paymentMethod === "online" && isOnlinePaymentEnabled) {
         await loadPayhereScript();
