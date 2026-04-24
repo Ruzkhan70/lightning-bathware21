@@ -29,6 +29,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [selectedColor, setSelectedColor] = useState<string>(variants[0]?.color || "");
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0]?.size || "");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -51,6 +53,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     setSelectedSize(size);
     setQuantity(1);
   };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsZooming(true);
+  const handleMouseLeave = () => setIsZooming(false);
 
   const handleAddToCart = () => {
     if (hasVariants && hasSizes) {
@@ -145,12 +157,34 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 md:p-8">
             {/* Image */}
             <div className="relative">
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <div 
+                className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative cursor-crosshair"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                onMouseMove={handleMouseMove}
+              >
                 <img
                   src={displayImage}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
+                
+                {/* Lens Overlay */}
+                {isZooming && (
+                  <div 
+                    className="absolute pointer-events-none border-2 border-white rounded-full shadow-lg overflow-hidden"
+                    style={{
+                      width: '100px',
+                      height: '100px',
+                      left: `${zoomPosition.x}%`,
+                      top: `${zoomPosition.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      backgroundImage: `url(${displayImage})`,
+                      backgroundSize: '250%',
+                      backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                    }}
+                  />
+                )}
               </div>
 
               {/* Image Thumbnails */}
