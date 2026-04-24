@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight, Download, Upload } from "lucide-react";
+import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight, Download, Upload, Scale, Eye, Check } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -37,7 +37,30 @@ export default function AdminProducts() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareProducts, setCompareProducts] = useState<string[]>([]);
+
+  const toggleCompareProduct = (productId: string) => {
+    setCompareProducts(prev =>
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : prev.length < 4
+          ? [...prev, productId]
+          : prev
+    );
+  };
+
+  const handleViewCompare = () => {
+    if (compareProducts.length < 2) {
+      toast.error("Select at least 2 products to compare");
+      return;
+    }
+    // Store selected products in localStorage for ComparePage
+    const compareItems = safeProducts.filter(p => compareProducts.includes(p.id));
+    localStorage.setItem("compareList", JSON.stringify(compareItems));
+    window.open("/compare", "_blank");
+  };
+
   const handleExportCSV = () => {
     const headers = ["name", "category", "price", "isAvailable", "description"];
     const csvContent = [
@@ -357,6 +380,26 @@ export default function AdminProducts() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
+          <Button
+            variant={compareMode ? "default" : "outline"}
+            onClick={() => {
+              setCompareMode(!compareMode);
+              if (!compareMode) setCompareProducts([]);
+            }}
+            className={compareMode ? "bg-[#D4AF37] text-black" : "border-gray-300"}
+          >
+            {compareMode ? <Check className="w-4 h-4 mr-2" /> : <Scale className="w-4 h-4 mr-2" />}
+            Compare {compareMode && `(${compareProducts.length})`}
+          </Button>
+          {compareMode && compareProducts.length >= 2 && (
+            <Button
+              onClick={handleViewCompare}
+              className="bg-[#D4AF37] text-black"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              View Compare
+            </Button>
+          )}
           {selectedProducts.length > 0 && (
             <Button
               onClick={() => setShowBulkActions(true)}
@@ -489,11 +532,14 @@ export default function AdminProducts() {
                 <th className="text-left py-4 px-4 font-semibold">Name</th>
                 <th className="text-left py-4 px-4 font-semibold">Category</th>
                 <th className="text-left py-4 px-4 font-semibold">Price</th>
-                <th className="text-left py-4 px-4 font-semibold">Stock</th>
-                <th className="text-left py-4 px-4 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+<th className="text-left py-4 px-4 font-semibold">Stock</th>
+                  {compareMode && (
+                    <th className="text-left py-4 px-4 font-semibold">Compare</th>
+                  )}
+                  <th className="text-left py-4 px-4 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
               {paginatedProducts.map((product) => (
                 <tr key={product.id} className={`border-b hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
                   <td className="py-3 px-4">
@@ -538,6 +584,20 @@ export default function AdminProducts() {
                       {product.isAvailable ? "Available" : "Not Available"}
                     </span>
                   </td>
+                  {compareMode && (
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => toggleCompareProduct(product.id)}
+                        className={`p-2 rounded transition-colors ${
+                          compareProducts.includes(product.id)
+                            ? "bg-[#D4AF37] text-black"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        <Scale className="w-4 h-4" />
+                      </button>
+                    </td>
+                  )}
                   <td className="py-3 px-4">
                     <div className="flex gap-2">
                       <Button
