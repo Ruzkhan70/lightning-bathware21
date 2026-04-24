@@ -84,7 +84,7 @@ export function ProductsEmpty() {
       icon="products"
       title="No products found"
       description="We couldn't find any products matching your criteria. Try adjusting your filters or search terms."
-      actionLabel="View All Products"
+      actionLabel="View All Categories"
       actionTo="/categories"
     />
   );
