@@ -14,7 +14,7 @@ import {
 } from "../../components/ui/select";
 import { toast } from "sonner";
 
-type UploadStep = "input" | "preview" | "uploading";
+type UploadStep = "input" | "preview" | "uploading" | "success";
 
 interface ProductVariant {
   id: string;
@@ -71,6 +71,7 @@ export default function AdminAddProduct() {
   function BulkUploadArea({ categories, onBack }: { categories: any[]; onBack: () => void }) {
     const [bulkData, setBulkData] = useState("");
     const [bulkProducts, setBulkProducts] = useState<BulkProduct[]>([]);
+    const [uploadedProducts, setUploadedProducts] = useState<BulkProduct[]>([]);
     const [uploadStep, setUploadStep] = useState<UploadStep>("input");
     const [isBulkProcessing, setIsBulkProcessing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -235,11 +236,23 @@ export default function AdminAddProduct() {
 
       await addMultipleProducts(productsToUpload);
       
-      toast.success(`Successfully added ${productsToUpload.length} products!`);
+      setUploadedProducts(validProducts);
+      setUploadStep("success");
+      setIsBulkProcessing(false);
+    };
+
+    const handleResetDone = () => {
       setBulkData("");
       setBulkProducts([]);
+      setUploadedProducts([]);
       setUploadStep("input");
-      setIsBulkProcessing(false);
+    };
+
+    const handleUploadMore = () => {
+      setBulkData("");
+      setBulkProducts([]);
+      setUploadedProducts([]);
+      setUploadStep("input");
     };
 
     return (
@@ -259,7 +272,57 @@ export default function AdminAddProduct() {
           </div>
         )}
 
-        {uploadStep !== "uploading" && (
+        {uploadStep === "success" && uploadedProducts.length > 0 && (
+          <div>
+            <div className="text-center py-8">
+              <Check className="w-16 h-16 mx-auto text-green-500 mb-4" />
+              <h3 className="text-2xl font-bold text-green-600">Successfully Uploaded!</h3>
+              <p className="text-gray-600 mt-2">{uploadedProducts.length} products have been saved to Firebase</p>
+            </div>
+            
+            <div className="border rounded-lg overflow-hidden mb-6">
+              <div className="bg-gray-50 px-3 py-2 border-b">
+                <h4 className="font-semibold">Uploaded Products ({uploadedProducts.length})</h4>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                <table className="w-full">
+                  <tbody>
+                    {uploadedProducts.map((product) => (
+                      <tr key={product.id} className="border-t">
+                        <td className="px-3 py-2 w-12">
+                          {product.image && (
+                            <img src={product.image} alt={product.name} className="w-10 h-10 object-cover rounded" />
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-sm text-gray-500">{product.category} - LKR {product.price.toLocaleString()}</p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 justify-center">
+              <Button
+                onClick={handleUploadMore}
+                className="bg-black hover:bg-[#D4AF37] text-white"
+              >
+                Upload More Products
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleResetDone}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {uploadStep !== "uploading" && uploadStep !== "success" && (
           <>
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
