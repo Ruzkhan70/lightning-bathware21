@@ -22,6 +22,7 @@ const Offers = lazy(() => import("./pages/Offers"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Invoice = lazy(() => import("./pages/Invoice"));
 const VerifyInvoice = lazy(() => import("./pages/VerifyInvoice"));
+const Compare = lazy(() => import("./pages/Compare"));
 
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -94,6 +95,7 @@ export const router = createHashRouter([
       { path: "terms", element: <Suspense fallback={<ContentLoaderWrapper />}><Terms /></Suspense> },
       { path: "invoice/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><Invoice /></Suspense> },
       { path: "verify/:id", element: <Suspense fallback={<ContentLoaderWrapper />}><VerifyInvoice /></Suspense> },
+      { path: "compare", element: <Suspense fallback={<ContentLoaderWrapper />}><Compare /></Suspense> },
     ],
   },
   { path: "/admin/login", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminLogin /></Suspense> },

@@ -3,6 +3,7 @@ import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
 import AnnouncementBanner from "./AnnouncementBanner";
 import PageTransition from "./PageTransition";
+import CompareBar from "./CompareBar";
 
 export default function Layout() {
   return (
@@ -13,6 +14,7 @@ export default function Layout() {
       <main className="flex-1">
         <PageTransition />
       </main>
+      <CompareBar />
       <Footer />
     </div>
   );

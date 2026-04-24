@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
+import { Heart, ShoppingCart, Eye, Sparkles, Scale } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useCompare } from "../context/CompareContext";
 import { Product, useAdmin } from "../context/AdminContext";
 import { toast } from "sonner";
 import ProductModal from "./ProductModal";
@@ -15,6 +16,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { toggleCompare, isInCompare } = useCompare();
   const { getProductDiscount } = useAdmin();
   const [showModal, setShowModal] = useState(false);
   
@@ -24,6 +26,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     : product.price;
   
   const inWishlist = isInWishlist(product.id);
+  const inCompare = isInCompare(product.id);
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -38,6 +41,15 @@ export default function ProductCard({ product }: ProductCardProps) {
       addToWishlist(product.id);
       toast.success("Added to wishlist");
     }
+  };
+
+  const handleCompare = () => {
+    if (inCompare) {
+      toast("Removed from compare");
+    } else {
+      toast.success("Added to compare");
+    }
+    toggleCompare(product);
   };
 
   const handleOpenModal = () => {
@@ -86,6 +98,19 @@ export default function ProductCard({ product }: ProductCardProps) {
                   : "text-black group-hover/heart:text-white"
               }`}
             />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCompare();
+            }}
+            className={`absolute top-3 left-3 p-2 min-w-[36px] min-h-[36px] bg-white rounded-full hover:bg-[#D4AF37] active:scale-90 hover:scale-110 transition-all z-10 flex items-center justify-center ${
+              inCompare ? "text-[#D4AF37]" : "text-black group-hover:text-white"
+            }`}
+            title={inCompare ? "Remove from Compare" : "Add to Compare"}
+          >
+            <Scale className={`w-4 h-4 ${inCompare ? "fill-current" : ""}`} />
           </button>
 
           {discount.hasDiscount && discount.discountPercentage && (

@@ -4,6 +4,7 @@ import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
+import { CompareProvider } from "./context/CompareContext";
 import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
 import { NotificationsProvider } from "./context/NotificationsContext";
@@ -99,13 +100,15 @@ function AppContent() {
           <AdminProvider>
             <NotificationsProvider>
               <CartProvider>
-                <WishlistProvider>
+                <CompareProvider>
+                  <WishlistProvider>
                   <DataLoader>
                     <RouterProvider router={router}>
                       <TopBannerNotification />
                     </RouterProvider>
                   </DataLoader>
                 </WishlistProvider>
+                </CompareProvider>
               </CartProvider>
             </NotificationsProvider>
           </AdminProvider>
