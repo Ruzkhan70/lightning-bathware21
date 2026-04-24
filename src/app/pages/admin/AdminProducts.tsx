@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight, Download, Upload } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -33,8 +33,58 @@ export default function AdminProducts() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editVariants, setEditVariants] = useState<{color: string; images: string[]}[]>([]);
+  const [editSizes, setEditSizes] = useState<{size: string; images: string[]}[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleExportCSV = () => {
+    const headers = ["name", "category", "price", "isAvailable", "description"];
+    const csvContent = [
+      headers.join(","),
+      ...safeProducts.map(p => [
+        `"${p.name.replace(/"/g, '""')}"`,
+        `"${p.category.replace(/"/g, '""')}"`,
+        p.price,
+        p.isAvailable,
+        `"${p.description.replace(/"/g, '""')}"`
+      ].join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `products_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    toast.success("Products exported successfully!");
+  };
+  
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split("\n");
+      const headers = lines[0].split(",");
+      
+      let imported = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, "").replace(/""/g, '"'));
+        if (values.length >= 3) {
+          imported++;
+        }
+      }
+      
+      toast.success(`${imported} products ready to import (use bulk upload for full import)`);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
   const [formData, setFormData] = useState<{
     name: string;
     category: string;
@@ -43,7 +93,9 @@ export default function AdminProducts() {
     description: string;
     image: string;
     has_variants: boolean;
+    has_sizes: boolean;
     variants: { color: string; images: string[] }[];
+    sizes: { size: string; images: string[] }[];
   }>({
     name: "",
     category: "",
@@ -52,7 +104,9 @@ export default function AdminProducts() {
     description: "",
     image: "",
     has_variants: false,
+    has_sizes: false,
     variants: [],
+    sizes: [],
   });
 
   const safeProducts = products || [];
@@ -130,6 +184,7 @@ export default function AdminProducts() {
     const product = safeProducts.find((p) => p.id === productId);
     if (product) {
       const variants = product.variants || [];
+      const sizes = product.sizes || [];
       setFormData({
         name: product.name,
         category: product.category,
@@ -138,9 +193,12 @@ export default function AdminProducts() {
         description: product.description,
         image: product.image,
         has_variants: product.has_variants || false,
+        has_sizes: product.has_sizes || false,
         variants: variants,
+        sizes: sizes,
       });
       setEditVariants(variants);
+      setEditSizes(sizes);
       setEditingProduct(productId);
     }
   };
@@ -187,6 +245,48 @@ export default function AdminProducts() {
     }
   };
 
+  const updateSizeName = (index: number, size: string) => {
+    setEditSizes(prev => prev.map((s, i) => i === index ? { ...s, size } : s));
+  };
+
+  const addSizeImage = async (index: number, file: File) => {
+    try {
+      const formDataImg = new FormData();
+      formDataImg.append("image", file);
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+        { method: "POST", body: formDataImg }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setEditSizes(prev => prev.map((s, i) => 
+          i === index ? { ...s, images: [...s.images, data.data.url] } : s
+        ));
+      }
+    } catch (error) {
+      const url = URL.createObjectURL(file);
+      setEditSizes(prev => prev.map((s, i) => 
+        i === index ? { ...s, images: [...s.images, url] } : s
+      ));
+    }
+  };
+
+  const removeSizeImage = (sizeIndex: number, imageIndex: number) => {
+    setEditSizes(prev => prev.map((s, i) => 
+      i === sizeIndex ? { ...s, images: s.images.filter((_, idx) => idx !== imageIndex) } : s
+    ));
+  };
+
+  const addNewSize = () => {
+    setEditSizes(prev => [...prev, { size: "", images: [] }]);
+  };
+
+  const removeSize = (index: number) => {
+    if (editSizes.length > 1) {
+      setEditSizes(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
   const handleUpdate = () => {
     if (!editingProduct) return;
 
@@ -195,13 +295,20 @@ export default function AdminProducts() {
       return;
     }
 
+    let mainImage = formData.image;
+    if (editVariants.length > 0 && editVariants[0].images.length > 0) {
+      mainImage = editVariants[0].images[0];
+    } else if (editSizes.length > 0 && editSizes[0].images.length > 0) {
+      mainImage = editSizes[0].images[0];
+    }
+
     const updatedData = {
       ...formData,
       variants: editVariants,
+      sizes: editSizes,
       has_variants: editVariants.length > 0,
-      image: editVariants.length > 0 && editVariants[0].images.length > 0 
-        ? editVariants[0].images[0] 
-        : formData.image,
+      has_sizes: editSizes.length > 0,
+      image: mainImage,
     };
 
     updateProduct(editingProduct, updatedData);
@@ -227,6 +334,29 @@ export default function AdminProducts() {
           <div className="text-2xl font-bold text-[#D4AF37]">
             {safeProducts.length} Products
           </div>
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+            className="border-gray-300"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleImportCSV}
+            className="hidden"
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            className="border-gray-300"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import
+          </Button>
           {selectedProducts.length > 0 && (
             <Button
               onClick={() => setShowBulkActions(true)}
@@ -756,6 +886,79 @@ export default function AdminProducts() {
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) addVariantImage(idx, file);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Size Variants Section */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-base font-semibold">
+                  Size Variants ({editSizes.length})
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addNewSize}
+                >
+                  + Add Size
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {editSizes.map((sizeItem, idx) => (
+                  <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        value={sizeItem.size}
+                        onChange={(e) => updateSizeName(idx, e.target.value)}
+                        placeholder="Size (e.g., 500mm, Large)"
+                        className="flex-1"
+                      />
+                      {editSizes.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSize(idx)}
+                          className="text-red-500"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {sizeItem.images.map((img, imgIdx) => (
+                        <div key={imgIdx} className="relative group">
+                          <img 
+                            src={img} 
+                            alt={`${sizeItem.size} ${imgIdx + 1}`} 
+                            className="w-16 h-16 object-cover rounded" 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSizeImage(idx, imgIdx)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-gray-50">
+                        <span className="text-gray-400 text-xs">+Add</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) addSizeImage(idx, file);
                           }}
                         />
                       </label>
