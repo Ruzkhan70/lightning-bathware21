@@ -36,6 +36,7 @@ interface Order {
     quantity: number;
     image?: string;
     selected_color?: string;
+    selected_size?: string;
   }>;
   items?: Array<{
     id?: string;
@@ -44,6 +45,7 @@ interface Order {
     quantity: number;
     image?: string;
     selected_color?: string;
+    selected_size?: string;
   }>;
   total: number;
   subtotal?: number;
@@ -70,10 +72,40 @@ export default function AdminOrders() {
   const [trackingUrl, setTrackingUrl] = useState("");
   const [courierName, setCourierName] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>("");
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     window.location.reload();
+  };
+
+  const toggleSelectOrder = (orderId: string) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.length === filteredOrders.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(filteredOrders.map(o => o.id));
+    }
+  };
+
+  const handleBulkStatusUpdate = () => {
+    if (selectedOrders.length === 0 || !bulkStatus) return;
+    
+    selectedOrders.forEach(orderId => {
+      updateOrderStatus(orderId, bulkStatus as "Pending" | "Processing" | "Delivered");
+    });
+    
+    toast.success(`${selectedOrders.length} orders updated to ${bulkStatus}`);
+    setSelectedOrders([]);
+    setBulkStatus("");
   };
 
   const safeOrders = orders || [];
@@ -195,8 +227,8 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search & Bulk Actions */}
+      <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
@@ -207,6 +239,36 @@ export default function AdminOrders() {
             className="pl-10"
           />
         </div>
+        
+        {selectedOrders.length > 0 && (
+          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+            <span className="text-sm font-medium">{selectedOrders.length} selected</span>
+            <Select value={bulkStatus} onValueChange={setBulkStatus}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Set status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Processing">Processing</SelectItem>
+                <SelectItem value="Delivered">Delivered</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={handleBulkStatusUpdate}
+              disabled={!bulkStatus}
+              size="sm"
+            >
+              Apply
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setSelectedOrders([])}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Desktop Orders Table */}
@@ -216,6 +278,14 @@ export default function AdminOrders() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
+                  <th className="text-left py-4 px-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4"
+                    />
+                  </th>
                   <th className="text-left py-4 px-4 font-semibold">
                     Order ID
                   </th>
@@ -238,6 +308,14 @@ export default function AdminOrders() {
               <tbody>
                 {filteredOrders.map((order) => (
                   <tr key={order.id} className="border-b hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrders.includes(order.id)}
+                        onChange={() => toggleSelectOrder(order.id)}
+                        className="w-4 h-4"
+                      />
+                    </td>
                     <td className="py-3 px-4 font-mono text-sm">
                       #{order.id.slice(-8)}
                     </td>
@@ -477,7 +555,12 @@ export default function AdminOrders() {
                         <p className="text-sm text-gray-600">
                           {product.selected_color && (
                             <span className="text-[#D4AF37] font-medium">
-                              {product.selected_color} × {" "}
+                              Color: {product.selected_color} × {" "}
+                            </span>
+                          )}
+                          {product.selected_size && (
+                            <span className="text-[#D4AF37] font-medium">
+                              Size: {product.selected_size} × {" "}
                             </span>
                           )}
                           Quantity: {product.quantity} × Rs.{" "}
