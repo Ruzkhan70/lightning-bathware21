@@ -227,6 +227,7 @@ export interface StoreProfile {
   statsCustomersVisible: boolean;
   statsAuthenticVisible: boolean;
   enableOnlinePayment: boolean;
+  enableCompareFeature: boolean;
   authorizedAdminEmail?: string;
 }
 
@@ -526,6 +527,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   statsCustomersVisible: true,
   statsAuthenticVisible: true,
   enableOnlinePayment: false,
+  enableCompareFeature: true,
   authorizedAdminEmail: "",
 };
 

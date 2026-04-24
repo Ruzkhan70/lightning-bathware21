@@ -17,8 +17,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { toggleCompare, isInCompare } = useCompare();
-  const { getProductDiscount } = useAdmin();
+  const { getProductDiscount, storeProfile } = useAdmin();
   const [showModal, setShowModal] = useState(false);
+  
+  const enableCompare = storeProfile?.enableCompareFeature !== false;
   
   const discount = getProductDiscount(product.id);
   const displayPrice = discount.hasDiscount
@@ -100,6 +102,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             />
           </button>
 
+          {enableCompare && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -112,6 +115,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           >
             <Scale className={`w-4 h-4 ${inCompare ? "fill-current" : ""}`} />
           </button>
+          )}
 
           {discount.hasDiscount && discount.discountPercentage && (
             <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold z-10">

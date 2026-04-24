@@ -1,12 +1,16 @@
 import { Link } from "react-router";
 import { X, ArrowRight, Scale } from "lucide-react";
 import { useCompare } from "../context/CompareContext";
+import { useAdmin } from "../context/AdminContext";
 import { Button } from "./ui/button";
 
 export default function CompareBar() {
   const { compareList, removeFromCompare, clearCompare } = useCompare();
+  const { storeProfile } = useAdmin();
 
-  if (compareList.length === 0) return null;
+  const enableCompare = storeProfile?.enableCompareFeature !== false;
+
+  if (!enableCompare || compareList.length === 0) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t z-40 p-4">

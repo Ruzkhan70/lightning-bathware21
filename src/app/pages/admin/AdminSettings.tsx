@@ -402,6 +402,20 @@ export default function AdminSettings() {
                     </p>
                   </div>
                 )}
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mt-4">
+                  <div>
+                    <p className="font-medium">Enable Product Compare</p>
+                    <p className="text-sm text-gray-500">Allow customers to compare products side-by-side</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProfileForm({...profileForm, enableCompareFeature: !profileForm.enableCompareFeature})}
+                    className={profileForm.enableCompareFeature ? 'text-green-600' : 'text-gray-400'}
+                  >
+                    {profileForm.enableCompareFeature ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
+                  </button>
+                </div>
               </Card>
 
               <Card title="Home Page Stats" icon={<Award className="w-5 h-5" />} description="Statistics displayed on your homepage">

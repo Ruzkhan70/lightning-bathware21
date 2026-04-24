@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { useSearchParams } from "react-router";
 
 export default function AdminProducts() {
-  const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories } = useAdmin();
+  const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories, storeProfile } = useAdmin();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -380,6 +380,7 @@ export default function AdminProducts() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
+          {storeProfile?.enableCompareFeature !== false && (
           <Button
             variant={compareMode ? "default" : "outline"}
             onClick={() => {
@@ -391,6 +392,7 @@ export default function AdminProducts() {
             {compareMode ? <Check className="w-4 h-4 mr-2" /> : <Scale className="w-4 h-4 mr-2" />}
             Compare {compareMode && `(${compareProducts.length})`}
           </Button>
+          )}
           {compareMode && compareProducts.length >= 2 && (
             <Button
               onClick={handleViewCompare}
