@@ -166,25 +166,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <img
                   src={displayImage}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-200"
+                  style={{
+                    transform: isZooming ? `scale(2)` : 'scale(1)',
+                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                  }}
                 />
-                
-                {/* Lens Overlay */}
-                {isZooming && (
-                  <div 
-                    className="absolute pointer-events-none border-2 border-white rounded-full shadow-lg overflow-hidden"
-                    style={{
-                      width: '100px',
-                      height: '100px',
-                      left: `${zoomPosition.x}%`,
-                      top: `${zoomPosition.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                      backgroundImage: `url(${displayImage})`,
-                      backgroundSize: '250%',
-                      backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                    }}
-                  />
-                )}
               </div>
 
               {/* Image Thumbnails */}
