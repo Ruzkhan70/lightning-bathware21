@@ -1,11 +1,11 @@
 import { Link } from "react-router";
-import { ShoppingCart, X } from "lucide-react";
+import { ShoppingCart, X, Share2, Copy, Check } from "lucide-react";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import EmptyState, { WishlistEmpty } from "../components/EmptyState";
 import { ProductGridSkeleton } from "../components/Skeleton";
 
@@ -13,6 +13,7 @@ export default function Wishlist() {
   const { wishlist, removeFromWishlist, isWishlistConfirmed } = useWishlist();
   const { products, isDataLoaded } = useAdmin();
   const { addToCart } = useCart();
+  const [showCopied, setShowCopied] = useState(false);
 
   const safeProducts = products || [];
   
@@ -21,9 +22,9 @@ export default function Wishlist() {
     [safeProducts, wishlist]
   );
 
-  const handleAddToCart = useCallback((productId: string, productName: string) => {
-    addToCart(productId);
-    toast.success(`${productName} added to cart!`);
+  const handleAddToCart = useCallback((product: any) => {
+    addToCart(product);
+    toast.success(`${product.name} added to cart!`);
   }, [addToCart]);
 
   const handleRemoveFromWishlist = useCallback((productId: string, productName: string) => {
@@ -68,6 +69,22 @@ export default function Wishlist() {
             {wishlistProducts.length}{" "}
             {wishlistProducts.length === 1 ? "item" : "items"} saved
           </p>
+        </div>
+
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const shareUrl = `${window.location.origin}/wishlist?ids=${wishlist.join(",")}`;
+              navigator.clipboard.writeText(shareUrl);
+              setShowCopied(true);
+              setTimeout(() => setShowCopied(false), 2000);
+              toast.success("Wishlist link copied!");
+            }}
+          >
+            {showCopied ? <Check className="w-4 h-4 mr-2" /> : <Share2 className="w-4 h-4 mr-2" />}
+            {showCopied ? "Link Copied!" : "Share Wishlist"}
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -125,7 +142,7 @@ export default function Wishlist() {
                 </div>
 
                 <Button
-                  onClick={() => handleAddToCart(product.id, product.name)}
+                  onClick={() => handleAddToCart(product)}
                   disabled={!product.isAvailable}
                   className="w-full bg-black hover:bg-[#D4AF37] text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
