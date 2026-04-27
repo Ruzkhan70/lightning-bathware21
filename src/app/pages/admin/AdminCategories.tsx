@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight, Download } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -77,6 +77,28 @@ const safeCategories = categories || [];
     } else {
       setSelectedCategories(new Set(filteredCategories.map(c => c.id)));
     }
+  };
+
+  const exportCategoriesCSV = () => {
+    const headers = ["name", "description", "image", "icon", "color", "isActive"];
+    const csvContent = [
+      headers.join(","),
+      ...safeCategories.map(cat => [
+        `"${(cat.name || "").replace(/"/g, '""')}"`,
+        `"${(cat.description || "").replace(/"/g, '""')}"`,
+        `"${(cat.image || "").replace(/"/g, '""')}"`,
+        `"${(cat.icon || "").replace(/"/g, '""')}"`,
+        `"${(cat.color || "").replace(/"/g, '""')}"`,
+        cat.isActive
+      ].join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `categories_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    toast.success("Categories exported successfully!");
   };
 
   const bulkEnable = () => {
@@ -234,12 +256,20 @@ const safeCategories = categories || [];
             <Sparkles className="w-4 h-4 mr-2" />
             Auto-Assign Icons
           </Button>
-          <Button 
+<Button
             onClick={() => setIsAddDialogOpen(true)}
             className="bg-black hover:bg-[#D4AF37] text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Category
+          </Button>
+          <Button
+            onClick={exportCategoriesCSV}
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
           </Button>
         </div>
       </div>
