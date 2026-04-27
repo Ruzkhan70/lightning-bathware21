@@ -1357,18 +1357,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           const data = docSnap.data();
           const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
           console.log('[Firebase] storeProfile loaded, enableCompareFeature:', fbProfile.enableCompareFeature);
+          
+          // Always check Firebase first if it has data
           if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
-            if (!localBackup || localBackup.storeName === DEFAULT_STORE_PROFILE.storeName) {
-              console.log('[Firebase] Using storeProfile from Firebase');
-              saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
-              setStoreProfile(fbProfile);
-            }
-          } else if (localBackup && localBackup.storeName === fbProfile.storeName) {
-            // Both have same store name, check individual fields
-            if (localBackup.enableCompareFeature !== fbProfile.enableCompareFeature) {
-              console.log('[Firebase] enableCompareFeature mismatch, using Firebase value:', fbProfile.enableCompareFeature);
-              setStoreProfile(fbProfile);
-            }
+            console.log('[Firebase] Using storeProfile from Firebase');
+            saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
+            setStoreProfile(fbProfile);
+          } else if (localBackup && localBackup.storeName !== DEFAULT_STORE_PROFILE.storeName) {
+            // Firebase has defaults but local has real data - restore
+            console.log('[Backup] Restoring from local backup to Firebase');
+            setDoc(profileRef, { ...localBackup }, { merge: true });
+            setStoreProfile(localBackup);
           }
         } else if (!isInitialized.current.storeProfile && !localBackup) {
           setDoc(profileRef, DEFAULT_STORE_PROFILE);
