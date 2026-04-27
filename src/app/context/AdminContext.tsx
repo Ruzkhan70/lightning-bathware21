@@ -3505,7 +3505,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const deleteCategory = async (id: string) => {
     const categoryToDelete = categories.find(c => c.id === id);
-    if (!categoryToDelete) return;
+    if (!categoryToDelete) {
+      console.error('[Delete] Category not found:', id);
+      return;
+    }
+    
+    console.log('[Delete] Deleting category:', id, categoryToDelete.name);
     
     const updated = categories.filter(c => c.id !== id);
     setCategories(updated);

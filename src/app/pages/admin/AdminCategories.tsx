@@ -492,12 +492,14 @@ const safeCategories = categories || [];
                   className="text-red-600 hover:bg-red-50"
                   onClick={() => {
                     if (window.confirm("Are you sure you want to delete this category? Products in this category might become uncategorized.")) {
+                      console.log('[Delete] Deleting category:', category.id, category.name);
                       deleteCategory(category.id);
                       toast.success("Category deleted");
                     }
                   }}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
                 </Button>
               </div>
             </div>
