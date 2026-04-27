@@ -2727,9 +2727,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const updateStoreProfile = async (profile: Partial<StoreProfile>) => {
     const updated = { ...storeProfile, ...profile };
+    console.log('[Save] Saving to Firebase, enableCompareFeature:', updated.enableCompareFeature);
     setStoreProfile(updated);
     try {
       await setDoc(doc(db, "storeData", "profile"), updated);
+      console.log('[Save] Saved to Firebase successfully');
       toast.success("Profile saved to Firebase!");
       logAdminAction(
         'SETTINGS_UPDATE',
