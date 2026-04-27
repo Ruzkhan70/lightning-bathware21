@@ -1356,10 +1356,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
+          console.log('[Firebase] storeProfile loaded, enableCompareFeature:', fbProfile.enableCompareFeature);
           if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
             if (!localBackup || localBackup.storeName === DEFAULT_STORE_PROFILE.storeName) {
               console.log('[Firebase] Using storeProfile from Firebase');
               saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
+              setStoreProfile(fbProfile);
+            }
+          } else if (localBackup && localBackup.storeName === fbProfile.storeName) {
+            // Both have same store name, check individual fields
+            if (localBackup.enableCompareFeature !== fbProfile.enableCompareFeature) {
+              console.log('[Firebase] enableCompareFeature mismatch, using Firebase value:', fbProfile.enableCompareFeature);
               setStoreProfile(fbProfile);
             }
           }
