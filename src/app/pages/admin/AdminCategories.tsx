@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight, Download, FileSpreadsheet, Clipboard } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -135,6 +135,41 @@ const safeCategories = categories || [];
     };
     reader.readAsText(file);
     e.target.value = "";
+  };
+
+  const [showBulkPaste, setShowBulkPaste] = useState(false);
+  const [bulkPasteData, setBulkPasteData] = useState("");
+
+  const handleBulkPasteImport = () => {
+    if (!bulkPasteData.trim()) {
+      toast.error("Please paste some data first");
+      return;
+    }
+
+    const lines = bulkPasteData.trim().split("\n");
+    let imported = 0;
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      
+      const values = line.split("\t").map(v => v.trim());
+      if (values.length >= 1 && values[0]) {
+        const categoryData = {
+          name: values[0] || "",
+          description: values[1] || "",
+          image: values[2] || "",
+          icon: values[3] || "Lightbulb",
+          color: values[4] || "bg-blue-500",
+          isActive: values[5]?.toLowerCase() !== "false"
+        };
+        addCategory(categoryData);
+        imported++;
+      }
+    }
+
+    toast.success(`${imported} categories imported from paste!`);
+    setShowBulkPaste(false);
+    setBulkPasteData("");
   };
 
   const bulkEnable = () => {
@@ -307,13 +342,50 @@ const safeCategories = categories || [];
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <label className="cursor-pointer border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+<label className="cursor-pointer border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4" />
             Import CSV
             <input type="file" accept=".csv" onChange={importCategoriesCSV} className="hidden" />
           </label>
+          <button 
+            onClick={() => setShowBulkPaste(true)}
+            className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Clipboard className="w-4 h-4" />
+            Paste Import
+          </button>
         </div>
       </div>
+
+      {/* Bulk Paste Dialog */}
+      {showBulkPaste && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
+            <h3 className="text-lg font-medium mb-4">Bulk Paste Categories</h3>
+            <p className="text-sm text-gray-500 mb-2">Paste Excel data (tab-separated): Name | Description | Image URL | Icon | Color | Active</p>
+            <textarea
+              value={bulkPasteData}
+              onChange={(e) => setBulkPasteData(e.target.value)}
+              placeholder="Lighting	Premium lighting products	https://...	Lightbulb	bg-blue-500	true&#10;Bathroom	Bathroom fittings	https://...	Bath	bg-green-500	true"
+              className="w-full h-64 p-3 border rounded-lg font-mono text-sm"
+            />
+            <div className="flex gap-2 mt-4 justify-end">
+              <button 
+                onClick={() => { setShowBulkPaste(false); setBulkPasteData(""); }}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleBulkPasteImport}
+                className="px-4 py-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black rounded-lg"
+              >
+                Import
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search and Bulk Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
