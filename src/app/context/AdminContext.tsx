@@ -3421,7 +3421,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const newCategory: Category = { ...category, id: Date.now().toString() };
+    const newCategory: Category = { 
+      ...category, 
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 5) 
+    };
     const updated = [...categories, newCategory];
     setCategories(updated);
     try {
