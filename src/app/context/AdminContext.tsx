@@ -1357,18 +1357,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
-          alert('[Firebase] Loaded, enableCompareFeature: ' + fbProfile.enableCompareFeature + ', storeName: ' + fbProfile.storeName);
           
           // Firebase always takes precedence
           if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
-            alert('[Firebase] Using storeProfile from Firebase, compare: ' + fbProfile.enableCompareFeature);
-            console.log('[Firebase] Using storeProfile from Firebase');
             saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
             setStoreProfile(fbProfile);
           } else if (hasLocalBackup) {
             // Firebase has defaults but local has data - restore
-            alert('[Firebase] Using local backup, compare: ' + localBackup.enableCompareFeature);
-            console.log('[Backup] Restoring from local backup to Firebase');
             setDoc(profileRef, { ...localBackup }, { merge: true });
             setStoreProfile(localBackup);
           }
@@ -2729,13 +2724,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const updateStoreProfile = async (profile: Partial<StoreProfile>) => {
     const updated = { ...storeProfile, ...profile };
-    console.log('[Save] Saving to Firebase, enableCompareFeature:', updated.enableCompareFeature);
-    alert('Saving enableCompareFeature: ' + updated.enableCompareFeature);
     setStoreProfile(updated);
     try {
       await setDoc(doc(db, "storeData", "profile"), updated);
-      console.log('[Save] Saved to Firebase successfully');
-      alert('Saved! enableCompareFeature is now: ' + updated.enableCompareFeature);
       toast.success("Profile saved to Firebase!");
       logAdminAction(
         'SETTINGS_UPDATE',

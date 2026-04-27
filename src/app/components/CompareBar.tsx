@@ -8,7 +8,7 @@ export default function CompareBar() {
   const { compareList, removeFromCompare, clearCompare } = useCompare();
   const { storeProfile } = useAdmin();
 
-  const enableCompare = storeProfile?.enableCompareFeature !== false;
+  const enableCompare = storeProfile?.enableCompareFeature === true;
 
   if (!enableCompare || compareList.length === 0) return null;
 

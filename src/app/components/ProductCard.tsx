@@ -20,7 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { getProductDiscount, storeProfile } = useAdmin();
   const [showModal, setShowModal] = useState(false);
   
-  const enableCompare = storeProfile?.enableCompareFeature !== false;
+  const enableCompare = storeProfile?.enableCompareFeature === true;
   
   const discount = getProductDiscount(product.id);
   const displayPrice = discount.hasDiscount

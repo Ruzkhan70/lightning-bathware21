@@ -380,7 +380,7 @@ export default function AdminProducts() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
-          {storeProfile?.enableCompareFeature !== false && (
+          {storeProfile?.enableCompareFeature === true && (
           <Button
             variant={compareMode ? "default" : "outline"}
             onClick={() => {
