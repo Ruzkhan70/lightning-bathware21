@@ -147,19 +147,31 @@ const safeCategories = categories || [];
     }
 
     let text = bulkPasteData.trim();
+    // Show what we're parsing
+    console.log('[BulkPaste] Raw text length:', text.length);
+    console.log('[BulkPaste] First 200 chars:', text.substring(0, 200));
+    
     // Remove any leading/trailing special characters
     text = text.replace(/^[\r\n]+|[\r\n]+$/g, '');
     
     const lines = text.split(/\r?\n/);
+    console.log('[BulkPaste] Number of lines:', lines.length);
+    console.log('[BulkPaste] Lines:', lines);
+    
     let imported = 0;
 
-    for (const line of lines) {
-      if (!line.trim()) continue;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line || !line.trim()) continue;
+      
+      console.log('[BulkPaste] Line', i, ':', line);
       
       // Try tab first, then pipe, then comma
       let values = line.split("\t");
       if (values.length < 2) values = line.split("|");
       if (values.length < 2) values = line.split(",");
+      
+      console.log('[BulkPaste] Values:', values);
       
       values = values.map(v => v.trim());
       
@@ -175,12 +187,14 @@ const safeCategories = categories || [];
           color: values[4]?.startsWith("#") ? values[4].toUpperCase() : `bg-${formatName(values[4]) || "blue"}-500`,
           isActive: values[5]?.toLowerCase() !== "false" && values[5]?.toLowerCase() !== "inactive"
         };
+        console.log('[BulkPaste] Importing:', categoryData);
         addCategory(categoryData);
         imported++;
       }
     }
 
     toast.success(`${imported} categories imported!`);
+    console.log('[BulkPaste] Total imported:', imported);
     setShowBulkPaste(false);
     setBulkPasteData("");
   };
