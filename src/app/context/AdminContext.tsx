@@ -873,6 +873,9 @@ function deepMerge<T extends object>(target: T, source: Partial<T>): T {
 const BACKUP_KEYS = {
   products: 'lb_products_backup',
   categories: 'lb_categories_backup',
+  storeProfile: 'lb_storeProfile_backup',
+  storeAssets: 'lb_storeAssets_backup',
+  siteContent: 'lb_siteContent_backup',
   lastBackup: 'lb_last_backup',
 };
 
@@ -1339,15 +1342,28 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Firebase real-time sync for storeProfile
+  // Firebase real-time sync for storeProfile - with backup priority
   useEffect(() => {
     try {
+      const localBackup = loadDataBackup(BACKUP_KEYS.storeProfile) as StoreProfile | null;
+      if (localBackup && localBackup.storeName && localBackup.storeName !== DEFAULT_STORE_PROFILE.storeName) {
+        console.log('[Backup] Found local storeProfile backup, using it first');
+        setStoreProfile(localBackup);
+      }
+      
       const profileRef = doc(db, "storeData", "profile");
       const unsubscribe = onSnapshot(profileRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setStoreProfile({ ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile);
-        } else if (!isInitialized.current.storeProfile) {
+          const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
+          if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
+            if (!localBackup || localBackup.storeName === DEFAULT_STORE_PROFILE.storeName) {
+              console.log('[Firebase] Using storeProfile from Firebase');
+              saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
+              setStoreProfile(fbProfile);
+            }
+          }
+        } else if (!isInitialized.current.storeProfile && !localBackup) {
           setDoc(profileRef, DEFAULT_STORE_PROFILE);
         }
         isInitialized.current.storeProfile = true;
@@ -1364,14 +1380,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for storeAssets
+  // Firebase real-time sync for storeAssets - with backup priority
   useEffect(() => {
     try {
+      const localBackup = loadDataBackup(BACKUP_KEYS.storeAssets) as StoreAssets | null;
+      if (localBackup && localBackup.heroImage) {
+        console.log('[Backup] Found local storeAssets backup, using it first');
+        setStoreAssets(localBackup);
+      }
+      
       const assetsRef = doc(db, "storeData", "assets");
       const unsubscribe = onSnapshot(assetsRef, (docSnap) => {
         if (docSnap.exists()) {
-          setStoreAssets(docSnap.data() as StoreAssets);
-        } else if (!isInitialized.current.storeAssets) {
+          const data = docSnap.data() as StoreAssets;
+          if (data.heroImage) {
+            if (!localBackup || !localBackup.heroImage) {
+              console.log('[Firebase] Using storeAssets from Firebase');
+              saveDataBackup(BACKUP_KEYS.storeAssets, data);
+              setStoreAssets(data);
+            }
+          }
+        } else if (!isInitialized.current.storeAssets && !localBackup) {
           setDoc(assetsRef, DEFAULT_STORE_ASSETS);
         }
         isInitialized.current.storeAssets = true;
@@ -1388,15 +1417,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for siteContent
+  // Firebase real-time sync for siteContent - with backup priority
   useEffect(() => {
     try {
+      const localBackup = loadDataBackup(BACKUP_KEYS.siteContent) as SiteContent | null;
+      if (localBackup && localBackup.home && localBackup.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle) {
+        console.log('[Backup] Found local siteContent backup, using it first');
+        setSiteContent(localBackup);
+      }
+      
       const contentRef = doc(db, "storeData", "siteContent");
       const unsubscribe = onSnapshot(contentRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as SiteContent;
-          setSiteContent(deepMerge(DEFAULT_SITE_CONTENT, data));
-        } else if (!isInitialized.current.siteContent) {
+          if (data.home && data.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle) {
+            if (!localBackup || localBackup.home?.heroTitle === DEFAULT_SITE_CONTENT.home.heroTitle) {
+              console.log('[Firebase] Using siteContent from Firebase');
+              saveDataBackup(BACKUP_KEYS.siteContent, data);
+              setSiteContent(deepMerge(DEFAULT_SITE_CONTENT, data));
+            }
+          }
+        } else if (!isInitialized.current.siteContent && !localBackup) {
           setDoc(contentRef, DEFAULT_SITE_CONTENT);
         }
         isInitialized.current.siteContent = true;
