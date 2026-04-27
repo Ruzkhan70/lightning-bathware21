@@ -3421,14 +3421,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const newCategory: Category = { 
-      ...category, 
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 5) 
-    };
-    const updated = [...categories, newCategory];
-    setCategories(updated);
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    console.log('[addCategory] Adding:', id, category.name);
+    
+    const newCategory: Category = { ...category, id };
+    const allUpdated = [...categories, newCategory];
+    console.log('[addCategory] New categories list:', allUpdated.map(c => c.name));
+    setCategories(allUpdated);
     try {
-      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "categories"), { categories: allUpdated }, { merge: true });
       toast.success("Category added!");
       logCategoryAction(
         'CATEGORY_ADD',
