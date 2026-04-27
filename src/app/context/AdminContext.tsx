@@ -1359,11 +1359,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
-          // alert('[storeProfile] storeName: ' + fbProfile.storeName + ', enableCompareFeature: ' + fbProfile.enableCompareFeature);
           
-          // Firebase always takes precedence
-          if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
-            console.log('[storeProfile] Loading from Firebase, enableCompareFeature:', fbProfile.enableCompareFeature);
+          // Check if Firebase has enableCompareFeature explicitly set (not undefined)
+          const hasExplicitCompareSetting = data.enableCompareFeature !== undefined;
+          console.log('[storeProfile] Firebase has enableCompareFeature:', fbProfile.enableCompareFeature, 'explicit:', hasExplicitCompareSetting);
+          
+          // If Firebase has explicit enableCompareFeature value, use it
+          if (hasExplicitCompareSetting) {
+            console.log('[storeProfile] Using Firebase value, enableCompareFeature:', fbProfile.enableCompareFeature);
             saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
             setStoreProfile(fbProfile);
           } else if (hasLocalBackup) {
