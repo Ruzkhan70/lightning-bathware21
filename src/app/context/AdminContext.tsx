@@ -1342,13 +1342,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Firebase real-time sync for storeProfile - with backup priority
+  // Firebase real-time sync for storeProfile - Firebase is source of truth
   useEffect(() => {
     try {
+      // Load local backup just to use as reference, don't set state yet
       const localBackup = loadDataBackup(BACKUP_KEYS.storeProfile) as StoreProfile | null;
-      if (localBackup && localBackup.storeName && localBackup.storeName !== DEFAULT_STORE_PROFILE.storeName) {
-        console.log('[Backup] Found local storeProfile backup, using it first');
-        setStoreProfile(localBackup);
+      const hasLocalBackup = localBackup && localBackup.storeName && localBackup.storeName !== DEFAULT_STORE_PROFILE.storeName;
+      if (hasLocalBackup) {
+        console.log('[Backup] Found local storeProfile backup');
       }
       
       const profileRef = doc(db, "storeData", "profile");
@@ -1358,23 +1359,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
           console.log('[Firebase] storeProfile loaded, enableCompareFeature:', fbProfile.enableCompareFeature);
           
-          // Always check Firebase first if it has data
+          // Firebase always takes precedence
           if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
             console.log('[Firebase] Using storeProfile from Firebase');
             saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
             setStoreProfile(fbProfile);
-          } else if (localBackup && localBackup.storeName !== DEFAULT_STORE_PROFILE.storeName) {
-            // Firebase has defaults but local has real data - restore
+          } else if (hasLocalBackup) {
+            // Firebase has defaults but local has data - restore
             console.log('[Backup] Restoring from local backup to Firebase');
             setDoc(profileRef, { ...localBackup }, { merge: true });
             setStoreProfile(localBackup);
           }
-        } else if (!isInitialized.current.storeProfile && !localBackup) {
+        } else if (!isInitialized.current.storeProfile && !hasLocalBackup) {
+          // No Firebase and no local - seed defaults
           setDoc(profileRef, DEFAULT_STORE_PROFILE);
         }
         isInitialized.current.storeProfile = true;
         setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
       }, () => {
+        isInitialized.current.storeProfile = true;
         isInitialized.current.storeProfile = true;
         setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
       });
@@ -1386,27 +1389,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for storeAssets - with backup priority
+  // Firebase real-time sync for storeAssets - Firebase is source of truth
   useEffect(() => {
     try {
       const localBackup = loadDataBackup(BACKUP_KEYS.storeAssets) as StoreAssets | null;
-      if (localBackup && localBackup.heroImage) {
-        console.log('[Backup] Found local storeAssets backup, using it first');
-        setStoreAssets(localBackup);
+      const hasLocalBackup = localBackup && localBackup.heroImage;
+      if (hasLocalBackup) {
+        console.log('[Backup] Found local storeAssets backup');
       }
       
       const assetsRef = doc(db, "storeData", "assets");
       const unsubscribe = onSnapshot(assetsRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as StoreAssets;
+          // Firebase always takes precedence
           if (data.heroImage) {
-            if (!localBackup || !localBackup.heroImage) {
-              console.log('[Firebase] Using storeAssets from Firebase');
-              saveDataBackup(BACKUP_KEYS.storeAssets, data);
-              setStoreAssets(data);
-            }
+            console.log('[Firebase] Using storeAssets from Firebase');
+            saveDataBackup(BACKUP_KEYS.storeAssets, data);
+            setStoreAssets(data);
+          } else if (hasLocalBackup) {
+            // Firebase has defaults but local has data - restore
+            console.log('[Backup] Restoring from local backup to Firebase');
+            setDoc(assetsRef, { ...localBackup }, { merge: true });
+            setStoreAssets(localBackup);
           }
-        } else if (!isInitialized.current.storeAssets && !localBackup) {
+        } else if (!isInitialized.current.storeAssets && !hasLocalBackup) {
           setDoc(assetsRef, DEFAULT_STORE_ASSETS);
         }
         isInitialized.current.storeAssets = true;
@@ -1423,27 +1430,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for siteContent - with backup priority
+  // Firebase real-time sync for siteContent - Firebase is source of truth
   useEffect(() => {
     try {
       const localBackup = loadDataBackup(BACKUP_KEYS.siteContent) as SiteContent | null;
-      if (localBackup && localBackup.home && localBackup.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle) {
-        console.log('[Backup] Found local siteContent backup, using it first');
-        setSiteContent(localBackup);
+      const hasLocalBackup = localBackup && localBackup.home && localBackup.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle;
+      if (hasLocalBackup) {
+        console.log('[Backup] Found local siteContent backup');
       }
       
       const contentRef = doc(db, "storeData", "siteContent");
       const unsubscribe = onSnapshot(contentRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as SiteContent;
+          // Firebase always takes precedence
           if (data.home && data.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle) {
-            if (!localBackup || localBackup.home?.heroTitle === DEFAULT_SITE_CONTENT.home.heroTitle) {
-              console.log('[Firebase] Using siteContent from Firebase');
-              saveDataBackup(BACKUP_KEYS.siteContent, data);
-              setSiteContent(deepMerge(DEFAULT_SITE_CONTENT, data));
-            }
+            console.log('[Firebase] Using siteContent from Firebase');
+            saveDataBackup(BACKUP_KEYS.siteContent, data);
+            setSiteContent(deepMerge(DEFAULT_SITE_CONTENT, data));
+          } else if (hasLocalBackup) {
+            // Firebase has defaults but local has data - restore
+            console.log('[Backup] Restoring from local backup to Firebase');
+            setDoc(contentRef, { ...localBackup! }, { merge: true });
+            setSiteContent(localBackup!);
           }
-        } else if (!isInitialized.current.siteContent && !localBackup) {
+        } else if (!isInitialized.current.siteContent && !hasLocalBackup) {
           setDoc(contentRef, DEFAULT_SITE_CONTENT);
         }
         isInitialized.current.siteContent = true;
@@ -1480,20 +1491,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           console.log('[Firebase] Categories snapshot received, count:', fbCategories?.length || 0);
           
           if (fbCategories && Array.isArray(fbCategories)) {
-            if (hasLocalBackup && fbCategories.length <= 5) {
-              // Firebase has defaults but local has real data - restore to Firebase
-              console.log('[Backup] Restoring from local backup to Firebase (Firebase had defaults)');
-              setDoc(catRef, { categories: localBackup }, { merge: true });
-            } else if (!hasLocalBackup && fbCategories.length > 5) {
-              // No local backup but Firebase has real data - use Firebase
+            // Firebase always takes precedence if it has more than defaults
+            if (fbCategories.length > 5) {
               console.log('[Firebase] Using categories from Firebase');
               saveDataBackup(BACKUP_KEYS.categories, fbCategories);
               setCategories(fbCategories);
-            } else if (fbCategories.length > (localBackup?.length || 0)) {
-              // Firebase has more data
-              console.log('[Firebase] Using Firebase categories (more data)');
-              saveDataBackup(BACKUP_KEYS.categories, fbCategories);
-              setCategories(fbCategories);
+            } else if (hasLocalBackup && localBackup.length > 5) {
+              // Firebase has defaults but local has data - restore
+              console.log('[Backup] Restoring from local backup to Firebase');
+              setDoc(catRef, { categories: localBackup }, { merge: true });
+              setCategories(localBackup);
             }
           }
         } else if (!isInitialized.current.categories && !hasLocalBackup) {
@@ -1622,20 +1629,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           console.log('[Firebase] Products snapshot received, count:', fbProducts?.length || 0);
           
           if (fbProducts && Array.isArray(fbProducts)) {
-            if (hasLocalBackup && fbProducts.length <= 40) {
-              // Firebase has defaults but local has real data - restore to Firebase
-              console.log('[Backup] Restoring from local backup to Firebase (Firebase had defaults)');
-              setDoc(productsRef, { products: localBackup }, { merge: true });
-            } else if (!hasLocalBackup && fbProducts.length > 40) {
-              // No local backup but Firebase has real data - use Firebase
+            // Firebase always takes precedence if it has more than defaults
+            if (fbProducts.length > 40) {
               console.log('[Firebase] Using products from Firebase');
               saveDataBackup(BACKUP_KEYS.products, fbProducts);
               setProducts(fbProducts);
-            } else if (fbProducts.length > (localBackup?.length || 0)) {
-              // Firebase has more data
-              console.log('[Firebase] Using Firebase products (more data)');
-              saveDataBackup(BACKUP_KEYS.products, fbProducts);
-              setProducts(fbProducts);
+            } else if (hasLocalBackup && localBackup.length > 40) {
+              // Firebase has defaults but local has data - restore
+              console.log('[Backup] Restoring from local backup to Firebase');
+              setDoc(productsRef, { products: localBackup }, { merge: true });
+              setProducts(localBackup);
             }
           }
         } else if (!isInitialized.current.products && !hasLocalBackup) {
