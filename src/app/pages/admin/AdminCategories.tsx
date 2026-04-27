@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight, Download } from "lucide-react";
+import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight, Download, FileSpreadsheet } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -99,6 +99,42 @@ const safeCategories = categories || [];
     link.download = `categories_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     toast.success("Categories exported successfully!");
+  };
+
+  const importCategoriesCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split("\n");
+      const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g, ""));
+      
+      let imported = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, "").replace(/""/g, '"'));
+        if (values.length >= 1 && values[0]) {
+          const categoryData = {
+            name: values[0] || "",
+            description: values[1] || "",
+            image: values[2] || "",
+            icon: values[3] || "Lightbulb",
+            color: values[4] || "bg-blue-500",
+            isActive: values[5]?.toLowerCase() !== "false"
+          };
+          addCategory(categoryData);
+          imported++;
+        }
+      }
+      
+      toast.success(`${imported} categories imported!`);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   };
 
   const bulkEnable = () => {
@@ -271,6 +307,11 @@ const safeCategories = categories || [];
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
+          <label className="cursor-pointer border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4" />
+            Import CSV
+            <input type="file" accept=".csv" onChange={importCategoriesCSV} className="hidden" />
+          </label>
         </div>
       </div>
 
