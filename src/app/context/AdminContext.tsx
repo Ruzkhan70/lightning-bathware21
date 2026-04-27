@@ -1353,20 +1353,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       
       const profileRef = doc(db, "storeData", "profile");
-      alert('[storeProfile] Setting up listener...');
+      // alert('[storeProfile] Setting up listener...');
       const unsubscribe = onSnapshot(profileRef, (docSnap) => {
-        alert('[storeProfile] Got snapshot, exists: ' + docSnap.exists());
+        // alert('[storeProfile] Got snapshot, exists: ' + docSnap.exists());
         if (docSnap.exists()) {
           const data = docSnap.data();
           const fbProfile = { ...DEFAULT_STORE_PROFILE, ...data } as StoreProfile;
-          alert('[storeProfile] storeName: ' + fbProfile.storeName + ', enableCompareFeature: ' + fbProfile.enableCompareFeature);
+          // alert('[storeProfile] storeName: ' + fbProfile.storeName + ', enableCompareFeature: ' + fbProfile.enableCompareFeature);
           
           // Firebase always takes precedence
           if (fbProfile.storeName && fbProfile.storeName !== DEFAULT_STORE_PROFILE.storeName) {
+            console.log('[storeProfile] Loading from Firebase, enableCompareFeature:', fbProfile.enableCompareFeature);
             saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
             setStoreProfile(fbProfile);
           } else if (hasLocalBackup) {
             // Firebase has defaults but local has data - restore
+            console.log('[storeProfile] Restoring from local backup');
             setDoc(profileRef, { ...localBackup }, { merge: true });
             setStoreProfile(localBackup);
           }
