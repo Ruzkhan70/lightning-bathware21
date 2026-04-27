@@ -141,21 +141,21 @@ const safeCategories = categories || [];
   const [bulkPasteData, setBulkPasteData] = useState("");
 
   const handleBulkPasteImport = () => {
+    alert('[BulkPaste] Import button clicked!');
     if (!bulkPasteData.trim()) {
       toast.error("Please paste some data first");
       return;
     }
 
     let text = bulkPasteData.trim();
-    // Show what we're parsing
-    console.log('[BulkPaste] Raw text length:', text.length);
-    console.log('[BulkPaste] First 200 chars:', text.substring(0, 200));
+    alert('[BulkPaste] Raw text length: ' + text.length + ', First 100 chars: ' + text.substring(0, 100));
+    console.log('[BulkPaste] Raw text:', text);
     
     // Remove any leading/trailing special characters
     text = text.replace(/^[\r\n]+|[\r\n]+$/g, '');
     
     const lines = text.split(/\r?\n/);
-    console.log('[BulkPaste] Number of lines:', lines.length);
+    alert('[BulkPaste] Number of lines: ' + lines.length);
     console.log('[BulkPaste] Lines:', lines);
     
     let imported = 0;
@@ -193,7 +193,6 @@ const safeCategories = categories || [];
       }
     }
 
-    toast.success(`${imported} categories imported!`);
     console.log('[BulkPaste] Total imported:', imported);
     setShowBulkPaste(false);
     setBulkPasteData("");
