@@ -188,7 +188,12 @@ const safeCategories = categories || [];
           isActive: values[5]?.toLowerCase() !== "false" && values[5]?.toLowerCase() !== "inactive"
         };
         console.log('[BulkPaste] Importing:', categoryData);
-        addCategory(categoryData);
+        
+        // Add small delay between imports for unique IDs
+        setTimeout(() => {
+          addCategory(categoryData);
+        }, imported * 100);
+        
         imported++;
       }
     }
