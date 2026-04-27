@@ -403,6 +403,17 @@ const safeCategories = categories || [];
                 Cancel
               </button>
               <button 
+                onClick={() => {
+                  alert('Testing: setting test data');
+                  const testData = "Lighting\tModern lights\t\tlightbulb\t#3B82F6\ttrue\nBathroom\tBath items\t\tbath\t#10B981\ttrue";
+                  setBulkPasteData(testData);
+                  alert('Set test data: ' + testData);
+                }}
+                className="px-3 py-1 text-xs border rounded"
+              >
+                Test Data
+              </button>
+              <button 
                 onClick={handleBulkPasteImport}
                 className="px-4 py-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black rounded-lg"
               >
