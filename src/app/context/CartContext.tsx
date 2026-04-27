@@ -159,16 +159,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = (product: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     const qty = product.quantity || 1;
+    
+    // Create unique cart item ID based on product + variant/size
+    const variantKey = product.selected_color || product.selected_size || "default";
+    const cartItemId = `${product.id}-${variantKey}`;
+    
     setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+      const existing = prev.find((item) => item.id === cartItemId);
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
+          item.id === cartItemId
             ? { ...item, quantity: item.quantity + qty }
             : item
         );
       }
-      return [...prev, { ...product, quantity: qty }];
+      return [...prev, { ...product, id: cartItemId, quantity: qty }];
     });
   };
 

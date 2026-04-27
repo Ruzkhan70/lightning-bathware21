@@ -870,6 +870,43 @@ function deepMerge<T extends object>(target: T, source: Partial<T>): T {
   return output;
 }
 
+const BACKUP_KEYS = {
+  products: 'lb_products_backup',
+  categories: 'lb_categories_backup',
+  lastBackup: 'lb_last_backup',
+};
+
+const saveDataBackup = (key: string, data: unknown) => {
+  try {
+    const jsonData = JSON.stringify(data);
+    localStorage.setItem(key, jsonData);
+    localStorage.setItem(BACKUP_KEYS.lastBackup, new Date().toISOString());
+    console.log('[Backup] Saved to localStorage:', key, 'items:', Array.isArray(data) ? data.length : 'N/A');
+  } catch (e) {
+    console.error('[Backup] Failed to save:', e);
+  }
+};
+
+const loadDataBackup = (key: string): unknown | null => {
+  try {
+    const data = localStorage.getItem(key);
+    if (data) {
+      const parsed = JSON.parse(data);
+      console.log('[Backup] Loaded from localStorage:', key, 'items:', Array.isArray(parsed) ? parsed.length : 'N/A');
+      return parsed;
+    }
+    console.log('[Backup] No data in localStorage:', key);
+    return null;
+  } catch (e) {
+    console.error('[Backup] Failed to load:', e);
+    return null;
+  }
+};
+
+const isDefaultData = (products: Product[], categories: Category[]): boolean => {
+  return products.length <= 40 && categories.length <= 5;
+};
+
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string>("");
@@ -1376,22 +1413,44 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for categories
+  // Firebase real-time sync for categories - with local backup priority
   useEffect(() => {
     try {
+      // Load local backup first - this is our primary data source
+      const localBackup = loadDataBackup(BACKUP_KEYS.categories) as Category[] | null;
+      const hasLocalBackup = localBackup && localBackup.length > 5;
+      
+      if (hasLocalBackup) {
+        console.log('[Backup] Found local backup with', localBackup.length, 'categories, using it first');
+        setCategories(localBackup);
+      }
+      
       const catRef = doc(db, "storeData", "categories");
       const unsubscribe = onSnapshot(catRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.categories && Array.isArray(data.categories)) {
-            setCategories(prev => {
-              if (JSON.stringify(prev) !== JSON.stringify(data.categories)) {
-                return data.categories;
-              }
-              return prev;
-            });
+          const fbCategories = data.categories;
+          console.log('[Firebase] Categories snapshot received, count:', fbCategories?.length || 0);
+          
+          if (fbCategories && Array.isArray(fbCategories)) {
+            if (hasLocalBackup && fbCategories.length <= 5) {
+              // Firebase has defaults but local has real data - restore to Firebase
+              console.log('[Backup] Restoring from local backup to Firebase (Firebase had defaults)');
+              setDoc(catRef, { categories: localBackup }, { merge: true });
+            } else if (!hasLocalBackup && fbCategories.length > 5) {
+              // No local backup but Firebase has real data - use Firebase
+              console.log('[Firebase] Using categories from Firebase');
+              saveDataBackup(BACKUP_KEYS.categories, fbCategories);
+              setCategories(fbCategories);
+            } else if (fbCategories.length > (localBackup?.length || 0)) {
+              // Firebase has more data
+              console.log('[Firebase] Using Firebase categories (more data)');
+              saveDataBackup(BACKUP_KEYS.categories, fbCategories);
+              setCategories(fbCategories);
+            }
           }
-        } else if (!isInitialized.current.categories) {
+        } else if (!isInitialized.current.categories && !hasLocalBackup) {
+          console.log('[Firebase] No categories in Firebase or local, seeding defaults');
           setDoc(catRef, { categories: DEFAULT_CATEGORIES });
         }
         isInitialized.current.categories = true;
@@ -1496,22 +1555,44 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Firebase real-time sync for products
+  // Firebase real-time sync for products - with local backup priority
   useEffect(() => {
     try {
+      // Load local backup first - this is our primary data source
+      const localBackup = loadDataBackup(BACKUP_KEYS.products) as Product[] | null;
+      const hasLocalBackup = localBackup && localBackup.length > 40;
+      
+      if (hasLocalBackup) {
+        console.log('[Backup] Found local backup with', localBackup.length, 'products, using it first');
+        setProducts(localBackup);
+      }
+      
       const productsRef = doc(db, "storeData", "products");
       const unsubscribe = onSnapshot(productsRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.products && Array.isArray(data.products)) {
-            setProducts(prev => {
-              if (JSON.stringify(prev) !== JSON.stringify(data.products)) {
-                return data.products;
-              }
-              return prev;
-            });
+          const fbProducts = data.products;
+          console.log('[Firebase] Products snapshot received, count:', fbProducts?.length || 0);
+          
+          if (fbProducts && Array.isArray(fbProducts)) {
+            if (hasLocalBackup && fbProducts.length <= 40) {
+              // Firebase has defaults but local has real data - restore to Firebase
+              console.log('[Backup] Restoring from local backup to Firebase (Firebase had defaults)');
+              setDoc(productsRef, { products: localBackup }, { merge: true });
+            } else if (!hasLocalBackup && fbProducts.length > 40) {
+              // No local backup but Firebase has real data - use Firebase
+              console.log('[Firebase] Using products from Firebase');
+              saveDataBackup(BACKUP_KEYS.products, fbProducts);
+              setProducts(fbProducts);
+            } else if (fbProducts.length > (localBackup?.length || 0)) {
+              // Firebase has more data
+              console.log('[Firebase] Using Firebase products (more data)');
+              saveDataBackup(BACKUP_KEYS.products, fbProducts);
+              setProducts(fbProducts);
+            }
           }
-        } else if (!isInitialized.current.products) {
+        } else if (!isInitialized.current.products && !hasLocalBackup) {
+          console.log('[Firebase] No products in Firebase or local, seeding defaults');
           setDoc(productsRef, { products: DEFAULT_PRODUCTS });
         }
         isInitialized.current.products = true;
