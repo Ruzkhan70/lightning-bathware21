@@ -146,28 +146,41 @@ const safeCategories = categories || [];
       return;
     }
 
-    const lines = bulkPasteData.trim().split("\n");
+    let text = bulkPasteData.trim();
+    // Remove any leading/trailing special characters
+    text = text.replace(/^[\r\n]+|[\r\n]+$/g, '');
+    
+    const lines = text.split(/\r?\n/);
     let imported = 0;
 
     for (const line of lines) {
       if (!line.trim()) continue;
       
-      const values = line.split("\t").map(v => v.trim());
+      // Try tab first, then pipe, then comma
+      let values = line.split("\t");
+      if (values.length < 2) values = line.split("|");
+      if (values.length < 2) values = line.split(",");
+      
+      values = values.map(v => v.trim());
+      
       if (values.length >= 1 && values[0]) {
+        // Convert icon and color to proper format (capitalize first letter)
+        const formatName = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
+        
         const categoryData = {
           name: values[0] || "",
           description: values[1] || "",
           image: values[2] || "",
-          icon: values[3] || "Lightbulb",
-          color: values[4] || "bg-blue-500",
-          isActive: values[5]?.toLowerCase() !== "false"
+          icon: formatName(values[3]) || "Lightbulb",
+          color: values[4]?.startsWith("#") ? values[4].toUpperCase() : `bg-${formatName(values[4]) || "blue"}-500`,
+          isActive: values[5]?.toLowerCase() !== "false" && values[5]?.toLowerCase() !== "inactive"
         };
         addCategory(categoryData);
         imported++;
       }
     }
 
-    toast.success(`${imported} categories imported from paste!`);
+    toast.success(`${imported} categories imported!`);
     setShowBulkPaste(false);
     setBulkPasteData("");
   };
