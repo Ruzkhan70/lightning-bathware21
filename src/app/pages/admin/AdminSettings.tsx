@@ -998,7 +998,7 @@ export default function AdminSettings() {
                         <div className="flex items-center justify-between mb-3">
                           <Label>Find Us Section (Map)</Label>
                           <button
-                            onClick={() => setContentForm({...contentForm, contact: {...contentForm.contact, showFindUsSection: !Boolean(contentForm.contact.showFindUsSection)}})}
+                            onClick={() => setContentForm({...contentForm, contact: {...contentForm.contact, showFindUsSection: contentForm.contact.showFindUsSection !== false ? false : true}})}
                             className={`relative w-12 h-6 rounded-full transition-colors ${
                               contentForm.contact.showFindUsSection !== false ? 'bg-green-500' : 'bg-gray-300'
                             }`}
