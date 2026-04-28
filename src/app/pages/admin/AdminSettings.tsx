@@ -929,8 +929,16 @@ export default function AdminSettings() {
                         <Input value={contentForm.contact.storeLocationTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, storeLocationTitle: e.target.value}})} />
                       </div>
                       <div>
+                        <Label>Store Location Description</Label>
+                        <Textarea value={contentForm.contact.storeLocationDesc} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, storeLocationDesc: e.target.value}})} rows={3} />
+                      </div>
+                      <div>
                         <Label>Parking Label</Label>
                         <Input value={contentForm.contact.parkingTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, parkingTitle: e.target.value}})} />
+                      </div>
+                      <div>
+                        <Label>Parking Description</Label>
+                        <Textarea value={contentForm.contact.parkingDesc} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, parkingDesc: e.target.value}})} rows={3} />
                       </div>
                     </div>
                   </div>
