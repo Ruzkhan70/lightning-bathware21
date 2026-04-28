@@ -361,24 +361,24 @@ export default function Home() {
           <ScrollAnimation animation="slideUp" delay={200}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               {activeCategories.map((category) => {
-                const iconValue = category.icon;
+                const iconValue = category?.icon;
                 const iconName = typeof iconValue === "string" ? iconValue : "";
-                const catName = category.name || "";
+                const catName = (category?.name || "").toLowerCase();
                 
-                // Get icon from map, fallback to category name matching
-                let IconComponent = ICON_MAP[iconName];
-                if (!IconComponent) {
-                  const lower = catName.toLowerCase();
-                  if (lower.includes("light")) IconComponent = Lightbulb;
-                  else if (lower.includes("bath") || lower.includes("shower")) IconComponent = Bath;
-                  else if (lower.includes("plumb") || lower.includes("valve") || lower.includes("drain") || lower.includes("tap") || lower.includes("mixer")) IconComponent = Wrench;
-                  else if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) IconComponent = Zap;
-                  else if (lower.includes("construct") || lower.includes("tool") || lower.includes("hardhat") || lower.includes("paint")) IconComponent = HardHat;
-                  else if (lower.includes("droplet")) IconComponent = Droplets;
-                  else if (lower.includes("package") || lower.includes("accessory")) IconComponent = Package;
-                  else if (lower.includes("cog") || lower.includes("settings")) IconComponent = Cog;
-                  else if (lower.includes("flame") || lower.includes("gas")) IconComponent = Flame;
-                  else IconComponent = Lightbulb;
+                let IconComponent = Lightbulb;
+                if (iconName && ICON_MAP[iconName]) {
+                  IconComponent = ICON_MAP[iconName];
+                } else {
+                  if (catName.includes("light")) IconComponent = Lightbulb;
+                  else if (catName.includes("bath") || catName.includes("shower")) IconComponent = Bath;
+                  else if (catName.includes("plumb") || catName.includes("valve") || catName.includes("drain") || catName.includes("tap") || catName.includes("mixer")) IconComponent = Wrench;
+                  else if (catName.includes("electr") || catName.includes("gas") || catName.includes("power")) IconComponent = Zap;
+                  else if (catName.includes("construct") || catName.includes("tool") || catName.includes("hardhat") || catName.includes("paint")) IconComponent = HardHat;
+                  else if (catName.includes("droplet")) IconComponent = Droplets;
+                  else if (catName.includes("package") || catName.includes("accessory")) IconComponent = Package;
+                  else if (catName.includes("cog") || catName.includes("settings")) IconComponent = Cog;
+                  else if (catName.includes("flame") || catName.includes("fire")) IconComponent = Flame;
+                  else if (catName.includes("gauge") || catName.includes("cable")) IconComponent = Gauge;
                 }
                 
                 const isUrlIcon = iconName.startsWith("http");
