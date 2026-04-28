@@ -927,10 +927,14 @@ export default function AdminSettings() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setContentForm({
-                            ...contentForm,
-                            contact: { ...contentForm.contact, showFindUsSection: contentForm.contact.showFindUsSection === false }
-                          })}
+                          onClick={() => {
+                            const currentVal = contentForm.contact.showFindUsSection;
+                            const newVal = currentVal === false ? true : false;
+                            setContentForm({
+                              ...contentForm,
+                              contact: { ...contentForm.contact, showFindUsSection: newVal }
+                            });
+                          }}
                           className={`relative w-12 h-6 rounded-full transition-colors ${
                             contentForm.contact.showFindUsSection !== false ? 'bg-green-500' : 'bg-gray-300'
                           }`}
