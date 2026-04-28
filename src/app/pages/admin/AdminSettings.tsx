@@ -920,6 +920,26 @@ export default function AdminSettings() {
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-3">Find Us Section</h4>
                     <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">Show Store Location</p>
+                          <p className="text-xs text-gray-500">Show/hide store location and parking info</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setContentForm({
+                            ...contentForm,
+                            contact: { ...contentForm.contact, showFindUsSection: contentForm.contact.showFindUsSection === false }
+                          })}
+                          className={`relative w-12 h-6 rounded-full transition-colors ${
+                            contentForm.contact.showFindUsSection !== false ? 'bg-green-500' : 'bg-gray-300'
+                          }`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                            contentForm.contact.showFindUsSection !== false ? 'translate-x-7' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
                       <div>
                         <Label>Section Title</Label>
                         <Input value={contentForm.contact.findUsTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, findUsTitle: e.target.value}})} />
