@@ -13,9 +13,9 @@ export default function Contact() {
   const { siteContent, storeProfile, addMessage } = useAdmin();
   
   const enabledSocials = [
-    { name: 'Facebook', icon: Facebook, enabled: storeProfile.facebookEnabled, url: storeProfile.facebookUrl, color: 'bg-blue-600' },
-    { name: 'Instagram', icon: Instagram, enabled: storeProfile.instagramEnabled, url: storeProfile.instagramUrl, color: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400' },
-    { name: 'Twitter', icon: Twitter, enabled: storeProfile.twitterEnabled, url: storeProfile.twitterUrl, color: 'bg-black' },
+    { name: 'Facebook', icon: Facebook, enabled: storeProfile.facebookEnabled !== false, url: storeProfile.facebookUrl, color: 'bg-blue-600' },
+    { name: 'Instagram', icon: Instagram, enabled: storeProfile.instagramEnabled !== false, url: storeProfile.instagramUrl, color: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400' },
+    { name: 'Twitter', icon: Twitter, enabled: storeProfile.twitterEnabled === true, url: storeProfile.twitterUrl, color: 'bg-black' },
   ].filter(s => s.enabled && s.url && s.url !== "#");
 
   useEffect(() => {
@@ -238,7 +238,7 @@ export default function Contact() {
             {/* Find Us Section */}
             <ScrollAnimation animation="slideUp" delay={100}>
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-bold mb-6">{siteContent.contact.findUsTitle}</h2>
+                <h2 className="text-2xl font-bold mb-6">{siteContent.contact.findUsTitle || "Find Us"}</h2>
                 <div className="aspect-video bg-gray-200 rounded-lg mb-6 overflow-hidden">
                   <iframe
                     src={siteContent.contact.mapUrl}
@@ -252,7 +252,7 @@ export default function Contact() {
                   />
                 </div>
 
-                {siteContent.contact.showFindUsSection && (
+                {(siteContent.contact.showFindUsSection !== false) && (
                   <div className="space-y-4">
                     <h3 className="font-bold text-lg">{siteContent.contact.storeLocationTitle}</h3>
                     <p className="text-gray-600">
@@ -273,13 +273,13 @@ export default function Contact() {
       </section>
 
       {/* Social Media Section */}
-      {siteContent.contact.showSocialSection && enabledSocials.length > 0 && (
+      {(siteContent.contact.showSocialSection !== false) && enabledSocials.length > 0 && (
         <section className="py-12 bg-gradient-to-r from-gray-900 to-gray-800">
           <div className="container mx-auto px-4">
             <ScrollAnimation animation="slideUp">
               <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{siteContent.contact.socialSectionTitle}</h2>
-                <p className="text-gray-300">{siteContent.contact.socialSectionSubtitle}</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{siteContent.contact.socialSectionTitle || "Connect With Us"}</h2>
+                <p className="text-gray-300">{siteContent.contact.socialSectionSubtitle || "Follow us on social media for updates and offers"}</p>
               </div>
               <div className="flex justify-center gap-4 flex-wrap">
                 {enabledSocials.map((social) => (
