@@ -1475,7 +1475,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data() as SiteContent;
           // Firebase always takes precedence - ensure defaults are merged
-          if (data.home && data.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle) {
+          if (data.home) {
             console.log('[Firebase] Using siteContent from Firebase');
             const mergedContent = {
               ...DEFAULT_SITE_CONTENT,
