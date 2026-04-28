@@ -143,10 +143,11 @@ export default function Categories() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {activeCategories.map((category, index) => {
-              const iconName = (category.icon as string) || "";
+              const iconValue = category.icon;
+              const iconName = typeof iconValue === "string" ? iconValue : "";
               const CategoryIcon = getIcon(iconName, category.name);
               const productCount = safeProducts.filter((p) => p.category === category.name).length;
-              const isImageIcon = iconName.startsWith("http");
+              const isUrlIcon = iconName.startsWith("http");
               
               return (
                 <ScrollAnimation key={category.id || index} animation="slideUp" delay={index * 100}>
@@ -161,7 +162,7 @@ export default function Categories() {
                       <div className="absolute bottom-4 left-4 right-4">
                         <div className="flex items-center gap-3 mb-2">
                           <div className={`p-3 ${category.color} rounded-lg`}>
-                            {isImageIcon ? (
+                            {isUrlIcon ? (
                               <img src={iconName} alt={category.name} className="w-6 h-6 object-contain" />
                             ) : (
                               <CategoryIcon className="w-6 h-6 text-white" />

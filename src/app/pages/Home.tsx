@@ -361,8 +361,10 @@ export default function Home() {
           <ScrollAnimation animation="slideUp" delay={200}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               {activeCategories.map((category) => {
-                const iconName = (category.icon as string) || "Lightbulb";
+                const iconValue = category.icon;
+                const iconName = typeof iconValue === "string" ? iconValue : "Lightbulb";
                 const IconComponent = ICON_MAP[iconName] || Lightbulb;
+                const isUrlIcon = iconName.startsWith("http");
                 return (
                   <Link
                     key={category.id}
@@ -379,7 +381,7 @@ export default function Home() {
                       <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
-                            {iconName.startsWith("http") ? (
+                            {isUrlIcon ? (
                               <img src={iconName} alt={category.name} className="w-7 h-7 object-contain" />
                             ) : (
                               <IconComponent className="w-7 h-7 text-black" />
@@ -392,7 +394,7 @@ export default function Home() {
                         <p className="text-gray-300 text-sm font-medium">
                           {category.count} {siteContent.home.productsCount}
                         </p>
-                      </div>
+                        </div>
                     </div>
 
                     <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#D4AF37] rounded-2xl transition-all duration-300"></div>
