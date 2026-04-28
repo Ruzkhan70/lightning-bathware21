@@ -1,5 +1,15 @@
-import { useState } from "react";
-import { Plus, Trash2, Edit2, CheckCircle, XCircle, List, Image as ImageIcon, Save, X, Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, Drill, Cable, Power, Gauge, Sparkles, Loader2, Copy, Upload, Droplets, Waves, Paintbrush, Scissors, Package, Box, Timer, Thermometer, Fan, Snowflake, GripVertical, Settings, Cog, SprayCan, PaintBucket, Flame, Shield, Pencil, Leaf, Utensils, ArrowRight, Download, FileSpreadsheet, Clipboard } from "lucide-react";
+import { useState, useMemo } from "react";
+import { 
+  Plus, Trash2, Edit2, CheckCircle, XCircle, 
+  Search, Download, Upload, FileSpreadsheet, Clipboard,
+  Lightbulb, Bath, Wrench, Zap, HardHat, Hammer, 
+  Drill, Cable, Power, Gauge, Droplets, Waves, 
+  Paintbrush, Scissors, Package, Box, Timer, 
+  Thermometer, Fan, Snowflake, Settings, Cog, 
+  SprayCan, PaintBucket, Flame, Shield, Pencil, 
+  Leaf, Utensils, ArrowRight, CheckSquare, Square,
+  ChevronDown, ChevronUp
+} from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -8,9 +18,8 @@ import { Textarea } from "../../components/ui/textarea";
 import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
-import { generatePrompt, getCategoryColor, getTextPrompt, ICON_PROMPTS } from "../../../lib/iconGenerator";
 
-const ICON_OPTIONS = [
+const ICONS = [
   { name: "Lightbulb", icon: Lightbulb },
   { name: "Bath", icon: Bath },
   { name: "Wrench", icon: Wrench },
@@ -43,730 +52,544 @@ const ICON_OPTIONS = [
   { name: "ArrowRight", icon: ArrowRight },
 ];
 
+const COLORS = [
+  "bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500",
+  "bg-purple-500", "bg-pink-500", "bg-orange-500", "bg-indigo-500", "bg-black"
+];
+
+interface FormData {
+  name: string;
+  description: string;
+  image: string;
+  icon: string;
+  color: string;
+  isActive: boolean;
+}
+
+const initialFormData: FormData = {
+  name: "",
+  description: "",
+  image: "",
+  icon: "Lightbulb",
+  color: "bg-blue-500",
+  isActive: true,
+};
+
 export default function AdminCategories() {
   const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [iconType, setIconType] = useState<"lucide" | "ai" | "image">("lucide");
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  const [generatedTextPrompt, setGeneratedTextPrompt] = useState("");
+  
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortAsc, setSortAsc] = useState(true);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [bulkText, setBulkText] = useState("");
 
-const safeCategories = categories || [];
+  const safeCategories = useMemo(() => categories || [], [categories]);
 
-  const filteredCategories = safeCategories.filter(cat => 
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cat.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    let result = safeCategories.filter(c => 
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    result.sort((a, b) => {
+      const cmp = a.name.localeCompare(b.name);
+      return sortAsc ? cmp : -cmp;
+    });
+    return result;
+  }, [safeCategories, searchQuery, sortAsc]);
 
-  const toggleSelectCategory = (id: string) => {
-    const newSet = new Set(selectedCategories);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
-    }
-    setSelectedCategories(newSet);
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+    setSelectedIds(newSet);
   };
 
   const toggleSelectAll = () => {
-    if (selectedCategories.size === filteredCategories.length) {
-      setSelectedCategories(new Set());
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
     } else {
-      setSelectedCategories(new Set(filteredCategories.map(c => c.id)));
+      setSelectedIds(new Set(filtered.map(c => c.id)));
     }
   };
 
-  const exportCategoriesCSV = () => {
+  const getIcon = (name: string) => ICONS.find(i => i.name === name)?.icon || Lightbulb;
+
+  const openEdit = (cat: Category) => {
+    setEditingId(cat.id);
+    setFormData({
+      name: cat.name,
+      description: cat.description || "",
+      image: cat.image || "",
+      icon: cat.icon || "Lightbulb",
+      color: cat.color || "bg-blue-500",
+      isActive: cat.isActive,
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+    addCategory(formData);
+    toast.success("Category added");
+    setIsAddOpen(false);
+    setFormData(initialFormData);
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !editingId) {
+      toast.error("Category name is required");
+      return;
+    }
+    updateCategory(editingId, formData);
+    toast.success("Category updated");
+    setIsEditOpen(false);
+    setEditingId(null);
+    setFormData(initialFormData);
+  };
+
+  const handleDelete = (id: string) => {
+    if (!window.confirm("Delete this category? Products may become uncategorized.")) return;
+    if (selectedIds.has(id)) {
+      const newSet = new Set(selectedIds);
+      newSet.delete(id);
+      setSelectedIds(newSet);
+    }
+    deleteCategory(id);
+    toast.success("Category deleted");
+  };
+
+  const handleBulkEnable = () => {
+    selectedIds.forEach(id => {
+      const cat = safeCategories.find(c => c.id === id);
+      if (cat && !cat.isActive) toggleCategoryStatus(id);
+    });
+    toast.success(`${selectedIds.size} categories enabled`);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDisable = () => {
+    selectedIds.forEach(id => {
+      const cat = safeCategories.find(c => c.id === id);
+      if (cat && cat.isActive) toggleCategoryStatus(id);
+    });
+    toast.success(`${selectedIds.size} categories disabled`);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    if (!window.confirm(`Delete ${selectedIds.size} categories?`)) return;
+    selectedIds.forEach(id => deleteCategory(id));
+    toast.success(`${selectedIds.size} categories deleted`);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkImport = () => {
+    if (!bulkText.trim()) {
+      toast.error("Paste some data first");
+      return;
+    }
+    const lines = bulkText.trim().split(/\r?\n/);
+    let imported = 0;
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const values = line.split(/\t|,/);
+      if (values[0]?.trim()) {
+        const formatName = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
+        addCategory({
+          name: values[0].trim(),
+          description: values[1]?.trim() || "",
+          image: values[2]?.trim() || "",
+          icon: formatName(values[3]) || "Lightbulb",
+          color: values[4]?.trim() ? `bg-${formatName(values[4])}-500` : "bg-blue-500",
+          isActive: values[5]?.toLowerCase() !== "false",
+        });
+        imported++;
+      }
+    }
+    toast.success(`${imported} categories imported`);
+    setIsBulkOpen(false);
+    setBulkText("");
+  };
+
+  const handleExportCSV = () => {
     const headers = ["name", "description", "image", "icon", "color", "isActive"];
-    const csvContent = [
+    const csv = [
       headers.join(","),
-      ...safeCategories.map(cat => [
-        `"${(cat.name || "").replace(/"/g, '""')}"`,
-        `"${(cat.description || "").replace(/"/g, '""')}"`,
-        `"${(cat.image || "").replace(/"/g, '""')}"`,
-        `"${(cat.icon || "").replace(/"/g, '""')}"`,
-        `"${(cat.color || "").replace(/"/g, '""')}"`,
-        cat.isActive
+      ...safeCategories.map(c => [
+        `"${c.name.replace(/"/g, '""')}"`,
+        `"${(c.description || "").replace(/"/g, '""')}"`,
+        `"${(c.image || "").replace(/"/g, '""')}"`,
+        `"${c.icon || "Lightbulb"}"`,
+        `"${c.color || "bg-blue-500"}"`,
+        c.isActive
       ].join(","))
     ].join("\n");
     
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `categories_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-    toast.success("Categories exported successfully!");
+    toast.success("CSV exported");
   };
 
-  const importCategoriesCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const lines = text.split("\n");
-      const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g, ""));
-      
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const lines = text.split("\n").slice(1);
       let imported = 0;
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
+      for (const line of lines) {
+        if (!line.trim()) continue;
         const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, "").replace(/""/g, '"'));
-        if (values.length >= 1 && values[0]) {
-          const categoryData = {
-            name: values[0] || "",
+        if (values[0]) {
+          addCategory({
+            name: values[0],
             description: values[1] || "",
             image: values[2] || "",
             icon: values[3] || "Lightbulb",
             color: values[4] || "bg-blue-500",
-            isActive: values[5]?.toLowerCase() !== "false"
-          };
-          addCategory(categoryData);
+            isActive: values[5]?.toLowerCase() !== "false",
+          });
           imported++;
         }
       }
-      
-      toast.success(`${imported} categories imported!`);
+      toast.success(`${imported} categories imported`);
     };
     reader.readAsText(file);
     e.target.value = "";
   };
 
-  const [showBulkPaste, setShowBulkPaste] = useState(false);
-  const [bulkPasteData, setBulkPasteData] = useState("");
-
-  const handleBulkPasteImport = () => {
-    alert('[BulkPaste] Import button clicked!');
-    if (!bulkPasteData.trim()) {
-      toast.error("Please paste some data first");
-      return;
-    }
-
-    let text = bulkPasteData.trim();
-    alert('[BulkPaste] Raw text length: ' + text.length + ', First 100 chars: ' + text.substring(0, 100));
-    console.log('[BulkPaste] Raw text:', text);
-    
-    // Remove any leading/trailing special characters
-    text = text.replace(/^[\r\n]+|[\r\n]+$/g, '');
-    
-    const lines = text.split(/\r?\n/);
-    alert('[BulkPaste] Number of lines: ' + lines.length);
-    console.log('[BulkPaste] Lines:', lines);
-    
-    let imported = 0;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line || !line.trim()) continue;
-      
-      console.log('[BulkPaste] Line', i, ':', line);
-      
-      // Try tab first, then pipe, then comma
-      let values = line.split("\t");
-      if (values.length < 2) values = line.split("|");
-      if (values.length < 2) values = line.split(",");
-      
-      console.log('[BulkPaste] Values:', values);
-      
-      values = values.map(v => v.trim());
-      
-      if (values.length >= 1 && values[0]) {
-        // Convert icon and color to proper format (capitalize first letter)
-        const formatName = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
-        
-        const categoryData = {
-          name: values[0] || "",
-          description: values[1] || "",
-          image: values[2] || "",
-          icon: formatName(values[3]) || "Lightbulb",
-          color: values[4]?.startsWith("#") ? values[4].toUpperCase() : `bg-${formatName(values[4]) || "blue"}-500`,
-          isActive: values[5]?.toLowerCase() !== "false" && values[5]?.toLowerCase() !== "inactive"
-        };
-        console.log('[BulkPaste] Importing:', categoryData);
-        addCategory(categoryData);
-        imported++;
-      }
-    }
-
-    console.log('[BulkPaste] Total imported:', imported);
-    setShowBulkPaste(false);
-    setBulkPasteData("");
-  };
-
-  const bulkEnable = () => {
-    selectedCategories.forEach(id => {
-      const cat = safeCategories.find(c => c.id === id);
-      if (cat && !cat.isActive) {
-        toggleCategoryStatus(id);
-      }
-    });
-    toast.success(`${selectedCategories.size} categories enabled`);
-    setSelectedCategories(new Set());
-  };
-
-  const bulkDisable = () => {
-    selectedCategories.forEach(id => {
-      const cat = safeCategories.find(c => c.id === id);
-      if (cat && cat.isActive) {
-        toggleCategoryStatus(id);
-      }
-    });
-    toast.success(`${selectedCategories.size} categories disabled`);
-    setSelectedCategories(new Set());
-  };
-
-  const bulkDelete = () => {
-    if (window.confirm(`Are you sure you want to delete ${selectedCategories.size} categories?`)) {
-      selectedCategories.forEach(id => deleteCategory(id));
-      toast.success(`${selectedCategories.size} categories deleted`);
-      setSelectedCategories(new Set());
-    }
-  };
-
-  const getCategoryIcon = (icon: string | undefined, name: string) => {
-    if (icon) return icon;
-    const lower = name.toLowerCase();
-    if (lower.includes("light")) return "Lightbulb";
-    if (lower.includes("bath") || lower.includes("shower") || lower.includes("toilet")) return "Bath";
-    if (lower.includes("plumb") || lower.includes("valve") || lower.includes("drain") || lower.includes("water") || lower.includes("tap") || lower.includes("mixer")) return "Wrench";
-    if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) return "Zap";
-    if (lower.includes("construct") || lower.includes("tool") || lower.includes("paint") || lower.includes("hardhat") || lower.includes("appliance")) return "HardHat";
-    return "Lightbulb";
-  };
-
-  const getIconComponent = (iconName: string) => {
-    const found = ICON_OPTIONS.find(opt => opt.name === iconName);
-    return found ? found.icon : Lightbulb;
-  };
-
-  const autoAssignIcons = () => {
-    safeCategories.forEach(category => {
-      const icon = getCategoryIcon(undefined, category.name);
-      if (category.icon !== icon) {
-        updateCategory(category.id, { ...category, icon });
-      }
-    });
-    toast.success("Icons assigned to all categories!");
-  };
-
-  const handleGeneratePrompts = () => {
-    if (!formData.name) {
-      toast.error("Please enter a category name first");
-      return;
-    }
-    const bannerPrompt = getTextPrompt(formData.name, "banner");
-    setGeneratedTextPrompt(bannerPrompt);
-    toast.success("Banner prompt generated!");
-  };
-
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    image: "",
-    icon: "Lightbulb",
-    color: "bg-blue-500",
-    isActive: true
-  });
-
-  const handleAddCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name) {
-      toast.error("Category name is required");
-      return;
-    }
-    addCategory(formData);
-    toast.success("Category added successfully");
-    setIsAddDialogOpen(false);
-    resetForm();
-  };
-
-  const handleUpdateCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCategory) return;
-    if (!formData.name) {
-      toast.error("Category name is required");
-      return;
-    }
-    updateCategory(editingCategory.id, formData);
-    toast.success("Category updated successfully");
-    setIsEditDialogOpen(false);
-    setEditingCategory(null);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      image: "",
-      icon: "Lightbulb",
-      color: "bg-blue-500",
-      isActive: true
-    });
-  };
-
-  const openEditDialog = (category: Category) => {
-    setEditingCategory(category);
-    const isIconImage = category.icon && (category.icon.startsWith("http") || category.icon.startsWith("/"));
-    setIconType(isIconImage ? "ai" : "lucide");
-    setFormData({
-      name: category.name,
-      description: category.description,
-      image: category.image,
-      icon: category.icon || "Lightbulb",
-      color: category.color,
-      isActive: category.isActive
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const colors = [
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-yellow-500",
-    "bg-red-500",
-    "bg-purple-500",
-    "bg-pink-500",
-    "bg-orange-500",
-    "bg-indigo-500",
-    "bg-black"
-  ];
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Category Management</h1>
-          <p className="text-gray-600">Add, edit, and manage your product categories</p>
+          <h1 className="text-3xl font-bold">Categories</h1>
+          <p className="text-gray-600">Manage product categories</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={autoAssignIcons}
-            variant="outline"
-            className="border-purple-500 text-purple-600 hover:bg-purple-50"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Auto-Assign Icons
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setSortAsc(!sortAsc)}>
+            {sortAsc ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <span className="ml-2 hidden sm:inline">A-Z</span>
           </Button>
-<Button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="bg-black hover:bg-[#D4AF37] text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Category
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="w-4 h-4" />
+            <span className="ml-2 hidden sm:inline">Export</span>
           </Button>
-          <Button
-            onClick={exportCategoriesCSV}
-            variant="outline"
-            className="border-green-600 text-green-600 hover:bg-green-50"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-<label className="cursor-pointer border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4" />
-            Import CSV
-            <input type="file" accept=".csv" onChange={importCategoriesCSV} className="hidden" />
+          <label className="cursor-pointer border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Import</span>
+            <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
           </label>
-          <button 
-            onClick={() => setShowBulkPaste(true)}
-            className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-          >
+          <Button variant="outline" onClick={() => setIsBulkOpen(true)}>
             <Clipboard className="w-4 h-4" />
-            Paste Import
-          </button>
+            <span className="ml-2 hidden sm:inline">Bulk</span>
+          </Button>
+          <Button onClick={() => { setFormData(initialFormData); setIsAddOpen(true); }} className="bg-black hover:bg-[#D4AF37]">
+            <Plus className="w-4 h-4" />
+            <span className="ml-2">Add</span>
+          </Button>
         </div>
       </div>
 
-      {/* Bulk Paste Dialog */}
-      {showBulkPaste && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
-            <h3 className="text-lg font-medium mb-4">Bulk Paste Categories</h3>
-            <p className="text-sm text-gray-500 mb-2">Paste Excel data (tab-separated): Name | Description | Image URL | Icon | Color | Active</p>
-            <textarea
-              value={bulkPasteData}
-              onChange={(e) => setBulkPasteData(e.target.value)}
-              placeholder="Lighting	Premium lighting products	https://...	Lightbulb	bg-blue-500	true&#10;Bathroom	Bathroom fittings	https://...	Bath	bg-green-500	true"
-              className="w-full h-64 p-3 border rounded-lg font-mono text-sm"
-            />
-            <div className="flex gap-2 mt-4 justify-end">
-              <button 
-                onClick={() => { setShowBulkPaste(false); setBulkPasteData(""); }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  alert('Testing: setting test data');
-                  const testData = "Lighting\tModern lights\t\tlightbulb\t#3B82F6\ttrue\nBathroom\tBath items\t\tbath\t#10B981\ttrue";
-                  setBulkPasteData(testData);
-                  alert('Set test data: ' + testData);
-                }}
-                className="px-3 py-1 text-xs border rounded"
-              >
-                Test Data
-              </button>
-              <button 
-                onClick={handleBulkPasteImport}
-                className="px-4 py-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black rounded-lg"
-              >
-                Import
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Search and Bulk Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
-        {selectedCategories.size > 0 && (
+        {selectedIds.size > 0 && (
           <div className="flex gap-2">
-            <Button onClick={toggleSelectAll} variant="outline" size="sm">
-              {selectedCategories.size === filteredCategories.length ? "Deselect All" : "Select All"}
+            <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              {selectedIds.size === filtered.length ? "Deselect" : "Select All"}
             </Button>
-            <Button onClick={bulkEnable} variant="outline" className="text-green-600 hover:bg-green-50" size="sm">
-              Enable ({selectedCategories.size})
+            <Button variant="outline" size="sm" className="text-green-600" onClick={handleBulkEnable}>
+              Enable ({selectedIds.size})
             </Button>
-            <Button onClick={bulkDisable} variant="outline" className="text-yellow-600 hover:bg-yellow-50" size="sm">
-              Disable ({selectedCategories.size})
+            <Button variant="outline" size="sm" className="text-yellow-600" onClick={handleBulkDisable}>
+              Disable ({selectedIds.size})
             </Button>
-            <Button onClick={bulkDelete} variant="outline" className="text-red-600 hover:bg-red-50" size="sm">
-              Delete ({selectedCategories.size})
+            <Button variant="outline" size="sm" className="text-red-600" onClick={handleBulkDelete}>
+              Delete ({selectedIds.size})
             </Button>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCategories.map((category) => (
-          <div key={category.id} className={`bg-white rounded-xl shadow-lg overflow-hidden border-2 flex flex-col ${selectedCategories.has(category.id) ? 'border-[#D4AF37]' : 'border-gray-100'}`}>
-            <div className="relative h-40">
-              <img 
-                src={category.image || "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500"} 
-                alt={category.name} 
-                className={`w-full h-full object-cover ${!category.isActive ? 'grayscale' : ''}`}
-              />
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="absolute top-4 left-4 z-10">
-              <input
-                type="checkbox"
-                checked={selectedCategories.has(category.id)}
-                onChange={() => toggleSelectCategory(category.id)}
-                className="w-5 h-5 rounded border-gray-300 accent-black cursor-pointer"
-              />
-            </div>
-            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${category.isActive ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                {category.isActive ? 'Active' : 'Disabled'}
-              </div>
-            </div>
-            
-            <div className="p-6 flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-8 h-8 ${category.color} rounded-lg flex items-center justify-center`}>
-                  {(() => {
-                    const IconComp = getIconComponent(getCategoryIcon(category.icon, category.name));
-                    return <IconComp className="w-4 h-4 text-white" />;
-                  })()}
-                </div>
-                <h2 className="text-xl font-bold">{category.name}</h2>
-              </div>
-              <p className="text-gray-600 text-sm mb-6 line-clamp-2">{category.description}</p>
-              
-              <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1"
-                  onClick={() => openEditDialog(category)}
-                >
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className={category.isActive ? "text-red-500 hover:text-red-600" : "text-green-500 hover:text-green-600"}
-                  onClick={() => toggleCategoryStatus(category.id)}
-                >
-                  {category.isActive ? (
-                    <><XCircle className="w-4 h-4 mr-2" /> Disable</>
-                  ) : (
-                    <><CheckCircle className="w-4 h-4 mr-2" /> Enable</>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this category? Products in this category might become uncategorized.")) {
-                      console.log('[Delete] Deleting category:', category.id, category.name);
-                      deleteCategory(category.id);
-                      toast.success("Category deleted");
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-gray-500">
+            No categories found
           </div>
-        ))}
+        ) : (
+          filtered.map((cat) => (
+            <div 
+              key={cat.id} 
+              className={`bg-white rounded-xl shadow overflow-hidden border-2 flex flex-col ${
+                selectedIds.has(cat.id) ? 'border-[#D4AF37]' : 'border-gray-100'
+              }`}
+            >
+              <div className="relative h-32">
+                <img 
+                  src={cat.image || "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500"} 
+                  alt={cat.name}
+                  className={`w-full h-full object-cover ${!cat.isActive ? 'grayscale' : ''}`}
+                />
+                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute top-3 left-3 z-10">
+                  <button onClick={() => toggleSelect(cat.id)} className="p-1 bg-white rounded shadow">
+                    {selectedIds.has(cat.id) ? (
+                      <CheckSquare className="w-5 h-5 text-black" />
+                    ) : (
+                      <Square className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
+                </div>
+                <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold ${
+                  cat.isActive ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`}>
+                  {cat.isActive ? "Active" : "Disabled"}
+                </div>
+              </div>
+              
+              <div className="p-4 flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-8 h-8 ${cat.color || 'bg-blue-500'} rounded-lg flex items-center justify-center`}>
+                    {(() => {
+                      const Icon = getIcon(cat.icon || "Lightbulb");
+                      return <Icon className="w-4 h-4 text-white" />;
+                    })()}
+                  </div>
+                  <h3 className="font-semibold text-lg truncate">{cat.name}</h3>
+                </div>
+                <p className="text-gray-500 text-sm line-clamp-2 mb-4">{cat.description || "No description"}</p>
+                
+                <div className="flex gap-1 mt-auto pt-3 border-t">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(cat)}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={cat.isActive ? "text-red-500" : "text-green-500"}
+                    onClick={() => toggleCategoryStatus(cat.id)}
+                  >
+                    {cat.isActive ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleDelete(cat.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* Add Category Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
+            <DialogTitle>Add Category</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddCategory} className="space-y-4 py-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Category Name</Label>
+              <Label>Name</Label>
               <Input 
-                id="name" 
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Solar Lighting"
+                placeholder="Category name"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label>Description</Label>
               <Textarea 
-                id="description" 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe the products in this category..."
                 rows={3}
               />
             </div>
             <div className="space-y-2">
-              <Label>Category Banner Image</Label>
+              <Label>Image</Label>
               <ImageUpload 
                 value={formData.image}
                 onChange={(val) => setFormData({ ...formData, image: val })}
-                label=""
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Category Icon</Label>
-                <button
-                  type="button"
-                  onClick={handleGeneratePrompts}
-                  disabled={isGeneratingAI || !formData.name}
-                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white disabled:opacity-50"
-                >
-                  {isGeneratingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  Generate
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mb-2">Select an icon for this category</p>
-              <div className="grid grid-cols-5 gap-2">
-                {ICON_OPTIONS.map(({ name, icon: Icon }) => (
+              <Label>Icon</Label>
+              <div className="grid grid-cols-6 gap-2">
+                {ICONS.map(({ name, icon: Icon }) => (
                   <button
                     key={name}
                     type="button"
-                    onClick={() => setFormData({ ...formData, icon: formData.icon === name ? "" : name })}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    onClick={() => setFormData({ ...formData, icon: name })}
+                    className={`p-2 rounded-lg border-2 ${
                       formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
                     }`}
-                    title={name}
                   >
-                    <Icon className="w-6 h-6 mx-auto" />
+                    <Icon className="w-5 h-5 mx-auto" />
                   </button>
                 ))}
               </div>
             </div>
-            {generatedTextPrompt && (
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Banner Prompt</Label>
-                <div className="relative">
-                  <textarea
-                    readOnly
-                    value={generatedTextPrompt}
-                    className="w-full h-20 p-3 text-xs bg-gray-50 border rounded-lg resize-none pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedTextPrompt);
-                      toast.success("Prompt copied!");
-                    }}
-                    className="absolute top-2 right-2 p-1.5 bg-[#D4AF37] rounded hover:bg-[#C5A028]"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
+                <Label>Color</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-6 h-6 rounded-full ${color} ${
+                        formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''
+                      }`}
+                      onClick={() => setFormData({ ...formData, color })}
+                    />
+                  ))}
                 </div>
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label>Accent Color</Label>
-                 <div className="flex flex-wrap gap-2">
-                   {colors.map((color) => (
-                     <button
-                       key={color}
-                       type="button"
-                       className={`w-6 h-6 rounded-full ${color} ${formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''}`}
-                       onClick={() => setFormData({ ...formData, color })}
-                     />
-                   ))}
-                 </div>
-               </div>
-               <div className="flex items-center gap-2">
-                 <input 
-                   type="checkbox" 
-                   id="isActive"
-                   checked={formData.isActive}
-                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                   className="rounded border-gray-300"
-                 />
-                 <Label htmlFor="isActive" className="cursor-pointer">Active Category</Label>
-               </div>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="isActiveAdd"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="rounded"
+                />
+                <Label htmlFor="isActiveAdd">Active</Label>
+              </div>
             </div>
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-black hover:bg-[#D4AF37] text-white">Save Category</Button>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-black hover:bg-[#D4AF37]">Save</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Category Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Category: {editingCategory?.name}</DialogTitle>
+            <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleUpdateCategory} className="space-y-4 py-4">
+          <form onSubmit={handleUpdate} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Category Name</Label>
+              <Label>Name</Label>
               <Input 
-                id="edit-name" 
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label>Description</Label>
               <Textarea 
-                id="edit-description" 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
               />
             </div>
             <div className="space-y-2">
-              <Label>Category Banner Image</Label>
+              <Label>Image</Label>
               <ImageUpload 
                 value={formData.image}
                 onChange={(val) => setFormData({ ...formData, image: val })}
-                label=""
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Category Icon</Label>
-                <button
-                  type="button"
-                  onClick={handleGeneratePrompts}
-                  disabled={isGeneratingAI || !formData.name}
-                  className="py-1 px-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white disabled:opacity-50"
-                >
-                  {isGeneratingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  Generate
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mb-2">Select an icon for this category</p>
-              <div className="grid grid-cols-5 gap-2">
-                {ICON_OPTIONS.map(({ name, icon: Icon }) => (
+              <Label>Icon</Label>
+              <div className="grid grid-cols-6 gap-2">
+                {ICONS.map(({ name, icon: Icon }) => (
                   <button
                     key={name}
                     type="button"
-                    onClick={() => setFormData({ ...formData, icon: formData.icon === name ? "" : name })}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    onClick={() => setFormData({ ...formData, icon: name })}
+                    className={`p-2 rounded-lg border-2 ${
                       formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
                     }`}
-                    title={name}
                   >
-                    <Icon className="w-6 h-6 mx-auto" />
+                    <Icon className="w-5 h-5 mx-auto" />
                   </button>
                 ))}
               </div>
             </div>
-            {generatedTextPrompt && (
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Banner Prompt</Label>
-                <div className="relative">
-                  <textarea
-                    readOnly
-                    value={generatedTextPrompt}
-                    className="w-full h-20 p-3 text-xs bg-gray-50 border rounded-lg resize-none pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedTextPrompt);
-                      toast.success("Prompt copied!");
-                    }}
-                    className="absolute top-2 right-2 p-1.5 bg-[#D4AF37] rounded hover:bg-[#C5A028]"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
+                <Label>Color</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-6 h-6 rounded-full ${color} ${
+                        formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''
+                      }`}
+                      onClick={() => setFormData({ ...formData, color })}
+                    />
+                  ))}
                 </div>
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label>Accent Color</Label>
-                 <div className="flex flex-wrap gap-2">
-                   {colors.map((color) => (
-                     <button
-                       key={color}
-                       type="button"
-                       className={`w-6 h-6 rounded-full ${color} ${formData.color === color ? 'ring-2 ring-offset-2 ring-black' : ''}`}
-                       onClick={() => setFormData({ ...formData, color })}
-                     />
-                   ))}
-                 </div>
-               </div>
-               <div className="flex items-center gap-2">
-                 <input 
-                   type="checkbox" 
-                   id="edit-isActive"
-                   checked={formData.isActive}
-                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                   className="rounded border-gray-300"
-                 />
-                 <Label htmlFor="edit-isActive" className="cursor-pointer">Active Category</Label>
-               </div>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="isActiveEdit"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="rounded"
+                />
+                <Label htmlFor="isActiveEdit">Active</Label>
+              </div>
             </div>
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => {
-                setIsEditDialogOpen(false);
-                setEditingCategory(null);
-              }}>Cancel</Button>
-              <Button type="submit" className="bg-black hover:bg-[#D4AF37] text-white">Update Category</Button>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => { setIsEditOpen(false); setEditingId(null); }}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-black hover:bg-[#D4AF37]">Update</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Bulk Import Categories</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Paste data from Excel (tab-separated) or CSV. Format: Name | Description | Image | Icon | Color | Active
+            </p>
+            <textarea
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              placeholder="Lighting	Premium lights		Lightbulb	bg-blue-500	true&#10;Bathroom	Bath items	Bath	bg-green-500	true"
+              className="w-full h-64 p-3 border rounded-lg font-mono text-sm"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsBulkOpen(false); setBulkText(""); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkImport} className="bg-black hover:bg-[#D4AF37]">
+              Import
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
