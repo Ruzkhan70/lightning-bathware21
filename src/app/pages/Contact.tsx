@@ -252,7 +252,7 @@ export default function Contact() {
                   />
                 </div>
 
-                {(siteContent.contact.showFindUsSection !== false) && (
+                {siteContent.contact.showFindUsSection !== false && (
                   <div className="space-y-4">
                     <h3 className="font-bold text-lg">{siteContent.contact.storeLocationTitle}</h3>
                     <p className="text-gray-600">
