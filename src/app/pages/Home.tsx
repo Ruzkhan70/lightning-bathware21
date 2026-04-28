@@ -359,8 +359,8 @@ export default function Home() {
           </ScrollAnimation>
 
           <ScrollAnimation animation="slideUp" delay={200}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              {activeCategories.map((category) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+              {activeCategories.slice(0, 6).map((category) => {
                 const iconValue = category?.icon;
                 const iconName = typeof iconValue === "string" ? iconValue : "";
                 const catName = (category?.name || "").toLowerCase();
@@ -386,7 +386,7 @@ export default function Home() {
                   <Link
                     key={category.id}
                     to={`/products?category=${encodeURIComponent(category.name)}`}
-                    className="group relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                    className="group relative h-52 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                   >
                     <div
                       className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
@@ -394,21 +394,21 @@ export default function Home() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
                     
-                    <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+                    <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
                       <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="p-2 bg-[#D4AF37] rounded-lg shadow group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
                             {isUrlIcon ? (
-                              <img src={iconName} alt={category.name} className="w-7 h-7 object-contain" />
+                              <img src={iconName} alt={category.name} className="w-5 h-5 object-contain" />
                             ) : (
-                              <IconComponent className="w-7 h-7 text-black" />
+                              <IconComponent className="w-5 h-5 text-black" />
                             )}
                           </div>
                         </div>
-                        <h3 className="text-xl font-bold mb-1 group-hover:text-[#D4AF37] transition-colors duration-300">
+                        <h3 className="text-lg font-bold group-hover:text-[#D4AF37] transition-colors duration-300">
                           {category.name}
                         </h3>
-                        <p className="text-gray-300 text-sm font-medium">
+                        <p className="text-gray-300 text-xs">
                           {category.count} {siteContent.home.productsCount}
                         </p>
                       </div>
@@ -419,6 +419,18 @@ export default function Home() {
                 );
               })}
             </div>
+            
+            {activeCategories.length > 6 && (
+              <div className="text-center mt-10">
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold px-8 py-3 rounded-lg transition-colors"
+                >
+                  View All Categories
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            )}
           </ScrollAnimation>
         </div>
       </section>
