@@ -273,7 +273,7 @@ export default function Contact() {
       </section>
 
       {/* Social Media Section */}
-      {(siteContent.contact.showSocialSection !== false) && enabledSocials.length > 0 && (
+      {(siteContent.contact.showSocialSection !== false) && (
         <section className="py-12 bg-gradient-to-r from-gray-900 to-gray-800">
           <div className="container mx-auto px-4">
             <ScrollAnimation animation="slideUp">
@@ -282,18 +282,25 @@ export default function Contact() {
                 <p className="text-gray-300">{siteContent.contact.socialSectionSubtitle || "Follow us on social media for updates and offers"}</p>
               </div>
               <div className="flex justify-center gap-4 flex-wrap">
-                {enabledSocials.map((social) => (
-                  <a
-                    key={social.name}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 ${social.color}`}
-                  >
-                    <social.icon className="w-5 h-5" />
-                    <span>{social.name}</span>
-                  </a>
-                ))}
+                {enabledSocials.length > 0 ? (
+                  enabledSocials.map((social) => (
+                    <a
+                      key={social.name}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 ${social.color}`}
+                    >
+                      <social.icon className="w-5 h-5" />
+                      <span>{social.name}</span>
+                    </a>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-400 py-4">
+                    <p>No social links configured yet.</p>
+                    <p className="text-sm mt-1">Add your social media links in Admin → Settings → Social Media</p>
+                  </div>
+                )}
               </div>
             </ScrollAnimation>
           </div>
