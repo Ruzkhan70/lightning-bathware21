@@ -279,7 +279,7 @@ export default function Contact() {
             <ScrollAnimation animation="slideUp">
               <div className="text-center mb-8">
                 <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{siteContent.contact.socialSectionTitle || "Connect With Us"}</h2>
-                <p className="text-gray-300">{siteContent.contact.socialSectionSubtitle || "Follow us on social media for updates and offers"}</p>
+                <p className="text-gray-300">{siteContent.contact.socialSectionSubtitle}</p>
               </div>
               <div className="flex justify-center gap-4 flex-wrap">
                 {enabledSocials.length > 0 ? (

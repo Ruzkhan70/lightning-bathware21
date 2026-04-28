@@ -915,41 +915,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Social Media Section */}
-                      <div className="border rounded-lg p-4">
-                        <Label className="font-semibold mb-3 block">Social Media Section</Label>
-                        <p className="text-xs text-gray-500 mb-3">
-                          Configure the social media section displayed on the Contact page
-                        </p>
-                        <div className="space-y-3">
-                          <Input 
-                            value={contentForm.contact.socialSectionTitle || ""} 
-                            onChange={(e) => setContentForm({
-                              ...contentForm, 
-                              contact: {...contentForm.contact, socialSectionTitle: e.target.value}
-                            })} 
-                            placeholder="Section title (e.g., Connect With Us)" 
-                          />
-                          <Input 
-                            value={contentForm.contact.socialSectionSubtitle || ""} 
-                            onChange={(e) => setContentForm({
-                              ...contentForm, 
-                              contact: {...contentForm.contact, socialSectionSubtitle: e.target.value}
-                            })} 
-                            placeholder="Section subtitle" 
-                          />
-                        </div>
-                      </div>
-                      
-                      {/* Find Us Section */}
-                      <div className="border rounded-lg p-4">
-                        <Label className="font-semibold mb-3 block">Find Us Section</Label>
-                        <p className="text-xs text-gray-500">
-                          Configure the Find Us section on the Contact page
-                        </p>
-                      </div>
-                    </div>
+                  
 
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-3">Find Us Section</h4>
