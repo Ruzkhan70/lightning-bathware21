@@ -8,7 +8,7 @@ import {
   Thermometer, Fan, Snowflake, Settings, Cog, 
   SprayCan, PaintBucket, Flame, Shield, Pencil, 
   Leaf, Utensils, ArrowRight, CheckSquare, Square,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, Sparkles
 } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -18,6 +18,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import { getCategoryIcon, getCategoryColor } from "../../../lib/iconGenerator";
 
 const ICONS = [
   { name: "Lightbulb", icon: Lightbulb },
@@ -116,6 +117,19 @@ export default function AdminCategories() {
     }
   };
 
+  const handleAutoAssign = () => {
+    let updated = 0;
+    safeCategories.forEach(cat => {
+      const newIcon = getCategoryIcon(cat.name);
+      const newColor = getCategoryColor(cat.name);
+      if (cat.icon !== newIcon || cat.color !== newColor) {
+        updateCategory(cat.id, { icon: newIcon, color: newColor });
+        updated++;
+      }
+    });
+    toast.success(`Updated ${updated} categories with auto-assigned icons and colors`);
+  };
+
   const getIcon = (name: string) => ICONS.find(i => i.name === name)?.icon || Lightbulb;
 
   const openEdit = (cat: Category) => {
@@ -203,13 +217,15 @@ export default function AdminCategories() {
       if (!line.trim()) continue;
       const values = line.split(/\t|,/);
       if (values[0]?.trim()) {
-        const formatName = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
+        const name = values[0].trim();
+        const icon = getCategoryIcon(name);
+        const color = getCategoryColor(name);
         addCategory({
-          name: values[0].trim(),
+          name,
           description: values[1]?.trim() || "",
           image: values[2]?.trim() || "",
-          icon: formatName(values[3]) || "Lightbulb",
-          color: values[4]?.trim() ? `bg-${formatName(values[4])}-500` : "bg-blue-500",
+          icon,
+          color,
           isActive: values[5]?.toLowerCase() !== "false",
         });
         imported++;
@@ -283,6 +299,10 @@ export default function AdminCategories() {
           <Button variant="outline" onClick={() => setSortAsc(!sortAsc)}>
             {sortAsc ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             <span className="ml-2 hidden sm:inline">A-Z</span>
+          </Button>
+          <Button variant="outline" onClick={handleAutoAssign} className="border-purple-500 text-purple-600 hover:bg-purple-50">
+            <Sparkles className="w-4 h-4" />
+            <span className="ml-2 hidden sm:inline">Auto-Assign</span>
           </Button>
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="w-4 h-4" />
