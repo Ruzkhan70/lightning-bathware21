@@ -10,6 +10,8 @@ import {
   Calendar,
   Power,
   PowerOff,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,12 +19,14 @@ export default function AdminOffers() {
   const navigate = useNavigate();
   const { offers, deleteOffer, toggleOfferStatus, toggleOffersPage, siteContent, addDemoOffers } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showDisabled, setShowDisabled] = useState(false);
   const isOffersPageEnabled = siteContent?.offers?.isEnabled ?? true;
 
   const safeOffers = offers || [];
 
   const filteredOffers = safeOffers.filter((offer) =>
-    offer.title.toLowerCase().includes(searchTerm.toLowerCase())
+    offer.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (showDisabled || offer.isEnabled !== false)
   );
 
   const handleDelete = (id: string, title: string) => {
@@ -97,7 +101,7 @@ export default function AdminOffers() {
       </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap gap-3 items-center">
         <input
           type="text"
           placeholder="Search offers..."
@@ -105,6 +109,14 @@ export default function AdminOffers() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
         />
+        <Button
+          variant="outline"
+          onClick={() => setShowDisabled(!showDisabled)}
+          className={showDisabled ? "text-purple-600 border-purple-500" : "text-gray-500"}
+        >
+          {showDisabled ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+          {showDisabled ? "Hide Disabled" : "Show Disabled"}
+        </Button>
       </div>
 
       {/* Offers Grid */}
