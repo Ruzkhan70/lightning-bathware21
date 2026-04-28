@@ -1474,16 +1474,32 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const unsubscribe = onSnapshot(contentRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as SiteContent;
-          // Firebase always takes precedence
+          // Firebase always takes precedence - ensure defaults are merged
           if (data.home && data.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle) {
             console.log('[Firebase] Using siteContent from Firebase');
-            saveDataBackup(BACKUP_KEYS.siteContent, data);
-            setSiteContent(deepMerge(DEFAULT_SITE_CONTENT, data));
+            const mergedContent = {
+              ...DEFAULT_SITE_CONTENT,
+              ...data,
+              contact: {
+                ...DEFAULT_SITE_CONTENT.contact,
+                ...(data.contact || {}),
+              },
+            };
+            saveDataBackup(BACKUP_KEYS.siteContent, mergedContent);
+            setSiteContent(mergedContent);
           } else if (hasLocalBackup) {
             // Firebase has defaults but local has data - restore
             console.log('[Backup] Restoring from local backup to Firebase');
-            setDoc(contentRef, { ...localBackup! }, { merge: true });
-            setSiteContent(localBackup!);
+            const localMerged = {
+              ...DEFAULT_SITE_CONTENT,
+              ...localBackup,
+              contact: {
+                ...DEFAULT_SITE_CONTENT.contact,
+                ...(localBackup?.contact || {}),
+              },
+            };
+            setDoc(contentRef, localMerged, { merge: true });
+            setSiteContent(localMerged);
           }
         } else if (!isInitialized.current.siteContent && !hasLocalBackup) {
           setDoc(contentRef, DEFAULT_SITE_CONTENT);
