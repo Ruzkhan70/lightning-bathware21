@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { setMetaTags } from "../utils/seo";
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, Facebook, Instagram, Twitter } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -11,6 +11,12 @@ import ScrollAnimation from "../components/ScrollAnimation";
 
 export default function Contact() {
   const { siteContent, storeProfile, addMessage } = useAdmin();
+  
+  const enabledSocials = [
+    { name: 'Facebook', icon: Facebook, enabled: storeProfile.facebookEnabled, url: storeProfile.facebookUrl, color: 'bg-blue-600' },
+    { name: 'Instagram', icon: Instagram, enabled: storeProfile.instagramEnabled, url: storeProfile.instagramUrl, color: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400' },
+    { name: 'Twitter', icon: Twitter, enabled: storeProfile.twitterEnabled, url: storeProfile.twitterUrl, color: 'bg-black' },
+  ].filter(s => s.enabled && s.url && s.url !== "#");
 
   useEffect(() => {
     setMetaTags(
@@ -263,6 +269,34 @@ export default function Contact() {
           </div>
         </div>
       </section>
+
+      {/* Social Media Section */}
+      {enabledSocials.length > 0 && (
+        <section className="py-12 bg-gradient-to-r from-gray-900 to-gray-800">
+          <div className="container mx-auto px-4">
+            <ScrollAnimation animation="slideUp">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Connect With Us</h2>
+                <p className="text-gray-300">Follow us on social media for updates and offers</p>
+              </div>
+              <div className="flex justify-center gap-4 flex-wrap">
+                {enabledSocials.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 ${social.color}`}
+                  >
+                    <social.icon className="w-5 h-5" />
+                    <span>{social.name}</span>
+                  </a>
+                ))}
+              </div>
+            </ScrollAnimation>
+          </div>
+        </section>
+      )}
 
       {/* FAQ Section */}
       <section className="py-16 bg-white">

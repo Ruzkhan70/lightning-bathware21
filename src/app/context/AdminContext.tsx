@@ -215,6 +215,11 @@ export interface StoreProfile {
   facebookUrl: string;
   instagramUrl: string;
   twitterUrl: string;
+  tiktokUrl: string;
+  facebookEnabled: boolean;
+  instagramEnabled: boolean;
+  twitterEnabled: boolean;
+  tiktokEnabled: boolean;
   adminShortcut: string;
   deliveryColomboPrice: number;
   deliveryIslandwidePrice: number;
@@ -515,6 +520,11 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   facebookUrl: "#",
   instagramUrl: "#",
   twitterUrl: "#",
+  tiktokUrl: "#",
+  facebookEnabled: true,
+  instagramEnabled: true,
+  twitterEnabled: false,
+  tiktokEnabled: false,
   adminShortcut: "5212",
   deliveryColomboPrice: 500,
   deliveryIslandwidePrice: 1000,

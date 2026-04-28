@@ -6,6 +6,17 @@ export default function Footer() {
   const { storeProfile, categories, siteContent } = useAdmin();
   const activeCategories = categories.filter(c => c.isActive).slice(0, 5);
 
+  const enabledSocials = [];
+  if (storeProfile.facebookEnabled && storeProfile.facebookUrl && storeProfile.facebookUrl !== "#") {
+    enabledSocials.push({ icon: Facebook, url: storeProfile.facebookUrl });
+  }
+  if (storeProfile.instagramEnabled && storeProfile.instagramUrl && storeProfile.instagramUrl !== "#") {
+    enabledSocials.push({ icon: Instagram, url: storeProfile.instagramUrl });
+  }
+  if (storeProfile.twitterEnabled && storeProfile.twitterUrl && storeProfile.twitterUrl !== "#") {
+    enabledSocials.push({ icon: Twitter, url: storeProfile.twitterUrl });
+  }
+
   return (
     <footer className="bg-black text-white border-t border-gray-800">
       <div className="container mx-auto px-4 py-12">
@@ -18,17 +29,15 @@ export default function Footer() {
             <p className="text-gray-400 mb-4">
               {siteContent.footer.tagline}
             </p>
-            <div className="flex gap-4">
-              <a href={storeProfile.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href={storeProfile.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href={storeProfile.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-            </div>
+            {enabledSocials.length > 0 && (
+              <div className="flex gap-4">
+                {enabledSocials.map((social, index) => (
+                  <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors">
+                    <social.icon className="w-5 h-5" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
