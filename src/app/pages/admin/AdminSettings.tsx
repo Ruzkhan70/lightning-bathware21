@@ -72,7 +72,7 @@ export default function AdminSettings() {
   // Sync form states
   useEffect(() => { setProfileForm({ ...storeProfile }); }, [storeProfile]);
   useEffect(() => { setAssetsForm({ ...storeAssets }); }, [storeAssets]);
-  useEffect(() => { setContentForm({ ...siteContent }); }, [siteContent]);
+  useEffect(() => { setContentForm({ ...DEFAULT_SITE_CONTENT, ...siteContent }); }, [siteContent]);
   useEffect(() => { setUsernameForm({ newUsername: adminUsername }); }, [adminUsername]);
 
   // Profile handlers
