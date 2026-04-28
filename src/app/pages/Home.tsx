@@ -18,6 +18,23 @@ import {
   Award,
   Search,
   PartyPopper,
+  Droplets,
+  Waves,
+  Paintbrush,
+  Scissors,
+  Package,
+  Box,
+  Timer,
+  Thermometer,
+  Fan,
+  Snowflake,
+  Settings,
+  Cog,
+  SprayCan,
+  PaintBucket,
+  Flame,
+  Pencil,
+  Leaf,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import ProductCard from "../components/ProductCard";
@@ -26,6 +43,37 @@ import ScrollAnimation from "../components/ScrollAnimation";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { setMetaTags } from "../utils/seo";
 import { HeroSkeleton, ProductGridSkeleton, Skeleton } from "../components/Skeleton";
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Lightbulb,
+  Bath,
+  Wrench,
+  Zap,
+  HardHat,
+  Hammer,
+  Drill,
+  Cable,
+  Power,
+  Gauge,
+  Droplets,
+  Waves,
+  Paintbrush,
+  Scissors,
+  Package,
+  Box,
+  Timer,
+  Thermometer,
+  Fan,
+  Snowflake,
+  Settings,
+  Cog,
+  SprayCan,
+  PaintBucket,
+  Flame,
+  Shield,
+  Pencil,
+  Leaf,
+};
 
 function AnimatedCounter({ value }: { value: string }) {
   const [displayValue, setDisplayValue] = useState("0");
@@ -313,7 +361,8 @@ export default function Home() {
           <ScrollAnimation animation="slideUp" delay={200}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               {activeCategories.map((category) => {
-                const CategoryIcon = category.icon;
+                const iconName = (category.icon as string) || "Lightbulb";
+                const IconComponent = ICON_MAP[iconName] || Lightbulb;
                 return (
                   <Link
                     key={category.id}
@@ -330,10 +379,10 @@ export default function Home() {
                       <div className="transform group-hover:-translate-y-2 transition-transform duration-300">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="p-3 bg-[#D4AF37] rounded-xl shadow-lg group-hover:bg-white group-hover:rotate-6 transition-all duration-300">
-                            {category.isIconImage ? (
-                              <img src={category.icon as string} alt={category.name} className="w-7 h-7 object-contain" />
+                            {iconName.startsWith("http") ? (
+                              <img src={iconName} alt={category.name} className="w-7 h-7 object-contain" />
                             ) : (
-                              <CategoryIcon className="w-7 h-7 text-black" />
+                              <IconComponent className="w-7 h-7 text-black" />
                             )}
                           </div>
                         </div>

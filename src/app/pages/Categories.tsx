@@ -25,6 +25,14 @@ import {
   Snowflake,
   ArrowRight,
   List,
+  Settings,
+  Cog,
+  SprayCan,
+  PaintBucket,
+  Flame,
+  Shield,
+  Pencil,
+  Leaf,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
@@ -52,6 +60,14 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Thermometer,
   Fan,
   Snowflake,
+  Settings,
+  Cog,
+  SprayCan,
+  PaintBucket,
+  Flame,
+  Shield,
+  Pencil,
+  Leaf,
 };
 
 export default function Categories() {
@@ -89,8 +105,9 @@ export default function Categories() {
 
   // Map icon names to Lucide icons
   const getIcon = (iconName?: string, categoryName?: string) => {
-    if (iconName && ICON_MAP[iconName]) {
-      return ICON_MAP[iconName];
+    const name = (iconName as string) || "";
+    if (name && ICON_MAP[name]) {
+      return ICON_MAP[name];
     }
     // Fallback to category name matching
     const lower = (categoryName || "").toLowerCase();
@@ -99,6 +116,11 @@ export default function Categories() {
     if (lower.includes("plumb") || lower.includes("valve") || lower.includes("drain") || lower.includes("water") || lower.includes("tap") || lower.includes("mixer")) return Wrench;
     if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) return Zap;
     if (lower.includes("construct") || lower.includes("tool") || lower.includes("paint") || lower.includes("hardhat") || lower.includes("appliance")) return HardHat;
+    if (lower.includes("droplets") || lower.includes("waves")) return Droplets;
+    if (lower.includes("paintbrush") || lower.includes("paint")) return Paintbrush;
+    if (lower.includes("package")) return Package;
+    if (lower.includes("settings") || lower.includes("cog")) return Cog;
+    if (lower.includes("flame") || lower.includes("fire")) return Flame;
     return List;
   };
 
@@ -121,8 +143,10 @@ export default function Categories() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {activeCategories.map((category, index) => {
-              const CategoryIcon = getIcon(category.icon, category.name);
+              const iconName = (category.icon as string) || "";
+              const CategoryIcon = getIcon(iconName, category.name);
               const productCount = safeProducts.filter((p) => p.category === category.name).length;
+              const isImageIcon = iconName.startsWith("http");
               
               return (
                 <ScrollAnimation key={category.id || index} animation="slideUp" delay={index * 100}>
@@ -137,7 +161,11 @@ export default function Categories() {
                       <div className="absolute bottom-4 left-4 right-4">
                         <div className="flex items-center gap-3 mb-2">
                           <div className={`p-3 ${category.color} rounded-lg`}>
-                            <CategoryIcon className="w-6 h-6 text-white" />
+                            {isImageIcon ? (
+                              <img src={iconName} alt={category.name} className="w-6 h-6 object-contain" />
+                            ) : (
+                              <CategoryIcon className="w-6 h-6 text-white" />
+                            )}
                           </div>
                           <h2 className="text-2xl font-bold text-white">
                             {category.name}
