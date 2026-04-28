@@ -3430,12 +3430,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
-    alert('[addCategory] Adding: ' + id + ' - ' + category.name);
     console.log('[addCategory] Adding:', id, category.name);
     
     const newCategory: Category = { ...category, id };
     const allUpdated = [...categories, newCategory];
-    alert('[addCategory] Set state: ' + allUpdated.map(c => c.name).join(', '));
     console.log('[addCategory] New categories list:', allUpdated.map(c => c.name));
     setCategories(allUpdated);
     try {
