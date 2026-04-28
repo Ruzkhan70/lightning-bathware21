@@ -362,8 +362,25 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               {activeCategories.map((category) => {
                 const iconValue = category.icon;
-                const iconName = typeof iconValue === "string" ? iconValue : "Lightbulb";
-                const IconComponent = ICON_MAP[iconName] || Lightbulb;
+                const iconName = typeof iconValue === "string" ? iconValue : "";
+                const catName = category.name || "";
+                
+                // Get icon from map, fallback to category name matching
+                let IconComponent = ICON_MAP[iconName];
+                if (!IconComponent) {
+                  const lower = catName.toLowerCase();
+                  if (lower.includes("light")) IconComponent = Lightbulb;
+                  else if (lower.includes("bath") || lower.includes("shower")) IconComponent = Bath;
+                  else if (lower.includes("plumb") || lower.includes("valve") || lower.includes("drain") || lower.includes("tap") || lower.includes("mixer")) IconComponent = Wrench;
+                  else if (lower.includes("electr") || lower.includes("gas") || lower.includes("power")) IconComponent = Zap;
+                  else if (lower.includes("construct") || lower.includes("tool") || lower.includes("hardhat") || lower.includes("paint")) IconComponent = HardHat;
+                  else if (lower.includes("droplet")) IconComponent = Droplets;
+                  else if (lower.includes("package") || lower.includes("accessory")) IconComponent = Package;
+                  else if (lower.includes("cog") || lower.includes("settings")) IconComponent = Cog;
+                  else if (lower.includes("flame") || lower.includes("gas")) IconComponent = Flame;
+                  else IconComponent = Lightbulb;
+                }
+                
                 const isUrlIcon = iconName.startsWith("http");
                 return (
                   <Link
@@ -394,7 +411,7 @@ export default function Home() {
                         <p className="text-gray-300 text-sm font-medium">
                           {category.count} {siteContent.home.productsCount}
                         </p>
-                        </div>
+                      </div>
                     </div>
 
                     <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#D4AF37] rounded-2xl transition-all duration-300"></div>

@@ -60,7 +60,7 @@ function ErrorPage() {
         </div>
         <h1 className="text-3xl font-bold text-gray-800 mb-3">Page Not Found</h1>
         <p className="text-gray-600 mb-6">
-          Oops! The page you're looking for doesn't exist or might have been moved.
+          Sorry, we couldn't find that page. It may have been removed or the link is incorrect.
         </p>
         <Link
           to="/"
