@@ -61,7 +61,7 @@ export default function AdminSettings() {
   // Form states
   const [profileForm, setProfileForm] = useState({ ...storeProfile });
   const [assetsForm, setAssetsForm] = useState({ ...storeAssets });
-  const [contentForm, setContentForm] = useState({ ...siteContent });
+  const [contentForm, setContentForm] = useState({ ...DEFAULT_SITE_CONTENT, ...siteContent });
   const [usernameForm, setUsernameForm] = useState({ newUsername: adminUsername });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
