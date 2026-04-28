@@ -323,6 +323,10 @@ export interface SiteContent {
     storeLocationDesc: string;
     parkingTitle: string;
     parkingDesc: string;
+    showSocialSection: boolean;
+    socialSectionTitle: string;
+    socialSectionSubtitle: string;
+    showFindUsSection: boolean;
   };
   footer: {
     tagline: string;
@@ -704,6 +708,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     storeLocationDesc: "Visit our showroom to explore our full range of products. Our friendly staff will be happy to assist you with product selection and technical advice.",
     parkingTitle: "Parking Available",
     parkingDesc: "Free parking available for customers",
+    showSocialSection: true,
+    socialSectionTitle: "Connect With Us",
+    socialSectionSubtitle: "Follow us on social media for updates and offers",
+    showFindUsSection: true,
   },
   footer: {
     tagline: "Sri Lanka's premier destination for quality lightning products, bathroom fittings, plumbing items, electrical hardware, and construction tools.",

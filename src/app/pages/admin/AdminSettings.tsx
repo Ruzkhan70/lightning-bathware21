@@ -971,6 +971,47 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Label>Social Media Section</Label>
+                          <button
+                            onClick={() => setContentForm({...contentForm, contact: {...contentForm.contact, showSocialSection: !contentForm.contact.showSocialSection}})}
+                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                              contentForm.contact.showSocialSection ? 'bg-green-500' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                              contentForm.contact.showSocialSection ? 'translate-x-7' : 'translate-x-1'
+                            }`} />
+                          </button>
+                        </div>
+                        {contentForm.contact.showSocialSection && (
+                          <div className="space-y-3 mt-3">
+                            <Input value={contentForm.contact.socialSectionTitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, socialSectionTitle: e.target.value}})} placeholder="Section title" />
+                            <Input value={contentForm.contact.socialSectionSubtitle} onChange={(e) => setContentForm({...contentForm, contact: {...contentForm.contact, socialSectionSubtitle: e.target.value}})} placeholder="Section subtitle" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Label>Find Us Section (Map)</Label>
+                          <button
+                            onClick={() => setContentForm({...contentForm, contact: {...contentForm.contact, showFindUsSection: !contentForm.contact.showFindUsSection}})}
+                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                              contentForm.contact.showFindUsSection ? 'bg-green-500' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                              contentForm.contact.showFindUsSection ? 'translate-x-7' : 'translate-x-1'
+                            }`} />
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500">When OFF: Shows map only, hides store location text</p>
+                      </div>
+                    </div>
+
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-3">Find Us Section</h4>
                     <div className="space-y-4">

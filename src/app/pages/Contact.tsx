@@ -235,7 +235,7 @@ export default function Contact() {
               </div>
             </ScrollAnimation>
 
-            {/* Map */}
+            {/* Find Us Section */}
             <ScrollAnimation animation="slideUp" delay={100}>
               <div className="bg-white rounded-lg shadow-lg p-8">
                 <h2 className="text-2xl font-bold mb-6">{siteContent.contact.findUsTitle}</h2>
@@ -252,18 +252,20 @@ export default function Contact() {
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg">{siteContent.contact.storeLocationTitle}</h3>
-                  <p className="text-gray-600">
-                    {siteContent.contact.storeLocationDesc}
-                  </p>
-                  <div className="border-t pt-4">
-                    <h4 className="font-semibold mb-2">{siteContent.contact.parkingTitle}</h4>
-                    <p className="text-sm text-gray-600">
-                      {siteContent.contact.parkingDesc}
+                {siteContent.contact.showFindUsSection && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg">{siteContent.contact.storeLocationTitle}</h3>
+                    <p className="text-gray-600">
+                      {siteContent.contact.storeLocationDesc}
                     </p>
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold mb-2">{siteContent.contact.parkingTitle}</h4>
+                      <p className="text-sm text-gray-600">
+                        {siteContent.contact.parkingDesc}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </ScrollAnimation>
           </div>
@@ -271,13 +273,13 @@ export default function Contact() {
       </section>
 
       {/* Social Media Section */}
-      {enabledSocials.length > 0 && (
+      {siteContent.contact.showSocialSection && enabledSocials.length > 0 && (
         <section className="py-12 bg-gradient-to-r from-gray-900 to-gray-800">
           <div className="container mx-auto px-4">
             <ScrollAnimation animation="slideUp">
               <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Connect With Us</h2>
-                <p className="text-gray-300">Follow us on social media for updates and offers</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{siteContent.contact.socialSectionTitle}</h2>
+                <p className="text-gray-300">{siteContent.contact.socialSectionSubtitle}</p>
               </div>
               <div className="flex justify-center gap-4 flex-wrap">
                 {enabledSocials.map((social) => (
