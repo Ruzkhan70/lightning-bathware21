@@ -13,10 +13,10 @@ export default function Contact() {
   const { siteContent, storeProfile, addMessage } = useAdmin();
   
   const enabledSocials = [
-    { name: 'Facebook', icon: Facebook, enabled: storeProfile.facebookEnabled !== false, url: storeProfile.facebookUrl, color: 'bg-blue-600' },
-    { name: 'Instagram', icon: Instagram, enabled: storeProfile.instagramEnabled !== false, url: storeProfile.instagramUrl, color: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400' },
-    { name: 'Twitter', icon: Twitter, enabled: storeProfile.twitterEnabled === true, url: storeProfile.twitterUrl, color: 'bg-black' },
-  ].filter(s => s.enabled && s.url && s.url !== "#");
+    { name: 'Facebook', icon: Facebook, url: storeProfile.facebookUrl, color: 'bg-blue-600' },
+    { name: 'Instagram', icon: Instagram, url: storeProfile.instagramUrl, color: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400' },
+    { name: 'Twitter', icon: Twitter, url: storeProfile.twitterUrl, color: 'bg-black' },
+  ].filter(s => s.url && s.url !== "#");
 
   useEffect(() => {
     setMetaTags(

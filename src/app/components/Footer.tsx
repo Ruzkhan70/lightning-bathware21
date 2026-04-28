@@ -7,13 +7,13 @@ export default function Footer() {
   const activeCategories = categories.filter(c => c.isActive).slice(0, 5);
 
   const enabledSocials = [];
-  if (storeProfile.facebookEnabled && storeProfile.facebookUrl && storeProfile.facebookUrl !== "#") {
+  if (storeProfile.facebookUrl && storeProfile.facebookUrl !== "#") {
     enabledSocials.push({ icon: Facebook, url: storeProfile.facebookUrl });
   }
-  if (storeProfile.instagramEnabled && storeProfile.instagramUrl && storeProfile.instagramUrl !== "#") {
+  if (storeProfile.instagramUrl && storeProfile.instagramUrl !== "#") {
     enabledSocials.push({ icon: Instagram, url: storeProfile.instagramUrl });
   }
-  if (storeProfile.twitterEnabled && storeProfile.twitterUrl && storeProfile.twitterUrl !== "#") {
+  if (storeProfile.twitterUrl && storeProfile.twitterUrl !== "#") {
     enabledSocials.push({ icon: Twitter, url: storeProfile.twitterUrl });
   }
 

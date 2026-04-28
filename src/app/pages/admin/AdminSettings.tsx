@@ -335,94 +335,38 @@ export default function AdminSettings() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label>Facebook</Label>
-                        <button
-                          onClick={() => setProfileForm({...profileForm, facebookEnabled: !profileForm.facebookEnabled})}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
-                            profileForm.facebookEnabled ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                            profileForm.facebookEnabled ? 'translate-x-7' : 'translate-x-1'
-                          }`} />
-                        </button>
-                      </div>
+                      <Label className="mb-3 block">Facebook</Label>
                       <Input 
                         value={profileForm.facebookUrl} 
                         onChange={(e) => setProfileForm({...profileForm, facebookUrl: e.target.value})} 
                         placeholder="https://facebook.com/..."
-                        disabled={!profileForm.facebookEnabled}
-                        className={!profileForm.facebookEnabled ? 'opacity-50' : ''}
                       />
                     </div>
                     
                     <div className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label>Instagram</Label>
-                        <button
-                          onClick={() => setProfileForm({...profileForm, instagramEnabled: !profileForm.instagramEnabled})}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
-                            profileForm.instagramEnabled ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                            profileForm.instagramEnabled ? 'translate-x-7' : 'translate-x-1'
-                          }`} />
-                        </button>
-                      </div>
+                      <Label className="mb-3 block">Instagram</Label>
                       <Input 
                         value={profileForm.instagramUrl} 
                         onChange={(e) => setProfileForm({...profileForm, instagramUrl: e.target.value})} 
                         placeholder="https://instagram.com/..."
-                        disabled={!profileForm.instagramEnabled}
-                        className={!profileForm.instagramEnabled ? 'opacity-50' : ''}
                       />
                     </div>
                     
                     <div className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label>Twitter / X</Label>
-                        <button
-                          onClick={() => setProfileForm({...profileForm, twitterEnabled: !profileForm.twitterEnabled})}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
-                            profileForm.twitterEnabled ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                            profileForm.twitterEnabled ? 'translate-x-7' : 'translate-x-1'
-                          }`} />
-                        </button>
-                      </div>
+                      <Label className="mb-3 block">Twitter / X</Label>
                       <Input 
                         value={profileForm.twitterUrl} 
                         onChange={(e) => setProfileForm({...profileForm, twitterUrl: e.target.value})} 
                         placeholder="https://twitter.com/..."
-                        disabled={!profileForm.twitterEnabled}
-                        className={!profileForm.twitterEnabled ? 'opacity-50' : ''}
                       />
                     </div>
                     
                     <div className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label>TikTok</Label>
-                        <button
-                          onClick={() => setProfileForm({...profileForm, tiktokEnabled: !profileForm.tiktokEnabled})}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
-                            profileForm.tiktokEnabled ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                            profileForm.tiktokEnabled ? 'translate-x-7' : 'translate-x-1'
-                          }`} />
-                        </button>
-                      </div>
+                      <Label className="mb-3 block">TikTok</Label>
                       <Input 
                         value={profileForm.tiktokUrl} 
                         onChange={(e) => setProfileForm({...profileForm, tiktokUrl: e.target.value})} 
                         placeholder="https://tiktok.com/@..."
-                        disabled={!profileForm.tiktokEnabled}
-                        className={!profileForm.tiktokEnabled ? 'opacity-50' : ''}
                       />
                     </div>
                   </div>
@@ -972,31 +916,11 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Social Media Section Toggle */}
+                      {/* Social Media Section */}
                       <div className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Label className="font-semibold">Social Media Section</Label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const current = contentForm.contact.showSocialSection;
-                              const newVal = current === false ? true : false;
-                              setContentForm({
-                                ...contentForm,
-                                contact: { ...contentForm.contact, showSocialSection: newVal }
-                              });
-                            }}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              contentForm.contact.showSocialSection !== false ? 'bg-green-500' : 'bg-gray-300'
-                            }`}
-                          >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                              contentForm.contact.showSocialSection !== false ? 'translate-x-7' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
+                        <Label className="font-semibold mb-3 block">Social Media Section</Label>
                         <p className="text-xs text-gray-500 mb-3">
-                          Show social media links on Contact page
+                          Configure the social media section displayed on the Contact page
                         </p>
                         <div className="space-y-3">
                           <Input 
@@ -1018,31 +942,11 @@ export default function AdminSettings() {
                         </div>
                       </div>
                       
-                      {/* Find Us Section Toggle */}
+                      {/* Find Us Section */}
                       <div className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Label className="font-semibold">Find Us Section</Label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const current = contentForm.contact.showFindUsSection;
-                              const newVal = current === false ? true : false;
-                              setContentForm({
-                                ...contentForm,
-                                contact: { ...contentForm.contact, showFindUsSection: newVal }
-                              });
-                            }}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              contentForm.contact.showFindUsSection !== false ? 'bg-green-500' : 'bg-gray-300'
-                            }`}
-                          >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                              contentForm.contact.showFindUsSection !== false ? 'translate-x-7' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
+                        <Label className="font-semibold mb-3 block">Find Us Section</Label>
                         <p className="text-xs text-gray-500">
-                          When OFF: Shows map only, hides store location text
+                          Configure the Find Us section on the Contact page
                         </p>
                       </div>
                     </div>
