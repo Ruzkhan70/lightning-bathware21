@@ -955,7 +955,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUid, setAdminUid] = useState<string | null>(null);
   const [adminExists, setAdminExists] = useState(false);
@@ -1285,7 +1285,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [isAdminLoggedIn, adminEmail, getOrCreateDeviceId, getDeviceInfo]);
 
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -1518,18 +1518,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Firebase real-time sync for categories - with local backup priority
+  // Firebase real-time sync for categories - Firestore is the ONLY source of truth
   useEffect(() => {
     try {
-      // Load local backup first - this is our primary data source
-      const localBackup = loadDataBackup(BACKUP_KEYS.categories) as Category[] | null;
-      const hasLocalBackup = localBackup && localBackup.length > 5;
-      
-      if (hasLocalBackup) {
-        console.log('[Backup] Found local backup with', localBackup.length, 'categories, using it first');
-        setCategories(localBackup);
-      }
-      
       const catRef = doc(db, "storeData", "categories");
       const unsubscribe = onSnapshot(catRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -1538,25 +1529,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           console.log('[Firebase] Categories snapshot received, count:', fbCategories?.length || 0);
           
           if (fbCategories && Array.isArray(fbCategories)) {
-            // Firebase always takes precedence if it has more than defaults
-            if (fbCategories.length > 5) {
-              console.log('[Firebase] Using categories from Firebase');
-              saveDataBackup(BACKUP_KEYS.categories, fbCategories);
-              setCategories(fbCategories);
-            } else if (hasLocalBackup && localBackup.length > 5) {
-              // Firebase has defaults but local has data - restore
-              console.log('[Backup] Restoring from local backup to Firebase');
-              setDoc(catRef, { categories: localBackup }, { merge: true });
-              setCategories(localBackup);
-            }
+            console.log('[Firebase] Using categories from Firebase');
+            saveDataBackup(BACKUP_KEYS.categories, fbCategories);
+            setCategories(fbCategories);
           }
-        } else if (!isInitialized.current.categories && !hasLocalBackup) {
-          console.log('[Firebase] No categories in Firebase or local, seeding defaults');
-          setDoc(catRef, { categories: DEFAULT_CATEGORIES });
+        } else {
+          console.log('[Firebase] No categories in Firestore, showing empty state');
         }
         isInitialized.current.categories = true;
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
-      }, () => {
+      }, (error) => {
+        console.error('[Firebase] Categories snapshot error:', error);
         isInitialized.current.categories = true;
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
       });
@@ -1590,12 +1573,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, [isAdminLoggedIn]);
 
-  // Firebase real-time sync for offers
+  // Firebase real-time sync for offers - Firestore is the ONLY source of truth
   useEffect(() => {
     console.log("[Firebase] Setting up offers listener...");
     
     let unsubscribe: (() => void) | undefined;
-    let initialDataChecked = false;
     
     try {
       const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
@@ -1610,29 +1592,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             return offer;
           });
           
-          // If Firebase has offers, use them
-          if (firebaseOffers.length > 0) {
-            setOffers(firebaseOffers);
-            initialDataChecked = true;
-          } 
-          // If Firebase has NO offers and we haven't checked yet, save demo offers
-          else if (!initialDataChecked) {
-            console.log("[Firebase] No offers in Firebase, saving demo offers...");
-            initialDataChecked = true;
-            
-            // Save demo offers to Firebase
-            Promise.all(DEMO_OFFERS.map(offer => 
-              setDoc(doc(db, "offers", offer.id), offer)
-            )).then(() => {
-              console.log("[Firebase] Demo offers saved to Firebase");
-            }).catch(err => {
-              console.error("[Firebase] Error saving demo offers:", err);
-              toast.error("Failed to initialize offers data");
-            });
-            
-            // Show demo offers locally while Firebase saves them
-            setOffers(DEMO_OFFERS);
-          }
+          // Use whatever is in Firestore - empty is fine
+          setOffers(firebaseOffers);
           
           setFirebaseLoaded(prev => ({ ...prev, offers: true }));
         },
@@ -1656,18 +1617,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Firebase real-time sync for products - with local backup priority
+  // Firebase real-time sync for products - Firestore is the ONLY source of truth
   useEffect(() => {
     try {
-      // Load local backup first - this is our primary data source
-      const localBackup = loadDataBackup(BACKUP_KEYS.products) as Product[] | null;
-      const hasLocalBackup = localBackup && localBackup.length > 40;
-      
-      if (hasLocalBackup) {
-        console.log('[Backup] Found local backup with', localBackup.length, 'products, using it first');
-        setProducts(localBackup);
-      }
-      
       const productsRef = doc(db, "storeData", "products");
       const unsubscribe = onSnapshot(productsRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -1676,25 +1628,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           console.log('[Firebase] Products snapshot received, count:', fbProducts?.length || 0);
           
           if (fbProducts && Array.isArray(fbProducts)) {
-            // Firebase always takes precedence if it has more than defaults
-            if (fbProducts.length > 40) {
-              console.log('[Firebase] Using products from Firebase');
-              saveDataBackup(BACKUP_KEYS.products, fbProducts);
-              setProducts(fbProducts);
-            } else if (hasLocalBackup && localBackup.length > 40) {
-              // Firebase has defaults but local has data - restore
-              console.log('[Backup] Restoring from local backup to Firebase');
-              setDoc(productsRef, { products: localBackup }, { merge: true });
-              setProducts(localBackup);
-            }
+            console.log('[Firebase] Using products from Firebase');
+            saveDataBackup(BACKUP_KEYS.products, fbProducts);
+            setProducts(fbProducts);
           }
-        } else if (!isInitialized.current.products && !hasLocalBackup) {
-          console.log('[Firebase] No products in Firebase or local, seeding defaults');
-          setDoc(productsRef, { products: DEFAULT_PRODUCTS });
+        } else {
+          console.log('[Firebase] No products in Firestore, showing empty state');
         }
         isInitialized.current.products = true;
         setFirebaseLoaded(prev => ({ ...prev, products: true }));
-      }, () => {
+      }, (error) => {
+        console.error('[Firebase] Products snapshot error:', error);
         isInitialized.current.products = true;
         setFirebaseLoaded(prev => ({ ...prev, products: true }));
       });
