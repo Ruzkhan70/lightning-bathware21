@@ -106,12 +106,16 @@ export default function AdminSettings() {
     toast.success("Page content updated!");
   };
 
-  // Individual section save handlers (for future use with inline save buttons)
+  // Individual section save handlers
   const handleHomeSave = () => updateSiteContent({ home: contentForm.home });
   const handleAboutSave = () => updateSiteContent({ about: contentForm.about });
+  const handleServicesSave = () => updateSiteContent({ services: contentForm.services });
   const handleContactSave = () => updateSiteContent({ contact: contentForm.contact });
   const handleFooterSave = () => updateSiteContent({ footer: contentForm.footer });
   const handleTermsSave = () => updateSiteContent({ terms: contentForm.terms });
+  const handleCategoriesSave = () => updateSiteContent({ categories: contentForm.categories });
+  const handleOffersSave = () => updateSiteContent({ offers: contentForm.offers });
+  const handleFaqSave = () => updateSiteContent({ faq: contentForm.faq });
 
   const handleResetContent = async () => {
     if (window.confirm("Reset all page content to default?")) {
