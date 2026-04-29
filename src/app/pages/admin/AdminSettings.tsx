@@ -59,9 +59,9 @@ export default function AdminSettings() {
   } = useAdmin();
 
   // Form states
-  const [profileForm, setProfileForm] = useState({ ...storeProfile });
-  const [assetsForm, setAssetsForm] = useState({ ...storeAssets });
-  const [contentForm, setContentForm] = useState({ ...DEFAULT_SITE_CONTENT, ...siteContent });
+  const [profileForm, setProfileForm] = useState<any>({});
+  const [assetsForm, setAssetsForm] = useState<any>({});
+  const [contentForm, setContentForm] = useState<any>({});
   const [usernameForm, setUsernameForm] = useState({ newUsername: adminUsername });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -69,10 +69,16 @@ export default function AdminSettings() {
     confirmPassword: "",
   });
 
-  // Sync form states
-  useEffect(() => { setProfileForm({ ...storeProfile }); }, [storeProfile]);
-  useEffect(() => { setAssetsForm({ ...storeAssets }); }, [storeAssets]);
-  useEffect(() => { setContentForm({ ...DEFAULT_SITE_CONTENT, ...siteContent }); }, [siteContent]);
+  // Sync form states - only sync when data is loaded
+  useEffect(() => { 
+    if (storeProfile && Object.keys(storeProfile).length > 0) setProfileForm(storeProfile); 
+  }, [storeProfile]);
+  useEffect(() => { 
+    if (storeAssets && Object.keys(storeAssets).length > 0) setAssetsForm(storeAssets); 
+  }, [storeAssets]);
+  useEffect(() => { 
+    if (siteContent && Object.keys(siteContent).length > 0) setContentForm({ ...DEFAULT_SITE_CONTENT, ...siteContent }); 
+  }, [siteContent]);
   useEffect(() => { setUsernameForm({ newUsername: adminUsername }); }, [adminUsername]);
 
   // Profile handlers
