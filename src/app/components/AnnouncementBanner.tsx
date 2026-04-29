@@ -37,7 +37,6 @@ const getTypeConfig = (type: string) => {
 export default function AnnouncementBanner() {
   const { currentAnnouncement, isLoading } = useAnnouncement();
   const [isVisible, setIsVisible] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
 
   const config = currentAnnouncement ? getTypeConfig(currentAnnouncement.type) : null;
   const TypeIcon = config?.icon || Info;
@@ -46,7 +45,6 @@ export default function AnnouncementBanner() {
     if (!isLoading && currentAnnouncement) {
       const dismissedId = localStorage.getItem(DISMISSAL_KEY);
       const dismissedTime = localStorage.getItem(DISMISSAL_TIME_KEY);
-      const createdAt = currentAnnouncement.createdAt?.toDate?.()?.getTime() || 0;
       
       if (dismissedId === currentAnnouncement.id && dismissedTime) {
         const dismissedAt = parseInt(dismissedTime);
@@ -56,12 +54,14 @@ export default function AnnouncementBanner() {
         const dismissedBeforeCreated = dismissedAt > announcementCreatedAt;
         
         if (hoursSinceDismissed < 24 && !dismissedBeforeCreated) {
-          setIsDismissed(true);
+          setIsVisible(false);
           return;
         }
       }
       
       setIsVisible(true);
+    } else {
+      setIsVisible(false);
     }
   }, [currentAnnouncement, isLoading]);
 
@@ -71,10 +71,9 @@ export default function AnnouncementBanner() {
       localStorage.setItem(DISMISSAL_TIME_KEY, Date.now().toString());
     }
     setIsVisible(false);
-    setIsDismissed(true);
   };
 
-  if (isLoading || !isVisible || !currentAnnouncement || isDismissed) {
+  if (isLoading || !isVisible || !currentAnnouncement) {
     return null;
   }
 
@@ -84,29 +83,29 @@ export default function AnnouncementBanner() {
 
   return (
     <div className={`bg-gradient-to-r ${config?.gradient} text-white relative overflow-hidden`}>
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1">
-            <TypeIcon className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <TypeIcon className="w-4 h-4 flex-shrink-0" />
+            <p className="text-sm truncate">
               <span className="font-semibold">{currentAnnouncement.title}</span>
               {currentAnnouncement.message && " — "}
               <span className="opacity-90">{currentAnnouncement.message}</span>
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {config?.label && (
-              <span className="text-xs bg-white/20 px-2 py-1 rounded font-medium">
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-medium hidden sm:inline-block">
                 {config.label}
               </span>
             )}
             <button
               onClick={handleDismiss}
-              className="flex-shrink-0 p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-white/20 rounded transition-colors"
               aria-label="Dismiss announcement"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
