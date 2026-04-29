@@ -19,16 +19,16 @@ const getTypeConfig = (type: string) => {
         icon: Plus,
         label: "NEW"
       };
-    case "terms":
+    case "general":
       return {
-        gradient: "from-purple-600 to-purple-700",
-        icon: FileText,
-        label: "UPDATE"
+        gradient: "from-orange-500 to-orange-600",
+        icon: Info,
+        label: "NEW"
       };
     default:
       return {
         gradient: "from-gray-800 to-gray-900",
-        icon: Info,
+        icon: FileText,
         label: "NOTICE"
       };
   }

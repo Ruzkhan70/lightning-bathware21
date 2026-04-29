@@ -2779,14 +2779,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await setDoc(doc(db, "storeData", "siteContent"), updated);
       toast.success("Content saved to Firebase!");
       
-      if (content.terms) {
-        await createGlobalNotification(
-          "terms",
-          "Terms & Conditions Updated",
-          "Please review our updated Terms & Conditions",
-          "terms"
-        );
-        
+      // Only create announcement if terms specifically changed
+      if (content.terms && (JSON.stringify(content.terms) !== JSON.stringify(siteContent?.terms))) {
         await createAnnouncement(
           "📜 Terms & Conditions Updated",
           "We have updated our Terms & Conditions. Please review the changes.",
