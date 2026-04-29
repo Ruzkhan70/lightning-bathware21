@@ -61,7 +61,17 @@ export default function AdminSettings() {
   // Form states
   const [profileForm, setProfileForm] = useState<any>({});
   const [assetsForm, setAssetsForm] = useState<any>({});
-  const [contentForm, setContentForm] = useState<any>({});
+  const [contentForm, setContentForm] = useState<any>(() => ({
+    terms: { introduction: "", sections: [] },
+    faq: { title: "", items: [] },
+    home: {},
+    about: {},
+    services: {},
+    contact: {},
+    footer: {},
+    categories: {},
+    offers: {}
+  }));
   const [usernameForm, setUsernameForm] = useState({ newUsername: adminUsername });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
