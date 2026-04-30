@@ -1051,6 +1051,30 @@ export default function AdminSettings() {
                       </div>
                     </div>
                   </div>
+
+                  <div className="border-b pb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Connect With Us Section</h4>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">Show Social Media</p>
+                        <p className="text-xs text-gray-500">Show/hide social media links on Contact page</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setContentForm({
+                          ...contentForm,
+                          contact: { ...contentForm.contact, showSocialSection: contentForm.contact.showSocialSection === false }
+                        })}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${
+                          contentForm.contact.showSocialSection !== false ? 'bg-green-500' : 'bg-gray-300'
+                        }`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                          contentForm.contact.showSocialSection !== false ? 'translate-x-7' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-end pt-4 border-t mt-6">
                   <Button
