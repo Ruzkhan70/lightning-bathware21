@@ -3469,6 +3469,95 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     await saveCategoryOrder(newOrder);
   };
 
+  const updateCategory = async (id: string, category: Partial<Category>) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+    
+    const categoryName = categories.find(c => c.id === id)?.name;
+    const updated = categories.map(c => c.id === id ? { ...c, ...category } : c);
+    setCategories(updated);
+    try {
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      toast.success("Category updated!");
+      logCategoryAction(
+        'CATEGORY_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryName,
+        `Updated category: ${categoryName || id}`
+      );
+    } catch (error) {
+      console.error("Error updating category:", error);
+      logCategoryAction(
+        'CATEGORY_EDIT',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryName,
+        `Failed to update category: ${categoryName || id}`,
+        'failed'
+      );
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    const categoryToDelete = categories.find(c => c.id === id);
+    if (!categoryToDelete) {
+      console.error('[Delete] Category not found:', id);
+      return;
+    }
+    
+    console.log('[Delete] Deleting category:', id, categoryToDelete.name);
+    
+    const updated = categories.filter(c => c.id !== id);
+    setCategories(updated);
+    
+    const updatedProducts = products.map(p => 
+      p.category === categoryToDelete.name 
+        ? { ...p, category: updated[0]?.name || "Uncategorized" }
+        : p
+    );
+    setProducts(updatedProducts);
+    
+    try {
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
+      toast.success("Category deleted!");
+      logCategoryAction(
+        'CATEGORY_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryToDelete.name,
+        `Deleted category: ${categoryToDelete.name}`
+      );
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
+      await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
+      logCategoryAction(
+        'CATEGORY_DELETE',
+        adminUid || 'unknown',
+        adminEmail,
+        id,
+        categoryToDelete.name,
+        `Failed to delete category: ${categoryToDelete.name}`,
+        'failed'
+      );
+    }
+  };
+
+  const toggleCategoryStatus = (id: string) => {
+    const category = categories.find(c => c.id === id);
+    if (category) {
+      updateCategory(id, { isActive: !category.isActive });
+    }
+  };
+
   // Dashboard stats
   const topSellingProducts = orders.reduce((acc, order) => {
     order.products.forEach(item => {
