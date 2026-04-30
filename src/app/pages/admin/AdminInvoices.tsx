@@ -506,7 +506,7 @@ export default function AdminInvoices() {
           </div>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -616,6 +616,121 @@ export default function AdminInvoices() {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3 p-4">
+          {paginatedInvoices.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>No invoices found</p>
+            </div>
+          ) : (
+            paginatedInvoices.map((invoice) => (
+              <div key={invoice.id} className="bg-white rounded-lg shadow-sm border p-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{invoice.invoiceNumber}</h3>
+                    <p className="text-sm text-gray-500">#{invoice.orderId?.slice(-8) || "N/A"}</p>
+                  </div>
+                  <Badge
+                    className={
+                      invoice.paymentStatus === "Paid"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }
+                  >
+                    {invoice.paymentStatus === "Paid" ? (
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                    ) : (
+                      <Clock className="w-3 h-3 mr-1" />
+                    )}
+                    {invoice.paymentStatus}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Customer</span>
+                    <span className="font-medium">{invoice.customerName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Phone</span>
+                    <span className="font-medium">{invoice.customerPhone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Date</span>
+                    <span className="font-medium">{format(new Date(invoice.date), "dd MMM yyyy")}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Total</span>
+                    <span className="font-bold text-lg">Rs. {(invoice.grandTotal || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-500">Order Status</span>
+                    <Select
+                      value={invoice.orderStatus || "Pending"}
+                      onValueChange={(value) => updateOrderStatus(invoice.orderId, value as any)}
+                    >
+                      <SelectTrigger className={`w-28 h-8 text-xs ${
+                        invoice.orderStatus === "Pending" ? "border-orange-300 bg-orange-50" :
+                        invoice.orderStatus === "Processing" ? "border-blue-300 bg-blue-50" :
+                        "border-green-300 bg-green-50"
+                      }`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Processing">Processing</SelectItem>
+                        <SelectItem value="Delivered">Delivered</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => viewInvoice(invoice)}
+                    className="flex-1 h-11"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => generatePDF(invoice)}
+                    className="flex-1 h-11"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => togglePaymentStatus(invoice)}
+                    className={`flex-1 h-11 ${
+                      invoice.paymentStatus === "Paid"
+                        ? "text-yellow-600 border-yellow-300"
+                        : "text-green-600 border-green-300"
+                    }`}
+                  >
+                    {invoice.paymentStatus === "Paid" ? (
+                      <Clock className="w-4 h-4 mr-2" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                    )}
+                    {invoice.paymentStatus === "Paid" ? "Pending" : "Paid"}
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {totalPages > 1 && (

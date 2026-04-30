@@ -250,7 +250,7 @@ export default function Home() {
       className="bg-white"
     >
       {/* Hero Section */}
-      <section className="relative h-[500px] md:h-[600px] flex items-center bg-gray-900 text-white overflow-hidden">
+      <section className="relative h-[400px] md:h-[500px] lg:h-[600px] flex items-center bg-gray-900 text-white overflow-hidden">
         {/* Background Image - Brighter */}
         {storeAssets.heroImage && (
           <motion.div

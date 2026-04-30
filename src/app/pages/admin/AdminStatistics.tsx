@@ -147,7 +147,7 @@ export default function AdminStatistics() {
       {/* Category Statistics */}
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-6">Category Performance</h2>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full">
             <thead className="border-b">
               <tr>
@@ -166,6 +166,19 @@ export default function AdminStatistics() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-2">
+          {categoryStats.map((cat) => (
+            <div key={cat.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="font-semibold">{cat.name}</span>
+              <div className="flex gap-4 text-sm">
+                <span className="text-gray-500">{cat.products} Products</span>
+                <span className="text-gray-500">{cat.orders} Orders</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

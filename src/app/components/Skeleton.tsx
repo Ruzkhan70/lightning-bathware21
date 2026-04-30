@@ -100,7 +100,7 @@ export function SidebarSkeleton() {
 
 export function HeroSkeleton() {
   return (
-    <div className="relative h-[500px] md:h-[600px] bg-gray-200 animate-pulse">
+    <div className="relative h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 animate-pulse">
       <Skeleton className="absolute inset-0" />
       <div className="absolute inset-0 flex items-center">
         <div className="container mx-auto px-4">

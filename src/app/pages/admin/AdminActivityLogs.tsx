@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Clock, Trash2 } from "lucide-react";
+import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Clock, Trash2, Activity } from "lucide-react";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -283,7 +283,7 @@ export default function AdminActivityLogs() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
@@ -373,6 +373,46 @@ export default function AdminActivityLogs() {
               </Button>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {paginatedLogs.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <Activity className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p>No activity logs found</p>
+          </div>
+        ) : (
+          paginatedLogs.map((log) => (
+            <div key={log.id} className="bg-white rounded-lg shadow-sm border p-4">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  {getStatusIcon(log.status)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span>{getActionIcon(log.action)}</span>
+                    <span className="font-semibold text-gray-900 truncate">
+                      {ACTION_LABELS[log.action]}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{log.userEmail}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 truncate" title={log.details}>
+                {log.details}
+              </p>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.status)}`}>
+                  {ACTION_CATEGORIES[log.action]}
+                </span>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

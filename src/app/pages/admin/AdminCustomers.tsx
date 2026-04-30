@@ -181,7 +181,8 @@ export default function AdminCustomers() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
@@ -230,6 +231,33 @@ export default function AdminCustomers() {
             </table>
           </div>
         </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3">
+          {filteredCustomers.map((customer) => (
+            <div key={customer.id} className="bg-white rounded-lg shadow-sm border p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">{customer.name || "N/A"}</h3>
+                  <div className="space-y-1 mt-2 text-sm">
+                    <p className="text-gray-500 truncate">{customer.email || "N/A"}</p>
+                    <p className="text-gray-500">{customer.phone || "N/A"}</p>
+                    <p className="text-gray-500 truncate">{customer.address || "N/A"}</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => handleDeleteClick(customer)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0 h-11 w-11 p-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            ))}
+        </div>
+        </>
       )}
 
       {/* Delete Confirmation Modal */}

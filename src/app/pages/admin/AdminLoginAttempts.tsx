@@ -335,7 +335,7 @@ export default function AdminLoginAttempts() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
@@ -477,6 +477,92 @@ export default function AdminLoginAttempts() {
               </Button>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {paginatedLogs.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <Shield className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p>No login attempts found</p>
+          </div>
+        ) : (
+          paginatedLogs.map((log) => {
+            const severity = log.status === "failed" ? getFailureSeverity(log.failureReason) : "low";
+            return (
+              <div key={log.id} className={`bg-white rounded-lg shadow-sm border p-4 ${severity === "high" ? "border-red-200" : ""}`}>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{log.emailMasked || log.email}</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(log.timestamp).toLocaleDateString()} at {new Date(log.timestamp).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  {log.status === "success" ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex-shrink-0">
+                      <CheckCircle className="w-3 h-3" />
+                      Success
+                    </span>
+                  ) : (
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${getSeverityColor(severity)}`}>
+                      <XCircle className="w-3 h-3" />
+                      Failed
+                    </span>
+                  )}
+                </div>
+
+                {log.failureReason && (
+                  <p className={`text-sm px-2 py-1 rounded mb-2 ${getSeverityColor(severity)}`}>
+                    {log.failureReason}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Monitor className="w-3 h-3" />
+                    {log.device || "Unknown"}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    {log.browser || "Unknown"}
+                  </span>
+                </div>
+
+                {deleteConfirm === log.id ? (
+                  <div className="flex gap-2 pt-3 border-t">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteLog(log.id)}
+                      disabled={isDeleting}
+                      className="flex-1 h-11"
+                    >
+                      {isDeleting ? "..." : "Delete"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeleteConfirm(null)}
+                      className="h-11 w-11 p-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDeleteConfirm(log.id)}
+                    className="w-full h-11 text-red-500 border-red-200"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 

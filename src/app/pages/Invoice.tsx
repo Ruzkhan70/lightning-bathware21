@@ -430,7 +430,7 @@ export default function Invoice() {
 
               {/* Totals Section */}
               <div className="flex justify-end mb-8">
-                <div className="bg-gray-50 rounded-xl p-5 min-w-[300px] max-w-full border border-gray-100">
+                <div className="bg-gray-50 rounded-xl p-5 w-full sm:min-w-[300px] sm:w-auto border border-gray-100">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-500">Subtotal</span>
