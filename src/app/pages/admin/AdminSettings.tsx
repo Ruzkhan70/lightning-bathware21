@@ -1260,6 +1260,23 @@ export default function AdminSettings() {
 
               <Card title="FAQ Section" icon={<FileText className="w-5 h-5" />} description="Frequently asked questions">
                 <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Show FAQ Section</p>
+                      <p className="text-xs text-gray-500">Show/hide FAQ section on Contact page</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setContentForm({...contentForm, faq: {...contentForm.faq, showFaqSection: !contentForm.faq.showFaqSection}})}
+                      className={`relative w-12 h-6 rounded-full transition-colors ${
+                        contentForm.faq.showFaqSection !== false ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        contentForm.faq.showFaqSection !== false ? 'translate-x-7' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
                   <div>
                     <Label>FAQ Title</Label>
                     <Input value={contentForm.faq.title} onChange={(e) => setContentForm({...contentForm, faq: {...contentForm.faq, title: e.target.value}})} />

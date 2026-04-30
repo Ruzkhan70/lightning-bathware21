@@ -363,6 +363,7 @@ export interface SiteContent {
   };
   faq: {
     title: string;
+    showFaqSection: boolean;
     items: {
       question: string;
       answer: string;
@@ -749,6 +750,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   },
   faq: {
     title: "Frequently Asked Questions",
+    showFaqSection: true,
     items: [
       {
         question: "Do you offer technical support?",

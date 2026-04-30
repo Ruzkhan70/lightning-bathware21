@@ -308,6 +308,7 @@ export default function Contact() {
       )}
 
       {/* FAQ Section */}
+      {(siteContent.faq.showFaqSection !== false) && (
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <ScrollAnimation animation="slideUp">
@@ -333,6 +334,7 @@ export default function Contact() {
           </ScrollAnimation>
         </div>
       </section>
+      )}
     </div>
   );
 }
