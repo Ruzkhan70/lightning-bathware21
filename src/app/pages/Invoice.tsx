@@ -214,9 +214,13 @@ export default function Invoice() {
       const goldColor = [212, 175, 55];
       const darkColor = [26, 26, 26];
       const lightGray = [249, 250, 251];
-      const mediumGray = [243, 244, 246];
       const grayColor = [107, 114, 128];
-      const darkGray = [55, 65, 81];
+      const greenColor = [34, 197, 94];
+      const orangeColor = [251, 146, 60];
+      const greenBg = [220, 252, 231];
+      const greenText = [22, 101, 52];
+      const orangeBg = [254, 243, 199];
+      const orangeText = [180, 83, 9];
       const white = [255, 255, 255];
       
       // ============ WATERMARK ============
@@ -232,123 +236,166 @@ export default function Invoice() {
       });
       pdf.restoreGraphicsState();
       
-      // ============ HEADER ============
+      // ============ DARK HEADER ============
       pdf.setFillColor(...darkColor);
-      pdf.rect(0, 0, pageWidth, 42, "F");
+      pdf.rect(0, 0, pageWidth, 44, "F");
       
+      // Gold accent line
       pdf.setFillColor(...goldColor);
-      pdf.rect(0, 42, pageWidth, 2.5, "F");
+      pdf.rect(0, 44, pageWidth, 2, "F");
       
+      // Left: Company info
       pdf.setTextColor(...goldColor);
-      pdf.setFontSize(11);
+      pdf.setFontSize(9);
       pdf.setFont("helvetica", "bold");
-      pdf.text("INVOICE", margin, 15);
+      pdf.text("INVOICE", margin, 11);
       
       pdf.setTextColor(...white);
-      pdf.setFontSize(22);
-      pdf.text(`${storeProfile.storeName}`, margin, 28);
+      pdf.setFontSize(18);
+      pdf.text(`${storeProfile.storeName}`, margin, 22);
       
-      pdf.setFontSize(12);
+      pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(200, 180, 100);
-      pdf.text(`${storeProfile.storeNameAccent}`, margin, 37);
+      pdf.text(`${storeProfile.storeNameAccent}`, margin, 30);
       
-      pdf.setTextColor(180, 180, 180);
-      pdf.setFontSize(9);
-      const rightX = pageWidth - margin;
-      const contactLines = [
-        `${storeProfile.addressStreet}`,
-        `${storeProfile.addressCity}`,
-        `Phone: ${storeProfile.phone}`,
-        `${storeProfile.email}`
-      ];
-      contactLines.forEach((line, i) => {
-        pdf.text(line, rightX, 13 + (i * 6), { align: "right" });
-      });
-      
-      // ============ INFO BOXES ============
-      let yPos = 56;
-      const leftBoxWidth = 85;
-      const boxHeight = 52;
-      const boxRadius = 4;
-      
-      pdf.setFillColor(...lightGray);
-      pdf.roundedRect(margin, yPos, leftBoxWidth, boxHeight, boxRadius, boxRadius, "F");
-      
-      pdf.setTextColor(...goldColor);
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("INVOICE DETAILS", margin + 5, yPos + 8);
-      
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(...grayColor);
-      pdf.text("Invoice #:", margin + 5, yPos + 17);
-      pdf.setTextColor(...darkColor);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(invoice.invoiceNumber, margin + 35, yPos + 17);
-      
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(...grayColor);
-      pdf.text("Date:", margin + 5, yPos + 25);
-      pdf.setTextColor(...darkColor);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(formatDate(invoice.date).split(",")[0], margin + 35, yPos + 25);
-      
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(...grayColor);
-      pdf.text("Amount:", margin + 5, yPos + 33);
-      pdf.setTextColor(...darkColor);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(formatPrice(invoice.grandTotal), margin + 35, yPos + 33);
-      
-      const paymentStatusForPDF = order?.paymentStatus || invoice.paymentStatus;
-      const statusColor = paymentStatusForPDF === "Paid" ? [34, 197, 94] : [251, 146, 60];
-      const statusIcon = paymentStatusForPDF === "Paid" ? "CHECKED" : "PENDING";
-      
-      pdf.setFillColor(...statusColor);
-      pdf.roundedRect(margin + 5, yPos + 39, 40, 8, 3, 3, "F");
-      pdf.setTextColor(...white);
-      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(150, 150, 150);
       pdf.setFontSize(7);
-      pdf.text(statusIcon === "CHECKED" ? "✓ PAID" : "⏳ PENDING", margin + 25, yPos + 45, { align: "center" });
+      pdf.text("Premium Lighting & Bathware", margin, 37);
       
-      const billToX = margin + leftBoxWidth + 5;
-      const billToWidth = contentWidth - leftBoxWidth - 5;
+      // Contact info (left side, below company name)
+      pdf.setFontSize(8);
+      pdf.setTextColor(160, 160, 160);
+      pdf.text(`${storeProfile.addressStreet}, ${storeProfile.addressCity}`, margin, 42);
       
-      pdf.setFillColor(...lightGray);
-      pdf.roundedRect(billToX, yPos, billToWidth, boxHeight, boxRadius, boxRadius, "F");
-      
+      // Right: Invoice number + date + payment status
+      const rightX = pageWidth - margin;
       pdf.setTextColor(...goldColor);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "bold");
-      pdf.text("BILL TO", billToX + 5, yPos + 8);
+      pdf.text("INVOICE", rightX, 11, { align: "right" });
       
-      pdf.setFontSize(11);
-      pdf.setTextColor(...darkColor);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(invoice.customerName || "N/A", billToX + 5, yPos + 18, { maxWidth: billToWidth - 10 });
+      pdf.setTextColor(...white);
+      pdf.setFontSize(16);
+      pdf.text(`${invoice.invoiceNumber}`, rightX, 22, { align: "right" });
       
-      pdf.setFontSize(9);
+      pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(...grayColor);
-      const phoneLines = pdf.splitTextToSize(invoice.customerPhone || "N/A", billToWidth - 10);
-      pdf.text(phoneLines, billToX + 5, yPos + 26);
+      pdf.setTextColor(160, 160, 160);
+      pdf.text(`${formatDate(invoice.date).split(",")[0]}`, rightX, 30, { align: "right" });
       
-      if (invoice.customerEmail) {
-        const emailLines = pdf.splitTextToSize(invoice.customerEmail, billToWidth - 10);
-        pdf.text(emailLines, billToX + 5, yPos + 33);
+      // Payment status badge
+      const paymentStatusForPDF = order?.paymentStatus || invoice.paymentStatus;
+      const isPaid = paymentStatusForPDF === "Paid";
+      const badgeColor = isPaid ? greenColor : orangeColor;
+      const badgeText = isPaid ? "PAID" : "PENDING";
+      
+      const badgeWidth = 32;
+      const badgeHeight = 7;
+      const badgeX = rightX - badgeWidth;
+      const badgeY = 36;
+      
+      pdf.setFillColor(...badgeColor);
+      pdf.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 3, 3, "F");
+      pdf.setTextColor(...white);
+      pdf.setFontSize(6);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(isPaid ? "\u2713 " + badgeText : badgeText, rightX - 2, badgeY + 5, { align: "right" });
+      
+      // ============ INFO CARDS ============
+      let yPos = 58;
+      const cardWidth = (contentWidth - 6) / 2;
+      const cardHeight = 42;
+      const cardRadius = 4;
+      const gap = 6;
+      
+      // Card 1: Order Information (left)
+      pdf.setFillColor(...lightGray);
+      pdf.roundedRect(margin, yPos, cardWidth, cardHeight, cardRadius, cardRadius, "F");
+      
+      // Subtle border
+      pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(margin, yPos, cardWidth, cardHeight, cardRadius, cardRadius, "S");
+      
+      pdf.setTextColor(...goldColor);
+      pdf.setFontSize(7);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("ORDER INFORMATION", margin + 5, yPos + 7);
+      
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(107, 114, 128);
+      pdf.text("Date:", margin + 5, yPos + 15);
+      pdf.setTextColor(26, 26, 26);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(formatDate(invoice.date).split(",")[0], margin + 20, yPos + 15);
+      
+      if (invoice.orderId) {
+        pdf.setTextColor(107, 114, 128);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Order:", margin + 5, yPos + 22);
+        pdf.setTextColor(26, 26, 26);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`#${invoice.orderId.slice(-8)}`, margin + 20, yPos + 22);
       }
       
-      const addressLines = pdf.splitTextToSize(invoice.address || "N/A", billToWidth - 10);
-      pdf.text(addressLines, billToX + 5, yPos + (invoice.customerEmail ? 40 : 36));
+      // Order status badge
+      if (order && order.status) {
+        pdf.setTextColor(107, 114, 128);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Status:", margin + 5, yPos + 29);
+        
+        const statusLabel = order.status;
+        const statusBg = order.status === "Delivered" ? greenBg : order.status === "Processing" ? [219, 234, 254] : orangeBg;
+        const statusTx = order.status === "Delivered" ? greenText : order.status === "Processing" ? [30, 64, 175] : orangeText;
+        
+        const textW = pdf.getTextWidth(statusLabel) + 8;
+        pdf.setFillColor(...statusBg);
+        pdf.roundedRect(margin + 20, yPos + 26, textW, 6, 2, 2, "F");
+        pdf.setTextColor(...statusTx);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(6);
+        pdf.text(statusLabel, margin + 24, yPos + 31);
+      }
+      
+      // Card 2: Customer Details (right)
+      const billX = margin + cardWidth + gap;
+      
+      pdf.setFillColor(...lightGray);
+      pdf.roundedRect(billX, yPos, cardWidth, cardHeight, cardRadius, cardRadius, "F");
+      
+      pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(billX, yPos, cardWidth, cardHeight, cardRadius, cardRadius, "S");
+      
+      pdf.setTextColor(...goldColor);
+      pdf.setFontSize(7);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("CUSTOMER DETAILS", billX + 5, yPos + 7);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(26, 26, 26);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(invoice.customerName || "N/A", billX + 5, yPos + 15, { maxWidth: cardWidth - 10 });
+      
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(invoice.customerPhone || "N/A", billX + 5, yPos + 22);
+      
+      if (invoice.customerEmail) {
+        pdf.text(invoice.customerEmail, billX + 5, yPos + 28);
+      }
+      
+      const addressLines = pdf.splitTextToSize(invoice.address || "N/A", cardWidth - 10);
+      pdf.text(addressLines, billX + 5, yPos + (invoice.customerEmail ? 34 : 30));
       
       // ============ PRODUCTS TABLE ============
-      yPos = 120;
+      yPos = 112;
       
       const hasColor = invoice.products.some(p => p.selected_color || p.selected_size);
       const colCount = hasColor ? 5 : 4;
-      const colWidths = hasColor ? [75, 20, 15, 30, 30] : [95, 15, 30, 30];
       
       const tableData = invoice.products.map(product => {
         const name = product.name || "Unknown Product";
@@ -363,15 +410,15 @@ export default function Invoice() {
         head: [hasColor ? ["PRODUCT", "COLOR", "QTY", "UNIT PRICE", "TOTAL"] : ["PRODUCT", "QTY", "UNIT PRICE", "TOTAL"]],
         body: tableData,
         columnStyles: {
-          0: { cellPadding: { top: 3, bottom: 3, left: 4, right: 4 }, fontStyle: "normal" },
+          0: { cellPadding: 4, fontStyle: "normal" },
           1: { cellPadding: 3, halign: "center", fontStyle: "normal" },
           [colCount - 3]: { cellPadding: 3, halign: "center", fontStyle: "normal" },
           [colCount - 2]: { cellPadding: 3, halign: "right", fontStyle: "normal" },
           [colCount - 1]: { cellPadding: 3, halign: "right", fontStyle: "bold" },
         },
         styles: {
-          fontSize: 9,
-          cellPadding: 4,
+          fontSize: 8.5,
+          cellPadding: 5,
           lineColor: [229, 231, 235],
           lineWidth: 0.3,
           textColor: darkColor,
@@ -380,23 +427,40 @@ export default function Invoice() {
           fillColor: darkColor,
           textColor: white,
           fontStyle: "bold",
-          fontSize: 8,
-          cellPadding: 5,
+          fontSize: 7,
+          cellPadding: 6,
         },
         alternateRowStyles: {
           fillColor: lightGray,
         },
         margin: { left: margin, right: margin },
         theme: "grid",
+        tableLineColor: [229, 231, 235],
+        tableLineWidth: 0.3,
       });
       
       const tableEndY = (pdf as any).lastAutoTable.finalY || yPos + 30;
-      yPos = tableEndY + 8;
+      yPos = tableEndY + 10;
       
-      // ============ TOTALS SECTION ============
-      const totalsX = pageWidth - margin - 80;
+      // ============ TOTALS CARD ============
       const totalsWidth = 80;
-      const totalRowHeight = 9;
+      const totalsX = pageWidth - margin - totalsWidth;
+      const cardPadding = 8;
+      
+      // Count how many total rows we'll have
+      let totalRowCount = 2; // Subtotal + Delivery always
+      if ((invoice.discount || 0) > 0) totalRowCount++;
+      if ((invoice.tax || 0) > 0) totalRowCount++;
+      totalRowCount++; // Grand Total
+      
+      const totalsCardHeight = totalRowCount * 10 + 16;
+      
+      // Card background
+      pdf.setFillColor(...lightGray);
+      pdf.roundedRect(totalsX - cardPadding, yPos - 2, totalsWidth + cardPadding * 2, totalsCardHeight, 4, 4, "F");
+      pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(totalsX - cardPadding, yPos - 2, totalsWidth + cardPadding * 2, totalsCardHeight, 4, 4, "S");
       
       const subtotal = invoice.subtotal || 0;
       const delivery = invoice.deliveryCost || 0;
@@ -404,68 +468,72 @@ export default function Invoice() {
       const tax = invoice.tax || 0;
       const grandTotal = invoice.grandTotal || 0;
       
-      // Totals card background
-      pdf.setFillColor(...lightGray);
-      pdf.roundedRect(totalsX - 5, yPos - 3, totalsWidth + 10, 45, 4, 4, "F");
+      let rowY = yPos + 5;
       
+      // Subtotal
       pdf.setTextColor(...grayColor);
-      pdf.setFontSize(9);
+      pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      pdf.text("Subtotal", totalsX + 4, yPos + 5);
-      pdf.setTextColor(...darkColor);
+      pdf.text("Subtotal", totalsX, rowY);
+      pdf.setTextColor(26, 26, 26);
       pdf.setFont("helvetica", "bold");
-      pdf.text(formatPrice(subtotal), pageWidth - margin, yPos + 5, { align: "right" });
-      yPos += 10;
+      pdf.text(formatPrice(subtotal), pageWidth - margin, rowY, { align: "right" });
+      rowY += 9;
       
+      // Delivery
       pdf.setTextColor(...grayColor);
       pdf.setFont("helvetica", "normal");
-      pdf.text("Delivery", totalsX + 4, yPos + 5);
-      pdf.setTextColor(...darkColor);
+      pdf.text("Delivery", totalsX, rowY);
+      pdf.setTextColor(26, 26, 26);
       pdf.setFont("helvetica", "bold");
-      pdf.text(formatPrice(delivery), pageWidth - margin, yPos + 5, { align: "right" });
-      yPos += 10;
+      pdf.text(formatPrice(delivery), pageWidth - margin, rowY, { align: "right" });
+      rowY += 9;
       
+      // Discount
       if (discount > 0) {
-        pdf.setTextColor(34, 197, 94);
+        pdf.setTextColor(22, 163, 74);
         pdf.setFont("helvetica", "normal");
-        pdf.text("Discount", totalsX + 4, yPos + 5);
+        pdf.text("Discount", totalsX, rowY);
         pdf.setFont("helvetica", "bold");
-        pdf.text(`-${formatPrice(discount)}`, pageWidth - margin, yPos + 5, { align: "right" });
-        yPos += 10;
+        pdf.text(`-${formatPrice(discount)}`, pageWidth - margin, rowY, { align: "right" });
+        rowY += 9;
       }
       
+      // Tax
       if (tax > 0) {
         pdf.setTextColor(...grayColor);
         pdf.setFont("helvetica", "normal");
-        pdf.text("Tax", totalsX + 4, yPos + 5);
-        pdf.setTextColor(...darkColor);
+        pdf.text("Tax", totalsX, rowY);
+        pdf.setTextColor(26, 26, 26);
         pdf.setFont("helvetica", "bold");
-        pdf.text(formatPrice(tax), pageWidth - margin, yPos + 5, { align: "right" });
-        yPos += 10;
+        pdf.text(formatPrice(tax), pageWidth - margin, rowY, { align: "right" });
+        rowY += 9;
       }
       
+      // Gold divider
       pdf.setDrawColor(...goldColor);
-      pdf.setLineWidth(0.8);
-      pdf.line(totalsX, yPos + 1, pageWidth - margin, yPos + 1);
-      yPos += 8;
+      pdf.setLineWidth(1);
+      pdf.line(totalsX - 2, rowY, pageWidth - margin, rowY);
+      rowY += 6;
       
+      // Grand Total - gold highlight
       pdf.setFillColor(...goldColor);
-      pdf.roundedRect(totalsX - 2, yPos, totalsWidth + 4, 14, 3, 3, "F");
-      pdf.setTextColor(...darkColor);
-      pdf.setFontSize(10);
+      pdf.roundedRect(totalsX - 4, rowY - 2, totalsWidth + 8, 12, 3, 3, "F");
+      pdf.setTextColor(26, 26, 26);
+      pdf.setFontSize(8);
       pdf.setFont("helvetica", "bold");
-      pdf.text("GRAND TOTAL", totalsX + 4, yPos + 10);
-      pdf.setFontSize(12);
-      pdf.text(formatPrice(grandTotal), pageWidth - margin - 2, yPos + 10, { align: "right" });
+      pdf.text("GRAND TOTAL", totalsX, rowY + 6);
+      pdf.setFontSize(10);
+      pdf.text(formatPrice(grandTotal), pageWidth - margin - 2, rowY + 6, { align: "right" });
       
       // ============ FOOTER ============
-      const footerY = pageHeight - 20;
+      const footerY = pageHeight - 22;
       
       pdf.setDrawColor(...goldColor);
       pdf.setLineWidth(0.5);
-      pdf.line(margin, footerY - 10, pageWidth - margin, footerY - 10);
+      pdf.line(margin, footerY - 12, pageWidth - margin, footerY - 12);
       
-      pdf.setTextColor(...darkColor);
+      pdf.setTextColor(26, 26, 26);
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
       pdf.text("Thank you for choosing Lightning Bathware", pageWidth / 2, footerY, { align: "center" });
@@ -474,7 +542,7 @@ export default function Invoice() {
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(...grayColor);
       pdf.text(
-        `${storeProfile.addressCity}, Sri Lanka | ${storeProfile.phone} | ${storeProfile.email}`,
+        `${storeProfile.addressCity}, Sri Lanka  |  ${storeProfile.phone}  |  ${storeProfile.email}`,
         pageWidth / 2,
         footerY + 6,
         { align: "center" }
@@ -483,15 +551,9 @@ export default function Invoice() {
       pdf.setFontSize(7);
       pdf.setTextColor(180, 180, 180);
       pdf.text(
-        `Generated: ${new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        })}`,
+        `Generated: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`,
         pageWidth / 2,
-        footerY + 11,
+        footerY + 12,
         { align: "center" }
       );
       
