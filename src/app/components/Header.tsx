@@ -313,7 +313,7 @@ export default function Header() {
                 </button>
                 <div className={`absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 z-50 ${showCategoriesDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
                   <div className="py-2 max-h-[450px] overflow-y-auto">
-                    {safeCategories.filter(cat => cat.isActive).map((category) => {
+                    {safeCategories.filter(cat => cat.isActive).sort((a, b) => (a.order ?? 999) - (b.order ?? 999)).map((category) => {
                       const isCategoryActive = location.pathname === "/products" && location.search.includes(`category=${encodeURIComponent(category.name)}`);
                       return (
                         <Link
@@ -441,7 +441,7 @@ export default function Header() {
               </button>
               {expandedCategories.includes('mobile-categories') && (
                 <div className="ml-4 mt-1 space-y-1">
-                  {safeCategories.filter(c => c.isActive).map((category) => (
+                  {safeCategories.filter(c => c.isActive).sort((a, b) => (a.order ?? 999) - (b.order ?? 999)).map((category) => (
                     <div key={category.id}>
                       {category.subcategories && category.subcategories.length > 0 ? (
                         <div>

@@ -83,7 +83,9 @@ export default function Categories() {
   const safeProducts = products || [];
   const safeCategories = categories || [];
 
-  const activeCategories = safeCategories.filter(c => c.isActive);
+  const activeCategories = safeCategories
+    .filter(c => c.isActive)
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
   if (!isDataLoaded) {
     return (

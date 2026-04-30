@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { 
   Plus, Trash2, Edit2, CheckCircle, XCircle, 
   Search, Download, Upload, FileSpreadsheet, Clipboard,
@@ -8,7 +8,7 @@ import {
   Thermometer, Fan, Snowflake, Settings, Cog, 
   SprayCan, PaintBucket, Flame, Shield, Pencil, 
   Leaf, Utensils, ArrowRight, CheckSquare, Square,
-  ChevronDown, ChevronUp, Sparkles
+  ChevronDown, ChevronUp, Sparkles, GripVertical, Save, List, LayoutGrid
 } from "lucide-react";
 import { useAdmin, Category } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { getCategoryIcon, getCategoryColor } from "../../../lib/iconGenerator";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const ICONS = [
   { name: "Lightbulb", icon: Lightbulb },
@@ -76,8 +79,65 @@ const initialFormData: FormData = {
   isActive: true,
 };
 
+function SortableRow({ category, onEdit, onToggle, onDelete, getIcon }: { 
+  category: Category; 
+  onEdit: (cat: Category) => void; 
+  onToggle: (id: string) => void; 
+  onDelete: (id: string) => void;
+  getIcon: (name: string) => any;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 100 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className={`flex items-center gap-3 p-3 bg-white rounded-lg border transition-shadow ${isDragging ? 'shadow-lg border-[#D4AF37]' : 'border-gray-200'}`}>
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1">
+        <GripVertical className="w-5 h-5" />
+      </div>
+      <div className={`w-10 h-10 ${category.color || 'bg-blue-500'} rounded-lg flex items-center justify-center flex-shrink-0`}>
+        {(() => {
+          const Icon = getIcon(category.icon || "Lightbulb");
+          return <Icon className="w-5 h-5 text-white" />;
+        })()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h4 className="font-semibold text-sm truncate">{category.name}</h4>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+            category.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {category.isActive ? "Active" : "Disabled"}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 truncate">{category.description || "No description"}</p>
+      </div>
+      <div className="flex gap-1 flex-shrink-0">
+        <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(category)}>
+          <Edit2 className="w-3.5 h-3.5" />
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className={`h-8 w-8 p-0 ${category.isActive ? "text-red-500" : "text-green-500"}`}
+          onClick={() => onToggle(category.id)}
+        >
+          {category.isActive ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+        </Button>
+        <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-red-600" onClick={() => onDelete(category.id)}>
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCategories() {
-  const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus } = useAdmin();
+  const { categories, addCategory, updateCategory, deleteCategory, toggleCategoryStatus, saveCategoryOrder } = useAdmin();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -88,20 +148,49 @@ export default function AdminCategories() {
   const [sortAsc, setSortAsc] = useState(true);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [bulkText, setBulkText] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const safeCategories = useMemo(() => categories || [], [categories]);
 
+  const sortedByOrder = useMemo(() => {
+    return [...safeCategories].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+  }, [safeCategories]);
+
   const filtered = useMemo(() => {
-    let result = safeCategories.filter(c => 
+    let result = sortedByOrder.filter(c => 
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    result.sort((a, b) => {
-      const cmp = a.name.localeCompare(b.name);
-      return sortAsc ? cmp : -cmp;
-    });
+    if (!searchQuery) {
+      result.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    } else {
+      result.sort((a, b) => {
+        const cmp = a.name.localeCompare(b.name);
+        return sortAsc ? cmp : -cmp;
+      });
+    }
     return result;
-  }, [safeCategories, searchQuery, sortAsc]);
+  }, [sortedByOrder, searchQuery, sortAsc]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filtered.findIndex(c => c.id === active.id);
+    const newIndex = filtered.findIndex(c => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(filtered, oldIndex, newIndex);
+    setIsSavingOrder(true);
+    await saveCategoryOrder(reordered);
+    setIsSavingOrder(false);
+  }, [filtered, saveCategoryOrder]);
 
   const toggleSelect = (id: string) => {
     const newSet = new Set(selectedIds);
@@ -335,7 +424,72 @@ export default function AdminCategories() {
             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
-        {selectedIds.size > 0 && (
+        <div className="flex gap-2">
+          <div className="flex border rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "grid" ? "bg-black text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">Grid</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "list" ? "bg-black text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+            >
+              <List className="w-4 h-4" />
+              <span className="hidden sm:inline">List</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {viewMode === "list" && !searchQuery && (
+        <div className="bg-gradient-to-r from-[#D4AF37]/10 to-transparent rounded-xl p-4 border border-[#D4AF37]/20">
+          <div className="flex items-center gap-3 mb-3">
+            <GripVertical className="w-5 h-5 text-[#D4AF37]" />
+            <div>
+              <h3 className="font-semibold text-sm">Drag & Drop to Reorder</h3>
+              <p className="text-xs text-gray-500">Drag categories to set display order on the website</p>
+            </div>
+            {isSavingOrder && (
+              <div className="ml-auto text-xs text-gray-500 flex items-center gap-1">
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            )}
+          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filtered.map(c => c.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {filtered.map((cat) => (
+                  <SortableRow 
+                    key={cat.id} 
+                    category={cat} 
+                    onEdit={openEdit}
+                    onToggle={toggleCategoryStatus}
+                    onDelete={handleDelete}
+                    getIcon={getIcon}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+      )}
+
+      {viewMode === "list" && searchQuery && (
+        <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+          <Search className="w-3.5 h-3.5" />
+          Drag-and-drop is disabled while searching. Clear search to reorder.
+        </div>
+      )}
+
+      {viewMode === "grid" && (
+        <>
+          {selectedIds.size > 0 && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={toggleSelectAll}>
               {selectedIds.size === filtered.length ? "Deselect" : "Select All"}
@@ -350,8 +504,9 @@ export default function AdminCategories() {
               Delete ({selectedIds.size})
             </Button>
           </div>
-        )}
-      </div>
+          )}
+        </>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.length === 0 ? (

@@ -39,7 +39,7 @@ export default function Products() {
   // Memoize active categories to prevent recalculation
   const activeCategories = useMemo(() => [
     "All Categories",
-    ...safeCategories.filter(cat => cat.isActive).map(cat => cat.name),
+    ...safeCategories.filter(cat => cat.isActive).sort((a, b) => (a.order ?? 999) - (b.order ?? 999)).map(cat => cat.name),
   ], [safeCategories]);
 
   const priceRanges = [
