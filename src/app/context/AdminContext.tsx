@@ -423,6 +423,7 @@ interface AdminContextType {
   updateStoreAssets: (assets: Partial<StoreAssets>) => void;
   siteContent: SiteContent;
   updateSiteContent: (content: Partial<SiteContent>) => void;
+  resetSiteContent: () => void;
   categories: Category[];
   addCategory: (category: Omit<Category, "id">) => void;
   updateCategory: (id: string, category: Partial<Category>) => void;
@@ -2773,29 +2774,38 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSiteContent = async (content: Partial<SiteContent>) => {
-    const updated = { ...siteContent, ...content };
+    const sectionKey = Object.keys(content)[0] as keyof SiteContent;
+    if (!sectionKey) return;
+
+    const newSectionValue = content[sectionKey];
+    const currentSectionValue = siteContent[sectionKey];
+
+    if (JSON.stringify(newSectionValue) === JSON.stringify(currentSectionValue)) {
+      return;
+    }
+
+    const updated = { ...siteContent, [sectionKey]: newSectionValue };
     setSiteContent(updated);
     try {
-      await setDoc(doc(db, "storeData", "siteContent"), updated);
-      toast.success("Content saved to Firebase!");
-      
-      // Only create announcement if terms specifically changed
-      if (content.terms && (JSON.stringify(content.terms) !== JSON.stringify(siteContent?.terms))) {
+      await updateDoc(doc(db, "storeData", "siteContent"), { [sectionKey]: newSectionValue });
+      toast.success(`${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)} page updated successfully`);
+
+      if (sectionKey === "terms") {
         await createAnnouncement(
-          "📜 Terms & Conditions Updated",
+          "Terms & Conditions Updated",
           "We have updated our Terms & Conditions. Please review the changes.",
           "terms",
           168
         );
       }
-      
+
       logAdminAction(
         'SETTINGS_UPDATE',
         adminUid || 'unknown',
         adminEmail,
-        'Updated site content',
+        `Updated site content: ${sectionKey}`,
         'success',
-        { settingKey: 'siteContent' }
+        { settingKey: `siteContent.${sectionKey}` }
       );
     } catch (error) {
       console.error("Error saving siteContent:", error);
@@ -2804,9 +2814,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         'SETTINGS_UPDATE',
         adminUid || 'unknown',
         adminEmail,
-        'Failed to update site content',
+        `Failed to update site content: ${sectionKey}`,
         'failed',
-        { settingKey: 'siteContent' }
+        { settingKey: `siteContent.${sectionKey}` }
       );
     }
   };

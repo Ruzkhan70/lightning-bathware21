@@ -62,6 +62,33 @@ export default function AdminSettings() {
   const [profileForm, setProfileForm] = useState<any>(storeProfile || {});
   const [assetsForm, setAssetsForm] = useState<any>(storeAssets || {});
   const [contentForm, setContentForm] = useState<any>(siteContent || {});
+  const [originalContent, setOriginalContent] = useState<any>(null);
+  const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
+
+  const deepEqual = (a: any, b: any): boolean => JSON.stringify(a) === JSON.stringify(b);
+
+  const hasSectionChanged = (section: string): boolean => {
+    if (!originalContent || !originalContent[section]) return false;
+    return !deepEqual(contentForm[section], originalContent[section]);
+  };
+
+  const handleSectionSave = async (section: string) => {
+    if (!hasSectionChanged(section)) {
+      toast.info("No changes to save");
+      return;
+    }
+    setSavingSections((prev: Record<string, boolean>) => ({ ...prev, [section]: true }));
+    try {
+      await updateSiteContent({ [section]: contentForm[section] });
+      setOriginalContent((prev: any) => ({
+        ...prev,
+        [section]: JSON.parse(JSON.stringify(contentForm[section]))
+      }));
+    } finally {
+      setSavingSections((prev: Record<string, boolean>) => ({ ...prev, [section]: false }));
+    }
+  };
+
   const [usernameForm, setUsernameForm] = useState({ newUsername: adminUsername });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -77,7 +104,11 @@ export default function AdminSettings() {
     if (storeAssets && Object.keys(storeAssets).length > 0) setAssetsForm(storeAssets); 
   }, [storeAssets]);
   useEffect(() => { 
-    if (siteContent && Object.keys(siteContent).length > 0) setContentForm({ ...DEFAULT_SITE_CONTENT, ...siteContent }); 
+    if (siteContent && Object.keys(siteContent).length > 0) {
+      const merged = { ...DEFAULT_SITE_CONTENT, ...siteContent };
+      setContentForm(merged);
+      setOriginalContent(JSON.parse(JSON.stringify(merged)));
+    }
   }, [siteContent]);
   useEffect(() => { setUsernameForm({ newUsername: adminUsername }); }, [adminUsername]);
 
@@ -98,24 +129,6 @@ export default function AdminSettings() {
     updateStoreAssets(assetsForm);
     toast.success("Store assets updated!");
   };
-
-  // Content handlers
-  const handleContentSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateSiteContent(contentForm);
-    toast.success("Page content updated!");
-  };
-
-  // Individual section save handlers
-  const handleHomeSave = () => updateSiteContent({ home: contentForm.home });
-  const handleAboutSave = () => updateSiteContent({ about: contentForm.about });
-  const handleServicesSave = () => updateSiteContent({ services: contentForm.services });
-  const handleContactSave = () => updateSiteContent({ contact: contentForm.contact });
-  const handleFooterSave = () => updateSiteContent({ footer: contentForm.footer });
-  const handleTermsSave = () => updateSiteContent({ terms: contentForm.terms });
-  const handleCategoriesSave = () => updateSiteContent({ categories: contentForm.categories });
-  const handleOffersSave = () => updateSiteContent({ offers: contentForm.offers });
-  const handleFaqSave = () => updateSiteContent({ faq: contentForm.faq });
 
   const handleResetContent = async () => {
     if (window.confirm("Reset all page content to default?")) {
@@ -565,7 +578,7 @@ export default function AdminSettings() {
 
           {/* Page Content Section */}
           {activeSection === 'page-content' && (
-            <form onSubmit={handleContentSave} className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6">
               {/* Home Page */}
               <Card title="Home Page" icon={<FileText className="w-5 h-5" />} description="Hero, features, and CTA sections">
                 <div className="space-y-6">
@@ -707,9 +720,27 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('home')}
+                    disabled={!hasSectionChanged('home') || savingSections['home']}
+                    className={`${hasSectionChanged('home') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['home'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Home Page
+                      </>
+                    )}
+                  </Button>
+                </div>
               </Card>
-
-              {/* About Page */}
               <Card title="About Page" icon={<FileText className="w-5 h-5" />} description="Hero, mission, vision, values, and stats">
                 <div className="space-y-6">
                   <div className="border-b pb-4">
@@ -798,6 +829,26 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('about')}
+                    disabled={!hasSectionChanged('about') || savingSections['about']}
+                    className={`${hasSectionChanged('about') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['about'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save About Page
+                      </>
+                    )}
+                  </Button>
+                </div>
               </Card>
 
               {/* Services Page */}
@@ -852,6 +903,26 @@ export default function AdminSettings() {
                       </div>
                     </div>
                   </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('services')}
+                    disabled={!hasSectionChanged('services') || savingSections['services']}
+                    className={`${hasSectionChanged('services') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['services'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Services Page
+                      </>
+                    )}
+                  </Button>
                 </div>
               </Card>
 
@@ -981,6 +1052,26 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('contact')}
+                    disabled={!hasSectionChanged('contact') || savingSections['contact']}
+                    className={`${hasSectionChanged('contact') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['contact'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Contact Page
+                      </>
+                    )}
+                  </Button>
+                </div>
               </Card>
 
               {/* Footer */}
@@ -1002,6 +1093,26 @@ export default function AdminSettings() {
                     <Label>Contact Us Title</Label>
                     <Input value={contentForm.footer.contactTitle} onChange={(e) => setContentForm({...contentForm, footer: {...contentForm.footer, contactTitle: e.target.value}})} />
                   </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('footer')}
+                    disabled={!hasSectionChanged('footer') || savingSections['footer']}
+                    className={`${hasSectionChanged('footer') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['footer'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Footer
+                      </>
+                    )}
+                  </Button>
                 </div>
               </Card>
 
@@ -1051,6 +1162,26 @@ export default function AdminSettings() {
                       </div>
                     </div>
                   </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('categories')}
+                    disabled={!hasSectionChanged('categories') || savingSections['categories']}
+                    className={`${hasSectionChanged('categories') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['categories'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Categories Page
+                      </>
+                    )}
+                  </Button>
                 </div>
               </Card>
 
@@ -1105,6 +1236,26 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('offers')}
+                    disabled={!hasSectionChanged('offers') || savingSections['offers']}
+                    className={`${hasSectionChanged('offers') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['offers'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Offers Page
+                      </>
+                    )}
+                  </Button>
+                </div>
               </Card>
 
               <Card title="FAQ Section" icon={<FileText className="w-5 h-5" />} description="Frequently asked questions">
@@ -1137,6 +1288,26 @@ export default function AdminSettings() {
                       />
                     </div>
                   ))}
+                </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('faq')}
+                    disabled={!hasSectionChanged('faq') || savingSections['faq']}
+                    className={`${hasSectionChanged('faq') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['faq'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save FAQ Section
+                      </>
+                    )}
+                  </Button>
                 </div>
               </Card>
 
@@ -1204,19 +1375,35 @@ export default function AdminSettings() {
                     </div>
                   ))}
                 </div>
+                <div className="flex justify-end pt-4 border-t mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => handleSectionSave('terms')}
+                    disabled={!hasSectionChanged('terms') || savingSections['terms']}
+                    className={`${hasSectionChanged('terms') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {savingSections['terms'] ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Terms & Conditions
+                      </>
+                    )}
+                  </Button>
+                </div>
               </Card>
 
-              <div className="flex gap-4">
-                <Button type="button" variant="outline" onClick={handleResetContent} className="flex-1 border-red-500 text-red-500 hover:bg-red-50">
+              <div className="flex justify-end">
+                <Button type="button" variant="outline" onClick={handleResetContent} className="border-red-500 text-red-500 hover:bg-red-50">
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset to Default
-                </Button>
-                <Button type="submit" className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black">
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Page Content
+                  Reset All to Default
                 </Button>
               </div>
-            </form>
+            </div>
           )}
 
           {/* Account Section */}
