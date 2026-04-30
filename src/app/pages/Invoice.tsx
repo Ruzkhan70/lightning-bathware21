@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
@@ -7,7 +7,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
   Download, Printer, ArrowLeft, FileText, CheckCircle, 
-  Clock, MapPin, Phone, Mail, Package, Zap, AlertCircle 
+  Clock, MapPin, Phone, Mail, Package, Zap, AlertCircle,
+  Check, Tag, Truck
 } from "lucide-react";
 import { db } from "../../firebase";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -22,6 +23,7 @@ interface InvoiceProduct {
   total: number;
   selected_color?: string;
   selected_size?: string;
+  image?: string;
 }
 
 interface InvoiceData {
@@ -67,6 +69,7 @@ interface RawInvoiceData {
     selected_color?: string;
     selected_size?: string;
     color?: string;
+    image?: string;
   }>;
   subtotal?: number;
   discount?: number;
@@ -82,7 +85,7 @@ interface RawInvoiceData {
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getInvoiceById, storeProfile } = useAdmin();
+  const { getInvoiceById, storeProfile, products } = useAdmin();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,11 +93,17 @@ export default function Invoice() {
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string>("");
 
-  // Real-time listener for order status - THE FIX
+  const safeProducts = products || [];
+
+  const getProductImage = useCallback((product: InvoiceProduct): string => {
+    if (product.image) return product.image;
+    const match = safeProducts.find(p => p.id === product.id || p.name === product.name);
+    return match?.image || "";
+  }, [safeProducts]);
+
   useEffect(() => {
     if (!orderId) return;
     
-    // Always fetch fresh order data directly from Firebase using real-time listener
     const orderRef = doc(db, "orders", orderId);
     const unsubscribe = onSnapshot(orderRef, (snap) => {
       if (snap.exists()) {
@@ -115,7 +124,7 @@ export default function Invoice() {
 
     const fetchInvoice = async () => {
       try {
-        let foundInvoice: RawInvoiceData | null = getInvoiceById(id) || null;
+        let foundInvoice: RawInvoiceData | null = (getInvoiceById(id) as RawInvoiceData) || null;
         
         if (!foundInvoice) {
           const invoiceRef = doc(db, "invoices", id);
@@ -143,6 +152,7 @@ export default function Invoice() {
               total: p.total || (p.unitPrice || p.price || 0) * (p.quantity || 1),
               selected_color: p.selected_color || p.color,
               selected_size: p.selected_size,
+              image: p.image,
             })),
             subtotal: foundInvoice.subtotal || 0,
             discount: foundInvoice.discount || 0,
@@ -154,7 +164,6 @@ export default function Invoice() {
           };
           setInvoice(validatedInvoice);
           
-          // Set orderId to trigger real-time listener
           if (foundInvoice.orderId) {
             setOrderId(foundInvoice.orderId);
           }
@@ -196,54 +205,56 @@ export default function Invoice() {
     setIsDownloading(true);
     
     try {
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
       
       const goldColor = [212, 175, 55];
       const darkColor = [26, 26, 26];
-      const lightGray = [245, 245, 245];
-      const grayColor = [100, 100, 100];
+      const lightGray = [249, 250, 251];
+      const mediumGray = [243, 244, 246];
+      const grayColor = [107, 114, 128];
+      const darkGray = [55, 65, 81];
       const white = [255, 255, 255];
       
       // ============ WATERMARK ============
-      doc.saveGraphicsState();
-      doc.setTextColor(230, 230, 230);
-      doc.setFontSize(80);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${storeProfile.storeName}`, pageWidth / 2, pageHeight / 2, {
+      pdf.saveGraphicsState();
+      const gState = new (pdf as any).GState({ opacity: 0.04 });
+      pdf.setGState(gState);
+      pdf.setTextColor(212, 175, 55);
+      pdf.setFontSize(80);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`${storeProfile.storeName}`, pageWidth / 2, pageHeight / 2, {
         angle: 45,
         align: "center",
       });
-      doc.restoreGraphicsState();
+      pdf.restoreGraphicsState();
       
       // ============ HEADER ============
-      doc.setFillColor(...darkColor);
-      doc.rect(0, 0, pageWidth, 38, "F");
+      pdf.setFillColor(...darkColor);
+      pdf.rect(0, 0, pageWidth, 42, "F");
       
-      doc.setFillColor(...goldColor);
-      doc.rect(0, 38, pageWidth, 2, "F");
+      pdf.setFillColor(...goldColor);
+      pdf.rect(0, 42, pageWidth, 2.5, "F");
       
-      // Company name
-      doc.setTextColor(...goldColor);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("INVOICE", margin, 14);
+      pdf.setTextColor(...goldColor);
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("INVOICE", margin, 15);
       
-      doc.setTextColor(...white);
-      doc.setFontSize(20);
-      doc.text(`${storeProfile.storeName}`, margin, 26);
+      pdf.setTextColor(...white);
+      pdf.setFontSize(22);
+      pdf.text(`${storeProfile.storeName}`, margin, 28);
       
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...goldColor);
-      doc.text(`${storeProfile.storeNameAccent}`, margin, 34);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(200, 180, 100);
+      pdf.text(`${storeProfile.storeNameAccent}`, margin, 37);
       
-      // Company contact (right side)
-      doc.setTextColor(200, 200, 200);
-      doc.setFontSize(9);
+      pdf.setTextColor(180, 180, 180);
+      pdf.setFontSize(9);
       const rightX = pageWidth - margin;
       const contactLines = [
         `${storeProfile.addressStreet}`,
@@ -252,160 +263,137 @@ export default function Invoice() {
         `${storeProfile.email}`
       ];
       contactLines.forEach((line, i) => {
-        doc.text(line, rightX, 12 + (i * 6), { align: "right" });
+        pdf.text(line, rightX, 13 + (i * 6), { align: "right" });
       });
       
       // ============ INFO BOXES ============
-      let yPos = 52;
+      let yPos = 56;
       const leftBoxWidth = 85;
-      const boxHeight = 50;
+      const boxHeight = 52;
+      const boxRadius = 4;
       
-      // Left box - Invoice Details
-      doc.setFillColor(...lightGray);
-      doc.roundedRect(margin, yPos, leftBoxWidth, boxHeight, 3, 3, "F");
+      pdf.setFillColor(...lightGray);
+      pdf.roundedRect(margin, yPos, leftBoxWidth, boxHeight, boxRadius, boxRadius, "F");
       
-      doc.setTextColor(...darkColor);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("INVOICE DETAILS", margin + 5, yPos + 10);
+      pdf.setTextColor(...goldColor);
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("INVOICE DETAILS", margin + 5, yPos + 8);
       
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...grayColor);
-      doc.text("Invoice #:", margin + 5, yPos + 20);
-      doc.setTextColor(...darkColor);
-      doc.setFont("helvetica", "bold");
-      doc.text(invoice.invoiceNumber, margin + 35, yPos + 20);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...grayColor);
+      pdf.text("Invoice #:", margin + 5, yPos + 17);
+      pdf.setTextColor(...darkColor);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(invoice.invoiceNumber, margin + 35, yPos + 17);
       
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...grayColor);
-      doc.text("Date:", margin + 5, yPos + 28);
-      doc.setTextColor(...darkColor);
-      doc.setFont("helvetica", "bold");
-      doc.text(formatDate(invoice.date).split(",")[0], margin + 35, yPos + 28);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...grayColor);
+      pdf.text("Date:", margin + 5, yPos + 25);
+      pdf.setTextColor(...darkColor);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(formatDate(invoice.date).split(",")[0], margin + 35, yPos + 25);
+      
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...grayColor);
+      pdf.text("Amount:", margin + 5, yPos + 33);
+      pdf.setTextColor(...darkColor);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(formatPrice(invoice.grandTotal), margin + 35, yPos + 33);
       
       const paymentStatusForPDF = order?.paymentStatus || invoice.paymentStatus;
-      const statusColor = paymentStatusForPDF === "Paid" ? [34, 139, 34] : [255, 140, 0];
+      const statusColor = paymentStatusForPDF === "Paid" ? [34, 197, 94] : [251, 146, 60];
+      const statusIcon = paymentStatusForPDF === "Paid" ? "CHECKED" : "PENDING";
       
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...grayColor);
-      doc.text("Payment:", margin + 5, yPos + 36);
+      pdf.setFillColor(...statusColor);
+      pdf.roundedRect(margin + 5, yPos + 39, 40, 8, 3, 3, "F");
+      pdf.setTextColor(...white);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7);
+      pdf.text(statusIcon === "CHECKED" ? "✓ PAID" : "⏳ PENDING", margin + 25, yPos + 45, { align: "center" });
       
-      const statusText = paymentStatusForPDF === "Paid" ? "PAID" : "PENDING";
-      doc.setFillColor(...statusColor);
-      doc.roundedRect(margin + 30, yPos + 31, 25, 6, 2, 2, "F");
-      doc.setTextColor(...white);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.text(statusText, margin + 42.5, yPos + 36, { align: "center" });
-      
-      // Right box - Bill To
       const billToX = margin + leftBoxWidth + 5;
       const billToWidth = contentWidth - leftBoxWidth - 5;
       
-      doc.setFillColor(...lightGray);
-      doc.roundedRect(billToX, yPos, billToWidth, boxHeight, 3, 3, "F");
+      pdf.setFillColor(...lightGray);
+      pdf.roundedRect(billToX, yPos, billToWidth, boxHeight, boxRadius, boxRadius, "F");
       
-      doc.setTextColor(...darkColor);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("BILL TO", billToX + 5, yPos + 10);
+      pdf.setTextColor(...goldColor);
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("BILL TO", billToX + 5, yPos + 8);
       
-      // Customer info with proper text wrapping
-      doc.setFontSize(10);
-      doc.setTextColor(...darkColor);
-      doc.setFont("helvetica", "bold");
-      const customerName = invoice.customerName || "N/A";
-      doc.text(customerName, billToX + 5, yPos + 20, { maxWidth: billToWidth - 10 });
+      pdf.setFontSize(11);
+      pdf.setTextColor(...darkColor);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(invoice.customerName || "N/A", billToX + 5, yPos + 18, { maxWidth: billToWidth - 10 });
       
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...grayColor);
-      const phoneLines = doc.splitTextToSize(invoice.customerPhone || "N/A", billToWidth - 10);
-      doc.text(phoneLines, billToX + 5, yPos + 28);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...grayColor);
+      const phoneLines = pdf.splitTextToSize(invoice.customerPhone || "N/A", billToWidth - 10);
+      pdf.text(phoneLines, billToX + 5, yPos + 26);
       
       if (invoice.customerEmail) {
-        const emailLines = doc.splitTextToSize(invoice.customerEmail, billToWidth - 10);
-        doc.text(emailLines, billToX + 5, yPos + 35);
+        const emailLines = pdf.splitTextToSize(invoice.customerEmail, billToWidth - 10);
+        pdf.text(emailLines, billToX + 5, yPos + 33);
       }
       
-      // Address with text wrapping
-      const address = invoice.address || "N/A";
-      const addressLines = doc.splitTextToSize(address, billToWidth - 10);
-      doc.text(addressLines, billToX + 5, yPos + (invoice.customerEmail ? 42 : 38));
+      const addressLines = pdf.splitTextToSize(invoice.address || "N/A", billToWidth - 10);
+      pdf.text(addressLines, billToX + 5, yPos + (invoice.customerEmail ? 40 : 36));
       
       // ============ PRODUCTS TABLE ============
-      yPos = 115;
-      const headerHeight = 10;
+      yPos = 120;
       
-      // Table header
-      doc.setFillColor(...darkColor);
-      doc.rect(margin, yPos, contentWidth, headerHeight, "F");
+      const hasColor = invoice.products.some(p => p.selected_color || p.selected_size);
+      const colCount = hasColor ? 5 : 4;
+      const colWidths = hasColor ? [75, 20, 15, 30, 30] : [95, 15, 30, 30];
       
-      doc.setTextColor(...white);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      
-      const colProduct = margin + 5;
-      const colQty = 145;
-      const colPrice = 165;
-      const colTotal = pageWidth - margin;
-      const colPriceWidth = 30;
-      const colQtyWidth = 15;
-      
-      doc.text("PRODUCT", colProduct, yPos + 7);
-      doc.text("QTY", colQty, yPos + 7, { align: "center" });
-      doc.text("PRICE", colPrice, yPos + 7, { align: "right" });
-      doc.text("TOTAL", colTotal, yPos + 7, { align: "right" });
-      
-      yPos += headerHeight;
-      
-      // Table rows
-      let maxYPos = yPos;
-      invoice.products.forEach((product, index) => {
-        const isEven = index % 2 === 0;
-        doc.setFillColor(...(isEven ? white : [248, 248, 248]));
-        
-        let productName = product.name || "Unknown Product";
-        if (product.selected_color) {
-          productName += ` (${product.selected_color})`;
-        } else if (product.selected_size) {
-          productName += ` (${product.selected_size})`;
-        }
-        const nameLines = doc.splitTextToSize(productName, colQty - colProduct - 5);
-        const rowHeight = Math.max(12, nameLines.length * 5 + 6);
-        
-        doc.rect(margin, yPos, contentWidth, rowHeight, "F");
-        
-        doc.setTextColor(...darkColor);
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-        doc.text(nameLines, colProduct, yPos + 5);
-        
-        doc.text(String(product.quantity || 0), colQty, yPos + 5, { align: "center" });
-        
-        doc.text(formatPrice(product.unitPrice || 0), colPrice + colPriceWidth, yPos + 5, { align: "right" });
-        
-        doc.setFont("helvetica", "bold");
-        doc.text(formatPrice(product.total || 0), colTotal, yPos + 5, { align: "right" });
-        
-        yPos += rowHeight;
-        if (yPos > maxYPos) maxYPos = yPos;
+      const tableData = invoice.products.map(product => {
+        const name = product.name || "Unknown Product";
+        const color = product.selected_color || product.selected_size || "";
+        return hasColor 
+          ? [name, color, String(product.quantity || 0), formatPrice(product.unitPrice || 0), formatPrice(product.total || 0)]
+          : [name, String(product.quantity || 0), formatPrice(product.unitPrice || 0), formatPrice(product.total || 0)];
       });
       
-      yPos = maxYPos;
+      autoTable(pdf, {
+        startY: yPos,
+        head: [hasColor ? ["PRODUCT", "COLOR", "QTY", "UNIT PRICE", "TOTAL"] : ["PRODUCT", "QTY", "UNIT PRICE", "TOTAL"]],
+        body: tableData,
+        columnStyles: {
+          0: { cellPadding: { top: 3, bottom: 3, left: 4, right: 4 }, fontStyle: "normal" },
+          1: { cellPadding: 3, halign: "center", fontStyle: "normal" },
+          [colCount - 3]: { cellPadding: 3, halign: "center", fontStyle: "normal" },
+          [colCount - 2]: { cellPadding: 3, halign: "right", fontStyle: "normal" },
+          [colCount - 1]: { cellPadding: 3, halign: "right", fontStyle: "bold" },
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 4,
+          lineColor: [229, 231, 235],
+          lineWidth: 0.3,
+          textColor: darkColor,
+        },
+        headStyles: {
+          fillColor: darkColor,
+          textColor: white,
+          fontStyle: "bold",
+          fontSize: 8,
+          cellPadding: 5,
+        },
+        alternateRowStyles: {
+          fillColor: lightGray,
+        },
+        margin: { left: margin, right: margin },
+        theme: "grid",
+      });
+      
+      const tableEndY = (pdf as any).lastAutoTable.finalY || yPos + 30;
+      yPos = tableEndY + 8;
       
       // ============ TOTALS SECTION ============
-      yPos += 10;
-      
-      // Gold divider
-      doc.setDrawColor(...goldColor);
-      doc.setLineWidth(1);
-      doc.line(margin, yPos, pageWidth - margin, yPos);
-      
-      yPos += 10;
-      
-      // Totals - aligned to right
       const totalsX = pageWidth - margin - 80;
       const totalsWidth = 80;
       const totalRowHeight = 9;
@@ -413,86 +401,88 @@ export default function Invoice() {
       const subtotal = invoice.subtotal || 0;
       const delivery = invoice.deliveryCost || 0;
       const discount = invoice.discount || 0;
+      const tax = invoice.tax || 0;
       const grandTotal = invoice.grandTotal || 0;
       
-      // Subtotal
-      doc.setFillColor(...lightGray);
-      doc.roundedRect(totalsX, yPos, totalsWidth, totalRowHeight, 2, 2, "F");
-      doc.setTextColor(...grayColor);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.text("Subtotal", totalsX + 4, yPos + 6);
-      doc.setTextColor(...darkColor);
-      doc.setFont("helvetica", "bold");
-      doc.text(formatPrice(subtotal), pageWidth - margin, yPos + 6, { align: "right" });
-      yPos += totalRowHeight + 2;
+      // Totals card background
+      pdf.setFillColor(...lightGray);
+      pdf.roundedRect(totalsX - 5, yPos - 3, totalsWidth + 10, 45, 4, 4, "F");
       
-      // Delivery
-      doc.setFillColor(...lightGray);
-      doc.roundedRect(totalsX, yPos, totalsWidth, totalRowHeight, 2, 2, "F");
-      doc.setTextColor(...grayColor);
-      doc.setFont("helvetica", "normal");
-      doc.text("Delivery", totalsX + 4, yPos + 6);
-      doc.setTextColor(...darkColor);
-      doc.setFont("helvetica", "bold");
-      doc.text(formatPrice(delivery), pageWidth - margin, yPos + 6, { align: "right" });
-      yPos += totalRowHeight + 2;
+      pdf.setTextColor(...grayColor);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Subtotal", totalsX + 4, yPos + 5);
+      pdf.setTextColor(...darkColor);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(formatPrice(subtotal), pageWidth - margin, yPos + 5, { align: "right" });
+      yPos += 10;
       
-      // Discount
+      pdf.setTextColor(...grayColor);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Delivery", totalsX + 4, yPos + 5);
+      pdf.setTextColor(...darkColor);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(formatPrice(delivery), pageWidth - margin, yPos + 5, { align: "right" });
+      yPos += 10;
+      
       if (discount > 0) {
-        doc.setFillColor(...lightGray);
-        doc.roundedRect(totalsX, yPos, totalsWidth, totalRowHeight, 2, 2, "F");
-        doc.setTextColor(34, 139, 34);
-        doc.setFont("helvetica", "normal");
-        doc.text("Discount", totalsX + 4, yPos + 6);
-        doc.setFont("helvetica", "bold");
-        doc.text(`-${formatPrice(discount)}`, pageWidth - margin, yPos + 6, { align: "right" });
-        yPos += totalRowHeight + 2;
+        pdf.setTextColor(34, 197, 94);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Discount", totalsX + 4, yPos + 5);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`-${formatPrice(discount)}`, pageWidth - margin, yPos + 5, { align: "right" });
+        yPos += 10;
       }
       
-      // Divider
-      doc.setDrawColor(180, 180, 180);
-      doc.setLineWidth(0.5);
-      doc.line(totalsX, yPos, pageWidth - margin, yPos);
-      yPos += 6;
+      if (tax > 0) {
+        pdf.setTextColor(...grayColor);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Tax", totalsX + 4, yPos + 5);
+        pdf.setTextColor(...darkColor);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(formatPrice(tax), pageWidth - margin, yPos + 5, { align: "right" });
+        yPos += 10;
+      }
       
-      // Grand Total
-      doc.setFillColor(...goldColor);
-      doc.roundedRect(totalsX, yPos, totalsWidth, 14, 3, 3, "F");
-      doc.setTextColor(...darkColor);
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("TOTAL", totalsX + 4, yPos + 10);
-      doc.text(formatPrice(grandTotal), pageWidth - margin, yPos + 10, { align: "right" });
+      pdf.setDrawColor(...goldColor);
+      pdf.setLineWidth(0.8);
+      pdf.line(totalsX, yPos + 1, pageWidth - margin, yPos + 1);
+      yPos += 8;
+      
+      pdf.setFillColor(...goldColor);
+      pdf.roundedRect(totalsX - 2, yPos, totalsWidth + 4, 14, 3, 3, "F");
+      pdf.setTextColor(...darkColor);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("GRAND TOTAL", totalsX + 4, yPos + 10);
+      pdf.setFontSize(12);
+      pdf.text(formatPrice(grandTotal), pageWidth - margin - 2, yPos + 10, { align: "right" });
       
       // ============ FOOTER ============
-      const footerY = pageHeight - 18;
+      const footerY = pageHeight - 20;
       
-      doc.setDrawColor(...goldColor);
-      doc.setLineWidth(1);
-      doc.line(margin, footerY - 8, pageWidth - margin, footerY - 8);
+      pdf.setDrawColor(...goldColor);
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, footerY - 10, pageWidth - margin, footerY - 10);
       
-      doc.setTextColor(...grayColor);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "italic");
-      doc.text(
-        `Official invoice from ${storeProfile.storeName} ${storeProfile.storeNameAccent}`,
+      pdf.setTextColor(...darkColor);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Thank you for choosing Lightning Bathware", pageWidth / 2, footerY, { align: "center" });
+      
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...grayColor);
+      pdf.text(
+        `${storeProfile.addressCity}, Sri Lanka | ${storeProfile.phone} | ${storeProfile.email}`,
         pageWidth / 2,
-        footerY,
+        footerY + 6,
         { align: "center" }
       );
       
-      doc.setFont("helvetica", "normal");
-      doc.text(
-        `${storeProfile.addressCity}, Sri Lanka | ${storeProfile.phone}`,
-        pageWidth / 2,
-        footerY + 5,
-        { align: "center" }
-      );
-      
-      doc.setFontSize(7);
-      doc.setTextColor(180, 180, 180);
-      doc.text(
+      pdf.setFontSize(7);
+      pdf.setTextColor(180, 180, 180);
+      pdf.text(
         `Generated: ${new Date().toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
@@ -501,11 +491,11 @@ export default function Invoice() {
           minute: "2-digit"
         })}`,
         pageWidth / 2,
-        footerY + 10,
+        footerY + 11,
         { align: "center" }
       );
       
-      doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
       toast.success("Invoice downloaded!");
     } catch (err) {
       console.error("Error generating PDF:", err);
@@ -548,9 +538,9 @@ export default function Invoice() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-100 py-8 print:bg-white print:py-0">
       <div className="container mx-auto px-4">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6 print:hidden">
           <Button
             onClick={() => navigate(-1)}
             variant="outline"
@@ -563,198 +553,212 @@ export default function Invoice() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden print:shadow-none">
-            <div className="relative p-6 md:p-10 lg:p-12 overflow-x-hidden">
-              <div className="absolute inset-0 opacity-5 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center transform rotate-[-30deg] scale-[3]">
-                    <Zap className="w-32 h-32 text-[#D4AF37] mx-auto" />
-                    <p className="text-lg font-bold text-gray-600 mt-4 whitespace-nowrap overflow-hidden text-ellipsis">
-                      {storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Zap className="w-10 h-10 text-[#D4AF37] shrink-0" />
-                      <div className="min-w-0">
-                        <h2 className="text-2xl font-bold break-words">
-                          {storeProfile.storeName} <span className="text-[#D4AF37]">{storeProfile.storeNameAccent}</span>
-                        </h2>
-                        <p className="text-gray-500 text-sm">Premium Lighting & Bathware</p>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1 mt-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 shrink-0" />
-                        <span className="break-words">{storeProfile.addressStreet}, {storeProfile.addressCity}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 shrink-0" />
-                        <span>{storeProfile.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 shrink-0" />
-                        <span className="break-all">{storeProfile.email}</span>
-                      </div>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden print:shadow-none print:rounded-none">
+            {/* Header */}
+            <div className="bg-[#1a1a1a] text-white p-6 md:p-10">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Zap className="w-8 h-8 text-[#D4AF37] shrink-0" />
+                    <div className="min-w-0">
+                      <h2 className="text-2xl font-bold break-words">
+                        {storeProfile.storeName} <span className="text-[#D4AF37]">{storeProfile.storeNameAccent}</span>
+                      </h2>
+                      <p className="text-gray-400 text-sm">Premium Lighting & Bathware</p>
                     </div>
                   </div>
-
-                  <div className="text-right shrink-0">
-                    <h3 className="text-3xl font-bold text-[#D4AF37] mb-2">INVOICE</h3>
-                    <p className="text-lg font-semibold break-all">{invoice.invoiceNumber}</p>
-                    
-                    {/* Payment Status - Read from Order (Primary Source) */}
-                    <div className="mt-3 flex items-center gap-2 justify-end">
-                      <span className="text-xs text-gray-500">Payment:</span>
-                      {order?.paymentStatus === "Paid" ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold shrink-0">
-                          <CheckCircle className="w-4 h-4" />
-                          Paid
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-full text-sm font-semibold shrink-0">
-                          <Clock className="w-4 h-4" />
-                          Pending
-                        </span>
-                      )}
+                  <div className="text-sm text-gray-400 space-y-1.5 mt-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 shrink-0 text-[#D4AF37]" />
+                      <span className="break-words">{storeProfile.addressStreet}, {storeProfile.addressCity}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 shrink-0 text-[#D4AF37]" />
+                      <span>{storeProfile.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 shrink-0 text-[#D4AF37]" />
+                      <span className="break-all">{storeProfile.email}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
-                  <div className="bg-gray-50 p-4 rounded-lg min-w-0">
-                    <h4 className="font-bold mb-3 flex items-center gap-2">
-                      <Package className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                      Order Information
-                    </h4>
-                    <p className="text-sm text-gray-600 break-words">
-                      <strong>Date:</strong> {formatDate(invoice.date)}
-                    </p>
-                    {invoice.orderId && (
-                      <p className="text-sm text-gray-600 mt-1 break-all">
-                        <strong>Order ID:</strong> #{invoice.orderId.slice(-8)}
-                      </p>
-                    )}
-                    {order && (
-                      <div className="mt-3">
-                        <p className="text-sm text-gray-600">
-                          <strong>Order Status:</strong>
-                        </p>
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold mt-1 shrink-0 ${
-                          order.status === "Delivered" ? "bg-green-100 text-green-700" :
-                          order.status === "Processing" ? "bg-blue-100 text-blue-700" :
-                          "bg-orange-100 text-orange-700"
-                        }`}>
-                          {order.status === "Delivered" && <CheckCircle className="w-4 h-4" />}
-                          {order.status === "Processing" && <Zap className="w-4 h-4" />}
-                          {order.status === "Pending" && <Clock className="w-4 h-4" />}
-                          {order.status}
-                        </span>
-                      </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[#D4AF37] text-sm font-semibold tracking-wider uppercase mb-1">INVOICE</p>
+                  <h3 className="text-3xl font-extrabold text-white mb-1">{invoice.invoiceNumber}</h3>
+                  <p className="text-gray-400 text-sm">{formatDate(invoice.date)}</p>
+                  
+                  <div className="mt-4 flex items-center gap-2 justify-end">
+                    <span className="text-xs text-gray-500">Payment:</span>
+                    {order?.paymentStatus === "Paid" ? (
+                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full text-sm font-bold shrink-0 shadow-lg shadow-green-500/20">
+                        <Check className="w-4 h-4" />
+                        Paid
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-full text-sm font-bold shrink-0 shadow-lg shadow-orange-500/20">
+                        <Clock className="w-4 h-4" />
+                        Pending
+                      </span>
                     )}
                   </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg min-w-0">
-                    <h4 className="font-bold mb-3 flex items-center gap-2">
-                      <span className="text-[#D4AF37] shrink-0">@</span>
-                      Customer Details
-                    </h4>
-                    <p className="text-sm font-semibold break-words">{invoice.customerName}</p>
-                    <p className="text-sm text-gray-600 break-words">{invoice.customerPhone}</p>
-                    {invoice.customerEmail && (
-                      <p className="text-sm text-gray-600 break-all">{invoice.customerEmail}</p>
-                    )}
-                    <p className="text-sm text-gray-600 mt-1 break-words leading-relaxed">{invoice.address}</p>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto mb-8">
-                  <table className="w-full min-w-[500px] md:table-fixed">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="px-3 py-3 text-left text-sm font-bold min-w-0">Product</th>
-                        <th className="px-3 py-3 text-center text-sm font-bold w-16">Qty</th>
-                        <th className="px-3 py-3 text-right text-sm font-bold w-24 md:w-28">Unit Price</th>
-                        <th className="px-3 py-3 text-right text-sm font-bold w-24 md:w-28">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {invoice.products.map((product, index) => (
-                        <tr key={product.id || index} className="border-b">
-                          <td className="px-3 py-3 text-sm whitespace-normal break-normal">
-                            {product.name}
-                            {(product.selected_color || product.selected_size) && (
-                              <span className="text-[#D4AF37] font-medium">
-                                {" "}
-                                ({product.selected_color || product.selected_size})
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-3 py-3 text-sm text-center">{product.quantity}</td>
-                          <td className="px-3 py-3 text-sm text-right whitespace-nowrap">{formatPrice(product.unitPrice)}</td>
-                          <td className="px-3 py-3 text-sm text-right font-semibold whitespace-nowrap">
-                            {formatPrice(product.total)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex justify-end">
-                  <div className="bg-gray-50 p-4 rounded-lg min-w-[280px] max-w-full">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Subtotal</span>
-                        <span className="font-medium">{formatPrice(invoice.subtotal)}</span>
-                      </div>
-                      {(invoice.discount || 0) > 0 && (
-                        <div className="flex justify-between items-center text-sm text-green-600">
-                          <span>Discount</span>
-                          <span className="font-medium">-{formatPrice(invoice.discount)}</span>
-                        </div>
-                      )}
-                      {(invoice.tax || 0) > 0 && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">Tax</span>
-                          <span className="font-medium">{formatPrice(invoice.tax)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Delivery</span>
-                        <span className="font-medium">{formatPrice(invoice.deliveryCost)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-base font-bold border-t border-gray-300 pt-3 mt-2">
-                        <span>Grand Total</span>
-                        <span className="text-[#D4AF37] text-lg">{formatPrice(invoice.grandTotal)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t text-center">
-                  <p className="text-sm text-gray-500 flex items-center justify-center gap-2 flex-wrap">
-                    <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                    <span className="break-words">{storeProfile.storeName} {storeProfile.storeNameAccent} – Official Invoice</span>
-                    <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                  </p>
-                  <p className="text-xs text-gray-400 mt-2 break-words">
-                    Powered by {storeProfile.storeName} {storeProfile.storeNameAccent} | {storeProfile.addressCity}, Sri Lanka
-                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 px-8 py-4 flex flex-wrap gap-3 justify-center print:hidden">
+            {/* Gold accent line */}
+            <div className="h-1 bg-gradient-to-r from-[#D4AF37] via-[#F5D76E] to-[#D4AF37]" />
+
+            <div className="p-6 md:p-10 lg:p-12">
+              {/* Info Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 min-w-0">
+                  <h4 className="font-bold text-sm uppercase tracking-wider text-[#D4AF37] mb-3 flex items-center gap-2">
+                    <Package className="w-4 h-4 shrink-0" />
+                    Order Information
+                  </h4>
+                  <p className="text-sm text-gray-600 break-words">
+                    <strong className="text-gray-900">Date:</strong> {formatDate(invoice.date)}
+                  </p>
+                  {invoice.orderId && (
+                    <p className="text-sm text-gray-600 mt-1 break-all">
+                      <strong className="text-gray-900">Order ID:</strong> #{invoice.orderId.slice(-8)}
+                    </p>
+                  )}
+                  {order && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600 mb-1">
+                        <strong className="text-gray-900">Order Status:</strong>
+                      </p>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 ${
+                        order.status === "Delivered" ? "bg-green-100 text-green-700" :
+                        order.status === "Processing" ? "bg-blue-100 text-blue-700" :
+                        "bg-orange-100 text-orange-700"
+                      }`}>
+                        {order.status === "Delivered" && <CheckCircle className="w-4 h-4" />}
+                        {order.status === "Processing" && <Zap className="w-4 h-4" />}
+                        {order.status === "Pending" && <Clock className="w-4 h-4" />}
+                        {order.status}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 min-w-0">
+                  <h4 className="font-bold text-sm uppercase tracking-wider text-[#D4AF37] mb-3 flex items-center gap-2">
+                    <span className="text-[#D4AF37] shrink-0">@</span>
+                    Customer Details
+                  </h4>
+                  <p className="text-base font-bold text-gray-900 break-words">{invoice.customerName}</p>
+                  <p className="text-sm text-gray-600 mt-1 break-words">{invoice.customerPhone}</p>
+                  {invoice.customerEmail && (
+                    <p className="text-sm text-gray-600 break-all">{invoice.customerEmail}</p>
+                  )}
+                  <p className="text-sm text-gray-600 mt-2 break-words leading-relaxed">{invoice.address}</p>
+                </div>
+              </div>
+
+              {/* Products Table */}
+              <div className="overflow-x-auto mb-8 rounded-xl border border-gray-200">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-[#1a1a1a] text-white">
+                      <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Product</th>
+                      <th className="px-4 py-3.5 text-center text-xs font-bold uppercase tracking-wider w-24">Color</th>
+                      <th className="px-4 py-3.5 text-center text-xs font-bold uppercase tracking-wider w-16">Qty</th>
+                      <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider">Unit Price</th>
+                      <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.products.map((product, index) => (
+                      <tr key={product.id || index} className={`border-b border-gray-100 ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} hover:bg-gray-50 transition-colors`}>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            {getProductImage(product) && (
+                              <img 
+                                src={getProductImage(product)} 
+                                alt={product.name}
+                                className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-200"
+                              />
+                            )}
+                            <span className="text-sm font-medium text-gray-900 whitespace-normal break-normal">{product.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
+                          {(product.selected_color || product.selected_size) ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                              {product.selected_color || product.selected_size}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5 text-sm text-center font-medium">{product.quantity}</td>
+                        <td className="px-4 py-3.5 text-sm text-right text-gray-600">{formatPrice(product.unitPrice)}</td>
+                        <td className="px-4 py-3.5 text-sm text-right font-semibold text-gray-900">
+                          {formatPrice(product.total)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totals Section */}
+              <div className="flex justify-end mb-8">
+                <div className="bg-gray-50 rounded-xl p-5 min-w-[300px] max-w-full border border-gray-100">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Subtotal</span>
+                      <span className="font-medium text-gray-900">{formatPrice(invoice.subtotal)}</span>
+                    </div>
+                    {(invoice.deliveryCost || 0) > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500 flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Delivery</span>
+                        <span className="font-medium text-gray-900">{formatPrice(invoice.deliveryCost)}</span>
+                      </div>
+                    )}
+                    {(invoice.discount || 0) > 0 && (
+                      <div className="flex justify-between items-center text-sm text-green-600">
+                        <span className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5" /> Discount</span>
+                        <span className="font-medium">-{formatPrice(invoice.discount)}</span>
+                      </div>
+                    )}
+                    {(invoice.tax || 0) > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">Tax</span>
+                        <span className="font-medium text-gray-900">{formatPrice(invoice.tax)}</span>
+                      </div>
+                    )}
+                    <div className="border-t-2 border-[#D4AF37] pt-3 mt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-base font-bold text-gray-900">Grand Total</span>
+                        <span className="text-2xl font-extrabold text-[#D4AF37]">{formatPrice(invoice.grandTotal)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+                <p className="text-base font-semibold text-gray-800">
+                  Thank you for choosing Lightning Bathware
+                </p>
+                <p className="text-sm text-gray-500 mt-1 flex items-center justify-center gap-2 flex-wrap">
+                  <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                  <span>{storeProfile.addressCity}, Sri Lanka | {storeProfile.phone} | {storeProfile.email}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="bg-gray-50 px-8 py-4 flex flex-wrap gap-3 justify-center print:hidden border-t border-gray-200">
               <Button
                 onClick={downloadPDF}
                 disabled={isDownloading}
-                className="bg-[#D4AF37] hover:bg-[#b8962f] text-white"
+                className="bg-[#D4AF37] hover:bg-[#b8962f] text-white shadow-md shadow-[#D4AF37]/20"
               >
                 <Download className={cn("w-4 h-4 mr-2", isDownloading && "animate-spin")} />
                 {isDownloading ? "Generating..." : "Download PDF"}
@@ -783,20 +787,20 @@ export default function Invoice() {
           .print\\:hidden {
             display: none !important;
           }
-          /* Invoice specific print styles */
-          .invoice-print-area {
-            visibility: visible !important;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+          .print\\:bg-white {
+            background: white !important;
           }
-          /* Ensure table doesn't overflow */
+          .print\\:rounded-none {
+            border-radius: 0 !important;
+          }
+          .print\\:py-0 {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
           table {
             table-layout: fixed;
             word-wrap: break-word;
           }
-          /* Ensure text wraps properly */
           * {
             max-width: 100% !important;
             overflow-wrap: break-word !important;

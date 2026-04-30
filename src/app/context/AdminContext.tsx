@@ -134,6 +134,7 @@ export interface Invoice {
     total: number;
     selected_color?: string;
     selected_size?: string;
+    image?: string;
   }>;
   subtotal: number;
   discount: number;
