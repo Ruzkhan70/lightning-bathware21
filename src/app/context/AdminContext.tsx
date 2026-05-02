@@ -2797,8 +2797,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       toast.success("OTP sent to your recovery email");
       return { success: true };
-    } catch {
-      return { success: false, error: "Failed to generate OTP. Try again." };
+    } catch (error: any) {
+      console.error("OTP generation failed:", error);
+      return { success: false, error: error?.message || "Failed to generate OTP. Try again." };
     }
   };
 
