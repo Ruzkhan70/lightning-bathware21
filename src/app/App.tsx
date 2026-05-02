@@ -9,6 +9,7 @@ import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { UserProvider } from "./context/UserContext";
 import { NotificationsProvider } from "./context/NotificationsContext";
 import { AnnouncementProvider } from "./context/AnnouncementContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { Toaster } from "./components/ui/sonner";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -30,7 +31,7 @@ function DataLoader({ children }: { children: ReactNode }) {
 
 function App() {
   return (
-    <>
+    <ThemeProvider>
       <Toaster />
       <AnnouncementProvider>
         <UserProvider>
@@ -49,7 +50,7 @@ function App() {
           </AdminProvider>
         </UserProvider>
       </AnnouncementProvider>
-    </>
+    </ThemeProvider>
   );
 }
 

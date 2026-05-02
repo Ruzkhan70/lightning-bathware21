@@ -20,14 +20,18 @@ import {
   FileText,
   Shield,
   Bell,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
+import { useTheme } from "../context/ThemeContext";
 import ScrollToTop from "./ScrollToTop";
 import SessionWarning from "./admin/SessionWarning";
 import { useAdminTimeout } from "../hooks/useAdminTimeout";
 
 export default function AdminLayout() {
   const { isAdminLoggedIn, isDataLoaded, logout, triggerLogout, products, storeProfile, messages } = useAdmin();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -283,7 +287,7 @@ export default function AdminLayout() {
       />
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black text-white z-50 flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black dark:bg-gray-900 text-white z-50 flex items-center justify-between px-4">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -298,7 +302,17 @@ export default function AdminLayout() {
           <span className="text-white font-bold">{storeProfile.storeName}</span>
           <span className="text-[#D4AF37] font-bold"> {storeProfile.storeNameAccent}</span>
         </div>
-        <div className="w-10"></div>
+        <button
+          onClick={toggleTheme}
+          className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          {theme === "dark" ? (
+            <Sun className="w-5 h-5 text-amber-400" />
+          ) : (
+            <Moon className="w-5 h-5" />
+          )}
+        </button>
       </div>
 
       {/* Mobile Menu Overlay */}
@@ -312,11 +326,11 @@ export default function AdminLayout() {
         />
       )}
 
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
         <ScrollToTop />
         
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-56 bg-black text-white flex-col">
+        <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-56 bg-black dark:bg-gray-900 text-white flex-col">
           <div className="p-4 border-b border-gray-800 flex-shrink-0">
             <h1 className="text-lg font-bold flex items-center gap-1">
               <span className="text-white">{storeProfile.storeName}</span>
@@ -354,6 +368,17 @@ export default function AdminLayout() {
 
           <div className="flex-shrink-0 p-2 border-t border-gray-800 space-y-1">
             <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-800 hover:text-white transition-colors w-full"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
+              <span className="text-sm">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+            </button>
+            <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="flex items-center gap-2 px-3 py-2 rounded-md text-blue-400 hover:bg-gray-800 hover:text-blue-300 transition-colors w-full"
@@ -377,7 +402,7 @@ export default function AdminLayout() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`lg:hidden fixed left-0 top-0 h-screen w-72 bg-black text-white flex flex-col z-50 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`lg:hidden fixed left-0 top-0 h-screen w-72 bg-black dark:bg-gray-900 text-white flex flex-col z-50 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{ boxShadow: mobileMenuOpen ? "4px 0 25px rgba(0,0,0,0.5)" : "none", touchAction: "pan-y" }}
       >
           <div className="p-4 border-b border-gray-800 flex-shrink-0 flex items-center justify-between">

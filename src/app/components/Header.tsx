@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router";
-import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid, ChevronRight, Lightbulb } from "lucide-react";
+import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid, ChevronRight, Lightbulb, Sun, Moon } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
+import { useTheme } from "../context/ThemeContext";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 export default function Header() {
@@ -11,6 +12,7 @@ export default function Header() {
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const { storeProfile, categories, products, siteContent } = useAdmin();
+  const { theme, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
@@ -220,6 +222,18 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3 md:gap-4">
+            <button
+              onClick={toggleTheme}
+              className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="w-6 h-6 text-amber-400" />
+              ) : (
+                <Moon className="w-6 h-6" />
+              )}
+            </button>
+
             <Link to="/account" className="hidden md:block relative hover:text-[#D4AF37] transition-colors">
               <User className="w-6 h-6" />
             </Link>

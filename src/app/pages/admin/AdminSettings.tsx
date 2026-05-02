@@ -4,11 +4,12 @@ import {
   Monitor, Smartphone, LogOut, Trash2, Check, ChevronRight, Save,
   Globe, Phone, Mail, MapPin, Clock, Truck, CreditCard, Award,
   Plus, X, CheckCircle, AlertCircle, Zap, RotateCcw, ToggleLeft, ToggleRight,
-  AlertTriangle, Timer, RefreshCw
+  AlertTriangle, Timer, RefreshCw, Sun, Moon
 } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { useAdmin, DEFAULT_SITE_CONTENT } from "../../context/AdminContext";
+import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
 export default function AdminSettings() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('store-profile');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   
   const { 
     adminUsername, 
@@ -1812,7 +1814,49 @@ export default function AdminSettings() {
                 )}
               </Card>
 
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-5">
+              {/* Appearance */}
+              <Card title="Appearance" icon={theme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />} description="Customize the look of your admin panel">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      theme === "dark" ? "bg-indigo-100 dark:bg-indigo-900/30" : "bg-amber-100"
+                    }`}>
+                      {theme === "dark" ? (
+                        <Moon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <Sun className="w-5 h-5 text-amber-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {theme === "dark" ? "Easy on the eyes" : "Classic clean look"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleTheme}
+                    className="relative w-14 h-7 rounded-full transition-colors duration-300 bg-gray-300 dark:bg-gray-600"
+                    aria-label="Toggle dark mode"
+                  >
+                    <div
+                      className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 flex items-center justify-center ${
+                        theme === "dark" ? "translate-x-7" : "translate-x-0"
+                      }`}
+                    >
+                      {theme === "dark" ? (
+                        <Moon className="w-3.5 h-3.5 text-gray-800" />
+                      ) : (
+                        <Sun className="w-3.5 h-3.5 text-amber-500" />
+                      )}
+                    </div>
+                  </button>
+                </div>
+              </Card>
+
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 dark:border-blue-800 border border-blue-200 rounded-xl p-4 sm:p-5">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />

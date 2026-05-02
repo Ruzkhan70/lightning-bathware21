@@ -7,7 +7,7 @@ import CompareBar from "./CompareBar";
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-background">
       <AnnouncementBanner />
       <ScrollToTop />
       <Header />

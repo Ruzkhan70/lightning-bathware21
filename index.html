@@ -18,12 +18,27 @@
   <meta name="description" content="Lightning Bathware is Sri Lanka's leading hardware store, offering premium lighting, bathroom fittings, plumbing, and electrical hardware. Explore our wide range of products and special offers." />
   <meta name="google-site-verification" content="SmhkE1y_ZF07BhXK5G-KYOGKaxA-orPqOQvs09x8jT8" />
   <!-- Loading styles to prevent flash -->
+  <script>
+    // Apply theme immediately to prevent flash
+    (function() {
+      try {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
   <style>
     body {
       margin: 0;
       padding: 0;
       background-color: #f9f9f9;
       min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .dark body {
+      background-color: #0f172a;
     }
     #root {
       min-height: 100vh;
@@ -43,6 +58,10 @@
       color: #333;
       font-family: system-ui, -apple-system, sans-serif;
       z-index: 9999;
+    }
+    .dark .loading-screen {
+      background: #0f172a;
+      color: #f9fafb;
     }
     .loading-spinner {
       width: 50px;
