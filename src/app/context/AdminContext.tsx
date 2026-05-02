@@ -1160,27 +1160,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const { device, browser, os } = getDeviceInfo();
         const now = new Date().toISOString();
         
-        const snapshot = await getDocs(query(
+        // Clean up all old sessions for this device/email to prevent stale logout triggers
+        const cleanupQ = query(
           collection(db, DEVICE_SESSIONS_COLLECTION),
+          where('deviceId', '==', deviceId),
           where('email', '==', adminEmail)
-        ));
-        const existingSession = snapshot.docs.find(doc => {
-          const data = doc.data();
-          return data.deviceId === deviceId && data.email === adminEmail;
-        });
+        );
+        const cleanupSnap = await getDocs(cleanupQ);
+        const cleanupPromises = cleanupSnap.docs.map(d => deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, d.id)));
+        await Promise.all(cleanupPromises);
         
-        if (!existingSession) {
-          await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
-            deviceId,
-            email: adminEmail,
-            device,
-            browser,
-            os,
-            status: 'active',
-            loginTime: now,
-            lastActive: now,
-          });
-        }
+        // Create fresh session
+        await addDoc(collection(db, DEVICE_SESSIONS_COLLECTION), {
+          deviceId,
+          email: adminEmail,
+          device,
+          browser,
+          os,
+          status: 'active',
+          loginTime: now,
+          lastActive: now,
+        });
       } catch (error) {
         console.error("Error ensuring current session:", error);
       }
