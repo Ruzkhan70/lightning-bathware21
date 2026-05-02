@@ -1,6 +1,6 @@
 import emailjs from "@emailjs/browser";
 
-const RECOVERY_EMAIL = "ruskankhazar@gmail.com";
+const RECOVERY_EMAIL = "ruzkhanhazar@gmail.com";
 
 interface EmailConfig {
   publicKey: string;
