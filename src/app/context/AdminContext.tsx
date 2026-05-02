@@ -1226,24 +1226,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             return;
           }
           
-          const sessions: DeviceSession[] = snapshot.docs
-          .map(docSnap => {
+          const sessionsMap = new Map<string, DeviceSession>();
+          snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
-            return {
-              id: docSnap.id,
-              deviceId: data.deviceId,
-              email: data.email,
-              device: data.device,
-              browser: data.browser,
-              os: data.os,
-              isCurrentDevice: data.deviceId === deviceId,
-              status: data.status,
-              loginTime: data.loginTime,
-              lastActive: data.lastActive,
-              ipAddress: data.ipAddress,
-            } as DeviceSession;
-          })
-          .filter(s => s.status === 'active');
+            if (data.status === 'active') {
+              const session: DeviceSession = {
+                id: docSnap.id,
+                deviceId: data.deviceId,
+                email: data.email,
+                device: data.device,
+                browser: data.browser,
+                os: data.os,
+                isCurrentDevice: data.deviceId === deviceId,
+                status: data.status,
+                loginTime: data.loginTime,
+                lastActive: data.lastActive,
+                ipAddress: data.ipAddress,
+              };
+              
+              // Keep only the most recent session per deviceId
+              const existing = sessionsMap.get(data.deviceId);
+              if (!existing || new Date(data.lastActive) > new Date(existing.lastActive)) {
+                sessionsMap.set(data.deviceId, session);
+              }
+            }
+          });
+          
+          const sessions = Array.from(sessionsMap.values());
         
         if (sessions.length === 0) {
           const { device, browser, os } = getDeviceInfo();
