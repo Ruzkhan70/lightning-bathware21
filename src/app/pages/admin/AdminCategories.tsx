@@ -95,8 +95,8 @@ function SortableRow({ category, onEdit, onToggle, onDelete, getIcon }: {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`flex items-center gap-3 p-3 bg-white rounded-lg border transition-shadow ${isDragging ? 'shadow-lg border-[#D4AF37]' : 'border-gray-200'}`}>
-      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1">
+    <div ref={setNodeRef} style={style} className={`flex items-center gap-3 p-3 bg-card rounded-lg border transition-shadow ${isDragging ? 'shadow-lg border-[#D4AF37]' : 'border-border'}`}>
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-muted-foreground p-1">
         <GripVertical className="w-5 h-5" />
       </div>
       <div className={`w-10 h-10 ${category.color || 'bg-blue-500'} rounded-lg flex items-center justify-center flex-shrink-0`}>
@@ -109,12 +109,12 @@ function SortableRow({ category, onEdit, onToggle, onDelete, getIcon }: {
         <div className="flex items-center gap-2">
           <h4 className="font-semibold text-sm truncate">{category.name}</h4>
           <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-            category.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            category.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
           }`}>
             {category.isActive ? "Active" : "Disabled"}
           </span>
         </div>
-        <p className="text-xs text-gray-500 truncate">{category.description || "No description"}</p>
+        <p className="text-xs text-muted-foreground truncate">{category.description || "No description"}</p>
       </div>
       <div className="flex gap-1 flex-shrink-0">
         <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(category)}>
@@ -382,7 +382,7 @@ export default function AdminCategories() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-gray-600">Manage product categories</p>
+          <p className="text-muted-foreground">Manage product categories</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setSortAsc(!sortAsc)}>
@@ -397,7 +397,7 @@ export default function AdminCategories() {
             <Download className="w-4 h-4" />
             <span className="ml-2 hidden sm:inline">Export</span>
           </Button>
-          <label className="cursor-pointer border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+          <label className="cursor-pointer border border-border px-3 py-2 rounded-lg hover:bg-muted/50 flex items-center gap-2">
             <Upload className="w-4 h-4" />
             <span className="hidden sm:inline">Import</span>
             <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
@@ -415,7 +415,7 @@ export default function AdminCategories() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search categories..."
@@ -429,7 +429,7 @@ export default function AdminCategories() {
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "grid" ? "bg-black text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "grid" ? "bg-black text-white" : "bg-card text-muted-foreground hover:bg-muted/50"}`}
             >
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Grid</span>
@@ -437,7 +437,7 @@ export default function AdminCategories() {
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "list" ? "bg-black text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "list" ? "bg-black text-white" : "bg-card text-muted-foreground hover:bg-muted/50"}`}
             >
               <List className="w-4 h-4" />
               <span className="hidden sm:inline">List</span>
@@ -452,10 +452,10 @@ export default function AdminCategories() {
             <GripVertical className="w-5 h-5 text-[#D4AF37]" />
             <div>
               <h3 className="font-semibold text-sm">Drag & Drop to Reorder</h3>
-              <p className="text-xs text-gray-500">Drag categories to set display order on the website</p>
+              <p className="text-xs text-muted-foreground">Drag categories to set display order on the website</p>
             </div>
             {isSavingOrder && (
-              <div className="ml-auto text-xs text-gray-500 flex items-center gap-1">
+              <div className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
                 <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 Saving...
               </div>
@@ -481,7 +481,7 @@ export default function AdminCategories() {
       )}
 
       {viewMode === "list" && searchQuery && (
-        <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+        <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 flex items-center gap-2">
           <Search className="w-3.5 h-3.5" />
           Drag-and-drop is disabled while searching. Clear search to reorder.
         </div>
@@ -510,15 +510,15 @@ export default function AdminCategories() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-gray-500">
+          <div className="col-span-full text-center py-12 text-muted-foreground">
             No categories found
           </div>
         ) : (
           filtered.map((cat) => (
             <div 
               key={cat.id} 
-              className={`bg-white rounded-xl shadow overflow-hidden border-2 flex flex-col ${
-                selectedIds.has(cat.id) ? 'border-[#D4AF37]' : 'border-gray-100'
+              className={`bg-card rounded-xl shadow overflow-hidden border-2 flex flex-col ${
+                selectedIds.has(cat.id) ? 'border-[#D4AF37]' : 'border-border'
               }`}
             >
               <div className="relative h-32">
@@ -529,11 +529,11 @@ export default function AdminCategories() {
                 />
                 <div className="absolute inset-0 bg-black/20" />
                 <div className="absolute top-3 left-3 z-10">
-                  <button onClick={() => toggleSelect(cat.id)} className="p-1 bg-white rounded shadow">
+                  <button onClick={() => toggleSelect(cat.id)} className="p-1 bg-card rounded shadow">
                     {selectedIds.has(cat.id) ? (
                       <CheckSquare className="w-5 h-5 text-black" />
                     ) : (
-                      <Square className="w-5 h-5 text-gray-600" />
+                      <Square className="w-5 h-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>
@@ -554,7 +554,7 @@ export default function AdminCategories() {
                   </div>
                   <h3 className="font-semibold text-lg truncate">{cat.name}</h3>
                 </div>
-                <p className="text-gray-500 text-sm line-clamp-2 mb-4">{cat.description || "No description"}</p>
+                <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{cat.description || "No description"}</p>
                 
                 <div className="flex gap-1 mt-auto pt-3 border-t">
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(cat)}>
@@ -616,7 +616,7 @@ export default function AdminCategories() {
                     type="button"
                     onClick={() => setFormData({ ...formData, icon: name })}
                     className={`p-2 rounded-lg border-2 ${
-                      formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
+                      formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-border hover:border-border"
                     }`}
                   >
                     <Icon className="w-5 h-5 mx-auto" />
@@ -696,7 +696,7 @@ export default function AdminCategories() {
                     type="button"
                     onClick={() => setFormData({ ...formData, icon: name })}
                     className={`p-2 rounded-lg border-2 ${
-                      formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 hover:border-gray-300"
+                      formData.icon === name ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-border hover:border-border"
                     }`}
                   >
                     <Icon className="w-5 h-5 mx-auto" />
@@ -747,7 +747,7 @@ export default function AdminCategories() {
             <DialogTitle>Bulk Import Categories</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Paste data from Excel (tab-separated) or CSV. Format: Name | Description | Image | Icon | Color | Active
             </p>
             <textarea

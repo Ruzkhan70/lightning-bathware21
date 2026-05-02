@@ -89,7 +89,7 @@ export default function Categories() {
 
   if (!isDataLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <section className="bg-black text-white py-16 animate-pulse">
           <div className="container mx-auto px-4 text-center">
             <Skeleton className="h-12 w-64 mx-auto mb-4 bg-gray-700" />
@@ -127,7 +127,7 @@ export default function Categories() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
@@ -153,7 +153,7 @@ export default function Categories() {
               
               return (
                 <ScrollAnimation key={category.id || index} animation="slideUp" delay={index * 100}>
-                  <div className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                  <div className="group bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                     <div className="relative h-64 overflow-hidden">
                       <img
                         src={category.image}
@@ -178,9 +178,9 @@ export default function Categories() {
                     </div>
 
                     <div className="p-6">
-                      <p className="text-gray-600 mb-4">{category.description}</p>
+                      <p className="text-muted-foreground mb-4">{category.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {productCount} {siteContent.categories.productsAvailable}
                         </span>
                         <Link

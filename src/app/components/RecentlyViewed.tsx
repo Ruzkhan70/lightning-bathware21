@@ -21,15 +21,15 @@ export default function RecentlyViewed() {
   if (validProducts.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
+    <div className="bg-card rounded-xl shadow-lg p-6 mt-8">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-[#D4AF37]" />
-          <h3 className="text-lg font-bold">Recently Viewed</h3>
+          <h3 className="text-lg font-bold text-foreground">Recently Viewed</h3>
         </div>
         <button
           onClick={clearHistory}
-          className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+          className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
         >
           <X className="w-4 h-4" />
           Clear
@@ -43,7 +43,7 @@ export default function RecentlyViewed() {
             to={`/products?search=${encodeURIComponent(product.name)}`}
             className="flex-shrink-0 w-40 group"
           >
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-2">
+            <div className="aspect-square rounded-lg overflow-hidden bg-muted/50 mb-2">
               <LazyImage
                 src={product.image}
                 alt={product.name}
@@ -80,7 +80,7 @@ export function RecentlyViewedInline() {
   if (validProducts.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-500">
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
       <Eye className="w-4 h-4" />
       <span>{validProducts.length} recently viewed</span>
     </div>

@@ -65,9 +65,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 sm:active:shadow-xl active:translate-y-0 transition-all duration-300">
+      <div className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 sm:active:shadow-xl active:translate-y-0 transition-all duration-300">
         <div 
-          className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer"
+          className="relative aspect-square overflow-hidden bg-muted/50 cursor-pointer"
           onClick={handleOpenModal}
         >
           <LazyImage
@@ -80,7 +80,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               onClick={handleOpenModal}
               size="sm"
-              className="bg-white text-black hover:bg-[#D4AF37] hover:text-white active:scale-95 transform hover:scale-110 transition-all"
+              className="bg-background text-foreground hover:bg-[#D4AF37] hover:text-white active:scale-95 transform hover:scale-110 transition-all"
             >
               <Eye className="w-4 h-4 mr-1" />
               Quick View
@@ -92,13 +92,13 @@ export default function ProductCard({ product }: ProductCardProps) {
               e.stopPropagation();
               handleWishlist();
             }}
-            className="absolute top-3 right-3 p-2.5 min-w-[44px] min-h-[44px] bg-white rounded-full hover:bg-[#D4AF37] active:scale-90 hover:scale-110 transition-all group/heart z-10 flex items-center justify-center"
+            className="absolute top-3 right-3 p-2.5 min-w-[44px] min-h-[44px] bg-background rounded-full hover:bg-[#D4AF37] active:scale-90 hover:scale-110 transition-all group/heart z-10 flex items-center justify-center"
           >
             <Heart
               className={`w-5 h-5 ${
                 inWishlist
                   ? "fill-red-500 text-red-500"
-                  : "text-black group-hover/heart:text-white"
+                  : "text-foreground group-hover/heart:text-white"
               }`}
             />
           </button>
@@ -109,8 +109,8 @@ export default function ProductCard({ product }: ProductCardProps) {
               e.stopPropagation();
               handleCompare();
             }}
-            className={`absolute top-3 left-3 p-2 min-w-[36px] min-h-[36px] bg-white rounded-full hover:bg-[#D4AF37] active:scale-90 hover:scale-110 transition-all z-10 flex items-center justify-center ${
-              inCompare ? "text-[#D4AF37]" : "text-black group-hover:text-white"
+            className={`absolute top-3 left-3 p-2 min-w-[36px] min-h-[36px] bg-background rounded-full hover:bg-[#D4AF37] active:scale-90 hover:scale-110 transition-all z-10 flex items-center justify-center ${
+              inCompare ? "text-[#D4AF37]" : "text-foreground group-hover:text-white"
             }`}
             title={inCompare ? "Remove from Compare" : "Add to Compare"}
           >
@@ -124,8 +124,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {!product.isAvailable && (
-            <div className="absolute top-3 left-3 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold">
+           {!product.isAvailable && (
+            <div className="absolute top-3 left-3 bg-muted text-muted-foreground px-3 py-1 rounded-full text-xs font-bold">
               Not Available
             </div>
           )}
@@ -136,7 +136,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.category}
           </div>
 
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 h-12">
+          <h3 className="font-semibold text-foreground mb-2 line-clamp-2 h-12">
             {product.name}
           </h3>
 
@@ -146,12 +146,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <div className="text-2xl font-bold text-[#D4AF37]">
                   Rs. {Math.round(displayPrice || 0).toLocaleString()}
                 </div>
-                <div className="text-sm text-gray-500 line-through">
+                 <div className="text-sm text-muted-foreground line-through">
                   Rs. {product.price.toLocaleString()}
                 </div>
               </>
             ) : (
-              <div className="text-2xl font-bold text-black">
+              <div className="text-2xl font-bold text-foreground">
                 Rs. {product.price.toLocaleString()}
               </div>
             )}
@@ -167,7 +167,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Button
             onClick={handleAddToCart}
             disabled={!product.isAvailable}
-            className="w-full min-h-[48px] bg-black hover:bg-[#D4AF37] text-white active:scale-[0.98] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full min-h-[48px] bg-foreground hover:bg-[#D4AF37] hover:text-black text-background active:scale-[0.98] transition-colors disabled:bg-muted disabled:cursor-not-allowed disabled:text-muted-foreground"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
             {product.isAvailable ? "Add to Cart" : "Not Available"}
@@ -176,7 +176,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Button
             onClick={handleOpenModal}
             variant="outline"
-            className="w-full min-h-[44px] mt-2 border-gray-300 hover:border-[#D4AF37] hover:text-[#D4AF37] active:scale-[0.98] transition-colors"
+            className="w-full min-h-[44px] mt-2 border-border hover:border-[#D4AF37] hover:text-[#D4AF37] active:scale-[0.98] transition-colors"
           >
             <Eye className="w-4 h-4 mr-2" />
             Quick View

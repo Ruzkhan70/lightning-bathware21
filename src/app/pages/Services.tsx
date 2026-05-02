@@ -14,7 +14,7 @@ export default function Services() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
@@ -32,17 +32,17 @@ export default function Services() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {services.map((service, index) => (
                 <ScrollAnimation key={index} animation="slideUp" delay={index * 100}>
-                  <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
+                  <div className="bg-card rounded-lg shadow-lg p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
                     <div className="w-16 h-16 bg-[#D4AF37] rounded-lg flex items-center justify-center mb-6">
                       <service.icon className="w-8 h-8 text-black" />
                     </div>
                     <h3 className="text-xl font-bold mb-3">{service.title}</h3>
-                    <p className="text-gray-600 mb-6">{service.description}</p>
+                    <p className="text-muted-foreground mb-6">{service.description}</p>
                     <ul className="space-y-2">
                       {service.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-[#D4AF37] mt-1">✓</span>
-                          <span className="text-sm text-gray-700">{feature}</span>
+                          <span className="text-sm text-muted-foreground">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -55,14 +55,14 @@ export default function Services() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-card">
         <div className="container mx-auto px-4">
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 {siteContent.services.whyChooseTitle}
               </h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                 {siteContent.services.whyChooseSubtitle}
               </p>
             </div>
@@ -77,7 +77,7 @@ export default function Services() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                    <p className="text-gray-600">{item.description}</p>
+                    <p className="text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
               </ScrollAnimation>
@@ -103,7 +103,7 @@ export default function Services() {
                 </button>
               </a>
               <a href={`mailto:${storeProfile.email}`}>
-                <button className="px-8 py-3 bg-white hover:bg-gray-100 text-black font-bold rounded-lg transition-colors hover:scale-105">
+                <button className="px-8 py-3 bg-card hover:bg-muted text-black font-bold rounded-lg transition-colors hover:scale-105">
                   {siteContent.services.emailButtonText}
                 </button>
               </a>

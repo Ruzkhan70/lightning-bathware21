@@ -144,12 +144,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto z-10"
+          className="relative bg-card rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto z-10"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-20 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+            className="absolute top-4 right-4 z-20 p-2 bg-background rounded-full shadow-lg hover:bg-muted transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -158,7 +158,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             {/* Image */}
             <div className="relative">
               <div 
-                className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative cursor-crosshair"
+                className="aspect-square rounded-lg overflow-hidden bg-muted/50 relative cursor-crosshair"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 onMouseMove={handleMouseMove}
@@ -207,13 +207,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
 
               {/* Product Name */}
-              <h2 className="text-3xl font-bold text-black mb-2">
+              <h2 className="text-3xl font-bold text-foreground mb-2">
                 {product.name}
               </h2>
 
               {/* Product Code */}
-              {product.product_code && (
-                <p className="text-sm text-gray-500 mb-4">
+                {product.product_code && (
+                <p className="text-sm text-muted-foreground mb-4">
                   Code: {product.product_code}
                 </p>
               )}
@@ -225,15 +225,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     <span className="text-4xl font-bold text-green-600">
                       Rs. {displayPrice.toLocaleString()}
                     </span>
-                    <span className="text-xl text-gray-400 line-through">
+                    <span className="text-xl text-muted-foreground line-through">
                       Rs. {product.price.toLocaleString()}
                     </span>
-                    <span className="px-2 py-1 bg-red-100 text-red-600 text-sm font-semibold rounded">
-                      -{discount.discountPercentage}%
+                       <span className="px-2 py-1 bg-red-100 text-red-600 text-sm font-semibold rounded dark:bg-red-900/30 dark:text-red-300">
+                        -{discount.discountPercentage}%
                     </span>
                   </div>
                 ) : (
-                  <div className="text-4xl font-bold text-black">
+                  <div className="text-4xl font-bold text-foreground">
                     Rs. {displayPrice.toLocaleString()}
                   </div>
                 )}
@@ -251,7 +251,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         className={`px-4 py-2 rounded-full border-2 transition-all ${
                           selectedColor === variant.color
                             ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-border hover:border-muted-foreground"
                         }`}
                       >
                         {variant.color}
@@ -273,7 +273,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         className={`px-4 py-2 rounded-full border-2 transition-all ${
                           selectedSize === sz.size
                             ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-border hover:border-muted-foreground"
                         }`}
                       >
                         {sz.size}
@@ -286,13 +286,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               {/* Description */}
               <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-2">Description</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {product.description}
                 </p>
               </div>
 
               {/* Availability Status */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-semibold">Availability:</span>
@@ -307,19 +307,19 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
 
               {/* Delivery Options */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <Truck className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-semibold">Delivery Options:</span>
                 </div>
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-between">
                     <span>• Delivery within Colombo</span>
-                    <span className="font-semibold text-black">Rs. {(storeProfile?.deliveryColomboPrice || 0).toLocaleString()}</span>
+                    <span className="font-semibold text-foreground">Rs. {(storeProfile?.deliveryColomboPrice || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>• Islandwide delivery</span>
-                    <span className="font-semibold text-black">Rs. {(storeProfile?.deliveryIslandwidePrice || 0).toLocaleString()}</span>
+                    <span className="font-semibold text-foreground">Rs. {(storeProfile?.deliveryIslandwidePrice || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -329,18 +329,18 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="mb-6">
                   <label className="block font-semibold mb-3">Quantity:</label>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center border-2 border-gray-300 rounded-lg">
-                      <button
-                        onClick={decrementQuantity}
-                        disabled={quantity <= 1}
-                        className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Minus className="w-5 h-5" />
-                      </button>
-                      <span className="px-6 font-bold text-xl">{quantity}</span>
-                      <button
-                        onClick={incrementQuantity}
-                        className="p-3 hover:bg-gray-100 transition-colors"
+                  <div className="flex items-center border-2 border-border rounded-lg">
+                    <button
+                      onClick={decrementQuantity}
+                      disabled={quantity <= 1}
+                      className="p-3 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Minus className="w-5 h-5" />
+                    </button>
+                    <span className="px-6 font-bold text-xl">{quantity}</span>
+                    <button
+                      onClick={incrementQuantity}
+                      className="p-3 hover:bg-muted transition-colors"
                       >
                         <Plus className="w-5 h-5" />
                       </button>
@@ -353,7 +353,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <Button
                 onClick={handleAddToCart}
                 disabled={!product.isAvailable}
-                className="w-full py-6 text-lg bg-black hover:bg-[#D4AF37] text-white transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="w-full py-6 text-lg bg-foreground hover:bg-[#D4AF37] hover:text-black text-background transition-colors disabled:bg-muted disabled:cursor-not-allowed disabled:text-muted-foreground"
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 {product.isAvailable 

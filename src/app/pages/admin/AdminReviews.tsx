@@ -197,21 +197,21 @@ export default function AdminReviews() {
     switch (status) {
       case "pending":
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+          <span className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 text-xs font-medium rounded-full">
             <Clock className="w-3 h-3" />
             Pending
           </span>
         );
       case "approved":
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+          <span className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-xs font-medium rounded-full">
             <CheckCircle className="w-3 h-3" />
             Approved
           </span>
         );
       case "rejected":
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+          <span className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-xs font-medium rounded-full">
             <XCircle className="w-3 h-3" />
             Rejected
           </span>
@@ -235,7 +235,7 @@ export default function AdminReviews() {
             className={`w-5 h-5 ${
               star <= rating 
                 ? "fill-yellow-400 text-yellow-400" 
-                : "text-gray-300"
+                : "text-muted-foreground"
             }`}
           />
         </button>
@@ -255,7 +255,7 @@ export default function AdminReviews() {
 
   const getSelectAllIcon = () => {
     if (filteredReviews.length === 0) {
-      return <Square className="w-5 h-5 text-gray-400" />;
+      return <Square className="w-5 h-5 text-muted-foreground" />;
     }
     if (selectedReviews.size === filteredReviews.length) {
       return <CheckSquare className="w-5 h-5 text-[#D4AF37]" />;
@@ -263,7 +263,7 @@ export default function AdminReviews() {
     if (selectedReviews.size > 0) {
       return <SquareCheck className="w-5 h-5 text-[#D4AF37]" />;
     }
-    return <Square className="w-5 h-5 text-gray-400" />;
+    return <Square className="w-5 h-5 text-muted-foreground" />;
   };
 
   return (
@@ -271,28 +271,28 @@ export default function AdminReviews() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Customer Reviews</h1>
-          <p className="text-gray-600">Manage and moderate customer reviews</p>
+          <p className="text-muted-foreground">Manage and moderate customer reviews</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <div className="text-center px-3 py-1 bg-yellow-100 rounded-lg">
-            <p className="text-xl font-bold text-yellow-700">{pendingCount}</p>
-            <p className="text-xs text-yellow-600">Pending</p>
+            <p className="text-xl font-bold text-yellow-700 dark:text-yellow-300">{pendingCount}</p>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400">Pending</p>
           </div>
           <div className="text-center px-3 py-1 bg-green-100 rounded-lg">
-            <p className="text-xl font-bold text-green-700">{approvedCount}</p>
-            <p className="text-xs text-green-600">Approved</p>
+            <p className="text-xl font-bold text-green-700 dark:text-green-300">{approvedCount}</p>
+            <p className="text-xs text-green-600 dark:text-green-400">Approved</p>
           </div>
           <div className="text-center px-3 py-1 bg-red-100 rounded-lg">
-            <p className="text-xl font-bold text-red-700">{rejectedCount}</p>
-            <p className="text-xs text-red-600">Rejected</p>
+            <p className="text-xl font-bold text-red-700 dark:text-red-300">{rejectedCount}</p>
+            <p className="text-xs text-red-600 dark:text-red-400">Rejected</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+      <div className="bg-card rounded-lg shadow-sm p-4 md:p-6 mb-6">
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Search reviews..."
               value={searchQuery}
@@ -317,7 +317,7 @@ export default function AdminReviews() {
               <div className="flex-1 md:flex-none">
                 <div className="flex items-center gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin text-[#D4AF37]" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     Seeding reviews...
                   </span>
                 </div>
@@ -325,7 +325,7 @@ export default function AdminReviews() {
               <Button
                 onClick={handleCancelSeeding}
                 variant="outline"
-                className="text-red-600 border-red-300 hover:bg-red-50 w-full md:w-auto"
+                className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 w-full md:w-auto"
               >
                 <X className="w-4 h-4 mr-1" />
                 Cancel
@@ -353,7 +353,7 @@ export default function AdminReviews() {
               onClick={handleBulkDelete}
               variant="outline"
               size="sm"
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
               <Trash2 className="w-4 h-4 mr-1" />
               Delete Selected
@@ -363,22 +363,22 @@ export default function AdminReviews() {
       </div>
 
       {filteredReviews.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center">
-          <Star className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500 text-lg mb-2">
+        <div className="bg-card rounded-lg shadow-sm p-8 md:p-12 text-center">
+          <Star className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground text-lg mb-2">
             {searchQuery ? "No reviews found matching your search" : "No reviews yet"}
           </p>
-          <p className="text-gray-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             {searchQuery ? "Try adjusting your search or filter" : "Customer reviews will appear here"}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Header with Select All */}
-          <div className="bg-gray-100 rounded-lg p-3 flex items-center gap-3">
+          <div className="bg-muted rounded-lg p-3 flex items-center gap-3">
             <button
               onClick={toggleSelectAll}
-              className="flex items-center gap-2 hover:bg-gray-200 p-2 rounded transition-colors"
+              className="flex items-center gap-2 hover:bg-muted p-2 rounded transition-colors"
             >
               {getSelectAllIcon()}
               <span className="font-medium text-sm">Select All ({filteredReviews.length})</span>
@@ -386,7 +386,7 @@ export default function AdminReviews() {
             {selectedCount > 0 && (
               <button
                 onClick={() => setSelectedReviews(new Set())}
-                className="text-sm text-blue-600 hover:underline ml-2"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline ml-2"
               >
                 Clear Selection
               </button>
@@ -398,7 +398,7 @@ export default function AdminReviews() {
             return (
               <div 
                 key={review.id} 
-                className={`bg-white rounded-lg shadow-sm p-4 md:p-6 ${
+                className={`bg-card rounded-lg shadow-sm p-4 md:p-6 ${
                   review.status === "pending" ? "border-l-4 border-yellow-400" : ""
                 } ${review.status === "rejected" ? "opacity-60" : ""} ${
                   isSelected ? "ring-2 ring-[#D4AF37]" : ""
@@ -409,12 +409,12 @@ export default function AdminReviews() {
                   <div className="flex items-start pt-1">
                     <button
                       onClick={() => toggleSelectReview(review.id)}
-                      className="hover:bg-gray-100 p-1 rounded transition-colors"
+                      className="hover:bg-muted p-1 rounded transition-colors"
                     >
                       {isSelected ? (
                         <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
                       ) : (
-                        <Square className="w-5 h-5 text-gray-400" />
+                        <Square className="w-5 h-5 text-muted-foreground" />
                       )}
                     </button>
                   </div>
@@ -426,7 +426,7 @@ export default function AdminReviews() {
                       </div>
                       <div>
                         <p className="font-semibold">{review.userName}</p>
-                        <p className="text-sm text-gray-500">{review.userEmail || "Guest"}</p>
+                        <p className="text-sm text-muted-foreground">{review.userEmail || "Guest"}</p>
                       </div>
                       <div className="flex items-center gap-2 ml-auto">
                         {renderStars(review.rating)}
@@ -434,13 +434,13 @@ export default function AdminReviews() {
                       </div>
                     </div>
                     
-                    <p className="text-sm text-gray-500 mb-2">
-                      Product: <span className="font-medium text-gray-700">{getProductName(review.productId)}</span>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Product: <span className="font-medium text-muted-foreground">{getProductName(review.productId)}</span>
                     </p>
                     
-                    <p className="text-gray-700 mb-3">{review.comment}</p>
+                    <p className="text-muted-foreground mb-3">{review.comment}</p>
                     
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       {formatDate(review.createdAt)}
                     </p>
                   </div>
@@ -459,7 +459,7 @@ export default function AdminReviews() {
                         <Button
                           onClick={() => handleReject(review.id)}
                           variant="outline"
-                          className="text-red-500 hover:bg-red-50 text-sm"
+className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm"
                           size="sm"
                         >
                           <XCircle className="w-4 h-4 mr-1" />
@@ -471,7 +471,7 @@ export default function AdminReviews() {
                     <Button
                       onClick={() => handleEdit(review)}
                       variant="outline"
-                      className="text-blue-600 hover:bg-blue-50 text-sm"
+                      className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm"
                       size="sm"
                     >
                       <Edit2 className="w-4 h-4 mr-1" />
@@ -480,7 +480,7 @@ export default function AdminReviews() {
                     <Button
                       onClick={() => setDeletingReview(review)}
                       variant="outline"
-                      className="text-red-500 hover:bg-red-50 text-sm"
+                      className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm"
                       size="sm"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
@@ -515,7 +515,7 @@ export default function AdminReviews() {
                 <label className="block text-sm font-medium mb-2">Rating</label>
                 <div className="flex items-center gap-4">
                   {renderStars(editForm.rating, true, (r) => setEditForm({ ...editForm, rating: r }))}
-                  <span className="text-sm text-gray-500">({editForm.rating}/5)</span>
+                  <span className="text-sm text-muted-foreground">({editForm.rating}/5)</span>
                 </div>
               </div>
               
@@ -557,7 +557,7 @@ export default function AdminReviews() {
             <DialogTitle>Delete Review</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Are you sure you want to delete this review from <strong>{deletingReview?.userName}</strong>? 
               This action cannot be undone.
             </p>

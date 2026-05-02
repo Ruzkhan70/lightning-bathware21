@@ -116,7 +116,7 @@ export default function AdminCustomers() {
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Customers</h1>
-          <p className="text-gray-600">Loading customers...</p>
+          <p className="text-muted-foreground">Loading customers...</p>
         </div>
         <ContentLoader minHeight="min-h-[400px]" />
       </div>
@@ -128,7 +128,7 @@ export default function AdminCustomers() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Customers</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {customers.length} total customer{customers.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -158,7 +158,7 @@ export default function AdminCustomers() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search by name, email, or phone..."
@@ -171,48 +171,48 @@ export default function AdminCustomers() {
 
       {/* Customers Table */}
       {filteredCustomers.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-          <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-600 mb-2">No customers found</p>
+        <div className="bg-card rounded-xl shadow-sm p-12 text-center">
+          <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">No customers found</p>
           {searchTerm && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Try adjusting your search term
             </p>
           )}
         </div>
       ) : (
         <>
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden hidden md:block">
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-muted/50 border-b">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">
                     Name
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">
                     Email
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">
                     Phone
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">
                     Address
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50">
+                  <tr key={customer.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4">
                       <div className="font-medium">{customer.name || "N/A"}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{customer.email || "N/A"}</td>
-                    <td className="px-6 py-4 text-gray-600">{customer.phone || "N/A"}</td>
-                    <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
+<td className="px-6 py-4 text-muted-foreground">{customer.email || "N/A"}</td>
+                  <td className="px-6 py-4 text-muted-foreground">{customer.phone || "N/A"}</td>
+                  <td className="px-6 py-4 text-muted-foreground max-w-xs truncate">
                       {customer.address || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -220,7 +220,7 @@ export default function AdminCustomers() {
                         onClick={() => handleDeleteClick(customer)}
                         variant="ghost"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -235,21 +235,21 @@ export default function AdminCustomers() {
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3">
           {filteredCustomers.map((customer) => (
-            <div key={customer.id} className="bg-white rounded-lg shadow-sm border p-4">
+            <div key={customer.id} className="bg-card rounded-lg shadow-sm border p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">{customer.name || "N/A"}</h3>
+                  <h3 className="font-semibold text-foreground truncate">{customer.name || "N/A"}</h3>
                   <div className="space-y-1 mt-2 text-sm">
-                    <p className="text-gray-500 truncate">{customer.email || "N/A"}</p>
-                    <p className="text-gray-500">{customer.phone || "N/A"}</p>
-                    <p className="text-gray-500 truncate">{customer.address || "N/A"}</p>
+                    <p className="text-muted-foreground truncate">{customer.email || "N/A"}</p>
+                    <p className="text-muted-foreground">{customer.phone || "N/A"}</p>
+                    <p className="text-muted-foreground truncate">{customer.address || "N/A"}</p>
                   </div>
                 </div>
                 <Button
                   onClick={() => handleDeleteClick(customer)}
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0 h-11 w-11 p-0"
+                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0 h-11 w-11 p-0"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -263,14 +263,14 @@ export default function AdminCustomers() {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && customerToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
+          <div className="bg-card rounded-xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-red-100 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
               </div>
               <h2 className="text-xl font-bold">Delete Customer</h2>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               Are you sure you want to delete <strong>{customerToDelete.name}</strong>? 
               This action cannot be undone.
             </p>

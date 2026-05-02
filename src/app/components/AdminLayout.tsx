@@ -191,10 +191,10 @@ export default function AdminLayout() {
   // Show loading screen while Firebase data is loading
   if (!isDataLoaded) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -326,7 +326,7 @@ export default function AdminLayout() {
         />
       )}
 
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+      <div className="min-h-screen bg-muted dark:bg-gray-950">
         <ScrollToTop />
         
         {/* Desktop Sidebar */}
@@ -336,7 +336,7 @@ export default function AdminLayout() {
               <span className="text-white">{storeProfile.storeName}</span>
               <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
             </h1>
-            <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
+            <p className="text-xs text-muted-foreground mt-1">Admin Panel</p>
           </div>
 
           <nav className="flex-1 overflow-y-auto p-2 scrollbar-thin">
@@ -411,7 +411,7 @@ export default function AdminLayout() {
                 <span className="text-white">{storeProfile.storeName}</span>
                 <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
               </h1>
-              <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
+              <p className="text-xs text-muted-foreground mt-1">Admin Panel</p>
             </div>
             <button
               onClick={() => setMobileMenuOpen(false)}

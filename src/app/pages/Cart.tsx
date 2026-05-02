@@ -17,10 +17,10 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold mb-8">Shopping Cart</h1>
-          <div className="bg-white rounded-lg shadow-sm p-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-8 text-foreground">Shopping Cart</h1>
+          <div className="bg-card rounded-lg shadow-sm p-8">
             <CartEmpty />
           </div>
         </div>
@@ -29,14 +29,14 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl md:text-4xl font-bold mb-8">Shopping Cart</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-foreground">Shopping Cart</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="bg-card rounded-lg shadow-sm">
               {cartItems.map((item) => (
                 <div
                   key={item.id}
@@ -61,19 +61,19 @@ export default function Cart() {
                         {item.selected_size && `Size: ${item.selected_size}`}
                       </p>
                     )}
-                    <p className="text-2xl font-bold text-black mb-4">
+                    <p className="text-2xl font-bold text-foreground mb-4">
                       Rs. {item.price.toLocaleString()}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4">
                       {/* Quantity Controls */}
-                      <div className="flex items-center border-2 border-gray-300 rounded-lg">
+                      <div className="flex items-center border-2 border-border rounded-lg">
                         <button
                           onClick={() =>
                             updateQuantity(item.id, item.quantity - 1)
                           }
                           disabled={item.quantity <= 1}
-                          className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
@@ -82,7 +82,7 @@ export default function Cart() {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
-                          className="p-2 hover:bg-gray-100 transition-colors"
+                          className="p-2 hover:bg-muted transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -101,8 +101,8 @@ export default function Cart() {
 
                   {/* Subtotal */}
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 mb-1">Subtotal</p>
-                    <p className="text-xl font-bold">
+                    <p className="text-sm text-muted-foreground mb-1">Subtotal</p>
+                    <p className="text-xl font-bold text-foreground">
                       Rs. {(item.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
@@ -123,28 +123,28 @@ export default function Cart() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h2 className="text-xl font-bold mb-6">Order Summary</h2>
+            <div className="bg-card rounded-lg shadow-sm p-6 sticky top-24">
+              <h2 className="text-xl font-bold mb-6 text-foreground">Order Summary</h2>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-semibold text-foreground">
                     Rs. {cartTotal.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Delivery</span>
                   <span>Calculated at checkout</span>
                 </div>
               </div>
 
               <div className="border-t pt-4 mb-6">
-                <div className="flex justify-between text-lg font-bold">
+                <div className="flex justify-between text-lg font-bold text-foreground">
                   <span>Total</span>
                   <span>Rs. {cartTotal.toLocaleString()}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   + delivery charges
                 </p>
               </div>
@@ -152,7 +152,7 @@ export default function Cart() {
               <Link to="/checkout">
                 <Button
                   size="lg"
-                  className="w-full bg-black hover:bg-[#D4AF37] text-white mb-4"
+                  className="w-full bg-foreground hover:bg-[#D4AF37] hover:text-black text-background mb-4"
                 >
                   Proceed to Checkout
                   <ArrowRight className="ml-2 w-5 h-5" />

@@ -351,7 +351,7 @@ export default function AdminProducts() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Products Management</h1>
-          <p className="text-gray-600">Manage your product inventory</p>
+          <p className="text-muted-foreground">Manage your product inventory</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-2xl font-bold text-[#D4AF37]">
@@ -360,7 +360,7 @@ export default function AdminProducts() {
           <Button
             variant="outline"
             onClick={handleExportCSV}
-            className="border-gray-300"
+            className="border-border"
           >
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -375,7 +375,7 @@ export default function AdminProducts() {
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            className="border-gray-300"
+            className="border-border"
           >
             <Upload className="w-4 h-4 mr-2" />
             Import
@@ -387,7 +387,7 @@ export default function AdminProducts() {
               setCompareMode(!compareMode);
               if (!compareMode) setCompareProducts([]);
             }}
-            className={compareMode ? "bg-[#D4AF37] text-black" : "border-gray-300"}
+            className={compareMode ? "bg-[#D4AF37] text-black" : "border-border"}
           >
             {compareMode ? <Check className="w-4 h-4 mr-2" /> : <Scale className="w-4 h-4 mr-2" />}
             Compare {compareMode && `(${compareProducts.length})`}
@@ -416,12 +416,12 @@ export default function AdminProducts() {
       </div>
 
       {filterStock === "unavailable" && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Filter className="w-5 h-5 text-red-600" />
+            <Filter className="w-5 h-5 text-red-600 dark:text-red-400" />
             <div>
-              <p className="font-semibold text-red-800">Unavailable Products</p>
-              <p className="text-sm text-red-600">
+              <p className="font-semibold text-red-800 dark:text-red-200">Unavailable Products</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
                 Showing unavailable products
               </p>
             </div>
@@ -431,7 +431,7 @@ export default function AdminProducts() {
 
       <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search products..."
@@ -494,7 +494,7 @@ export default function AdminProducts() {
                 setSelectedProducts([]);
                 setShowBulkActions(false);
               }}
-              className="bg-white border-black text-black hover:bg-gray-100"
+              className="bg-card border-black text-black hover:bg-muted"
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
@@ -513,15 +513,15 @@ export default function AdminProducts() {
       )}
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="hidden md:block bg-card rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-muted/50 border-b">
               <tr>
                 <th className="py-4 px-4 w-12">
                   <button
                     onClick={handleSelectAll}
-                    className="text-gray-600 hover:text-[#D4AF37] transition-colors"
+                    className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
                   >
                     {selectedProducts.length === filteredProducts.length && filteredProducts.length > 0 ? (
                       <CheckSquare className="w-5 h-5" />
@@ -543,11 +543,11 @@ export default function AdminProducts() {
               </thead>
               <tbody>
               {paginatedProducts.map((product) => (
-                <tr key={product.id} className={`border-b hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
+                <tr key={product.id} className={`border-b hover:bg-muted/50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
                   <td className="py-3 px-4">
                     <button
                       onClick={() => handleSelectProduct(product.id)}
-                      className="text-gray-600 hover:text-[#D4AF37] transition-colors"
+                      className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
                     >
                       {selectedProducts.includes(product.id) ? (
                         <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
@@ -565,12 +565,12 @@ export default function AdminProducts() {
                   </td>
                   <td className="py-3 px-4 max-w-xs">
                     <div className="font-semibold">{product.name}</div>
-                    <div className="text-sm text-gray-500 truncate">
+                    <div className="text-sm text-muted-foreground truncate">
                       {product.description}
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">
+                    <span className="px-3 py-1 bg-muted rounded-full text-sm">
                       {product.category}
                     </span>
                   </td>
@@ -580,8 +580,8 @@ export default function AdminProducts() {
                   <td className="py-3 px-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       product.isAvailable
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
                     }`}>
                       {product.isAvailable ? "Available" : "Not Available"}
                     </span>
@@ -593,7 +593,7 @@ export default function AdminProducts() {
                         className={`p-2 rounded transition-colors ${
                           compareProducts.includes(product.id)
                             ? "bg-[#D4AF37] text-black"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            : "bg-muted text-muted-foreground hover:border-border"
                         }`}
                       >
                         <Scale className="w-4 h-4" />
@@ -613,7 +613,7 @@ export default function AdminProducts() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(product.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -628,7 +628,7 @@ export default function AdminProducts() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 py-3 border-t">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} products
             </div>
             <div className="flex items-center gap-2">
@@ -648,7 +648,7 @@ export default function AdminProducts() {
                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
                       currentPage === index + 1
                         ? "bg-[#D4AF37] text-black font-medium"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        : "bg-muted hover:bg-muted/80 text-foreground"
                     }`}
                   >
                     {range.label}
@@ -668,7 +668,7 @@ export default function AdminProducts() {
         )}
         
         {filteredProducts.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-muted-foreground">
             <p>No products found matching your criteria</p>
           </div>
         )}
@@ -677,8 +677,8 @@ export default function AdminProducts() {
       {/* Mobile Card View */}
       <div className="md:hidden grid grid-cols-1 gap-4">
         {/* Select All Card for Mobile */}
-        <div className="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-600">
+        <div className="bg-card rounded-lg shadow-sm p-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-muted-foreground">
             {selectedProducts.length} of {filteredProducts.length} selected
           </span>
           <button
@@ -702,7 +702,7 @@ export default function AdminProducts() {
         {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className={`bg-white rounded-lg shadow-sm p-4 border-2 transition-all ${
+            className={`bg-card rounded-lg shadow-sm p-4 border-2 transition-all ${
               selectedProducts.includes(product.id)
                 ? 'border-[#D4AF37]'
                 : 'border-transparent'
@@ -717,7 +717,7 @@ export default function AdminProducts() {
                 {selectedProducts.includes(product.id) ? (
                   <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
                 ) : (
-                  <Square className="w-5 h-5 text-gray-400" />
+                  <Square className="w-5 h-5 text-muted-foreground" />
                 )}
               </button>
 
@@ -732,26 +732,26 @@ export default function AdminProducts() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
-                    <p className="text-sm text-gray-500 truncate">{product.description}</p>
+                    <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground truncate">{product.description}</p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                  <span className="px-2 py-1 bg-muted rounded-full text-xs">
                     {product.category}
                   </span>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                     product.isAvailable
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
                   }`}>
                     {product.isAvailable ? "Available" : "Not Available"}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between mt-3">
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-lg font-bold text-foreground">
                     Rs. {product.price.toLocaleString()}
                   </span>
                   <div className="flex gap-2">
@@ -767,7 +767,7 @@ export default function AdminProducts() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleDelete(product.id)}
-                      className="h-9 min-w-9 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="h-9 min-w-9 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -779,8 +779,8 @@ export default function AdminProducts() {
         ))}
 
         {filteredProducts.length === 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <p className="text-gray-500">No products found matching your criteria</p>
+          <div className="bg-card rounded-lg shadow-sm p-12 text-center">
+            <p className="text-muted-foreground">No products found matching your criteria</p>
           </div>
         )}
       </div>
@@ -843,8 +843,8 @@ export default function AdminProducts() {
                     onClick={() => setFormData({ ...formData, isAvailable: true })}
                     className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
                       formData.isAvailable
-                        ? "border-green-500 bg-green-50 text-green-700"
-                        : "border-gray-200 text-gray-500"
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                        : "border-border text-muted-foreground"
                     }`}
                   >
                     Available
@@ -854,8 +854,8 @@ export default function AdminProducts() {
                     onClick={() => setFormData({ ...formData, isAvailable: false })}
                     className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
                       !formData.isAvailable
-                        ? "border-red-500 bg-red-50 text-red-700"
-                        : "border-gray-200 text-gray-500"
+                        ? "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
+                        : "border-border text-muted-foreground"
                     }`}
                   >
                     Not Available
@@ -902,7 +902,7 @@ export default function AdminProducts() {
 
               <div className="space-y-4">
                 {editVariants.map((variant, idx) => (
-                  <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+                  <div key={idx} className="border rounded-lg p-3 bg-muted/50">
                     <div className="flex items-center gap-2 mb-2">
                       <Input
                         value={variant.color}
@@ -939,8 +939,8 @@ export default function AdminProducts() {
                           </button>
                         </div>
                       ))}
-                      <label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-gray-50">
-                        <span className="text-gray-400 text-xs">+Add</span>
+                      <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-muted/50">
+                        <span className="text-muted-foreground text-xs">+Add</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -975,7 +975,7 @@ export default function AdminProducts() {
 
               <div className="space-y-4">
                 {editSizes.map((sizeItem, idx) => (
-                  <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+                  <div key={idx} className="border rounded-lg p-3 bg-muted/50">
                     <div className="flex items-center gap-2 mb-2">
                       <Input
                         value={sizeItem.size}
@@ -1012,8 +1012,8 @@ export default function AdminProducts() {
                           </button>
                         </div>
                       ))}
-                      <label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-gray-50">
-                        <span className="text-gray-400 text-xs">+Add</span>
+                      <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-muted/50">
+                        <span className="text-muted-foreground text-xs">+Add</span>
                         <input
                           type="file"
                           accept="image/*"

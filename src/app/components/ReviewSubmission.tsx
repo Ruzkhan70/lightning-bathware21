@@ -81,18 +81,18 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
 
   if (isSubmitted) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Send className="w-6 h-6 text-green-600" />
+      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
+        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Send className="w-6 h-6 text-green-600 dark:text-green-400" />
         </div>
-        <h3 className="text-lg font-semibold text-green-800 mb-2">Thank You!</h3>
-        <p className="text-green-700 mb-4">
+        <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-2">Thank You!</h3>
+        <p className="text-green-700 dark:text-green-400 mb-4">
           Your review has been submitted and will be visible after approval.
         </p>
         <Button
           onClick={() => setIsSubmitted(false)}
           variant="outline"
-          className="border-green-300 text-green-700 hover:bg-green-100"
+          className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30"
         >
           Write Another Review
         </Button>
@@ -105,11 +105,11 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
       <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Your Name *
         </label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Enter your name"
@@ -122,11 +122,11 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Email (optional)
         </label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="email"
             placeholder="Enter your email"
@@ -135,11 +135,11 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
             className="pl-10"
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">Your email will not be displayed publicly</p>
+        <p className="text-xs text-muted-foreground mt-1">Your email will not be displayed publicly</p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Rating *
         </label>
         <div className="flex items-center gap-1">
@@ -156,13 +156,13 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
                 className={`w-8 h-8 transition-colors ${
                   star <= (hoverRating || rating)
                     ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
+                    : "text-gray-300 dark:text-gray-600"
                 }`}
               />
             </button>
           ))}
           {rating > 0 && (
-            <span className="ml-2 text-sm text-gray-600">
+            <span className="ml-2 text-sm text-muted-foreground">
               {rating === 1 && "(Poor)"}
               {rating === 2 && "(Fair)"}
               {rating === 3 && "(Good)"}
@@ -174,7 +174,7 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Your Review *
         </label>
         <Textarea
@@ -185,7 +185,7 @@ export default function ReviewSubmission({ productId, productName, onSuccess }: 
           required
           minLength={10}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           {formData.comment.length < 10 
             ? `${formData.comment.length}/10 characters minimum`
             : `${formData.comment.length} characters`}

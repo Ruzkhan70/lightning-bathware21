@@ -6,12 +6,12 @@ export default function LoadingScreen() {
   
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-white overflow-hidden"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-background overflow-hidden"
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
       {/* Background Gradient Animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white">
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background">
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 via-transparent to-[#D4AF37]/5"
           animate={{
@@ -70,7 +70,7 @@ export default function LoadingScreen() {
         >
           {/* Outer Ring */}
           <motion.div
-            className="absolute inset-0 border-4 border-gray-200 rounded-full"
+            className="absolute inset-0 border-4 border-border rounded-full"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}

@@ -51,7 +51,7 @@ export default function SessionWarning({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-full max-w-md p-4"
           >
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-card rounded-2xl shadow-2xl overflow-hidden">
               {/* Header */}
               <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-4 flex items-center gap-3">
                 <div className="p-2 bg-white/20 rounded-full">
@@ -63,20 +63,20 @@ export default function SessionWarning({
               {/* Content */}
               <div className="p-6 text-center">
                 <div className="mb-6">
-                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-50 border-4 border-amber-200 mb-4">
-                    <span className="text-3xl font-bold text-amber-600">
+                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-50 border-4 border-amber-200 mb-4 dark:bg-amber-900/20 dark:border-amber-800">
+                    <span className="text-3xl font-bold text-amber-600 dark:text-amber-300">
                       {minutes}:{seconds.toString().padStart(2, "0")}
                     </span>
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     Your admin session will expire in
                   </p>
-                  <p className="text-2xl font-bold text-amber-600">
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">
                     {minutes > 0 ? `${minutes} minute${minutes > 1 ? "s" : ""} and ${seconds} seconds` : `${seconds} seconds`}
                   </p>
                 </div>
 
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   For security purposes, your session will be automatically logged out.
                 </p>
 
@@ -85,7 +85,7 @@ export default function SessionWarning({
                   <Button
                     onClick={handleLogout}
                     variant="outline"
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 pointer-events-auto relative z-[202]"
+                    className="flex-1 border-border text-foreground hover:bg-muted/50 pointer-events-auto relative z-[202]"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout Now

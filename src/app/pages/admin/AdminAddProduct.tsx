@@ -256,7 +256,7 @@ export default function AdminAddProduct() {
     };
 
     return (
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="bg-card rounded-lg shadow-lg p-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Bulk Upload Products</h2>
           <Button variant="outline" onClick={onBack}>
@@ -268,7 +268,7 @@ export default function AdminAddProduct() {
           <div className="text-center py-12">
             <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#D4AF37]" />
             <h3 className="text-xl font-semibold mt-4">Uploading Products...</h3>
-            <p className="text-gray-600 mt-2">Please wait while we upload your products to the database</p>
+            <p className="text-muted-foreground mt-2">Please wait while we upload your products to the database</p>
           </div>
         )}
 
@@ -277,11 +277,11 @@ export default function AdminAddProduct() {
             <div className="text-center py-8">
               <Check className="w-16 h-16 mx-auto text-green-500 mb-4" />
               <h3 className="text-2xl font-bold text-green-600">Successfully Uploaded!</h3>
-              <p className="text-gray-600 mt-2">{uploadedProducts.length} products have been saved to Firebase</p>
+              <p className="text-muted-foreground mt-2">{uploadedProducts.length} products have been saved to Firebase</p>
             </div>
             
             <div className="border rounded-lg overflow-hidden mb-6">
-              <div className="bg-gray-50 px-3 py-2 border-b">
+              <div className="bg-muted/50 px-3 py-2 border-b">
                 <h4 className="font-semibold">Uploaded Products ({uploadedProducts.length})</h4>
               </div>
               <div className="max-h-80 overflow-y-auto">
@@ -296,7 +296,7 @@ export default function AdminAddProduct() {
                         </td>
                         <td className="px-3 py-2">
                           <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-gray-500">{product.category} - LKR {product.price.toLocaleString()}</p>
+                          <p className="text-sm text-muted-foreground">{product.category} - LKR {product.price.toLocaleString()}</p>
                         </td>
                       </tr>
                     ))}
@@ -329,12 +329,12 @@ export default function AdminAddProduct() {
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleFileDrop}
               className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 transition-colors ${
-                isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-gray-300"
+                isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-border"
               }`}
             >
-              <FileSpreadsheet className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-              <p className="text-gray-600 mb-2">Drag and drop a CSV or TXT file here</p>
-              <p className="text-gray-500 text-sm mb-4">or paste data below</p>
+              <FileSpreadsheet className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground mb-2">Drag and drop a CSV or TXT file here</p>
+              <p className="text-muted-foreground text-sm mb-4">or paste data below</p>
               
               <div className="max-w-md mx-auto">
                 <Textarea
@@ -356,9 +356,9 @@ export default function AdminAddProduct() {
             {uploadStep === "preview" && bulkProducts.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-gray-600">{bulkProducts.length} products ready to upload</p>
+                  <p className="text-muted-foreground">{bulkProducts.length} products ready to upload</p>
                   <div className="flex gap-2">
-                    <label className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 text-sm">
+                    <label className="inline-flex items-center px-3 py-2 border border-border rounded-md cursor-pointer hover:bg-muted/50 text-sm">
                       <span>{isUploadingImages ? "Uploading..." : "Upload Images"}</span>
                       <input
                         type="file"
@@ -407,7 +407,7 @@ export default function AdminAddProduct() {
 
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-muted/50">
                       <tr>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Product Name</th>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Category</th>
@@ -423,7 +423,7 @@ export default function AdminAddProduct() {
                           <td className="px-3 py-3">
                             <p className="font-medium">{product.name}</p>
                             {product.errors.length > 0 && (
-                              <p className="text-red-500 text-xs">{product.errors.join(", ")}</p>
+                              <p className="text-red-500 dark:text-red-400 text-xs">{product.errors.join(", ")}</p>
                             )}
                           </td>
                           <td className="px-3 py-3">
@@ -490,7 +490,7 @@ export default function AdminAddProduct() {
                                 </label>
                               </div>
                             ) : (
-                              <label className={`w-12 h-12 border-2 border-dashed rounded flex items-center justify-center cursor-pointer ${rowDragging === product.id ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-gray-300 hover:border-[#D4AF37]'}`}>
+                              <label className={`w-12 h-12 border-2 border-dashed rounded flex items-center justify-center cursor-pointer ${rowDragging === product.id ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-border hover:border-[#D4AF37]'}`}>
                                 <input
                                   type="file"
                                   accept="image/*"
@@ -500,7 +500,7 @@ export default function AdminAddProduct() {
                                     if (file) await handleRowImageUpload(product.id, file);
                                   }}
                                 />
-                                <span className="text-gray-400 text-xs">+</span>
+                                <span className="text-muted-foreground text-xs">+</span>
                               </label>
                             )}
                           </td>
@@ -509,7 +509,7 @@ export default function AdminAddProduct() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleRemoveProduct(product.id)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -827,18 +827,18 @@ export default function AdminAddProduct() {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-card rounded-lg shadow-lg p-8 space-y-6">
         {/* Product Name */}
         <div>
           <Label htmlFor="name">
-            Product Name <span className="text-red-500">*</span>
+            Product Name <span className="text-red-500 dark:text-red-400">*</span>
           </Label>
           <input
             type="text"
             id="name"
             ref={nameRef}
             placeholder="e.g., LED Ceiling Light - Modern Round"
-            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+            className="flex h-10 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
             required
           />
         </div>
@@ -846,7 +846,7 @@ export default function AdminAddProduct() {
         {/* Category */}
         <div>
           <Label htmlFor="category">
-            Category <span className="text-red-500">*</span>
+            Category <span className="text-red-500 dark:text-red-400">*</span>
           </Label>
           <Select value={formData.category} onValueChange={handleCategoryChange}>
             <SelectTrigger id="category">
@@ -865,7 +865,7 @@ export default function AdminAddProduct() {
         {/* Price */}
         <div>
           <Label htmlFor="price">
-            Price (LKR) <span className="text-red-500">*</span>
+            Price (LKR) <span className="text-red-500 dark:text-red-400">*</span>
           </Label>
           <input
             type="number"
@@ -874,7 +874,7 @@ export default function AdminAddProduct() {
             step="1"
             ref={priceRef}
             placeholder="e.g., 2500"
-            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+            className="flex h-10 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
             required
           />
         </div>
@@ -882,13 +882,13 @@ export default function AdminAddProduct() {
         {/* Description */}
         <div>
           <Label htmlFor="description">
-            Description <span className="text-red-500">*</span>
+            Description <span className="text-red-500 dark:text-red-400">*</span>
           </Label>
           <textarea
             id="description"
             ref={descRef}
             placeholder="Enter product description..."
-            className="flex min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+            className="flex min-h-[120px] w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
             required
           />
         </div>
@@ -897,7 +897,7 @@ export default function AdminAddProduct() {
         {!enableVariants && (
           <div>
             <Label>
-              Product Image <span className="text-red-500">*</span>
+              Product Image <span className="text-red-500 dark:text-red-400">*</span>
             </Label>
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -911,7 +911,7 @@ export default function AdminAddProduct() {
                 }
               }}
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-gray-300"
+                isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-border"
               }`}
             >
               {formData.image ? (
@@ -920,16 +920,16 @@ export default function AdminAddProduct() {
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, image: "" }))}
-                    className="text-red-500 text-sm hover:underline"
+                    className="text-red-500 dark:text-red-400 text-sm hover:underline"
                   >
                     Remove
                   </button>
                 </div>
               ) : (
                 <>
-                  <ImagePlus className="w-10 h-10 mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-600 mb-2">Drag and drop an image here</p>
-                  <p className="text-gray-500 text-sm mb-4">or</p>
+                  <ImagePlus className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground mb-2">Drag and drop an image here</p>
+                  <p className="text-muted-foreground text-sm mb-4">or</p>
                   <label className="inline-block">
                     <Button type="button" variant="outline" asChild>
                       <span className="cursor-pointer">Choose File</span>
@@ -968,15 +968,15 @@ export default function AdminAddProduct() {
 
           {enableVariants && (
             <div className="space-y-4 mt-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Add different color options for this product. Each color can have multiple images.
               </p>
               
               {variants.map((variant, index) => (
-                <div key={variant.id} className="border rounded-lg p-4 bg-gray-50">
+                <div key={variant.id} className="border rounded-lg p-4 bg-muted/50">
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
-                      <Label>Color {index + 1} <span className="text-red-500">*</span></Label>
+                      <Label>Color {index + 1} <span className="text-red-500 dark:text-red-400">*</span></Label>
                       <Input
                         value={variant.color}
                         onChange={(e) => updateVariantColorDirect(variant.id, e.target.value)}
@@ -985,7 +985,7 @@ export default function AdminAddProduct() {
                       />
                     </div>
                     <div className="flex-1">
-                      <Label>Images <span className="text-red-500">*</span> (min 1)</Label>
+                      <Label>Images <span className="text-red-500 dark:text-red-400">*</span> (min 1)</Label>
                       <div 
                         className="mt-1"
                         onDragOver={(e) => { 
@@ -1018,9 +1018,9 @@ export default function AdminAddProduct() {
                           <label className={`flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed rounded cursor-pointer transition-colors ${
                             variantDragging[variant.id] 
                               ? 'border-[#D4AF37] bg-[#D4AF37]/5' 
-                              : 'border-gray-300 hover:border-[#D4AF37] hover:bg-gray-50'
+                              : 'border-border hover:border-[#D4AF37] hover:bg-muted/50'
                           }`}>
-                            <ImagePlus className="w-5 h-5 text-gray-400" />
+                            <ImagePlus className="w-5 h-5 text-muted-foreground" />
                             <input
                               type="file"
                               accept="image/*"
@@ -1040,7 +1040,7 @@ export default function AdminAddProduct() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeVariant(variant.id)}
-                        className="text-red-500 hover:text-red-700 mt-6"
+                        className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 mt-6"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -1079,15 +1079,15 @@ export default function AdminAddProduct() {
 
           {enableSizes && (
             <div className="space-y-4 mt-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Add different size options for this product (e.g., 500mm, 400mm, 300mm). Each size can have its own images.
               </p>
               
               {sizes.map((sizeItem, index) => (
-                <div key={sizeItem.id} className="border rounded-lg p-4 bg-gray-50">
+                <div key={sizeItem.id} className="border rounded-lg p-4 bg-muted/50">
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
-                      <Label>Size {index + 1} <span className="text-red-500">*</span></Label>
+                      <Label>Size {index + 1} <span className="text-red-500 dark:text-red-400">*</span></Label>
                       <Input
                         value={sizeItem.size}
                         onChange={(e) => updateSizeDirect(sizeItem.id, e.target.value)}
@@ -1101,7 +1101,7 @@ export default function AdminAddProduct() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeSize(sizeItem.id)}
-                        className="text-red-500 hover:text-red-700 mt-6"
+                        className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 mt-6"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

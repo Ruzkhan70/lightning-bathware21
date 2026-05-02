@@ -34,12 +34,12 @@ export default function EmptyState({
 
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
-      <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
-        <IconComponent className="w-10 h-10 text-gray-400" />
+      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
+        <IconComponent className="w-10 h-10 text-muted-foreground" />
       </div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+      <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
       {description && (
-        <p className="text-gray-500 max-w-sm mb-6">{description}</p>
+        <p className="text-muted-foreground max-w-sm mb-6">{description}</p>
       )}
       {(actionLabel && (actionTo || onAction)) && (
         <Link

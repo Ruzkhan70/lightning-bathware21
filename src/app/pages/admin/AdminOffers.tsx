@@ -64,29 +64,29 @@ export default function AdminOffers() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Special Offers</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Manage promotional offers and discounts
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Offers Page:</span>
+            <span className="text-sm text-muted-foreground">Offers Page:</span>
             <button
               onClick={() => {
                 toggleOffersPage();
                 toast.success(isOffersPageEnabled ? "Offers page disabled" : "Offers page enabled");
               }}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isOffersPageEnabled ? "bg-green-600" : "bg-gray-300"
+                isOffersPageEnabled ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
                   isOffersPageEnabled ? "translate-x-6" : "translate-x-1"
                 }`}
               />
             </button>
-            <span className={`text-sm font-medium ${isOffersPageEnabled ? "text-green-600" : "text-gray-500"}`}>
+            <span className={`text-sm font-medium ${isOffersPageEnabled ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>
               {isOffersPageEnabled ? "ON" : "OFF"}
             </span>
           </div>
@@ -107,12 +107,12 @@ export default function AdminOffers() {
           placeholder="Search offers..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+          className="w-full md:w-96 px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
         />
         <Button
           variant="outline"
           onClick={() => setShowDisabled(!showDisabled)}
-          className={showDisabled ? "text-purple-600 border-purple-500" : "text-gray-500"}
+          className={showDisabled ? "text-purple-600 border-purple-500" : "text-muted-foreground"}
         >
           {showDisabled ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
           {showDisabled ? "Hide Disabled" : "Show Disabled"}
@@ -121,9 +121,9 @@ export default function AdminOffers() {
 
       {/* Offers Grid */}
       {filteredOffers.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <Tag className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-600 mb-4">
+        <div className="text-center py-12 bg-muted/50 rounded-lg">
+          <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-4">
             {searchTerm ? "No offers found" : "No offers yet"}
           </p>
           {!searchTerm && (
@@ -155,7 +155,7 @@ export default function AdminOffers() {
             return (
               <div
                 key={offer.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border-2 border-gray-100"
+                className="bg-card rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border-2 border-border"
               >
                 {/* Banner Image */}
                 <div className="relative h-48 overflow-hidden">
@@ -171,7 +171,7 @@ export default function AdminOffers() {
                         Active
                       </span>
                     ) : (
-                      <span className="px-3 py-1 bg-gray-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                      <span className="px-3 py-1 bg-gray-500 dark:bg-gray-600 text-white text-xs font-bold rounded-full flex items-center gap-1">
                         <PowerOff className="w-3 h-3" />
                         Disabled
                       </span>
@@ -201,12 +201,12 @@ export default function AdminOffers() {
                   <h3 className="text-xl font-bold mb-2 line-clamp-1">
                     {offer.title}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                     {offer.description}
                   </p>
 
                   {/* Dates */}
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                     <Calendar className="w-4 h-4" />
                     <span>
                       {formatDateSafe(offer.startDate)} - {formatDateSafe(offer.endDate)}
@@ -214,7 +214,7 @@ export default function AdminOffers() {
                   </div>
 
                   {/* Products Count */}
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                     <Tag className="w-4 h-4" />
                     <span>
                       {offer.applicableProducts.length} product
@@ -241,8 +241,8 @@ export default function AdminOffers() {
                       size="sm"
                       className={
                         offer.isEnabled
-                          ? "flex-1 text-red-600 hover:text-red-700"
-                          : "flex-1 text-green-600 hover:text-green-700"
+                          ? "flex-1 text-red-600 dark:text-red-400 hover:text-red-700"
+                          : "flex-1 text-green-600 dark:text-green-400 hover:text-green-700"
                       }
                     >
                       {offer.isEnabled ? (
@@ -261,7 +261,7 @@ export default function AdminOffers() {
                       onClick={() => handleDelete(offer.id, offer.title)}
                       variant="outline"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

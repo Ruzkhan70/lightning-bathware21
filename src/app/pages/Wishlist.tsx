@@ -35,10 +35,10 @@ export default function Wishlist() {
   // Show skeleton while products or wishlist data is not confirmed
   if (!isDataLoaded || !isWishlistConfirmed) {
     return (
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-12">
           <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">My Wishlist</h1>
           </div>
           <ProductGridSkeleton count={4} />
         </div>
@@ -49,10 +49,10 @@ export default function Wishlist() {
   // Only show empty state after both wishlist and products are confirmed loaded
   if (wishlistProducts.length === 0) {
     return (
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-8">My Wishlist</h1>
-          <div className="bg-white rounded-lg shadow-sm p-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-8 text-foreground">My Wishlist</h1>
+          <div className="bg-card rounded-lg shadow-sm p-8">
             <WishlistEmpty />
           </div>
         </div>
@@ -61,11 +61,11 @@ export default function Wishlist() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-background min-h-screen">
       <div className="container mx-auto px-4 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">My Wishlist</h1>
+          <p className="text-muted-foreground">
             {wishlistProducts.length}{" "}
             {wishlistProducts.length === 1 ? "item" : "items"} saved
           </p>
@@ -91,7 +91,7 @@ export default function Wishlist() {
           {wishlistProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
+              className="bg-card rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
             >
               <div className="relative aspect-square overflow-hidden">
                 <img
@@ -119,14 +119,14 @@ export default function Wishlist() {
 
               <div className="p-4">
                 <div className="mb-2">
-                  <span className="text-xs text-gray-500 font-medium">
+                  <span className="text-xs text-muted-foreground font-medium">
                     {product.category}
                   </span>
                 </div>
-                <h3 className="font-bold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
+                <h3 className="font-bold text-lg mb-2 text-foreground line-clamp-2 min-h-[3.5rem]">
                   {product.name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                   {product.description}
                 </p>
 
@@ -144,7 +144,7 @@ export default function Wishlist() {
                 <Button
                   onClick={() => handleAddToCart(product)}
                   disabled={!product.isAvailable}
-                  className="w-full bg-black hover:bg-[#D4AF37] text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full bg-foreground hover:bg-[#D4AF37] hover:text-black text-background disabled:bg-muted disabled:cursor-not-allowed disabled:text-muted-foreground"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   {product.isAvailable ? "Add to Cart" : "Not Available"}

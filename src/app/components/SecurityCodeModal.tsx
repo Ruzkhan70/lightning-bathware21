@@ -58,36 +58,36 @@ export default function SecurityCodeModal({ isOpen, onClose, onSuccess }: Securi
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#D4AF37]/10 rounded-xl flex items-center justify-center">
               <Shield className="w-5 h-5 text-[#D4AF37]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Security Verification</h2>
-              <p className="text-sm text-gray-500">Enter your 6-digit security code</p>
+              <h2 className="text-lg font-bold text-foreground">Security Verification</h2>
+              <p className="text-sm text-muted-foreground">Enter your 6-digit security code</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={handleClose} className="p-2 hover:bg-muted rounded-lg transition-colors">
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
         <div className="p-6">
           {!showForgot ? (
             <form onSubmit={handleVerify} className="space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
                   A security code is required before changing your username or password. This code was sent to your recovery email.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Security Code</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Security Code</label>
                 <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
                     value={code}
@@ -129,12 +129,12 @@ export default function SecurityCodeModal({ isOpen, onClose, onSuccess }: Securi
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-center">
                 <Shield className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-sm text-green-800 font-medium">OTP sent to your recovery email</p>
-                <p className="text-xs text-green-600 mt-1">Check your inbox and use the code to set a new security code</p>
+                <p className="text-sm text-green-800 dark:text-green-200 font-medium">OTP sent to your recovery email</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">Check your inbox and use the code to set a new security code</p>
               </div>
-              <p className="text-sm text-gray-500 text-center">
+              <p className="text-sm text-muted-foreground text-center">
                 Go to Settings → Security & Devices and use the "Change Security Code" option with your OTP.
               </p>
             </div>

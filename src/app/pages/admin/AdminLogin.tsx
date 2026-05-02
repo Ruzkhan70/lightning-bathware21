@@ -98,7 +98,7 @@ export default function AdminLogin() {
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-[#D4AF37] mx-auto" />
-          <p className="mt-4 text-gray-400">Loading...</p>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -114,10 +114,10 @@ export default function AdminLogin() {
             <span className="text-white">{storeProfile.storeName}</span>
             <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
           </h1>
-          <p className="text-gray-400">Admin Portal</p>
+          <p className="text-muted-foreground">Admin Portal</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-card rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-10 h-10 text-black" />
@@ -125,7 +125,7 @@ export default function AdminLogin() {
             <h2 className="text-2xl font-bold">
               {isSetupMode ? "Setup Admin Account" : "Admin Login"}
             </h2>
-            <p className="text-gray-600 text-sm mt-2">
+            <p className="text-muted-foreground text-sm mt-2">
               {isSetupMode 
                 ? "Create your admin credentials to get started. This will be the only admin account." 
                 : "Enter your admin credentials to access the dashboard."}
@@ -133,9 +133,9 @@ export default function AdminLogin() {
           </div>
 
           {errorMessage && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-red-700">{errorMessage}</p>
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-700 dark:text-red-300">{errorMessage}</p>
             </div>
           )}
 
@@ -145,7 +145,7 @@ export default function AdminLogin() {
               <div>
                 <Label htmlFor="displayName">Full Name</Label>
                 <div className="relative mt-1">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="displayName"
                     type="text"
@@ -166,7 +166,7 @@ export default function AdminLogin() {
             <div>
               <Label htmlFor="email">Email</Label>
               <div className="relative mt-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -186,7 +186,7 @@ export default function AdminLogin() {
             <div>
               <Label htmlFor="password">Password</Label>
               <div className="relative mt-1">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
@@ -213,9 +213,9 @@ export default function AdminLogin() {
                     setRememberMe(e.target.checked);
                     localStorage.setItem("adminRememberMe", e.target.checked.toString());
                   }}
-                  className="rounded border-gray-300 w-4 h-4 text-black focus:ring-black"
+                  className="rounded border-border w-4 h-4 text-black focus:ring-black"
                 />
-                <Label htmlFor="rememberMe" className="cursor-pointer text-sm text-gray-600">
+                <Label htmlFor="rememberMe" className="cursor-pointer text-sm text-muted-foreground">
                   Remember me for 24 hours
                 </Label>
               </div>
@@ -244,14 +244,14 @@ export default function AdminLogin() {
           </form>
 
           {/* Security Notice */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
             <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <Shield className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-xs text-gray-600 font-semibold mb-1">
+                <p className="text-xs text-muted-foreground font-semibold mb-1">
                   {isSetupMode ? "First-Time Setup" : "Secure Access"}
                 </p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted-foreground">
                   {isSetupMode 
                     ? "This creates the only admin account. After setup, only this email can access the admin portal."
                     : "This admin portal is secured. Only the authorized administrator can access. All login attempts are logged."}
@@ -264,7 +264,7 @@ export default function AdminLogin() {
         <div className="text-center mt-6">
           <button
             onClick={() => navigate("/")}
-            className="text-gray-400 hover:text-white transition-colors text-sm"
+            className="text-muted-foreground hover:text-white transition-colors text-sm"
           >
             ← Back to Website
           </button>

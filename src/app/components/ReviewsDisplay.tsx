@@ -66,7 +66,7 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
           } ${
             star <= rating
               ? "fill-yellow-400 text-yellow-400"
-              : "text-gray-300"
+               : "text-muted-foreground"
           }`}
         />
       ))}
@@ -86,14 +86,14 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
       <div className="space-y-2">
         {ratingCounts.map(({ rating, count, percentage }) => (
           <div key={rating} className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 w-12">{rating} star</span>
-            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <span className="text-sm text-muted-foreground w-12">{rating} star</span>
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className="h-full bg-yellow-400 rounded-full transition-all duration-300"
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className="text-sm text-gray-500 w-8 text-right">{count}</span>
+             <span className="text-sm text-muted-foreground w-8 text-right">{count}</span>
           </div>
         ))}
       </div>
@@ -104,10 +104,10 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
     return (
       <div className="border-t pt-8">
         <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <Star className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-600 mb-2">No reviews yet for this product</p>
-          <p className="text-sm text-gray-500 mb-4">Be the first to share your experience!</p>
+         <div className="text-center py-8 bg-muted/50 rounded-lg">
+           <Star className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+           <p className="text-muted-foreground mb-2">No reviews yet for this product</p>
+           <p className="text-sm text-muted-foreground mb-4">Be the first to share your experience!</p>
           <Button
             onClick={() => setShowForm(!showForm)}
             className="bg-[#D4AF37] hover:bg-[#b8962f] text-black"
@@ -116,8 +116,8 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
           </Button>
         </div>
         
-        {showForm && (
-          <div className="mt-6 p-4 bg-white border rounded-lg shadow-sm">
+         {showForm && (
+          <div className="mt-6 p-4 bg-card border rounded-lg shadow-sm">
             <ReviewSubmission
               productId={productId}
               productName={productName}
@@ -141,12 +141,12 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
           <div className="flex justify-center mb-2">
             {renderStars(Math.round(positiveAverage), "md")}
           </div>
-          <p className="text-sm text-gray-600">
-            Based on {positiveCount} positive review{positiveCount !== 1 ? "s" : ""}
-          </p>
+           <p className="text-sm text-muted-foreground">
+             Based on {positiveCount} positive review{positiveCount !== 1 ? "s" : ""}
+           </p>
         </div>
         
-        <div className="md:col-span-2 p-4 bg-gray-50 rounded-lg">
+         <div className="md:col-span-2 p-4 bg-muted/50 rounded-lg">
           {renderRatingBars()}
         </div>
       </div>
@@ -172,8 +172,8 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
         </Button>
       </div>
 
-      {showForm && (
-        <div className="mb-6 p-4 bg-white border rounded-lg shadow-sm">
+       {showForm && (
+        <div className="mb-6 p-4 bg-card border rounded-lg shadow-sm">
           <ReviewSubmission
             productId={productId}
             productName={productName}
@@ -220,24 +220,24 @@ function ReviewCard({
     ? review.comment.slice(0, 300) + "..." 
     : review.comment;
 
-  return (
-    <div className="bg-white border rounded-lg p-4 md:p-6">
+   return (
+    <div className="bg-card border rounded-lg p-4 md:p-6">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-semibold text-gray-600">
+          <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center font-semibold text-muted-foreground">
             {review.userName.charAt(0).toUpperCase()}
           </div>
           <div>
             <p className="font-medium">{review.userName}</p>
             <div className="flex items-center gap-2">
               {renderStars(review.rating)}
-              <span className="text-xs text-gray-500">{formatDate(review.createdAt)}</span>
+              <span className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</span>
             </div>
           </div>
         </div>
       </div>
       
-      <p className="text-gray-700 leading-relaxed">
+       <p className="text-foreground leading-relaxed">
         {displayComment}
         {isLongComment && (
           <button
@@ -250,9 +250,9 @@ function ReviewCard({
       </p>
       
       <div className="flex items-center gap-4 mt-4 pt-4 border-t">
-        <button
-          onClick={() => setHelpful(prev => prev + 1)}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#D4AF37] transition-colors"
+         <button
+           onClick={() => setHelpful(prev => prev + 1)}
+           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
         >
           <ThumbsUp className="w-4 h-4" />
           Helpful ({helpful})

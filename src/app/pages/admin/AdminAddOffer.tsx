@@ -160,7 +160,7 @@ export default function AdminAddOffer() {
         <h1 className="text-3xl font-bold mb-2">
           {isEditMode ? "Edit Offer" : "Add New Offer"}
         </h1>
-        <p className="text-gray-600">
+           <p className="text-muted-foreground">
           {isEditMode
             ? "Update offer details and settings"
             : "Create a new promotional offer"}
@@ -168,7 +168,7 @@ export default function AdminAddOffer() {
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl">
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+        <div className="bg-card rounded-lg shadow-sm p-6 space-y-6">
           {/* Basic Information */}
           <div>
             <h2 className="text-xl font-bold mb-4">Basic Information</h2>
@@ -231,7 +231,7 @@ export default function AdminAddOffer() {
                   placeholder="e.g., 20"
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Will be applied to original product prices
                 </p>
               </div>
@@ -248,7 +248,7 @@ export default function AdminAddOffer() {
                   placeholder="e.g., 1999"
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Fixed price for all applicable products
                 </p>
               </div>
@@ -295,7 +295,7 @@ export default function AdminAddOffer() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
-                Applicable Products <span className="text-gray-400 text-sm font-normal">(Leave empty for all products)</span>
+                Applicable Products <span className="text-muted-foreground text-sm font-normal">(Leave empty for all products)</span>
               </h2>
               <Button
                 type="button"
@@ -319,7 +319,7 @@ export default function AdminAddOffer() {
                     {categoryProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest('button')) return;
                           handleProductToggle(product.id);
@@ -343,7 +343,7 @@ export default function AdminAddOffer() {
                               <p className="font-medium text-sm line-clamp-1">
                                 {product.name}
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 Rs. {product.price.toLocaleString()}
                               </p>
                             </div>
@@ -357,7 +357,7 @@ export default function AdminAddOffer() {
             </div>
 
             {formData.applicableProducts.length > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 {formData.applicableProducts.length} product
                 {formData.applicableProducts.length !== 1 ? "s" : ""} selected
               </p>
@@ -365,7 +365,7 @@ export default function AdminAddOffer() {
           </div>
 
           {/* Status */}
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
             <Checkbox
               id="isEnabled"
               checked={formData.isEnabled}
@@ -377,7 +377,7 @@ export default function AdminAddOffer() {
               <Label htmlFor="isEnabled" className="cursor-pointer font-medium">
                 Enable this offer
               </Label>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 Disabled offers won't be shown to customers
               </p>
             </div>

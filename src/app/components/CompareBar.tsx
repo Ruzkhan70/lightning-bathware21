@@ -13,7 +13,7 @@ export default function CompareBar() {
   if (!enableCompare || compareList.length === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t z-40 p-3 md:p-4">
+    <div className="fixed bottom-0 left-0 right-0 bg-card shadow-2xl border-t border-border z-40 p-3 md:p-4">
       <div className="container mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
           <div className="flex items-center gap-2">
@@ -26,7 +26,7 @@ export default function CompareBar() {
           {compareList.map((product) => (
             <div 
               key={product.id} 
-              className="relative flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1.5 flex-shrink-0"
+              className="relative flex items-center gap-2 bg-muted rounded-full px-3 py-1.5 flex-shrink-0"
             >
               <img 
                 src={product.image} 
@@ -38,7 +38,7 @@ export default function CompareBar() {
               </span>
               <button
                 onClick={() => removeFromCompare(product.id)}
-                className="p-1 hover:bg-gray-200 rounded-full"
+                className="p-1 hover:bg-muted-foreground/20 rounded-full"
               >
                 <X className="w-3 h-3" />
               </button>

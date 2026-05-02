@@ -16,7 +16,7 @@ export default function ContentLoader({ minHeight = "min-h-[60vh]" }: ContentLoa
           className="relative w-20 h-20 mx-auto mb-6"
         >
           {/* Outer Ring */}
-          <div className="absolute inset-0 border-4 border-gray-200 rounded-full" />
+          <div className="absolute inset-0 border-4 border-border rounded-full" />
 
           {/* Spinning Ring - Clockwise */}
           <motion.div
@@ -68,7 +68,7 @@ export default function ContentLoader({ minHeight = "min-h-[60vh]" }: ContentLoa
           transition={{ delay: 0.2 }}
         >
           <div className="flex items-center justify-center gap-1">
-            <span className="text-gray-500 text-sm tracking-widest uppercase font-medium">
+            <span className="text-muted-foreground text-sm tracking-widest uppercase font-medium">
               Loading
             </span>
             <div className="flex gap-1 ml-1">

@@ -69,59 +69,59 @@ export default function AdminStatistics() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Statistics & Analytics</h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Comprehensive overview of your business performance
         </p>
       </div>
 
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
               <Package className="w-6 h-6 text-white" />
             </div>
-            <TrendingUp className="w-6 h-6 text-green-500" />
+            <TrendingUp className="w-6 h-6 text-green-500 dark:text-green-400" />
           </div>
           <div className="text-3xl font-bold mb-1">{safeProducts.length}</div>
-          <div className="text-gray-600">Total Products</div>
+          <div className="text-muted-foreground">Total Products</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
-            <TrendingUp className="w-6 h-6 text-green-500" />
+            <TrendingUp className="w-6 h-6 text-green-500 dark:text-green-400" />
           </div>
           <div className="text-3xl font-bold mb-1">{safeOrders.length}</div>
-          <div className="text-gray-600">Total Orders</div>
+          <div className="text-muted-foreground">Total Orders</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-[#D4AF37] rounded-lg flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-white" />
             </div>
-            <TrendingUp className="w-6 h-6 text-green-500" />
+            <TrendingUp className="w-6 h-6 text-green-500 dark:text-green-400" />
           </div>
           <div className="text-3xl font-bold mb-1">
             Rs. {totalRevenue.toLocaleString()}
           </div>
-          <div className="text-gray-600">Total Revenue</div>
+          <div className="text-muted-foreground">Total Revenue</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-white" />
             </div>
           </div>
           <div className="text-3xl font-bold mb-1">{pendingOrders}</div>
-          <div className="text-gray-600">Pending Orders</div>
+          <div className="text-muted-foreground">Pending Orders</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
@@ -130,22 +130,22 @@ export default function AdminStatistics() {
           <div className="text-3xl font-bold mb-1">
             Rs. {Math.round(averageOrderValue).toLocaleString()}
           </div>
-          <div className="text-gray-600">Average Order Value</div>
+          <div className="text-muted-foreground">Average Order Value</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
               <Package className="w-6 h-6 text-white" />
             </div>
           </div>
           <div className="text-3xl font-bold mb-1">{deliveredOrders}</div>
-          <div className="text-gray-600">Delivered Orders</div>
+          <div className="text-muted-foreground">Delivered Orders</div>
         </div>
       </div>
 
       {/* Category Statistics */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+      <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-6">Category Performance</h2>
         <div className="overflow-x-auto hidden md:block">
           <table className="w-full">
@@ -171,11 +171,11 @@ export default function AdminStatistics() {
         {/* Mobile Card View */}
         <div className="md:hidden space-y-2">
           {categoryStats.map((cat) => (
-            <div key={cat.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div key={cat.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <span className="font-semibold">{cat.name}</span>
               <div className="flex gap-4 text-sm">
-                <span className="text-gray-500">{cat.products} Products</span>
-                <span className="text-gray-500">{cat.orders} Orders</span>
+                <span className="text-muted-foreground">{cat.products} Products</span>
+                <span className="text-muted-foreground">{cat.orders} Orders</span>
               </div>
             </div>
           ))}
@@ -183,39 +183,39 @@ export default function AdminStatistics() {
       </div>
 
       {/* Order Status */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+      <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-6">Order Status Breakdown</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-4xl font-bold text-orange-600 mb-2">
+            <div className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
               {pendingOrders}
             </div>
-            <div className="text-gray-600">Pending</div>
+            <div className="text-muted-foreground">Pending</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">
+            <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
               {processingOrders}
             </div>
-            <div className="text-gray-600">Processing</div>
+            <div className="text-muted-foreground">Processing</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">
+            <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
               {deliveredOrders}
             </div>
-            <div className="text-gray-600">Delivered</div>
+            <div className="text-muted-foreground">Delivered</div>
           </div>
         </div>
       </div>
 
       {/* Top Selling Products */}
       {topSellingProducts.length > 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold mb-6">Top Selling Products</h2>
           <div className="space-y-4">
             {topSellingProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg"
               >
                 <div className="w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center font-bold">
                   {index + 1}
@@ -227,13 +227,13 @@ export default function AdminStatistics() {
                 />
                 <div className="flex-1">
                   <div className="font-semibold">{product.name}</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     {product.category}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-lg">{product.totalSold}</div>
-                  <div className="text-sm text-gray-600">Units Sold</div>
+                  <div className="text-sm text-muted-foreground">Units Sold</div>
                 </div>
               </div>
             ))}
@@ -242,8 +242,8 @@ export default function AdminStatistics() {
       )}
 
       {/* Availability Status */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4 text-red-600">
+      <div className="bg-card rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-bold mb-4 text-red-600 dark:text-red-400">
           Unavailable Products
         </h2>
         {unavailableProducts.length > 0 ? (
@@ -251,19 +251,19 @@ export default function AdminStatistics() {
             {unavailableProducts.slice(0, 5).map((product) => (
               <div
                 key={product.id}
-                className="p-3 bg-red-50 rounded text-sm font-semibold truncate"
+                className="p-3 bg-red-50 dark:bg-red-900/20 rounded text-sm font-semibold truncate"
               >
                 {product.name}
               </div>
             ))}
             {unavailableProducts.length > 5 && (
-              <p className="text-sm text-gray-600 text-center pt-2">
+              <p className="text-sm text-muted-foreground text-center pt-2">
                 +{unavailableProducts.length - 5} more products
               </p>
             )}
           </div>
         ) : (
-          <p className="text-green-600 font-medium">All products are available!</p>
+          <p className="text-green-600 dark:text-green-400 font-medium">All products are available!</p>
         )}
       </div>
     </div>

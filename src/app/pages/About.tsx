@@ -80,7 +80,7 @@ export default function About() {
   }, []);
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Hero */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
@@ -105,7 +105,7 @@ export default function About() {
               </div>
               <div>
                 <h2 className="text-3xl font-bold mb-4">{siteContent.about.storyTitle}</h2>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   {siteContent.about.storyText}
                 </p>
               </div>
@@ -113,22 +113,22 @@ export default function About() {
 
             {/* Mission & Vision */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-              <div className="bg-white p-8 rounded-lg shadow-lg">
+              <div className="bg-card p-8 rounded-lg shadow-lg">
                 <div className="w-16 h-16 bg-[#D4AF37] rounded-lg flex items-center justify-center mb-6">
                   <Target className="w-8 h-8 text-black" />
                 </div>
                 <h3 className="text-2xl font-bold mb-4">{siteContent.about.missionTitle}</h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {siteContent.about.missionText}
                 </p>
               </div>
 
-              <div className="bg-white p-8 rounded-lg shadow-lg">
+              <div className="bg-card p-8 rounded-lg shadow-lg">
                 <div className="w-16 h-16 bg-[#D4AF37] rounded-lg flex items-center justify-center mb-6">
                   <Eye className="w-8 h-8 text-black" />
                 </div>
                 <h3 className="text-2xl font-bold mb-4">{siteContent.about.visionTitle}</h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {siteContent.about.visionText}
                 </p>
               </div>
@@ -138,11 +138,11 @@ export default function About() {
       </section>
 
       {/* Values */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{siteContent.about.valuesTitle}</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               {siteContent.about.valuesSubtitle}
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function About() {
                     <Icon className="w-10 h-10 text-black" />
                   </div>
                   <h3 className="font-bold text-lg mb-2">{value.title}</h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     {value.description}
                   </p>
                 </div>
@@ -179,7 +179,7 @@ export default function About() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
             {storeProfile.statsYearsExperienceVisible !== false && (
-              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+              <div className="group p-6 rounded-2xl hover:bg-card/5 transition-all duration-300">
                 <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                   <span className="relative z-10">
                     <AnimatedCounter value={storeProfile.statsYearsExperience} />
@@ -190,7 +190,7 @@ export default function About() {
               </div>
             )}
             {storeProfile.statsProductsVisible !== false && (
-              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+              <div className="group p-6 rounded-2xl hover:bg-card/5 transition-all duration-300">
                 <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                   <span className="relative z-10">
                     <AnimatedCounter value={storeProfile.statsProducts} />
@@ -201,7 +201,7 @@ export default function About() {
               </div>
             )}
             {storeProfile.statsCustomersVisible !== false && (
-              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+              <div className="group p-6 rounded-2xl hover:bg-card/5 transition-all duration-300">
                 <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                   <span className="relative z-10">
                     <AnimatedCounter value={storeProfile.statsCustomers} />
@@ -212,7 +212,7 @@ export default function About() {
               </div>
             )}
             {storeProfile.statsAuthenticVisible !== false && (
-              <div className="group p-6 rounded-2xl hover:bg-white/5 transition-all duration-300">
+              <div className="group p-6 rounded-2xl hover:bg-card/5 transition-all duration-300">
                 <div className="text-5xl md:text-7xl font-black mb-4 text-[#D4AF37] relative inline-block">
                   <span className="relative z-10">
                     <AnimatedCounter value={storeProfile.statsAuthentic} />
@@ -231,7 +231,7 @@ export default function About() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">{siteContent.about.teamTitle}</h2>
-            <p className="text-gray-600 text-lg mb-8">
+            <p className="text-muted-foreground text-lg mb-8">
               {siteContent.about.teamText}
             </p>
             <img

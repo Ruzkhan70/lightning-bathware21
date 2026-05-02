@@ -247,7 +247,7 @@ export default function Home() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="bg-white"
+      className="bg-background"
     >
       {/* Hero Section */}
       <section className="relative h-[400px] md:h-[500px] lg:h-[600px] flex items-center bg-gray-900 text-white overflow-hidden">
@@ -303,18 +303,18 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-12 bg-gray-50 border-b">
+      <section className="py-12 bg-muted/30 border-b">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <ScrollAnimation key={index} animation="slideUp" delay={index * 100}>
-                <div className="flex items-start gap-4 p-6 bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                <div className="flex items-start gap-4 p-6 bg-card rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                   <div className="p-3 bg-[#D4AF37] rounded-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                     <feature.icon className="w-6 h-6 text-black" />
                   </div>
                   <div>
                     <h3 className="font-bold text-lg mb-1">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm">{feature.description}</p>
+                    <p className="text-muted-foreground text-sm">{feature.description}</p>
                   </div>
                 </div>
               </ScrollAnimation>
@@ -344,14 +344,14 @@ export default function Home() {
       </section>
 
       {/* Categories */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
                 {siteContent.home.shopByCategoryTitle}
               </h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                 {siteContent.home.shopByCategorySubtitle}
               </p>
               <div className="w-24 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
@@ -469,10 +469,10 @@ export default function Home() {
                   </div>
                   <div className="p-6">
                     <h3 className="text-xl font-bold mb-2">{offer.title}</h3>
-                    <p className="text-gray-600 mb-4 line-clamp-2">
+                    <p className="text-muted-foreground mb-4 line-clamp-2">
                       {offer.description}
                     </p>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4">
                       Valid until{" "}
                       {new Date(offer.endDate).toLocaleDateString("en-GB", {
                         day: "2-digit",
@@ -489,7 +489,7 @@ export default function Home() {
               <Link to="/offers">
                 <Button
                   size="lg"
-                  className="bg-white hover:bg-gray-100 text-red-600 font-bold text-lg px-8"
+                  className="bg-card hover:bg-muted text-red-600 font-bold text-lg px-8"
                 >
                   View All Offers
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -501,14 +501,14 @@ export default function Home() {
       )}
 
       {/* Featured Products */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <ScrollAnimation animation="slideUp">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
                 {siteContent.home.featuredProductsTitle}
               </h2>
-              <p className="text-gray-600 text-lg">
+              <p className="text-muted-foreground text-lg">
                 {siteContent.home.featuredProductsSubtitle}
               </p>
             </div>

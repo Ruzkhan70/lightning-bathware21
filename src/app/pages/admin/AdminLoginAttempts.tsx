@@ -188,9 +188,9 @@ export default function AdminLoginAttempts() {
 
   const getSeverityColor = (severity: "low" | "medium" | "high") => {
     switch (severity) {
-      case "high": return "text-red-600 bg-red-50 border-red-200";
-      case "medium": return "text-orange-600 bg-orange-50 border-orange-200";
-      default: return "text-gray-600 bg-gray-50 border-gray-200";
+      case "high": return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800";
+      case "medium": return "text-orange-600 bg-orange-50 dark:bg-orange-900/20 border-orange-200";
+      default: return "text-muted-foreground bg-muted/50 border-border";
     }
   };
 
@@ -199,7 +199,7 @@ export default function AdminLoginAttempts() {
       <div className="p-6 md:p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading login attempts...</p>
+          <p className="mt-4 text-muted-foreground">Loading login attempts...</p>
         </div>
       </div>
     );
@@ -210,7 +210,7 @@ export default function AdminLoginAttempts() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Login Attempts</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Monitor all admin login attempts and security events
           </p>
         </div>
@@ -219,7 +219,7 @@ export default function AdminLoginAttempts() {
             <Button
               onClick={() => setShowClearAllConfirm(true)}
               variant="outline"
-              className="border-red-500 text-red-500 hover:bg-red-50"
+              className="border-red-500 text-red-500 hover:bg-red-50 dark:bg-red-900/20 dark:hover:bg-red-900/20"
               disabled={isDeleting}
             >
               <Trash className="w-4 h-4 mr-2" />
@@ -237,59 +237,59 @@ export default function AdminLoginAttempts() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Shield className="w-5 h-5 text-blue-600" />
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Attempts</p>
+              <p className="text-sm text-muted-foreground">Total Attempts</p>
               <p className="text-2xl font-bold">{stats.total}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-50 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+            <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Successful</p>
-              <p className="text-2xl font-bold text-green-600">{stats.success}</p>
+              <p className="text-sm text-muted-foreground">Successful</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.success}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-50 rounded-lg">
-              <XCircle className="w-5 h-5 text-red-600" />
+            <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Failed</p>
-              <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+              <p className="text-sm text-muted-foreground">Failed</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.failed}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-50 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Suspicious</p>
-              <p className="text-2xl font-bold text-amber-600">{stats.suspicious}</p>
+              <p className="text-sm text-muted-foreground">Suspicious</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.suspicious}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-card rounded-lg shadow-sm p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Search by email or reason..."
               value={searchQuery}
@@ -340,10 +340,10 @@ export default function AdminLoginAttempts() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden hidden md:block">
+      <div className="bg-card rounded-lg shadow-sm overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-muted/50 border-b">
               <tr>
                 <th className="text-left py-4 px-4 font-semibold">Status</th>
                 <th className="text-left py-4 px-4 font-semibold">Date & Time</th>
@@ -358,7 +358,7 @@ export default function AdminLoginAttempts() {
             <tbody>
               {paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-500">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     No login attempts found
                   </td>
                 </tr>
@@ -366,10 +366,10 @@ export default function AdminLoginAttempts() {
                 paginatedLogs.map((log) => {
                   const severity = log.status === "failed" ? getFailureSeverity(log.failureReason) : "low";
                   return (
-                    <tr key={log.id} className={`border-b hover:bg-gray-50 ${severity === "high" ? "bg-red-50/30" : ""}`}>
+                    <tr key={log.id} className={`border-b hover:bg-muted/50 ${severity === "high" ? "bg-red-50/30 dark:bg-red-900/20" : ""}`}>
                       <td className="py-3 px-4">
                         {log.status === "success" ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full text-xs font-medium">
                             <CheckCircle className="w-3 h-3" />
                             Success
                           </span>
@@ -380,20 +380,20 @@ export default function AdminLoginAttempts() {
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm text-muted-foreground">
                         <div>{new Date(log.timestamp).toLocaleDateString()}</div>
-                        <div className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleTimeString()}</div>
+                        <div className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleTimeString()}</div>
                       </td>
                       <td className="py-3 px-4">
                         <div className="font-medium">{log.emailMasked || log.email}</div>
                         {log.emailMasked && log.email && log.email.includes("@") && (
-                          <div className="text-xs text-gray-400" title={log.email}>
+                          <div className="text-xs text-muted-foreground" title={log.email}>
                             {log.email.substring(0, 3)}***@{log.email.split("@")[1]}
                           </div>
                         )}
                       </td>
       <td className="py-3 px-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Globe className="w-4 h-4" />
           {log.ipAddress || "Unknown"}
         </div>
@@ -404,19 +404,19 @@ export default function AdminLoginAttempts() {
             {log.failureReason}
           </span>
         ) : log.action === "logout" ? (
-          <span className="text-sm text-gray-500">Logged out</span>
+          <span className="text-sm text-muted-foreground">Logged out</span>
         ) : (
-          <span className="text-sm text-gray-400">-</span>
+          <span className="text-sm text-muted-foreground">-</span>
         )}
       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Monitor className="w-4 h-4" />
                           {log.device || "Unknown"}
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Globe className="w-4 h-4" />
                           {log.browser || "Unknown"}
                         </div>
@@ -446,7 +446,7 @@ export default function AdminLoginAttempts() {
                             size="sm"
                             variant="ghost"
                             onClick={() => setDeleteConfirm(log.id)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -462,7 +462,7 @@ export default function AdminLoginAttempts() {
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
               {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} of{" "}
               {filteredLogs.length} attempts
@@ -495,24 +495,24 @@ export default function AdminLoginAttempts() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {paginatedLogs.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Shield className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <div className="text-center py-12 text-muted-foreground">
+            <Shield className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
             <p>No login attempts found</p>
           </div>
         ) : (
           paginatedLogs.map((log) => {
             const severity = log.status === "failed" ? getFailureSeverity(log.failureReason) : "low";
             return (
-              <div key={log.id} className={`bg-white rounded-lg shadow-sm border p-4 ${severity === "high" ? "border-red-200" : ""}`}>
+              <div key={log.id} className={`bg-card rounded-lg shadow-sm border p-4 ${severity === "high" ? "border-red-200 dark:border-red-800" : ""}`}>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{log.emailMasked || log.email}</h3>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <h3 className="font-semibold text-foreground">{log.emailMasked || log.email}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {new Date(log.timestamp).toLocaleDateString()} at {new Date(log.timestamp).toLocaleTimeString()}
                     </p>
                   </div>
                   {log.status === "success" ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex-shrink-0">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full text-xs font-medium flex-shrink-0">
                       <CheckCircle className="w-3 h-3" />
                       Success
                     </span>
@@ -530,7 +530,7 @@ export default function AdminLoginAttempts() {
                   </p>
                 )}
 
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                   <span className="flex items-center gap-1">
                     <Globe className="w-3 h-3" />
                     {log.ipAddress || "Unknown"}
@@ -570,7 +570,7 @@ export default function AdminLoginAttempts() {
                     size="sm"
                     variant="outline"
                     onClick={() => setDeleteConfirm(log.id)}
-                    className="w-full h-11 text-red-500 border-red-200"
+                    className="w-full h-11 text-red-500 border-red-200 dark:border-red-800"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
@@ -582,12 +582,12 @@ export default function AdminLoginAttempts() {
         )}
       </div>
 
-      <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+      <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
           <div>
-            <h3 className="font-semibold text-amber-800 mb-1">Security Notice</h3>
-            <p className="text-sm text-amber-700">
+            <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-1">Security Notice</h3>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
               Only the authorized admin email <strong>{storeProfile.authorizedAdminEmail || "not set"}</strong> can access the admin portal. 
               All other login attempts are automatically blocked. Failed attempts are logged for security monitoring.
             </p>
@@ -598,14 +598,14 @@ export default function AdminLoginAttempts() {
       {/* Clear All Confirmation Modal */}
       {showClearAllConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-xl shadow-lg p-6 w-full max-w-md">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-red-100 rounded-full">
-                <Trash className="w-6 h-6 text-red-600" />
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <Trash className="w-6 h-6 text-red-600 dark:text-red-400" />
               </div>
               <h2 className="text-xl font-bold">Clear All Login Attempts</h2>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               Are you sure you want to delete all {filteredLogs.length} login attempt(s)? This action cannot be undone.
             </p>
             <div className="flex gap-3">

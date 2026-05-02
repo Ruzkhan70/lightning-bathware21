@@ -168,8 +168,8 @@ export default function ImageUpload({
         onDrop={onDrop}
         onClick={() => !isUploading && fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-lg p-4 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[150px]
-          ${isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-gray-300 hover:border-[#D4AF37]"}
-          ${value ? "bg-gray-50" : "bg-white"}
+          ${isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-border hover:border-[#D4AF37]"}
+          ${value ? "bg-muted/50" : "bg-card"}
           ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
       >
         <input
@@ -181,16 +181,16 @@ export default function ImageUpload({
         />
 
         {isUploading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-card/80 z-10">
             <div className="text-center">
               <div className="w-10 h-10 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Uploading to CDN...</p>
+              <p className="text-sm text-muted-foreground">Uploading to CDN...</p>
             </div>
           </div>
         )}
 
         {value && !isUploading ? (
-          <div className="relative w-full aspect-video rounded-md overflow-hidden bg-white flex items-center justify-center shadow-sm">
+          <div className="relative w-full aspect-video rounded-md overflow-hidden bg-card flex items-center justify-center shadow-sm">
             <img src={value} alt="Preview" className="max-w-full max-h-full object-contain" />
             <button
               onClick={(e) => {
@@ -205,11 +205,11 @@ export default function ImageUpload({
           </div>
         ) : !isUploading ? (
           <div className="text-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Upload className="w-6 h-6 text-gray-500" />
+            <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
+              <Upload className="w-6 h-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-gray-700">Drag & drop or click to upload</p>
-            <p className="text-xs text-gray-500 mt-1">Images upload to fast CDN</p>
+            <p className="text-sm font-medium text-foreground">Drag & drop or click to upload</p>
+            <p className="text-xs text-muted-foreground mt-1">Images upload to fast CDN</p>
           </div>
         ) : null}
       </div>
@@ -222,7 +222,7 @@ export default function ImageUpload({
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="Paste image URL here"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
           />
           <button
@@ -236,7 +236,7 @@ export default function ImageUpload({
               setShowUrlInput(false);
               setUrlInput("");
             }}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
+            className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80"
           >
             Cancel
           </button>
@@ -247,7 +247,7 @@ export default function ImageUpload({
             e.stopPropagation();
             setShowUrlInput(true);
           }}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#D4AF37] transition-colors"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
         >
           <LinkIcon className="w-4 h-4" />
           Or use an image URL instead
@@ -256,7 +256,7 @@ export default function ImageUpload({
       
       {value && (
         <div className="flex items-center gap-2">
-          <p className="text-[10px] text-gray-400 truncate flex-1">{value}</p>
+          <p className="text-[10px] text-muted-foreground truncate flex-1">{value}</p>
           <a
             href={value}
             target="_blank"

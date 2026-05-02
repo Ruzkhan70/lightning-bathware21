@@ -53,7 +53,7 @@ const LazyImageComponent = memo(function LazyImageComponent({
     <div
       ref={imgRef}
       className={cn(
-        "relative overflow-hidden bg-gray-100",
+        "relative overflow-hidden bg-muted",
         !isLoaded && "animate-pulse",
         className
       )}

@@ -286,21 +286,21 @@ export default function Account() {
   if (isLoggedIn && user) {
     if (!isDataLoaded) {
       return (
-        <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="bg-muted/50 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#D4AF37]" />
-            <p className="mt-2 text-gray-600">Loading your account...</p>
+            <p className="mt-2 text-muted-foreground">Loading your account...</p>
           </div>
         </div>
       );
     }
     
     return (
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-6 md:py-12">
           <div className="max-w-4xl mx-auto">
             {/* User Info Card */}
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 md:p-8 mb-6 md:mb-8">
+            <div className="bg-card rounded-xl shadow-sm p-4 sm:p-6 md:p-8 mb-6 md:mb-8">
               {/* Header Row */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3 sm:gap-4">
@@ -309,7 +309,7 @@ export default function Account() {
                   </div>
                   <div>
                     <h1 className="text-2xl sm:text-3xl font-bold mb-1">{user.name}</h1>
-                    <p className="text-gray-600 text-sm sm:text-base">Customer Account</p>
+                    <p className="text-muted-foreground text-sm sm:text-base">Customer Account</p>
                   </div>
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function Account() {
               {isEditingProfile ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm text-gray-500">Name</Label>
+                    <Label className="text-sm text-muted-foreground">Name</Label>
                     <Input
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
@@ -356,7 +356,7 @@ export default function Account() {
                     />
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-500">Phone</Label>
+                    <Label className="text-sm text-muted-foreground">Phone</Label>
                     <Input
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
@@ -365,7 +365,7 @@ export default function Account() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label className="text-sm text-gray-500">Address</Label>
+                    <Label className="text-sm text-muted-foreground">Address</Label>
                     <Input
                       value={editAddress}
                       onChange={(e) => setEditAddress(e.target.value)}
@@ -391,32 +391,32 @@ export default function Account() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
                     <User className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Name</p>
-                      <p className="font-medium text-sm sm:text-base">{user.name || "Not set"}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Name</p>
+                      <p className="font-medium text-sm sm:text-base text-foreground">{user.name || "Not set"}</p>
                     </div>
                   </div>
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
                     <Mail className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Email</p>
-                      <p className="font-medium text-sm sm:text-base break-all">{user.email}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Email</p>
+                      <p className="font-medium text-sm sm:text-base text-foreground break-all">{user.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
                     <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Phone</p>
-                      <p className="font-medium text-sm sm:text-base">{user.phone || "Not set"}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Phone</p>
+                      <p className="font-medium text-sm sm:text-base text-foreground">{user.phone || "Not set"}</p>
                     </div>
                   </div>
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:col-span-2">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg sm:col-span-2">
                     <MapPin className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Address</p>
-                      <p className="font-medium text-sm sm:text-base">{user.address || "Not set"}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Address</p>
+                      <p className="font-medium text-sm sm:text-base text-foreground">{user.address || "Not set"}</p>
                     </div>
                   </div>
                 </div>
@@ -424,7 +424,7 @@ export default function Account() {
             </div>
 
             {/* My Orders Section */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6 md:mb-8">
+            <div className="bg-card rounded-xl shadow-sm overflow-hidden mb-6 md:mb-8">
               <div className="bg-[#D4AF37] text-black px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
                 <Package className="w-5 h-5 sm:w-6 sm:h-6" />
                 <h2 className="text-lg sm:text-xl font-bold">My Orders</h2>
@@ -441,8 +441,8 @@ export default function Account() {
                   </div>
                 ) : userOrders.length === 0 ? (
                   <div className="text-center py-8 sm:py-12">
-                    <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-600">No orders yet</p>
+                    <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No orders yet</p>
                     <Button
                       onClick={() => navigate("/products")}
                       className="mt-4 bg-black hover:bg-[#D4AF37] text-white"
@@ -456,12 +456,12 @@ export default function Account() {
                         <div
                           key={order.id}
                           onClick={() => setSelectedOrder(order)}
-                          className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          className="border border-border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer"
                         >
                           <div className="flex items-start justify-between mb-2 sm:mb-3">
                             <div>
-                              <p className="font-bold text-base sm:text-lg">Order #{order.id}</p>
-                              <p className="text-xs sm:text-sm text-gray-500">
+                              <p className="font-bold text-base sm:text-lg text-foreground">Order #{order.id}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
                                 {new Date(order.date).toLocaleDateString("en-GB", {
                                   day: "2-digit",
                                   month: "short",
@@ -471,18 +471,18 @@ export default function Account() {
                             </div>
                             <span
                               className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${
-                                order.status === "Delivered"
-                                  ? "bg-green-100 text-green-700"
-                                  : order.status === "Processing"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-yellow-100 text-yellow-700"
+order.status === "Delivered"
+  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+  : order.status === "Processing"
+  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                               }`}
                             >
                               {order.status}
                             </span>
                           </div>
-                          <div className="border-t border-gray-200 pt-2 sm:pt-3">
-                            <p className="text-xs sm:text-sm text-gray-600 mb-2">
+                          <div className="border-t border-border pt-2 sm:pt-3">
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                               {order.products.length} item{order.products.length > 1 ? "s" : ""}
                             </p>
                             <div className="flex items-center justify-between">
@@ -506,11 +506,11 @@ export default function Account() {
         {/* Order Details Modal */}
         {selectedOrder && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-4 sm:p-6 flex items-center justify-between">
+            <div className="bg-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-border p-4 sm:p-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold">Order Details</h2>
-                  <p className="text-xs sm:text-sm text-gray-500">
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">Order Details</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Order #{selectedOrder.id} • {new Date(selectedOrder.date).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "long",
@@ -520,7 +520,7 @@ export default function Account() {
                 </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-muted rounded-full transition-colors"
                 >
                   <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
@@ -532,11 +532,11 @@ export default function Account() {
                     <h3 className="font-semibold mb-2">Order Status</h3>
                     <span
                       className={`inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium ${
-                        selectedOrder.status === "Delivered"
-                          ? "bg-green-100 text-green-700"
-                          : selectedOrder.status === "Processing"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-yellow-100 text-yellow-700"
+selectedOrder.status === "Delivered"
+  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+  : selectedOrder.status === "Processing"
+  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                       }`}
                     >
                       {selectedOrder.status}
@@ -551,7 +551,7 @@ export default function Account() {
                   </Button>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Truck className="w-5 h-5 text-[#D4AF37]" />
                     <h3 className="font-semibold">Delivery Information</h3>
@@ -578,7 +578,7 @@ export default function Account() {
                     {(selectedOrder.products || []).map((product: { id?: string; image?: string; name?: string; price?: number; quantity?: number; selected_color?: string; selected_size?: string }, index: number) => (
                       <div
                         key={product.id || index}
-                        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                       >
                         <img
                           src={product.image || "/placeholder.png"}
@@ -594,7 +594,7 @@ export default function Account() {
                               {product.selected_size && `Size: ${product.selected_size}`}
                             </p>
                           )}
-                          <p className="text-xs sm:text-sm text-gray-500">Qty: {product.quantity || 1}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Qty: {product.quantity || 1}</p>
                         </div>
                         <p className="font-semibold text-[#D4AF37] text-sm sm:text-base whitespace-nowrap">
                           Rs. {((product.price || 0) * (product.quantity || 1)).toLocaleString()}
@@ -628,9 +628,9 @@ export default function Account() {
 
   // Login/Register Form
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-background min-h-screen">
       <div className="container mx-auto px-4 py-6 sm:py-12">
-        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-5 sm:p-8">
+        <div className="max-w-md mx-auto bg-card rounded-xl shadow-lg p-5 sm:p-8">
           <div className="text-center mb-6 sm:mb-8">
             <div className="inline-block p-3 sm:p-4 bg-[#D4AF37] rounded-full mb-3 sm:mb-4">
               <User className="w-6 h-6 sm:w-8 sm:h-8 text-black" />
@@ -638,7 +638,7 @@ export default function Account() {
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
               {isLoginMode ? "Welcome Back" : "Create Account"}
             </h1>
-            <p className="text-gray-600 text-sm sm:text-base">
+            <p className="text-muted-foreground text-sm sm:text-base">
               {isLoginMode
                 ? "Login to track your orders"
                 : "Register to start shopping"}
@@ -646,13 +646,13 @@ export default function Account() {
           </div>
 
           {/* Toggle Buttons */}
-          <div className="flex gap-2 mb-6 sm:mb-8 p-1 bg-gray-100 rounded-lg">
+          <div className="flex gap-2 mb-6 sm:mb-8 p-1 bg-muted rounded-lg">
             <button
               onClick={() => setIsLoginMode(true)}
               className={`flex-1 py-2 sm:py-2.5 px-4 rounded-md font-medium transition-colors text-sm sm:text-base ${
                 isLoginMode
-                  ? "bg-black text-white"
-                  : "text-gray-600 hover:text-black"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Login
@@ -661,8 +661,8 @@ export default function Account() {
               onClick={() => setIsLoginMode(false)}
               className={`flex-1 py-2 sm:py-2.5 px-4 rounded-md font-medium transition-colors text-sm sm:text-base ${
                 !isLoginMode
-                  ? "bg-black text-white"
-                  : "text-gray-600 hover:text-black"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Register
@@ -698,7 +698,7 @@ export default function Account() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 p-1 touch-manipulation"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 touch-manipulation"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -786,7 +786,7 @@ export default function Account() {
                   <button
                     type="button"
                     onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 touch-manipulation"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground touch-manipulation"
                   >
                     {showRegisterPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -809,7 +809,7 @@ export default function Account() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 touch-manipulation"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground touch-manipulation"
                   >
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -829,20 +829,20 @@ export default function Account() {
         {/* Forgot Password Modal */}
         {showForgotPassword && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 w-full max-w-md">
+            <div className="bg-card rounded-xl shadow-lg p-5 sm:p-6 w-full max-w-md">
               {/* Step 1: Enter Email */}
               {forgotStep === "email" && (
                 <>
                   <div className="flex items-center mb-4">
                     <button
                       onClick={closeForgotPassword}
-                      className="mr-2 p-2 hover:bg-gray-100 rounded-full touch-manipulation"
+                      className="mr-2 p-2 hover:bg-muted rounded-full touch-manipulation"
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-xl sm:text-2xl font-bold">Forgot Password</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground">Forgot Password</h2>
                   </div>
-                  <p className="text-gray-600 mb-6 text-sm sm:text-base">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     Enter your email address to receive a verification code.
                   </p>
                   <div className="space-y-4">
@@ -881,17 +881,17 @@ export default function Account() {
                   <div className="flex items-center mb-4">
                     <button
                       onClick={() => setForgotStep("email")}
-                      className="mr-2 p-2 hover:bg-gray-100 rounded-full touch-manipulation"
+                      className="mr-2 p-2 hover:bg-muted rounded-full touch-manipulation"
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-xl sm:text-2xl font-bold">Check Your Email</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground">Check Your Email</h2>
                   </div>
-                  <p className="text-gray-600 mb-6 text-sm sm:text-base break-all">
-                    We've sent a password reset link to <strong>{forgotEmail}</strong>
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base break-all">
+                    We've sent a password reset link to <strong className="text-foreground">{forgotEmail}</strong>
                   </p>
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-gray-600">
+                  <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-muted-foreground">
                       Click the link in the email to reset your password. The link will expire in 1 hour.
                     </p>
                   </div>
@@ -901,7 +901,7 @@ export default function Account() {
                   >
                     Back to Login
                   </Button>
-                  <p className="text-sm text-gray-500 text-center mt-4">
+                  <p className="text-sm text-muted-foreground text-center mt-4">
                     Didn't receive email?{" "}
                     <button
                       onClick={handleSendCode}

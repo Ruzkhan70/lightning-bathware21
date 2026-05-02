@@ -194,25 +194,25 @@ export default function Header() {
                 value={searchQuery}
                 onChange={handleInputChange}
                 onFocus={() => searchQuery.trim() && setShowSearchSuggestions(true)}
-                className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-12 py-6 bg-white text-black border-0 rounded-full"
+                className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-12 py-6 bg-background text-foreground border-0 rounded-full"
               />
               
               {showSearchSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border overflow-hidden z-50">
                   {searchSuggestions.map((product) => (
                     <button
                       key={product.id}
                       type="button"
                       onClick={() => handleSuggestionClick(product.name)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
                     >
-                      <div className="font-medium text-gray-900">{product.name}</div>
-                      <div className="text-sm text-gray-500">{product.category}</div>
+                      <div className="font-medium text-foreground">{product.name}</div>
+                      <div className="text-sm text-muted-foreground">{product.category}</div>
                     </button>
                   ))}
                   <button
                     type="submit"
-                    className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 text-[#D4AF37] font-medium transition-colors"
+                    className="w-full text-left px-4 py-3 bg-muted/50 hover:bg-muted text-[#D4AF37] font-medium transition-colors"
                   >
                     View all results for "{searchQuery}"
                   </button>
@@ -224,7 +224,7 @@ export default function Header() {
           <div className="flex items-center gap-3 md:gap-4">
             <button
               onClick={toggleTheme}
-              className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="hidden md:flex p-2 rounded-lg hover:bg-muted transition-colors"
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {theme === "dark" ? (
@@ -274,20 +274,20 @@ export default function Header() {
               value={searchQuery}
               onChange={handleInputChange}
               onFocus={() => searchQuery.trim() && setShowSearchSuggestions(true)}
-              className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-4 py-5 bg-white text-black border-0 rounded-full"
+              className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-4 py-5 bg-background text-foreground border-0 rounded-full"
             />
             
             {showSearchSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 max-h-80 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border overflow-hidden z-50 max-h-80 overflow-y-auto">
                 {searchSuggestions.map((product) => (
                   <button
                     key={product.id}
                     type="button"
                     onClick={() => handleSuggestionClick(product.name)}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
                   >
-                    <div className="font-medium text-gray-900">{product.name}</div>
-                    <div className="text-sm text-gray-500">{product.category}</div>
+                    <div className="font-medium text-foreground">{product.name}</div>
+                    <div className="text-sm text-muted-foreground">{product.category}</div>
                   </button>
                 ))}
               </div>
@@ -325,7 +325,7 @@ export default function Header() {
                   <ChevronDown className="w-4 h-4 transition-transform duration-200" />
                   <span className="absolute -bottom-1 left-0 h-0.5 bg-[#D4AF37] transition-all duration-300 w-0 group-hover:w-full"></span>
                 </button>
-                <div className={`absolute left-1/2 -translate-x-1/2 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 z-50 ${showCategoriesDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
+                <div className={`absolute left-1/2 -translate-x-1/2 top-full w-64 bg-card rounded-xl shadow-xl border border-border overflow-hidden transition-all duration-200 z-50 ${showCategoriesDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
                   <div className="py-2 max-h-[450px] overflow-y-auto">
                     {safeCategories.filter(cat => cat.isActive).sort((a, b) => (a.order ?? 999) - (b.order ?? 999)).map((category) => {
                       const isCategoryActive = location.pathname === "/products" && location.search.includes(`category=${encodeURIComponent(category.name)}`);
@@ -334,20 +334,20 @@ export default function Header() {
                           key={category.id}
                           to={`/products?category=${encodeURIComponent(category.name)}`}
                           onClick={() => setShowCategoriesDropdown(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-gray-700 hover:bg-gray-50"}`}
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-foreground hover:bg-muted/50"}`}
                         >
                           {category.image ? (
                             <img alt={category.name} className="w-10 h-10 rounded-lg object-cover" src={category.image} />
                           ) : (
-                            <span className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
+                            <span className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
                           )}
                           <span className="font-medium">{category.name}</span>
                         </Link>
                       );
                     })}
                   </div>
-                  <div className="border-t border-gray-100 px-4 py-3 bg-white sticky bottom-0">
-                    <Link to="/categories" onClick={() => setShowCategoriesDropdown(false)} className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive("/categories") ? "text-[#D4AF37]" : "text-gray-600 hover:text-[#B8962E]"}`}>
+                  <div className="border-t border-border/50 px-4 py-3 bg-card sticky bottom-0">
+                    <Link to="/categories" onClick={() => setShowCategoriesDropdown(false)} className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive("/categories") ? "text-[#D4AF37]" : "text-muted-foreground hover:text-[#B8962E]"}`}>
                       View All Categories<span>→</span>
                     </Link>
                   </div>
@@ -469,7 +469,7 @@ export default function Header() {
                             }}
                             className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm"
                           >
-                            <span className="text-gray-300">{category.name}</span>
+                            <span className="text-muted-foreground">{category.name}</span>
                             <ChevronRight className={`w-3 h-3 ml-auto transition-transform duration-200 ${expandedCategories.includes(category.id) ? 'rotate-90' : ''}`} />
                           </button>
                           {expandedCategories.includes(category.id) && (
@@ -479,7 +479,7 @@ export default function Header() {
                                   key={subcat}
                                   to={`/products?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(subcat)}`}
                                   onClick={closeMobileMenu}
-                                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm text-gray-400"
+                                   className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm text-muted-foreground"
                                 >
                                   <span className="w-1 h-1 rounded-full bg-[#D4AF37]"></span>
                                   {subcat}
@@ -508,7 +508,7 @@ export default function Header() {
                   <Link
                     to="/categories"
                     onClick={closeMobileMenu}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm border-t border-gray-800 mt-2 pt-2 ${isActive("/categories") ? "text-[#D4AF37] bg-gray-800" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm border-t border-border mt-2 pt-2 ${isActive("/categories") ? "text-[#D4AF37] bg-muted" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
                   >
                     View All Categories →
                   </Link>
@@ -548,7 +548,7 @@ export default function Header() {
           </ul>
 
           <div className="border-t border-gray-800 mt-4 pt-4 px-3">
-            <p className="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">Account</p>
+             <p className="px-4 py-2 text-xs text-muted-foreground uppercase tracking-wider">Account</p>
             <ul className="space-y-1">
               <li>
                 <Link
@@ -595,7 +595,7 @@ export default function Header() {
         </nav>
 
         <div className="p-4 border-t border-gray-800">
-          <p className="text-xs text-gray-500 text-center">Swipe right to close</p>
+          <p className="text-xs text-muted-foreground text-center">Swipe right to close</p>
         </div>
       </div>
     </header>

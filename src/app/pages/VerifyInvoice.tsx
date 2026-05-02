@@ -97,20 +97,20 @@ export default function VerifyInvoice() {
 
   if (status === "not_found") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
+        <div className="bg-card rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <XCircle className="w-10 h-10 text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-red-600 mb-2">Invoice Not Found</h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             This invoice could not be verified. It may not exist or the verification code is incorrect.
           </p>
-          <p className="text-sm text-gray-500 mb-6">
-            Verification ID: <code className="bg-gray-100 px-2 py-1 rounded">{id}</code>
+          <p className="text-sm text-muted-foreground mb-6">
+            Verification ID: <code className="bg-muted px-2 py-1 rounded">{id}</code>
           </p>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-500">If you believe this is an error, please contact:</p>
+          <div className="bg-muted/50 p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">If you believe this is an error, please contact:</p>
             <p className="font-semibold mt-1 flex items-center justify-center gap-2">
               <Phone className="w-4 h-4" />
               {storeProfile.phone}
@@ -127,7 +127,7 @@ export default function VerifyInvoice() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-b from-muted/50 to-muted p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -138,10 +138,10 @@ export default function VerifyInvoice() {
             <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
           <h1 className="text-3xl font-bold text-green-600 mb-2">Verified Invoice</h1>
-          <p className="text-gray-600">This invoice has been verified as authentic</p>
+          <p className="text-muted-foreground">This invoice has been verified as authentic</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-[#D4AF37] to-[#b8962f] p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -169,34 +169,34 @@ export default function VerifyInvoice() {
 
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <User className="w-4 h-4" /> Customer
                 </p>
                 <p className="font-semibold">{invoice.customerName}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <Phone className="w-4 h-4" /> Phone
                 </p>
                 <p className="font-semibold">{invoice.customerPhone}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <Calendar className="w-4 h-4" /> Date
                 </p>
                 <p className="font-semibold">{format(new Date(invoice.date), "dd MMM yyyy, HH:mm")}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <Package className="w-4 h-4" /> Items
                 </p>
                 <p className="font-semibold">{invoice.products.length} product(s)</p>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                 <MapPin className="w-4 h-4" /> Delivery Address
               </p>
               <p className="font-semibold">{invoice.address}</p>
@@ -220,7 +220,7 @@ export default function VerifyInvoice() {
             <div className="bg-gradient-to-r from-[#D4AF37]/10 to-[#b8962f]/10 p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-gray-500">Subtotal</p>
+                  <p className="text-sm text-muted-foreground">Subtotal</p>
                   <p className="text-sm">Delivery</p>
                   {invoice.discount > 0 && (
                     <p className="text-sm text-green-600">Discount</p>
@@ -243,18 +243,18 @@ export default function VerifyInvoice() {
             </div>
 
             <div className="text-center pt-4 border-t">
-              <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+              <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                 <Zap className="w-4 h-4 text-[#D4AF37]" />
                 Verified by {storeProfile.storeName} {storeProfile.storeNameAccent}
                 <Zap className="w-4 h-4 text-[#D4AF37]" />
               </p>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 This invoice was generated on {format(new Date(invoice.createdAt), "dd MMM yyyy HH:mm")}
               </p>
             </div>
           </div>
 
-          <div className="bg-gray-50 px-6 py-4 flex justify-center">
+          <div className="bg-muted/50 px-6 py-4 flex justify-center">
             <Link to={`/invoice/${invoice.id}`}>
               <Button className="bg-[#D4AF37] hover:bg-[#b8962f] text-white">
                 <FileText className="w-4 h-4 mr-2" />
@@ -264,7 +264,7 @@ export default function VerifyInvoice() {
           </div>
         </div>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className="mt-6 text-center text-sm text-muted-foreground">
           <p>If you have questions about this invoice, contact us:</p>
           <p className="font-semibold mt-1 flex items-center justify-center gap-2">
             <Phone className="w-4 h-4" />

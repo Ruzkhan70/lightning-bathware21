@@ -407,7 +407,7 @@ export default function AdminInvoices() {
             <FileText className="w-8 h-8 text-[#D4AF37]" />
             Invoices
           </h1>
-          <p className="text-gray-500 mt-1">Manage and track all invoices</p>
+          <p className="text-muted-foreground mt-1">Manage and track all invoices</p>
         </div>
 
         <div className="flex gap-2">
@@ -431,24 +431,24 @@ export default function AdminInvoices() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <p className="text-sm text-gray-500">Total Invoices</p>
+        <div className="bg-card p-4 rounded-lg shadow-sm border">
+          <p className="text-sm text-muted-foreground">Total Invoices</p>
           <p className="text-2xl font-bold">{filteredInvoices.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <p className="text-sm text-gray-500">Total Revenue (Paid)</p>
+        <div className="bg-card p-4 rounded-lg shadow-sm border">
+          <p className="text-sm text-muted-foreground">Total Revenue (Paid)</p>
           <p className="text-2xl font-bold text-green-600">Rs. {totalRevenue.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <p className="text-sm text-gray-500">Pending Amount</p>
+        <div className="bg-card p-4 rounded-lg shadow-sm border">
+          <p className="text-sm text-muted-foreground">Pending Amount</p>
           <p className="text-2xl font-bold text-yellow-600">Rs. {pendingAmount.toLocaleString()}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-card rounded-lg shadow-sm border">
         <div className="p-4 border-b flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search by invoice number, customer name, or phone..."
               value={searchTerm}
@@ -472,7 +472,7 @@ export default function AdminInvoices() {
         </div>
 
         {showFilters && (
-          <div className="p-4 border-b bg-gray-50 flex flex-wrap gap-4">
+          <div className="p-4 border-b bg-muted/50 flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Status:</label>
               <select
@@ -523,7 +523,7 @@ export default function AdminInvoices() {
             <TableBody>
               {paginatedInvoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No invoices found
                   </TableCell>
                 </TableRow>
@@ -531,11 +531,11 @@ export default function AdminInvoices() {
                 paginatedInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-semibold">{invoice.invoiceNumber}</TableCell>
-                    <TableCell className="font-mono text-sm text-gray-500">#{invoice.orderId?.slice(-8) || "N/A"}</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">#{invoice.orderId?.slice(-8) || "N/A"}</TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{invoice.customerName}</p>
-                        <p className="text-sm text-gray-500">{invoice.customerPhone}</p>
+                        <p className="text-sm text-muted-foreground">{invoice.customerPhone}</p>
                       </div>
                     </TableCell>
                     <TableCell>{format(new Date(invoice.date), "dd MMM yyyy")}</TableCell>
@@ -546,8 +546,8 @@ export default function AdminInvoices() {
                       <Badge
                         className={
                           invoice.paymentStatus === "Paid"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                         }
                       >
                         {invoice.paymentStatus === "Paid" ? (
@@ -565,7 +565,7 @@ export default function AdminInvoices() {
                       >
                         <SelectTrigger className={`w-28 h-8 text-xs ${
                           invoice.orderStatus === "Pending" ? "border-orange-300 bg-orange-50" :
-                          invoice.orderStatus === "Processing" ? "border-blue-300 bg-blue-50" :
+                          invoice.orderStatus === "Processing" ? "border-blue-300 bg-blue-50 dark:bg-blue-900/20" :
                           "border-green-300 bg-green-50"
                         }`}>
                           <SelectValue />
@@ -621,23 +621,23 @@ export default function AdminInvoices() {
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3 p-4">
           {paginatedInvoices.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p>No invoices found</p>
             </div>
           ) : (
             paginatedInvoices.map((invoice) => (
-              <div key={invoice.id} className="bg-white rounded-lg shadow-sm border p-4">
+              <div key={invoice.id} className="bg-card rounded-lg shadow-sm border p-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{invoice.invoiceNumber}</h3>
-                    <p className="text-sm text-gray-500">#{invoice.orderId?.slice(-8) || "N/A"}</p>
+                    <h3 className="font-semibold text-foreground">{invoice.invoiceNumber}</h3>
+                    <p className="text-sm text-muted-foreground">#{invoice.orderId?.slice(-8) || "N/A"}</p>
                   </div>
                   <Badge
                     className={
                       invoice.paymentStatus === "Paid"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                     }
                   >
                     {invoice.paymentStatus === "Paid" ? (
@@ -651,33 +651,33 @@ export default function AdminInvoices() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Customer</span>
+                    <span className="text-muted-foreground">Customer</span>
                     <span className="font-medium">{invoice.customerName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Phone</span>
+                    <span className="text-muted-foreground">Phone</span>
                     <span className="font-medium">{invoice.customerPhone}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Date</span>
+                    <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{format(new Date(invoice.date), "dd MMM yyyy")}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total</span>
+                    <span className="text-muted-foreground">Total</span>
                     <span className="font-bold text-lg">Rs. {(invoice.grandTotal || 0).toLocaleString()}</span>
                   </div>
                 </div>
 
                 <div className="mt-3 pt-3 border-t">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-500">Order Status</span>
+                    <span className="text-sm text-muted-foreground">Order Status</span>
                     <Select
                       value={invoice.orderStatus || "Pending"}
                       onValueChange={(value) => updateOrderStatus(invoice.orderId, value as any)}
                     >
                       <SelectTrigger className={`w-28 h-8 text-xs ${
                         invoice.orderStatus === "Pending" ? "border-orange-300 bg-orange-50" :
-                        invoice.orderStatus === "Processing" ? "border-blue-300 bg-blue-50" :
+                        invoice.orderStatus === "Processing" ? "border-blue-300 bg-blue-50 dark:bg-blue-900/20" :
                         "border-green-300 bg-green-50"
                       }`}>
                         <SelectValue />
@@ -735,7 +735,7 @@ export default function AdminInvoices() {
 
         {totalPages > 1 && (
           <div className="p-4 border-t flex items-center justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
               {Math.min(currentPage * itemsPerPage, filteredInvoices.length)} of{" "}
               {filteredInvoices.length} invoices
@@ -777,29 +777,29 @@ export default function AdminInvoices() {
           {selectedInvoice ? (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Customer</p>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Customer</p>
                   <p className="font-semibold flex items-center gap-1">
                     <User className="w-3 h-3" />
                     {selectedInvoice.customerName || "Unknown"}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Phone</p>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Phone</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Phone className="w-3 h-3" />
                     {selectedInvoice.customerPhone || "N/A"}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Email</p>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Email</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Mail className="w-3 h-3" />
                     {selectedInvoice.customerEmail || "N/A"}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Date</p>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Date</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {format(new Date(selectedInvoice.date || Date.now()), "dd MMM yyyy HH:mm")}
@@ -807,8 +807,8 @@ export default function AdminInvoices() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 mb-1">Delivery Address</p>
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Delivery Address</p>
                 <p className="font-semibold flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
                   {selectedInvoice.address || "N/A"}
@@ -822,7 +822,7 @@ export default function AdminInvoices() {
                 </h4>
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-muted">
                       <tr>
                         <th className="px-3 py-2 text-left">Product</th>
                         <th className="px-3 py-2 text-center">Qty</th>
@@ -845,9 +845,9 @@ export default function AdminInvoices() {
               </div>
 
               <div className="flex justify-between">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">QR Code</p>
-                  <div className="bg-white p-2 rounded inline-block">
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">QR Code</p>
+                  <div className="bg-card p-2 rounded inline-block">
                     <QRCodeSVG
                       value={`${import.meta.env.VITE_SITE_URL}/verify/${selectedInvoice.id}`}
                       size={80}
@@ -879,8 +879,8 @@ export default function AdminInvoices() {
                 <Badge
                   className={
                     selectedInvoice.paymentStatus === "Paid"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                   }
                 >
                   {selectedInvoice.paymentStatus || "Pending"}
@@ -909,7 +909,7 @@ export default function AdminInvoices() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
               <p>No invoice data available</p>
             </div>

@@ -254,17 +254,17 @@ export default function AdminSettings() {
   const activeNavItem = navItems.find(item => item.id === activeSection);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-gray-50">
+    <div className="flex h-[calc(100vh-4rem)] bg-muted/50">
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out
+        fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out
         lg:relative lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center justify-between h-16 px-4 border-b">
-          <h2 className="text-lg font-bold text-gray-900">Settings</h2>
+          <h2 className="text-lg font-bold text-foreground">Settings</h2>
           <button 
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+            className="lg:hidden p-2 hover:bg-muted rounded-lg"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <X className="w-5 h-5" />
@@ -283,7 +283,7 @@ export default function AdminSettings() {
                 w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors
                 ${activeSection === item.id 
                   ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-medium' 
-                  : 'text-gray-700 hover:bg-gray-100'}
+                  : 'text-muted-foreground hover:bg-muted'}
               `}
             >
               {item.icon}
@@ -305,10 +305,10 @@ export default function AdminSettings() {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 z-30 bg-white border-b px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-30 bg-card border-b px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2 hover:bg-muted rounded-lg"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Settings className="w-5 h-5" />
@@ -338,7 +338,7 @@ export default function AdminSettings() {
                 <div className="mt-4">
                   <Label>Store Logo</Label>
                   <ImageUpload value={profileForm.storeLogo} onChange={(val) => setProfileForm({...profileForm, storeLogo: val})} label="" />
-                  <p className="text-xs text-gray-500 mt-1">Leave empty to use text logo</p>
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty to use text logo</p>
                 </div>
               </Card>
 
@@ -366,7 +366,7 @@ export default function AdminSettings() {
                       onClick={() => setProfileForm({...profileForm, showSalesEmail: !profileForm.showSalesEmail})}
                       className="ml-3 flex-shrink-0"
                     >
-                      {profileForm.showSalesEmail ? <ToggleRight className="w-10 h-10 text-green-600" /> : <ToggleLeft className="w-10 h-10 text-gray-400" />}
+                      {profileForm.showSalesEmail ? <ToggleRight className="w-10 h-10 text-green-600 dark:text-green-400" /> : <ToggleLeft className="w-10 h-10 text-muted-foreground" />}
                     </button>
                   </div>
                   <div className="flex items-center justify-between">
@@ -379,7 +379,7 @@ export default function AdminSettings() {
                       onClick={() => setProfileForm({...profileForm, showSupportEmail: !profileForm.showSupportEmail})}
                       className="ml-3 flex-shrink-0"
                     >
-                      {profileForm.showSupportEmail ? <ToggleRight className="w-10 h-10 text-green-600" /> : <ToggleLeft className="w-10 h-10 text-gray-400" />}
+                      {profileForm.showSupportEmail ? <ToggleRight className="w-10 h-10 text-green-600 dark:text-green-400" /> : <ToggleLeft className="w-10 h-10 text-muted-foreground" />}
                     </button>
                   </div>
                 </div>
@@ -425,8 +425,8 @@ export default function AdminSettings() {
 
               <Card title="Social Media" icon={<Globe className="w-5 h-5" />} description="Links to your social media profiles">
                 <div className="space-y-4">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
                       Toggle switches control which social links appear on your website.
                     </p>
                   </div>
@@ -473,8 +473,8 @@ export default function AdminSettings() {
 
               <Card title="Secret Admin Shortcut" icon={<Zap className="w-5 h-5" />} description="Secret sequence to open admin login">
                 <div className="space-y-4">
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <p className="text-sm text-amber-800">
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
                       Type the sequence anywhere on the site to open admin login. Use letters, numbers, or both.
                     </p>
                   </div>
@@ -486,11 +486,11 @@ export default function AdminSettings() {
                       placeholder="e.g. admin123 or 4571"
                       className="font-mono"
                     />
-                    <p className="text-xs text-gray-500 mt-1">3-20 characters, letters and numbers only</p>
+                    <p className="text-xs text-muted-foreground mt-1">3-20 characters, letters and numbers only</p>
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <p className="text-xs text-gray-600">
-                      Fallback: Visit <code className="bg-gray-200 px-1 rounded">/__admin__</code> to access admin login directly.
+                  <div className="bg-muted/50 border border-border rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground">
+                      Fallback: Visit <code className="bg-muted px-1 rounded">/__admin__</code> to access admin login directly.
                     </p>
                   </div>
                 </div>
@@ -501,7 +501,7 @@ export default function AdminSettings() {
                   <div>
                     <Label>Colombo Delivery (Rs.)</Label>
                     <Input type="number" value={profileForm.deliveryColomboPrice} onChange={(e) => setProfileForm({...profileForm, deliveryColomboPrice: Number(e.target.value)})} />
-                    <p className="text-xs text-gray-500 mt-1">Set to 0 for free delivery</p>
+                    <p className="text-xs text-muted-foreground mt-1">Set to 0 for free delivery</p>
                   </div>
                   <div>
                     <Label>Island-wide Delivery (Rs.)</Label>
@@ -511,36 +511,36 @@ export default function AdminSettings() {
               </Card>
 
               <Card title="Online Payment" icon={<CreditCard className="w-5 h-5" />} description="Enable or disable online payment options">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div>
                     <p className="font-medium">Enable Online Payment</p>
-                    <p className="text-sm text-gray-500">Allow customers to pay via Payhere</p>
+                    <p className="text-sm text-muted-foreground">Allow customers to pay via Payhere</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setProfileForm({...profileForm, enableOnlinePayment: !profileForm.enableOnlinePayment})}
-                    className={profileForm.enableOnlinePayment ? 'text-green-600' : 'text-gray-400'}
+                    className={profileForm.enableOnlinePayment ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                   >
                     {profileForm.enableOnlinePayment ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
                   </button>
                 </div>
                 {profileForm.enableOnlinePayment && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
-                    <p className="text-sm text-amber-800">
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-4">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
                       Requires Payhere credentials in .env file: VITE_PAYHERE_MERCHANT_ID, VITE_PAYHERE_MERCHANT_SECRET
                     </p>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mt-4">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg mt-4">
                   <div>
                     <p className="font-medium">Enable Product Compare</p>
-                    <p className="text-sm text-gray-500">Allow customers to compare products side-by-side</p>
+                    <p className="text-sm text-muted-foreground">Allow customers to compare products side-by-side</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setProfileForm({...profileForm, enableCompareFeature: !profileForm.enableCompareFeature})}
-                    className={profileForm.enableCompareFeature ? 'text-green-600' : 'text-gray-400'}
+                    className={profileForm.enableCompareFeature ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                   >
                     {profileForm.enableCompareFeature ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
                   </button>
@@ -568,13 +568,13 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div className="border-t pt-4 mt-4">
-                    <p className="text-sm text-gray-500 mb-3">Show/Hide Stats</p>
+                    <p className="text-sm text-muted-foreground mb-3">Show/Hide Stats</p>
                     <div className="flex flex-wrap gap-4">
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setProfileForm({...profileForm, statsYearsExperienceVisible: !profileForm.statsYearsExperienceVisible})}
-                          className={profileForm.statsYearsExperienceVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                          className={profileForm.statsYearsExperienceVisible !== false ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                         >
                           {profileForm.statsYearsExperienceVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
                         </button>
@@ -584,7 +584,7 @@ export default function AdminSettings() {
                         <button
                           type="button"
                           onClick={() => setProfileForm({...profileForm, statsProductsVisible: !profileForm.statsProductsVisible})}
-                          className={profileForm.statsProductsVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                          className={profileForm.statsProductsVisible !== false ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                         >
                           {profileForm.statsProductsVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
                         </button>
@@ -594,7 +594,7 @@ export default function AdminSettings() {
                         <button
                           type="button"
                           onClick={() => setProfileForm({...profileForm, statsCustomersVisible: !profileForm.statsCustomersVisible})}
-                          className={profileForm.statsCustomersVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                          className={profileForm.statsCustomersVisible !== false ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                         >
                           {profileForm.statsCustomersVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
                         </button>
@@ -604,7 +604,7 @@ export default function AdminSettings() {
                         <button
                           type="button"
                           onClick={() => setProfileForm({...profileForm, statsAuthenticVisible: !profileForm.statsAuthenticVisible})}
-                          className={profileForm.statsAuthenticVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                          className={profileForm.statsAuthenticVisible !== false ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                         >
                           {profileForm.statsAuthenticVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
                         </button>
@@ -627,7 +627,7 @@ export default function AdminSettings() {
             <form onSubmit={handleAssetsSave} className="max-w-4xl mx-auto space-y-6">
               <Card title="Hero Image" icon={<Image className="w-5 h-5" />} description="Main banner on homepage">
                 <ImageUpload value={assetsForm.heroImage} onChange={(val) => setAssetsForm({...assetsForm, heroImage: val})} label="Upload hero image" />
-                <p className="text-xs text-gray-500 mt-2">Recommended size: 1920x800px</p>
+                <p className="text-xs text-muted-foreground mt-2">Recommended size: 1920x800px</p>
               </Card>
 
               <Card title="About Page Images" icon={<Image className="w-5 h-5" />} description="Images for the About page">
@@ -651,7 +651,7 @@ export default function AdminSettings() {
               <Card title="Home Page" icon={<FileText className="w-5 h-5" />} description="Hero, features, and CTA sections">
                 <div className="space-y-6">
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Hero Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Hero Title</Label>
@@ -673,7 +673,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Shop by Category</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Shop by Category</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Section Title</Label>
@@ -687,10 +687,10 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Why Choose Us Features</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Why Choose Us Features</h4>
                     <div className="space-y-4">
                       {contentForm.home.features.map((feature, index) => (
-                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                        <div key={index} className="border rounded-lg p-4 bg-muted/50">
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-medium text-sm">Feature {index + 1}</span>
                             <button
@@ -700,7 +700,7 @@ export default function AdminSettings() {
                                 newFeatures[index] = { ...newFeatures[index], isVisible: !newFeatures[index].isVisible };
                                 setContentForm({...contentForm, home: {...contentForm.home, features: newFeatures}});
                               }}
-                              className={feature.isVisible !== false ? 'text-green-600' : 'text-gray-400'}
+                              className={feature.isVisible !== false ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
                             >
                               {feature.isVisible !== false ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
                             </button>
@@ -735,7 +735,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Special Offers Banner</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Special Offers Banner</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Title</Label>
@@ -753,7 +753,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Featured Products</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Featured Products</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Section Title</Label>
@@ -771,7 +771,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">CTA Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">CTA Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Title</Label>
@@ -793,7 +793,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('home')}
                     disabled={!hasSectionChanged('home') || savingSections['home']}
-                    className={`${hasSectionChanged('home') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('home') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['home'] ? (
                       <>
@@ -812,7 +812,7 @@ export default function AdminSettings() {
               <Card title="About Page" icon={<FileText className="w-5 h-5" />} description="Hero, mission, vision, values, and stats">
                 <div className="space-y-6">
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Hero Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Hero Title</Label>
@@ -826,7 +826,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Our Story</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Our Story</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Story Title</Label>
@@ -840,7 +840,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Our Team</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Our Team</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Team Title</Label>
@@ -854,7 +854,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Mission & Vision</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Mission & Vision</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Mission Title</Label>
@@ -876,7 +876,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Stats Labels</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Stats Labels</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <Label>Years Label</Label>
@@ -902,7 +902,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('about')}
                     disabled={!hasSectionChanged('about') || savingSections['about']}
-                    className={`${hasSectionChanged('about') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('about') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['about'] ? (
                       <>
@@ -923,7 +923,7 @@ export default function AdminSettings() {
               <Card title="Services Page" icon={<FileText className="w-5 h-5" />} description="Why Choose Us and CTA sections">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">Main Title</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Main Title</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Title</Label>
@@ -936,7 +936,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div className="border-t pt-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Why Choose Us Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Why Choose Us Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Section Title</Label>
@@ -949,7 +949,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div className="border-t pt-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">CTA Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">CTA Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Title</Label>
@@ -977,7 +977,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('services')}
                     disabled={!hasSectionChanged('services') || savingSections['services']}
-                    className={`${hasSectionChanged('services') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('services') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['services'] ? (
                       <>
@@ -998,7 +998,7 @@ export default function AdminSettings() {
               <Card title="Contact Page" icon={<FileText className="w-5 h-5" />} description="Page title, contact info, and form labels">
                 <div className="space-y-6">
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Page Header</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Page Header</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Title</Label>
@@ -1016,7 +1016,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Contact Info Labels</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Contact Info Labels</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Visit Us Label</Label>
@@ -1038,7 +1038,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Form Labels</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Form Labels</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Form Title</Label>
@@ -1074,12 +1074,12 @@ export default function AdminSettings() {
                   
 
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">Find Us Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Find Us Section</h4>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div>
                           <p className="font-medium">Show Store Location</p>
-                          <p className="text-xs text-gray-500">Show/hide store location and parking info</p>
+                          <p className="text-xs text-muted-foreground">Show/hide store location and parking info</p>
                         </div>
                         <button
                           type="button"
@@ -1088,10 +1088,10 @@ export default function AdminSettings() {
                             contact: { ...contentForm.contact, showFindUsSection: contentForm.contact.showFindUsSection === false }
                           })}
                           className={`relative w-12 h-6 rounded-full transition-colors ${
-                            contentForm.contact.showFindUsSection !== false ? 'bg-green-500' : 'bg-gray-300'
+                            contentForm.contact.showFindUsSection !== false ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'
                           }`}
                         >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                          <div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-transform ${
                             contentForm.contact.showFindUsSection !== false ? 'translate-x-7' : 'translate-x-1'
                           }`} />
                         </button>
@@ -1121,11 +1121,11 @@ export default function AdminSettings() {
                   </div>
 
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Connect With Us Section</h4>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold text-foreground mb-3">Connect With Us Section</h4>
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-medium">Show Social Media</p>
-                        <p className="text-xs text-gray-500">Show/hide social media links on Contact page</p>
+                        <p className="text-xs text-muted-foreground">Show/hide social media links on Contact page</p>
                       </div>
                       <button
                         type="button"
@@ -1134,10 +1134,10 @@ export default function AdminSettings() {
                           contact: { ...contentForm.contact, showSocialSection: contentForm.contact.showSocialSection === false }
                         })}
                         className={`relative w-12 h-6 rounded-full transition-colors ${
-                          contentForm.contact.showSocialSection !== false ? 'bg-green-500' : 'bg-gray-300'
+                          contentForm.contact.showSocialSection !== false ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'
                         }`}
                       >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        <div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-transform ${
                           contentForm.contact.showSocialSection !== false ? 'translate-x-7' : 'translate-x-1'
                         }`} />
                       </button>
@@ -1149,7 +1149,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('contact')}
                     disabled={!hasSectionChanged('contact') || savingSections['contact']}
-                    className={`${hasSectionChanged('contact') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('contact') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['contact'] ? (
                       <>
@@ -1191,7 +1191,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('footer')}
                     disabled={!hasSectionChanged('footer') || savingSections['footer']}
-                    className={`${hasSectionChanged('footer') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('footer') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['footer'] ? (
                       <>
@@ -1212,7 +1212,7 @@ export default function AdminSettings() {
               <Card title="Categories Page" icon={<FileText className="w-5 h-5" />} description="Hero and CTA sections">
                 <div className="space-y-4">
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Hero Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Hero Title</Label>
@@ -1225,7 +1225,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">Category Cards</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Category Cards</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Products Available Text</Label>
@@ -1238,7 +1238,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div className="border-t pt-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">CTA Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">CTA Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>CTA Title</Label>
@@ -1260,7 +1260,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('categories')}
                     disabled={!hasSectionChanged('categories') || savingSections['categories']}
-                    className={`${hasSectionChanged('categories') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('categories') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['categories'] ? (
                       <>
@@ -1281,7 +1281,7 @@ export default function AdminSettings() {
               <Card title="Offers Page" icon={<FileText className="w-5 h-5" />} description="Hero, no offers state, and labels">
                 <div className="space-y-6">
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Hero Section</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Hero Section</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Hero Title</Label>
@@ -1294,7 +1294,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div className="border-b pb-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">No Offers State</h4>
+                    <h4 className="font-semibold text-foreground mb-3">No Offers State</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Title</Label>
@@ -1311,7 +1311,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">Labels</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Labels</h4>
                     <div className="space-y-4">
                       <div>
                         <Label>Save Text (e.g., "SAVE")</Label>
@@ -1333,7 +1333,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('offers')}
                     disabled={!hasSectionChanged('offers') || savingSections['offers']}
-                    className={`${hasSectionChanged('offers') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('offers') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['offers'] ? (
                       <>
@@ -1352,19 +1352,19 @@ export default function AdminSettings() {
 
               <Card title="FAQ Section" icon={<FileText className="w-5 h-5" />} description="Frequently asked questions">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
                       <p className="font-medium">Show FAQ Section</p>
-                      <p className="text-xs text-gray-500">Show/hide FAQ section on Contact page</p>
+                      <p className="text-xs text-muted-foreground">Show/hide FAQ section on Contact page</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setContentForm({...contentForm, faq: {...contentForm.faq, showFaqSection: !contentForm.faq.showFaqSection}})}
                       className={`relative w-12 h-6 rounded-full transition-colors ${
-                        contentForm.faq.showFaqSection !== false ? 'bg-green-500' : 'bg-gray-300'
+                        contentForm.faq.showFaqSection !== false ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'
                       }`}
                     >
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                      <div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-transform ${
                         contentForm.faq.showFaqSection !== false ? 'translate-x-7' : 'translate-x-1'
                       }`} />
                     </button>
@@ -1374,7 +1374,7 @@ export default function AdminSettings() {
                     <Input value={contentForm.faq.title} onChange={(e) => setContentForm({...contentForm, faq: {...contentForm.faq, title: e.target.value}})} />
                   </div>
                   {contentForm.faq.items.map((item, idx) => (
-                    <div key={idx} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div key={idx} className="bg-muted/50 p-4 rounded-lg space-y-3">
                       <Label>Question {idx + 1}</Label>
                       <Input 
                         value={item.question} 
@@ -1403,7 +1403,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('faq')}
                     disabled={!hasSectionChanged('faq') || savingSections['faq']}
-                    className={`${hasSectionChanged('faq') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('faq') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['faq'] ? (
                       <>
@@ -1430,7 +1430,7 @@ export default function AdminSettings() {
                       rows={2}
                       placeholder="Introduction text..."
                     />
-                    <p className="text-xs text-gray-500 mt-1">Use [Store Name] as placeholder</p>
+                    <p className="text-xs text-muted-foreground mt-1">Use [Store Name] as placeholder</p>
                   </div>
                   <div className="flex justify-between items-center">
                     <Label>Sections</Label>
@@ -1448,7 +1448,7 @@ export default function AdminSettings() {
                     </Button>
                   </div>
                   {contentForm.terms.sections?.map((section: any, idx: number) => (
-                    <div key={section.id} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div key={section.id} className="bg-muted/50 p-4 rounded-lg space-y-3">
                       <div className="flex justify-between items-center">
                         <Label>Section {idx + 1}</Label>
                         <button
@@ -1489,7 +1489,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleSectionSave('terms')}
                     disabled={!hasSectionChanged('terms') || savingSections['terms']}
-                    className={`${hasSectionChanged('terms') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    className={`${hasSectionChanged('terms') ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-black' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
                   >
                     {savingSections['terms'] ? (
                       <>
@@ -1507,7 +1507,7 @@ export default function AdminSettings() {
               </Card>
 
               <div className="flex justify-end">
-                <Button type="button" variant="outline" onClick={handleResetContent} className="border-red-500 text-red-500 hover:bg-red-50">
+                <Button type="button" variant="outline" onClick={handleResetContent} className="border-red-500 dark:border-red-700 text-red-500 hover:bg-red-50">
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset All to Default
                 </Button>
@@ -1519,8 +1519,8 @@ export default function AdminSettings() {
           {activeSection === 'account' && (
             <div className="max-w-2xl mx-auto space-y-6">
               {securityCodeVerified && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                   <p className="text-sm text-green-800">Security verified. You can change your username and password.</p>
                 </div>
               )}
@@ -1555,7 +1555,7 @@ export default function AdminSettings() {
                   <div>
                     <Label>New Password</Label>
                     <Input type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})} autoComplete="new-password" />
-                    <p className="text-xs text-gray-500 mt-1">At least 6 characters</p>
+                    <p className="text-xs text-muted-foreground mt-1">At least 6 characters</p>
                   </div>
                   <div>
                     <Label>Confirm New Password</Label>
@@ -1576,9 +1576,9 @@ export default function AdminSettings() {
                 </form>
               </Card>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <h4 className="font-medium text-blue-900 mb-2">Security Tips</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+                <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
                   <li>• Use a strong password with 8+ characters</li>
                   <li>• Include uppercase, lowercase, numbers, and symbols</li>
                   <li>• Don't share your credentials with anyone</li>
@@ -1608,10 +1608,10 @@ export default function AdminSettings() {
                   {securityCodeExpiryInfo && (
                     <div className={`rounded-lg p-3 sm:p-4 border ${
                       securityCodeExpiryInfo.isExpired
-                        ? 'bg-red-50 border-red-200'
+                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                         : securityCodeExpiryInfo.isExpiringSoon
-                          ? 'bg-amber-50 border-amber-200'
-                          : 'bg-green-50 border-green-200'
+                          ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                          : 'bg-green-50 dark:bg-green-900/20 border-green-200'
                     }`}>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
@@ -1623,11 +1623,11 @@ export default function AdminSettings() {
                                 : 'bg-green-100'
                           }`}>
                             {securityCodeExpiryInfo.isExpired ? (
-                              <AlertTriangle className="w-5 h-5 text-red-600" />
+                              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                             ) : securityCodeExpiryInfo.isExpiringSoon ? (
                               <Timer className="w-5 h-5 text-amber-600" />
                             ) : (
-                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                             )}
                           </div>
                           <div>
@@ -1644,7 +1644,7 @@ export default function AdminSettings() {
                                   ? 'Expiring Soon'
                                   : 'Active'}
                             </p>
-                            <p className="text-xs sm:text-sm text-gray-600">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               {securityCodeExpiryInfo.isExpired
                                 ? 'New code sent to email'
                                 : securityCodeExpiryInfo.isExpiringSoon
@@ -1669,8 +1669,8 @@ export default function AdminSettings() {
                   )}
 
                   {securityCodeVerified && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                       <p className="text-xs sm:text-sm text-green-800">Security code verified. You can change username and password.</p>
                       <Button size="sm" variant="ghost" onClick={clearSecurityVerification} className="ml-auto text-green-700 hover:text-green-900 flex-shrink-0">
                         <X className="w-4 h-4" />
@@ -1689,7 +1689,7 @@ export default function AdminSettings() {
                     <Button
                       onClick={() => setShowForgotCodeModal(true)}
                       variant="outline"
-                      className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                      className="border-amber-300 text-amber-700 dark:text-amber-300 hover:bg-amber-50"
                     >
                       <AlertTriangle className="w-4 h-4 mr-2" />
                       Forgot Code
@@ -1704,13 +1704,13 @@ export default function AdminSettings() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 text-sm truncate max-w-[200px] sm:max-w-none">
+                        <p className="font-medium text-foreground text-sm truncate max-w-[200px] sm:max-w-none">
                           {adminEmail}
                         </p>
-                        <p className="text-xs sm:text-sm text-green-600 font-medium">
+                        <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">
                           {deviceSessions?.length || 0} active device{(deviceSessions?.length || 0) !== 1 ? 's' : ''} connected
                         </p>
                       </div>
@@ -1731,12 +1731,12 @@ export default function AdminSettings() {
                 <div className="border-t my-4" />
                 
                 {(!deviceSessions || deviceSessions.length === 0) ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-xl">
-                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                      <Monitor className="w-8 h-8 text-gray-400" />
+                  <div className="text-center py-12 bg-muted/50 rounded-xl">
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                      <Monitor className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <p className="text-gray-600 font-medium mb-2">No active sessions found</p>
-                    <p className="text-sm text-gray-500">Your current device will appear here after page refresh</p>
+                    <p className="text-muted-foreground font-medium mb-2">No active sessions found</p>
+                    <p className="text-sm text-muted-foreground">Your current device will appear here after page refresh</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1746,7 +1746,7 @@ export default function AdminSettings() {
                         className={`rounded-xl border transition-all duration-200 ${
                           device.isCurrentDevice 
                             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-sm' 
-                            : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                            : 'bg-card border-border hover:border-border hover:shadow-sm'
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4">
@@ -1763,17 +1763,17 @@ export default function AdminSettings() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <p className="font-semibold text-gray-900 text-sm">{device.device}</p>
-                              <span className="text-gray-400">•</span>
-                              <p className="text-gray-700 text-sm">{device.browser}</p>
+                              <p className="font-semibold text-foreground text-sm">{device.device}</p>
+                              <span className="text-muted-foreground">•</span>
+                              <p className="text-muted-foreground text-sm">{device.browser}</p>
                               {device.isCurrentDevice && (
                                 <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded-full">Current</span>
                               )}
                             </div>
-                            <p className="text-xs sm:text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               {device.os}
                             </p>
-                            <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+                            <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                               <Clock className="w-3 h-3" />
                               <span className="truncate">{new Date(device.lastActive).toLocaleString()}</span>
                             </div>
@@ -1785,7 +1785,7 @@ export default function AdminSettings() {
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => handleDeviceAction("logout", device.deviceId)}
-                                className="text-orange-600 border-orange-300 hover:bg-orange-50 flex-1 sm:flex-none"
+                                className="text-orange-600 dark:text-orange-400 border-orange-300 hover:bg-orange-50 flex-1 sm:flex-none"
                               >
                                 <LogOut className="w-4 h-4 mr-1" />
                                 Logout
@@ -1794,7 +1794,7 @@ export default function AdminSettings() {
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => handleDeviceAction("remove", device.deviceId)}
-                                className="text-red-600 border-red-300 hover:bg-red-50 flex-shrink-0"
+                                className="text-red-600 dark:text-red-400 border-red-300 hover:bg-red-50 flex-shrink-0"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -1802,7 +1802,7 @@ export default function AdminSettings() {
                           )}
                           
                           {device.isCurrentDevice && (
-                            <div className="hidden sm:flex items-center gap-2 text-green-600 flex-shrink-0">
+                            <div className="hidden sm:flex items-center gap-2 text-green-600 dark:text-green-400 flex-shrink-0">
                               <CheckCircle className="w-5 h-5" />
                               <span className="text-sm font-medium">This device</span>
                             </div>
@@ -1828,26 +1828,26 @@ export default function AdminSettings() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                      <p className="font-medium text-foreground dark:text-gray-100">
                         {theme === "dark" ? "Dark Mode" : "Light Mode"}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         {theme === "dark" ? "Easy on the eyes" : "Classic clean look"}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={toggleTheme}
-                    className="relative w-14 h-7 rounded-full transition-colors duration-300 bg-gray-300 dark:bg-gray-600"
+                    className="relative w-14 h-7 rounded-full transition-colors duration-300 bg-muted dark:bg-gray-600"
                     aria-label="Toggle dark mode"
                   >
                     <div
-                      className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 flex items-center justify-center ${
+                      className={`absolute top-0.5 left-0.5 w-6 h-6 bg-card rounded-full shadow-sm transition-transform duration-300 flex items-center justify-center ${
                         theme === "dark" ? "translate-x-7" : "translate-x-0"
                       }`}
                     >
                       {theme === "dark" ? (
-                        <Moon className="w-3.5 h-3.5 text-gray-800" />
+                        <Moon className="w-3.5 h-3.5 text-foreground" />
                       ) : (
                         <Sun className="w-3.5 h-3.5 text-amber-500" />
                       )}
@@ -1863,7 +1863,7 @@ export default function AdminSettings() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Session Security</h4>
-                    <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
+                    <ul className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1">
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Sessions automatically expire after 24 hours
@@ -1919,14 +1919,14 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+    <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6">
       <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
         <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#D4AF37]/10 rounded-lg flex items-center justify-center text-[#D4AF37] flex-shrink-0">
           {icon}
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{title}</h3>
-          <p className="text-xs sm:text-sm text-gray-500">{description}</p>
+          <h3 className="font-semibold text-foreground text-sm sm:text-base">{title}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
       {children}

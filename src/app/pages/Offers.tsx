@@ -12,7 +12,7 @@ export default function Offers() {
 
   if (!isDataLoaded) {
     return (
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-muted/50 min-h-screen">
         <div className="container mx-auto px-4 py-12">
           <div className="text-center mb-12 animate-pulse">
             <Skeleton className="h-12 w-64 mx-auto mb-4" />
@@ -28,14 +28,14 @@ export default function Offers() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-muted/50 min-h-screen">
       <div className="container mx-auto px-4 py-12">
         <ScrollAnimation animation="slideUp">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               {siteContent.offers.heroTitle}
             </h1>
-            <p className="text-gray-600 text-lg">
+            <p className="text-muted-foreground text-lg">
               {siteContent.offers.heroSubtitle}
             </p>
           </div>
@@ -43,10 +43,10 @@ export default function Offers() {
 
         {activeOffers.length === 0 ? (
           <ScrollAnimation animation="slideUp">
-            <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+            <div className="text-center py-16 bg-card rounded-xl shadow-sm">
               <Tag className="w-24 h-24 mx-auto text-gray-300 mb-6" />
               <h2 className="text-2xl font-bold mb-4">{siteContent.offers.noOffersTitle}</h2>
-              <p className="text-gray-600 mb-8">
+              <p className="text-muted-foreground mb-8">
                 {siteContent.offers.noOffersSubtitle}
               </p>
               <Link to="/products">
@@ -68,7 +68,7 @@ export default function Offers() {
 
               return (
                 <ScrollAnimation key={offer.id} animation="slideUp" delay={index * 150}>
-                  <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                     {/* Banner */}
                     <div className="relative h-64 md:h-80 overflow-hidden">
                       <img
@@ -128,7 +128,7 @@ export default function Offers() {
                               )}`}
                               className="group"
                             >
-                              <div className="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition-all">
+                              <div className="bg-muted/50 rounded-lg overflow-hidden hover:shadow-lg transition-all">
                                 <div className="aspect-square overflow-hidden">
                                   <img
                                     src={product.image}
@@ -141,7 +141,7 @@ export default function Offers() {
                                     {product.name}
                                   </p>
                                   <div className="space-y-1">
-                                    <p className="text-xs text-gray-500 line-through">
+                                    <p className="text-xs text-muted-foreground line-through">
                                       Rs. {originalPrice.toLocaleString()}
                                     </p>
                                     <p className="text-lg font-bold text-[#D4AF37]">

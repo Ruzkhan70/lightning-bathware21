@@ -53,13 +53,13 @@ const ContentLoaderWrapper = () => (
 // Custom error page for customer routes
 function ErrorPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-card rounded-xl shadow-lg p-8 text-center">
+        <div className="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
           <AlertTriangle className="w-10 h-10 text-orange-500" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-3">Page Not Found</h1>
-        <p className="text-gray-600 mb-6">
+        <h1 className="text-3xl font-bold text-foreground mb-3">Page Not Found</h1>
+        <p className="text-muted-foreground mb-6">
           Sorry, we couldn't find that page. It may have been removed or the link is incorrect.
         </p>
         <Link

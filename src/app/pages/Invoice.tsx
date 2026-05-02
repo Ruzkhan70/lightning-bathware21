@@ -238,11 +238,11 @@ export default function Invoice() {
 
   if (error || !invoice) {
     return (
-      <div className="min-h-screen bg-gray-50 py-16">
+      <div className="min-h-screen bg-background py-16">
         <div className="container mx-auto px-4 text-center">
-          <AlertCircle className="w-24 h-24 mx-auto text-red-400 mb-6" />
-          <h2 className="text-2xl font-bold mb-4">{error || "Invoice Not Found"}</h2>
-          <p className="text-gray-600 mb-8">
+          <AlertCircle className="w-24 h-24 mx-auto text-muted-foreground mb-6" />
+          <h2 className="text-2xl font-bold mb-4 text-foreground">{error || "Invoice Not Found"}</h2>
+          <p className="text-muted-foreground mb-8">
             {error === "Invoice not found" 
               ? "The invoice you're looking for doesn't exist or may have been removed."
               : "Something went wrong while loading the invoice."}
@@ -261,7 +261,7 @@ export default function Invoice() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 print:bg-white print:py-0">
+    <div className="min-h-screen bg-background py-8 print:bg-white print:py-0">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-4 mb-6 print:hidden">
           <Button
@@ -272,11 +272,11 @@ export default function Invoice() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-3xl font-bold">Invoice Details</h1>
+          <h1 className="text-3xl font-bold text-foreground">Invoice Details</h1>
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden print:shadow-none print:rounded-none">
+          <div className="bg-card rounded-2xl shadow-lg overflow-hidden print:shadow-none print:rounded-none">
             {/* Header */}
             <div className="bg-[#1a1a1a] text-white p-6 md:p-10">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
@@ -287,10 +287,10 @@ export default function Invoice() {
                       <h2 className="text-2xl font-bold break-words">
                         {storeProfile.storeName} <span className="text-[#D4AF37]">{storeProfile.storeNameAccent}</span>
                       </h2>
-                      <p className="text-gray-400 text-sm">Premium Lighting & Bathware</p>
+                      <p className="text-muted-foreground text-sm">Premium Lighting & Bathware</p>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-400 space-y-1.5 mt-4">
+                  <div className="text-sm text-muted-foreground space-y-1.5 mt-4">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 shrink-0 text-[#D4AF37]" />
                       <span className="break-words">{storeProfile.addressStreet}, {storeProfile.addressCity}</span>
@@ -309,10 +309,10 @@ export default function Invoice() {
                 <div className="text-right shrink-0">
                   <p className="text-[#D4AF37] text-sm font-semibold tracking-wider uppercase mb-1">INVOICE</p>
                   <h3 className="text-3xl font-extrabold text-white mb-1">{invoice.invoiceNumber}</h3>
-                  <p className="text-gray-400 text-sm">{formatDate(invoice.date)}</p>
+                  <p className="text-muted-foreground text-sm">{formatDate(invoice.date)}</p>
                   
                   <div className="mt-4 flex items-center gap-2 justify-end">
-                    <span className="text-xs text-gray-500">Payment:</span>
+                    <span className="text-xs text-muted-foreground">Payment:</span>
                     {order?.paymentStatus === "Paid" ? (
                       <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full text-sm font-bold shrink-0 shadow-lg shadow-green-500/20">
                         <Check className="w-4 h-4" />
@@ -335,28 +335,28 @@ export default function Invoice() {
             <div className="p-6 md:p-10 lg:p-12">
               {/* Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 min-w-0">
+                <div className="bg-muted/50 p-5 rounded-xl border border-border min-w-0">
                   <h4 className="font-bold text-sm uppercase tracking-wider text-[#D4AF37] mb-3 flex items-center gap-2">
                     <Package className="w-4 h-4 shrink-0" />
                     Order Information
                   </h4>
-                  <p className="text-sm text-gray-600 break-words">
-                    <strong className="text-gray-900">Date:</strong> {formatDate(invoice.date)}
+                  <p className="text-sm text-muted-foreground break-words">
+                    <strong className="text-foreground">Date:</strong> {formatDate(invoice.date)}
                   </p>
                   {invoice.orderId && (
-                    <p className="text-sm text-gray-600 mt-1 break-all">
-                      <strong className="text-gray-900">Order ID:</strong> #{invoice.orderId.slice(-8)}
+                    <p className="text-sm text-muted-foreground mt-1 break-all">
+                      <strong className="text-foreground">Order ID:</strong> #{invoice.orderId.slice(-8)}
                     </p>
                   )}
                   {order && (
                     <div className="mt-3">
-                      <p className="text-sm text-gray-600 mb-1">
-                        <strong className="text-gray-900">Order Status:</strong>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        <strong className="text-foreground">Order Status:</strong>
                       </p>
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 ${
-                        order.status === "Delivered" ? "bg-green-100 text-green-700" :
-                        order.status === "Processing" ? "bg-blue-100 text-blue-700" :
-                        "bg-orange-100 text-orange-700"
+order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
+                 order.status === "Processing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                 "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
                       }`}>
                         {order.status === "Delivered" && <CheckCircle className="w-4 h-4" />}
                         {order.status === "Processing" && <Zap className="w-4 h-4" />}
@@ -367,22 +367,22 @@ export default function Invoice() {
                   )}
                 </div>
 
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 min-w-0">
+                <div className="bg-muted/50 p-5 rounded-xl border border-border min-w-0">
                   <h4 className="font-bold text-sm uppercase tracking-wider text-[#D4AF37] mb-3 flex items-center gap-2">
                     <span className="text-[#D4AF37] shrink-0">@</span>
                     Customer Details
                   </h4>
-                  <p className="text-base font-bold text-gray-900 break-words">{invoice.customerName}</p>
-                  <p className="text-sm text-gray-600 mt-1 break-words">{invoice.customerPhone}</p>
+                  <p className="text-base font-bold text-foreground break-words">{invoice.customerName}</p>
+                  <p className="text-sm text-muted-foreground mt-1 break-words">{invoice.customerPhone}</p>
                   {invoice.customerEmail && (
-                    <p className="text-sm text-gray-600 break-all">{invoice.customerEmail}</p>
+                    <p className="text-sm text-muted-foreground break-all">{invoice.customerEmail}</p>
                   )}
-                  <p className="text-sm text-gray-600 mt-2 break-words leading-relaxed">{invoice.address}</p>
+                  <p className="text-sm text-muted-foreground mt-2 break-words leading-relaxed">{invoice.address}</p>
                 </div>
               </div>
 
               {/* Products Table */}
-              <div className="overflow-x-auto mb-8 rounded-xl border border-gray-200">
+              <div className="overflow-x-auto mb-8 rounded-xl border border-border">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#1a1a1a] text-white">
@@ -395,31 +395,31 @@ export default function Invoice() {
                   </thead>
                   <tbody>
                     {invoice.products.map((product, index) => (
-                      <tr key={product.id || index} className={`border-b border-gray-100 ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} hover:bg-gray-50 transition-colors`}>
+                      <tr key={product.id || index} className={`border-b border-border ${index % 2 === 0 ? "bg-card" : "bg-muted/30"} hover:bg-muted/50 transition-colors`}>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
                             {getProductImage(product) && (
                               <img 
                                 src={getProductImage(product)} 
                                 alt={product.name}
-                                className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-200"
+                                className="w-10 h-10 rounded-lg object-cover shrink-0 border border-border"
                               />
                             )}
-                            <span className="text-sm font-medium text-gray-900 whitespace-normal break-normal">{product.name}</span>
+                            <span className="text-sm font-medium text-foreground whitespace-normal break-normal">{product.name}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3.5 text-center">
                           {(product.selected_color || product.selected_size) ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
                               {product.selected_color || product.selected_size}
                             </span>
                           ) : (
-                            <span className="text-gray-400 text-xs">—</span>
+                            <span className="text-muted-foreground text-xs">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3.5 text-sm text-center font-medium">{product.quantity}</td>
-                        <td className="px-4 py-3.5 text-sm text-right text-gray-600">{formatPrice(product.unitPrice)}</td>
-                        <td className="px-4 py-3.5 text-sm text-right font-semibold text-gray-900">
+                        <td className="px-4 py-3.5 text-sm text-center font-medium text-foreground">{product.quantity}</td>
+                        <td className="px-4 py-3.5 text-sm text-right text-muted-foreground">{formatPrice(product.unitPrice)}</td>
+                        <td className="px-4 py-3.5 text-sm text-right font-semibold text-foreground">
                           {formatPrice(product.total)}
                         </td>
                       </tr>
@@ -430,16 +430,16 @@ export default function Invoice() {
 
               {/* Totals Section */}
               <div className="flex justify-end mb-8">
-                <div className="bg-gray-50 rounded-xl p-5 w-full sm:min-w-[300px] sm:w-auto border border-gray-100">
+                <div className="bg-muted/50 rounded-xl p-5 w-full sm:min-w-[300px] sm:w-auto border border-border">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500">Subtotal</span>
-                      <span className="font-medium text-gray-900">{formatPrice(invoice.subtotal)}</span>
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-medium text-foreground">{formatPrice(invoice.subtotal)}</span>
                     </div>
                     {(invoice.deliveryCost || 0) > 0 && (
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500 flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Delivery</span>
-                        <span className="font-medium text-gray-900">{formatPrice(invoice.deliveryCost)}</span>
+                        <span className="text-muted-foreground flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Delivery</span>
+                        <span className="font-medium text-foreground">{formatPrice(invoice.deliveryCost)}</span>
                       </div>
                     )}
                     {(invoice.discount || 0) > 0 && (
@@ -450,13 +450,13 @@ export default function Invoice() {
                     )}
                     {(invoice.tax || 0) > 0 && (
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">Tax</span>
-                        <span className="font-medium text-gray-900">{formatPrice(invoice.tax)}</span>
+                        <span className="text-muted-foreground">Tax</span>
+                        <span className="font-medium text-foreground">{formatPrice(invoice.tax)}</span>
                       </div>
                     )}
                     <div className="border-t-2 border-[#D4AF37] pt-3 mt-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-base font-bold text-gray-900">Grand Total</span>
+                        <span className="text-base font-bold text-foreground">Grand Total</span>
                         <span className="text-2xl font-extrabold text-[#D4AF37]">{formatPrice(invoice.grandTotal)}</span>
                       </div>
                     </div>
@@ -465,11 +465,11 @@ export default function Invoice() {
               </div>
 
               {/* Footer */}
-              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                <p className="text-base font-semibold text-gray-800">
+              <div className="mt-8 pt-6 border-t border-border text-center">
+                <p className="text-base font-semibold text-foreground">
                   Thank you for choosing Lightning Bathware
                 </p>
-                <p className="text-sm text-gray-500 mt-1 flex items-center justify-center gap-2 flex-wrap">
+                <p className="text-sm text-muted-foreground mt-1 flex items-center justify-center gap-2 flex-wrap">
                   <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
                   <span>{storeProfile.addressCity}, Sri Lanka | {storeProfile.phone} | {storeProfile.email}</span>
                 </p>
@@ -477,7 +477,7 @@ export default function Invoice() {
             </div>
 
             {/* Action Buttons */}
-            <div className="bg-gray-50 px-8 py-4 flex flex-wrap gap-3 justify-center print:hidden border-t border-gray-200">
+            <div className="bg-muted/50 px-8 py-4 flex flex-wrap gap-3 justify-center print:hidden border-t border-border">
               <Button
                 onClick={downloadPDF}
                 disabled={isDownloading}

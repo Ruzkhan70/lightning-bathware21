@@ -135,11 +135,11 @@ export default function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
             {searchParams.get("category") || searchParams.get("search") ? (
               <>
                 {searchParams.get("category") && (
@@ -154,9 +154,9 @@ export default function Products() {
             )}
           </h1>
           {!isDataLoaded ? (
-            <div className="h-6 w-48 bg-gray-200 animate-pulse rounded"></div>
+            <div className="h-6 w-48 bg-muted animate-pulse rounded"></div>
           ) : (
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Showing {filteredProducts.length} of {safeProducts.length} products
             </p>
           )}
@@ -165,9 +165,9 @@ export default function Products() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters - Desktop */}
           <aside className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-card rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="font-bold text-lg">Filters</h2>
+                <h2 className="font-bold text-lg text-foreground">Filters</h2>
                 <button
                   onClick={clearFilters}
                   className="text-sm text-[#D4AF37] hover:underline"
@@ -260,9 +260,9 @@ export default function Products() {
 
             {/* Mobile Filters */}
             {showMobileFilters && (
-              <div className="lg:hidden bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="lg:hidden bg-card rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-bold text-lg">Filters</h2>
+                  <h2 className="font-bold text-lg text-foreground">Filters</h2>
                   <button onClick={() => setShowMobileFilters(false)}>
                     <X className="w-5 h-5" />
                   </button>
@@ -343,7 +343,7 @@ export default function Products() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="bg-card rounded-lg shadow-sm p-8">
                 {searchParams.get("search") ? (
                   <SearchEmpty query={searchParams.get("search") || undefined} />
                 ) : (

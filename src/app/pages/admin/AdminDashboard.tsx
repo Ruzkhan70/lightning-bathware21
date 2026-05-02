@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Dashboard Overview</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
+        <p className="text-muted-foreground">Welcome back! Here's what's happening with your store.</p>
       </div>
 
       {/* Stats Grid */}
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-lg shadow-sm md:shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow"
+            className="bg-card rounded-lg shadow-sm md:shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow"
           >
             <div className="flex items-center justify-between mb-2 md:mb-4">
               <div className={`${stat.color} w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center`}>
@@ -90,25 +90,25 @@ export default function AdminDashboard() {
               )}
             </div>
             <div className="text-xl md:text-2xl xl:text-3xl font-bold mb-1 truncate">{stat.value}</div>
-            <div className="text-gray-600 text-xs md:text-sm">{stat.label}</div>
+            <div className="text-muted-foreground text-xs md:text-sm">{stat.label}</div>
           </motion.div>
         ))}
       </div>
 
       {/* Unavailable Products Alert Banner */}
       {unavailableProducts.length > 0 && (
-        <motion.div
+          <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 flex items-center justify-between"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-8 flex items-center justify-between"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-full">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-full">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="font-semibold text-red-800">Unavailable Products</p>
-              <p className="text-sm text-red-600">
+              <p className="font-semibold text-red-800 dark:text-red-200">Unavailable Products</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
                 {unavailableProducts.length} product{unavailableProducts.length > 1 ? 's' : ''} not available
               </p>
             </div>
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Recent Orders */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+        <div className="lg:col-span-2 bg-card rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-[#D4AF37]" />
             Recent Orders
@@ -133,41 +133,41 @@ export default function AdminDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Order ID</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Customer</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Items</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Total</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Date</th>
+                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Order ID</th>
+                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Customer</th>
+                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Items</th>
+                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Total</th>
+                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
+                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentOrders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-gray-50 transition-colors">
+                    <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
                       <td className="py-3 px-4 font-mono text-sm">#{order.id.slice(-6)}</td>
                       <td className="py-3 px-4">{order.customerName}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{order.products.length} items</td>
+                       <td className="py-3 px-4 text-sm text-muted-foreground">{order.products.length} items</td>
                       <td className="py-3 px-4 font-semibold">Rs. {order.total.toLocaleString()}</td>
                       <td className="py-3 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          order.status === "Pending" ? "bg-orange-100 text-orange-700" :
-                          order.status === "Processing" ? "bg-blue-100 text-blue-700" :
-                          "bg-green-100 text-green-700"
+                          order.status === "Pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
+                          order.status === "Processing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                          "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                         }`}>
                           {order.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
-                        {new Date(order.date).toLocaleDateString()}
-                      </td>
+                       <td className="py-3 px-4 text-sm text-muted-foreground">
+                         {new Date(order.date).toLocaleDateString()}
+                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                 <div className="text-center py-12 text-muted-foreground">
+              <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <p>No orders yet</p>
               <p className="text-sm">Orders will appear here when customers place them</p>
             </div>
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Top Selling Products */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-card rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
             Top Selling
@@ -190,24 +190,24 @@ export default function AdminDashboard() {
                   <div key={item.productId} className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                       index === 0 ? "bg-[#D4AF37] text-black" :
-                      index === 1 ? "bg-gray-300 text-gray-700" :
+                      index === 1 ? "bg-muted text-muted-foreground" :
                       index === 2 ? "bg-orange-300 text-orange-800" :
-                      "bg-gray-100 text-gray-600"
+                      "bg-muted text-muted-foreground"
                     }`}>
                       {index + 1}
                     </div>
                     <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{product.name}</p>
-                      <p className="text-xs text-gray-500">{item.totalSold} sold</p>
+                      <p className="text-xs text-muted-foreground">{item.totalSold} sold</p>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+               <div className="text-center py-8 text-muted-foreground">
+              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm">No sales data yet</p>
               <p className="text-xs">Top products will appear here</p>
             </div>
@@ -217,8 +217,8 @@ export default function AdminDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
+         <div className="bg-card rounded-lg shadow-lg p-6">
+          <h3 className="font-semibold text-muted-foreground mb-4 flex items-center gap-2">
             <Package className="w-4 h-4 text-[#D4AF37]" />
             Products by Category
           </h3>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                     <span className="truncate">{cat}</span>
                     <span className="font-semibold">{count}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                   <div className="w-full bg-muted rounded-full h-2">
                     <div className="bg-[#D4AF37] h-2 rounded-full transition-all" style={{ width: `${percentage}%` }}></div>
                   </div>
                 </div>
@@ -242,59 +242,59 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
+         <div className="bg-card rounded-lg shadow-lg p-6">
+          <h3 className="font-semibold text-muted-foreground mb-4 flex items-center gap-2">
             <ShoppingCart className="w-4 h-4 text-[#D4AF37]" />
             Order Status
           </h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-orange-600" />
+                <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                 <span className="text-sm">Pending</span>
               </div>
-              <span className="font-bold text-orange-600">{pendingOrders}</span>
+              <span className="font-bold text-orange-600 dark:text-orange-400">{pendingOrders}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-blue-600" />
+                <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span className="text-sm">Processing</span>
               </div>
-              <span className="font-bold text-blue-600">{processingOrders}</span>
+              <span className="font-bold text-blue-600 dark:text-blue-400">{processingOrders}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-green-600" />
+                <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
                 <span className="text-sm">Delivered</span>
               </div>
-              <span className="font-bold text-green-600">{deliveredOrders}</span>
+              <span className="font-bold text-green-600 dark:text-green-400">{deliveredOrders}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
+         <div className="bg-card rounded-lg shadow-lg p-6">
+          <h3 className="font-semibold text-muted-foreground mb-4 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-600" />
             Unavailable Products
           </h3>
           <div className="space-y-2">
             {unavailableProducts.slice(0, 5).map((product) => (
-              <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <div key={product.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
                 <span className="text-sm truncate flex-1">{product.name}</span>
-                <span className="font-semibold text-sm ml-2 text-red-600">
+                <span className="font-semibold text-sm ml-2 text-red-600 dark:text-red-400">
                   Not Available
                 </span>
               </div>
             ))}
             {unavailableProducts.length === 0 && (
-              <div className="text-center py-4 text-green-600">
+              <div className="text-center py-4 text-green-600 dark:text-green-400">
                 <p className="text-sm font-medium">All products available!</p>
               </div>
             )}
             {unavailableProducts.length > 5 && (
-              <p className="text-xs text-gray-500 text-center mt-2">
-                +{unavailableProducts.length - 5} more products
-              </p>
+                 <p className="text-xs text-muted-foreground text-center mt-2">
+                  +{unavailableProducts.length - 5} more products
+                </p>
             )}
           </div>
         </div>

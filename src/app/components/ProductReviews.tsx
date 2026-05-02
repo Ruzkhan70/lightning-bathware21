@@ -66,13 +66,13 @@ export default function ProductReviews({ productId, productName }: ProductReview
                   <Star
                     key={star}
                     className={`w-5 h-5 ${
-                      star <= average ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                      star <= average ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
                     }`}
                   />
                 ))}
               </div>
               <span className="font-medium">{average}</span>
-              <span className="text-gray-500">({count} reviews)</span>
+              <span className="text-muted-foreground">({count} reviews)</span>
             </div>
           )}
         </div>
@@ -90,7 +90,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
 
       {/* Review Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-6 mb-8">
+        <form onSubmit={handleSubmit} className="bg-muted/50 rounded-xl p-6 mb-8">
           <h3 className="font-bold mb-4">Write Your Review for {productName}</h3>
           
           <div className="mb-4">
@@ -107,7 +107,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
                     className={`w-8 h-8 transition-colors ${
                       star <= rating
                         ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300 hover:text-yellow-300"
+                        : "text-muted-foreground hover:text-yellow-300"
                     }`}
                   />
                 </button>
@@ -143,7 +143,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
             </Button>
           </div>
           
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-muted-foreground mt-3">
             Your review will be visible after admin approval.
           </p>
         </form>
@@ -151,15 +151,15 @@ export default function ProductReviews({ productId, productName }: ProductReview
 
       {/* Reviews List */}
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+        <div className="text-center py-8 text-muted-foreground">Loading reviews...</div>
       ) : reviews.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-xl">
-          <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+        <div className="text-center py-8 bg-muted/50 rounded-xl">
+          <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
         </div>
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review.id} className="bg-white border rounded-xl p-6">
+            <div key={review.id} className="bg-card border rounded-xl p-6">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
                     </div>
                     <div>
                       <p className="font-semibold">{review.userName}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(review.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -179,13 +179,13 @@ export default function ProductReviews({ productId, productName }: ProductReview
                     <Star
                       key={star}
                       className={`w-4 h-4 ${
-                        star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                        star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
                       }`}
                     />
                   ))}
                 </div>
               </div>
-              <p className="text-gray-700">{review.comment}</p>
+              <p className="text-foreground">{review.comment}</p>
             </div>
           ))}
         </div>
@@ -207,7 +207,7 @@ export function StarRating({ rating, size = "md" }: { rating: number; size?: "sm
         <Star
           key={star}
           className={`${sizeClasses[size]} ${
-            star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+            star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
           }`}
         />
       ))}

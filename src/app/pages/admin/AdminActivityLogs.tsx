@@ -146,13 +146,13 @@ export default function AdminActivityLogs() {
   const getStatusIcon = (status: ActivityLog["status"]) => {
     switch (status) {
       case "success":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />;
       case "failed":
-        return <XCircle className="w-4 h-4 text-red-600" />;
+        return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />;
       case "warning":
-        return <AlertTriangle className="w-4 h-4 text-amber-600" />;
+        return <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
+        return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -166,14 +166,14 @@ export default function AdminActivityLogs() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Activity Logs</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Monitor all admin actions and security events
           </p>
         </div>
         <div className="flex items-center gap-4">
           {suspiciousCount > 0 && (
-            <div className="px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-              <span className="text-amber-700 font-semibold">
+            <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <span className="text-amber-700 dark:text-amber-300 font-semibold">
                 {suspiciousCount} warning{suspiciousCount > 1 ? "s" : ""}
               </span>
             </div>
@@ -200,11 +200,11 @@ export default function AdminActivityLogs() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-card rounded-lg shadow-sm p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Search logs..."
               value={searchQuery}
@@ -283,10 +283,10 @@ export default function AdminActivityLogs() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden hidden md:block">
+      <div className="bg-card rounded-lg shadow-sm overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-muted/50 border-b">
               <tr>
                 <th className="text-left py-4 px-4 font-semibold">Status</th>
                 <th className="text-left py-4 px-4 font-semibold">Timestamp</th>
@@ -299,17 +299,17 @@ export default function AdminActivityLogs() {
             <tbody>
               {paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
                     No activity logs found
                   </td>
                 </tr>
               ) : (
                 paginatedLogs.map((log) => (
-                  <tr key={log.id} className="border-b hover:bg-gray-50">
+                  <tr key={log.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4">
                       {getStatusIcon(log.status)}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
                     <td className="py-3 px-4">
@@ -323,10 +323,10 @@ export default function AdminActivityLogs() {
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 max-w-md" title={log.details}>
+                    <td className="py-3 px-4 text-sm text-muted-foreground max-w-md" title={log.details}>
                       <div>{log.details}</div>
                       {log.action === 'LOGIN_FAILED' && log.metadata?.passwordPrefix && (
-                        <div className="text-xs text-orange-600 mt-1">
+                        <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                           Password hint: "{log.metadata.passwordPrefix}***" ({log.metadata.passwordLength} chars)
                         </div>
                       )}
@@ -346,7 +346,7 @@ export default function AdminActivityLogs() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
               {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} of{" "}
               {filteredLogs.length} logs
@@ -379,13 +379,13 @@ export default function AdminActivityLogs() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {paginatedLogs.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Activity className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <div className="text-center py-12 text-muted-foreground">
+            <Activity className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
             <p>No activity logs found</p>
           </div>
         ) : (
           paginatedLogs.map((log) => (
-            <div key={log.id} className="bg-white rounded-lg shadow-sm border p-4">
+            <div key={log.id} className="bg-card rounded-lg shadow-sm border p-4">
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-shrink-0 mt-0.5">
                   {getStatusIcon(log.status)}
@@ -393,17 +393,17 @@ export default function AdminActivityLogs() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span>{getActionIcon(log.action)}</span>
-                    <span className="font-semibold text-gray-900 truncate">
+                    <span className="font-semibold text-foreground truncate">
                       {ACTION_LABELS[log.action]}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{log.userEmail}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">{log.userEmail}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
                     {new Date(log.timestamp).toLocaleString()}
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 truncate" title={log.details}>
+              <p className="text-sm text-muted-foreground truncate" title={log.details}>
                 {log.details}
               </p>
               <div className="flex items-center justify-between mt-3 pt-3 border-t">

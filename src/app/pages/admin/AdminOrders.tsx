@@ -189,7 +189,7 @@ export default function AdminOrders() {
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
-          <p className="text-gray-600">Track and manage customer orders</p>
+          <p className="text-muted-foreground">Track and manage customer orders</p>
         </div>
         <TableSkeleton rows={8} cols={5} />
       </div>
@@ -201,7 +201,7 @@ export default function AdminOrders() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
-          <p className="text-gray-600">Track and manage customer orders</p>
+          <p className="text-muted-foreground">Track and manage customer orders</p>
         </div>
         <div className="flex items-center gap-4">
           <Button
@@ -212,25 +212,25 @@ export default function AdminOrders() {
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <div className="text-center px-3 py-1 bg-orange-100 rounded-lg">
-            <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
-            <p className="text-xs text-orange-600">Pending</p>
-          </div>
-          <div className="text-center px-3 py-1 bg-blue-100 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">{processingCount}</p>
-            <p className="text-xs text-blue-600">Processing</p>
-          </div>
-          <div className="text-center px-3 py-1 bg-green-100 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">{completedCount}</p>
-            <p className="text-xs text-green-600">Completed</p>
-          </div>
+<div className="text-center px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+             <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pendingCount}</p>
+             <p className="text-xs text-orange-600 dark:text-orange-400">Pending</p>
+           </div>
+<div className="text-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{processingCount}</p>
+             <p className="text-xs text-blue-600 dark:text-blue-400">Processing</p>
+           </div>
+<div className="text-center px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{completedCount}</p>
+             <p className="text-xs text-green-600 dark:text-green-400">Completed</p>
+           </div>
         </div>
       </div>
 
       {/* Search & Bulk Actions */}
       <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search orders..."
@@ -241,7 +241,7 @@ export default function AdminOrders() {
         </div>
         
         {selectedOrders.length > 0 && (
-          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+          <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg">
             <span className="text-sm font-medium">{selectedOrders.length} selected</span>
             <Select value={bulkStatus} onValueChange={setBulkStatus}>
               <SelectTrigger className="w-36">
@@ -273,10 +273,10 @@ export default function AdminOrders() {
 
       {/* Desktop Orders Table */}
       {filteredOrders.length > 0 ? (
-        <div className="hidden md:block bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="hidden md:block bg-card rounded-lg shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="text-left py-4 px-4 w-10">
                     <input
@@ -307,7 +307,7 @@ export default function AdminOrders() {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-b hover:bg-gray-50">
+                  <tr key={order.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4">
                       <input
                         type="checkbox"
@@ -321,7 +321,7 @@ export default function AdminOrders() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="font-semibold">{order.customerName}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                      <div className="text-sm text-muted-foreground truncate max-w-xs">
                         {order.address}
                       </div>
                     </td>
@@ -336,11 +336,11 @@ export default function AdminOrders() {
                           handleStatusChange(order.id, value as "Pending" | "Processing" | "Delivered")
                         }
                       >
-                        <SelectTrigger className={`w-32 ${
-                          order.status === "Pending" ? "border-orange-300 bg-orange-50" :
-                          order.status === "Processing" ? "border-blue-300 bg-blue-50" :
-                          "border-green-300 bg-green-50"
-                        }`}>
+<SelectTrigger className={`w-32 ${
+                           order.status === "Pending" ? "border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/30" :
+                           order.status === "Processing" ? "border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30" :
+                           "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30"
+                         }`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -350,7 +350,7 @@ export default function AdminOrders() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
                       {new Date(order.date).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4">
@@ -360,8 +360,8 @@ export default function AdminOrders() {
                             size="sm"
                             variant="outline"
                             onClick={() => openTrackingDialog(order)}
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title="View Tracking"
+className="text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                             title="View Tracking"
                           >
                             <Truck className="w-4 h-4" />
                           </Button>
@@ -377,8 +377,8 @@ export default function AdminOrders() {
                           size="sm"
                           variant="outline"
                           onClick={() => setDeletingOrder(order.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
+className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -390,8 +390,8 @@ export default function AdminOrders() {
           </div>
         </div>
       ) : (
-        <div className="hidden md:block bg-white rounded-lg shadow-lg p-12 text-center">
-          <p className="text-gray-500">No orders found</p>
+        <div className="hidden md:block bg-card rounded-lg shadow-lg p-12 text-center">
+          <p className="text-muted-foreground">No orders found</p>
         </div>
       )}
 
@@ -401,34 +401,34 @@ export default function AdminOrders() {
           {filteredOrders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
+              className="bg-card rounded-lg shadow-sm p-4 border border-border"
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="font-mono text-sm font-semibold text-gray-600">
+                  <p className="font-mono text-sm font-semibold text-muted-foreground">
                     #{order.id.slice(-8)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     {new Date(order.date).toLocaleDateString()}
                   </p>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                  order.status === "Pending" ? "bg-orange-100 text-orange-700" :
-                  order.status === "Processing" ? "bg-blue-100 text-blue-700" :
-                  "bg-green-100 text-green-700"
-                }`}>
+<span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                   order.status === "Pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
+                   order.status === "Processing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                   "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                 }`}>
                   {order.status}
                 </span>
               </div>
 
               <div className="mb-3">
-                <p className="font-semibold text-gray-900">{order.customerName}</p>
-                <p className="text-sm text-gray-600">{order.phone}</p>
-                <p className="text-sm text-gray-500 truncate">{order.address}</p>
+                <p className="font-semibold text-foreground">{order.customerName}</p>
+                <p className="text-sm text-muted-foreground">{order.phone}</p>
+                <p className="text-sm text-muted-foreground truncate">{order.address}</p>
               </div>
 
               <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold text-gray-900">
+                <span className="text-lg font-bold text-foreground">
                   Rs. {order.total.toLocaleString()}
                 </span>
                 <Select
@@ -437,11 +437,11 @@ export default function AdminOrders() {
                     handleStatusChange(order.id, value as "Pending" | "Processing" | "Delivered")
                   }
                 >
-                  <SelectTrigger className={`w-32 h-9 ${
-                    order.status === "Pending" ? "border-orange-300 bg-orange-50" :
-                    order.status === "Processing" ? "border-blue-300 bg-blue-50" :
-                    "border-green-300 bg-green-50"
-                  }`}>
+<SelectTrigger className={`w-32 h-9 ${
+                     order.status === "Pending" ? "border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/30" :
+                     order.status === "Processing" ? "border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30" :
+                     "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30"
+                   }`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -467,7 +467,7 @@ export default function AdminOrders() {
                     size="sm"
                     variant="outline"
                     onClick={() => openTrackingDialog(order)}
-                    className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                    className="flex-1 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
                   >
                     <Truck className="w-4 h-4 mr-1" />
                     Tracking
@@ -477,17 +477,17 @@ export default function AdminOrders() {
                   size="sm"
                   variant="outline"
                   onClick={() => setDeletingOrder(order.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                 >
+                   <Trash2 className="w-4 h-4" />
+                 </Button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="md:hidden bg-white rounded-lg shadow-sm p-12 text-center">
-          <p className="text-gray-500">No orders found</p>
+        <div className="md:hidden bg-card rounded-lg shadow-sm p-12 text-center">
+          <p className="text-muted-foreground">No orders found</p>
         </div>
       )}
 
@@ -506,29 +506,29 @@ export default function AdminOrders() {
           {currentOrder && (
             <div className="space-y-6 py-4">
               {/* Customer Info */}
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <h3 className="font-semibold mb-3">Customer Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="text-sm text-muted-foreground">Name</p>
                     <p className="font-semibold">{currentOrder.customerName}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="text-sm text-muted-foreground">Phone</p>
                     <p className="font-semibold">{currentOrder.phone}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-sm text-gray-600">Delivery Address</p>
+                    <p className="text-sm text-muted-foreground">Delivery Address</p>
                     <p className="font-semibold">{currentOrder.address}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Delivery Option</p>
+                    <p className="text-sm text-muted-foreground">Delivery Option</p>
                     <p className="font-semibold">
                       {currentOrder.deliveryOption}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Delivery Cost</p>
+                    <p className="text-sm text-muted-foreground">Delivery Cost</p>
                     <p className="font-semibold">
                       Rs. {currentOrder.deliveryCost.toLocaleString()}
                     </p>
@@ -543,7 +543,7 @@ export default function AdminOrders() {
                   {(currentOrder.products || currentOrder.items || []).map((product, idx) => (
                     <div
                       key={product.id || `product-${idx}`}
-                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg"
                     >
                       <img
                         src={product.image}
@@ -552,7 +552,7 @@ export default function AdminOrders() {
                       />
                       <div className="flex-1">
                         <p className="font-semibold">{product.name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {product.selected_color && (
                             <span className="text-[#D4AF37] font-medium">
                               Color: {product.selected_color} × {" "}
@@ -580,7 +580,7 @@ export default function AdminOrders() {
               <div className="border-t pt-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-semibold">
                       Rs.{" "}
                       {(
@@ -589,7 +589,7 @@ export default function AdminOrders() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Delivery</span>
+                    <span className="text-muted-foreground">Delivery</span>
                     <span className="font-semibold">
                       Rs. {currentOrder.deliveryCost.toLocaleString()}
                     </span>
@@ -602,21 +602,21 @@ export default function AdminOrders() {
               </div>
 
               {/* Order & Payment Status */}
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Order Status</p>
+                    <p className="text-sm text-muted-foreground mb-1">Order Status</p>
                     <Select
                       value={currentOrder.status}
                       onValueChange={(value) =>
                         handleStatusChange(currentOrder.id, value as "Pending" | "Processing" | "Delivered")
                       }
                     >
-                      <SelectTrigger className={`font-semibold ${
-                        currentOrder.status === "Pending" ? "border-orange-300 bg-orange-50 text-orange-600" :
-                        currentOrder.status === "Processing" ? "border-blue-300 bg-blue-50 text-blue-600" :
-                        "border-green-300 bg-green-50 text-green-600"
-                      }`}>
+<SelectTrigger className={`font-semibold ${
+                         currentOrder.status === "Pending" ? "border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400" :
+                         currentOrder.status === "Processing" ? "border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" :
+                         "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                       }`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -627,26 +627,26 @@ export default function AdminOrders() {
                     </Select>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Payment Status</p>
+                    <p className="text-sm text-muted-foreground mb-1">Payment Status</p>
                     <Select
                       value={currentOrder.paymentStatus || "Pending"}
                       onValueChange={(value) => updatePaymentStatus(currentOrder.id, value as "Pending" | "Paid")}
                     >
-                      <SelectTrigger className={`font-semibold ${
-                        currentOrder.paymentStatus === "Paid" ? "text-green-600 border-green-300" : "text-orange-600 border-orange-300"
-                      }`}>
+<SelectTrigger className={`font-semibold ${
+                         currentOrder.paymentStatus === "Paid" ? "text-green-600 dark:text-green-400 border-green-300 dark:border-green-700" : "text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700"
+                       }`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Pending">
                           <span className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-orange-500" />
+                            <Clock className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                             Pending
                           </span>
                         </SelectItem>
                         <SelectItem value="Paid">
                           <span className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />
                             Paid
                           </span>
                         </SelectItem>
@@ -654,7 +654,7 @@ export default function AdminOrders() {
                     </Select>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Order Date</p>
+                    <p className="text-sm text-muted-foreground mb-1">Order Date</p>
                     <p className="font-semibold">
                       {new Date(currentOrder.date).toLocaleDateString()}
                     </p>
@@ -663,16 +663,16 @@ export default function AdminOrders() {
               </div>
 
               {/* Delivery Tracking */}
-              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Truck className="w-5 h-5 text-blue-600" />
+                    <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     <h3 className="font-semibold">Delivery Tracking</h3>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Add delivery tracking details for this order.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -736,18 +736,18 @@ export default function AdminOrders() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertTriangle className="w-5 h-5" />
               Delete Order
             </DialogTitle>
           </DialogHeader>
 
           <div className="py-4">
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Are you sure you want to delete this order? This action cannot be undone.
             </p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-800 font-medium">
+<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+               <p className="text-sm text-red-800 dark:text-red-200 font-medium">
                 Warning: All order details will be permanently removed from the system.
               </p>
             </div>
