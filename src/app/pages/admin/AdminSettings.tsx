@@ -71,6 +71,7 @@ export default function AdminSettings() {
   const [showSecurityCodeModal, setShowSecurityCodeModal] = useState(false);
   const [showForgotCodeModal, setShowForgotCodeModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<"username" | "password" | null>(null);
+  const [pendingDeviceAction, setPendingDeviceAction] = useState<{ type: "logout" | "remove", deviceId: string } | null>(null);
 
   // Form states - initialize with safe defaults
   const [profileForm, setProfileForm] = useState<any>(storeProfile || {});
@@ -209,13 +210,38 @@ export default function AdminSettings() {
           setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
         }
       });
+    } else if (pendingDeviceAction) {
+      if (pendingDeviceAction.type === "logout") {
+        logoutDeviceSession(pendingDeviceAction.deviceId);
+      } else {
+        removeDeviceSession(pendingDeviceAction.deviceId);
+      }
+      setPendingDeviceAction(null);
     }
+    clearSecurityVerification();
     setPendingAction(null);
   };
 
-  // Device handlers
+  const handleDeviceAction = async (type: "logout" | "remove", deviceId: string) => {
+    if (securityCodeVerified) {
+      if (type === "logout") {
+        await logoutDeviceSession(deviceId);
+      } else {
+        await removeDeviceSession(deviceId);
+      }
+    } else {
+      setPendingDeviceAction({ type, deviceId });
+      setShowSecurityCodeModal(true);
+    }
+  };
+
   const handleLogoutAllDevices = async () => {
-    if (!window.confirm("Log out from all devices?")) return;
+    if (!securityCodeVerified) {
+      toast.info("Security code verification required first");
+      setShowSecurityCodeModal(true);
+      return;
+    }
+    if (!window.confirm("Log out from all other devices?")) return;
     const otherDevices = deviceSessions?.filter(d => d.status === 'active' && !d.isCurrentDevice) || [];
     for (const device of otherDevices) {
       await logoutDeviceSession(device.deviceId);
@@ -1756,7 +1782,7 @@ export default function AdminSettings() {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => logoutDeviceSession(device.deviceId)}
+                                onClick={() => handleDeviceAction("logout", device.deviceId)}
                                 className="text-orange-600 border-orange-300 hover:bg-orange-50 flex-1 sm:flex-none"
                               >
                                 <LogOut className="w-4 h-4 mr-1" />
@@ -1765,7 +1791,7 @@ export default function AdminSettings() {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => removeDeviceSession(device.deviceId)}
+                                onClick={() => handleDeviceAction("remove", device.deviceId)}
                                 className="text-red-600 border-red-300 hover:bg-red-50 flex-shrink-0"
                               >
                                 <Trash2 className="w-4 h-4" />
