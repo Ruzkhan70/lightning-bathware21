@@ -2,7 +2,7 @@ import { db } from "../firebase";
 import { doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "firebase/firestore";
 
 const SECURITY_CODE_DOC = doc(db, "system", "securityCode");
-const OTP_COLLECTION = collection(db, "system", "codeRotationOtp");
+const OTP_COLLECTION = collection(db, "codeRotationOtp");
 const CODE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 const OTP_EXPIRY_MS = 15 * 60 * 1000;
 
@@ -118,7 +118,7 @@ export async function verifyAndConsumeOTP(otp: string): Promise<boolean> {
       const data = docSnap.data();
       const isValid = await verifySecurityCode(otp, data.hashedOtp, data.otpSalt);
       if (isValid) {
-        await setDoc(doc(db, "system", "codeRotationOtp", docSnap.id), { used: true, usedAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, "codeRotationOtp", docSnap.id), { used: true, usedAt: serverTimestamp() }, { merge: true });
         return true;
       }
     }
