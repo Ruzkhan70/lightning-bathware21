@@ -32,9 +32,13 @@ export default function AdminLayout() {
   const location = useLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
+  const isSwiping = useRef(false);
 
   const { showWarning, remainingTime, resetTimer, logoutNow, isRememberMe, setRememberMe } = useAdminTimeout(
     isAdminLoggedIn,
@@ -54,19 +58,40 @@ export default function AdminLayout() {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    const checkScreenSize = () => setIsDesktop(window.innerWidth >= 768);
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
+
+    const deltaX = Math.abs(touchEndX.current - touchStartX.current);
+    const deltaY = Math.abs(touchEndY.current - touchStartY.current);
+
+    if (deltaY > deltaX && deltaY > 10) {
+      isSwiping.current = false;
+    } else if (deltaX > 10) {
+      isSwiping.current = true;
+    }
   };
 
   const handleTouchEnd = () => {
-    const swipeThreshold = 30;
+    if (!isSwiping.current) return;
+
+    const swipeThreshold = 60;
     const diff = touchEndX.current - touchStartX.current;
     const startPosition = touchStartX.current;
-    
+
     if (mobileMenuOpen) {
       if (diff < -swipeThreshold) {
         closeMobileMenu();
@@ -76,6 +101,53 @@ export default function AdminLayout() {
         setMobileMenuOpen(true);
       }
     }
+
+    touchStartX.current = 0;
+    touchStartY.current = 0;
+    touchEndX.current = 0;
+    touchEndY.current = 0;
+    isSwiping.current = false;
+  };
+
+  const handleMainContentTouchStart = (e: React.TouchEvent) => {
+    if (isDesktop) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = false;
+  };
+
+  const handleMainContentTouchMove = (e: React.TouchEvent) => {
+    if (isDesktop) return;
+    touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
+
+    const deltaX = Math.abs(touchEndX.current - touchStartX.current);
+    const deltaY = Math.abs(touchEndY.current - touchStartY.current);
+
+    if (deltaY > deltaX && deltaY > 10) {
+      isSwiping.current = false;
+    } else if (deltaX > 10) {
+      isSwiping.current = true;
+    }
+  };
+
+  const handleMainContentTouchEnd = () => {
+    if (isDesktop) return;
+    if (!isSwiping.current) return;
+
+    const swipeThreshold = 60;
+    const diff = touchEndX.current - touchStartX.current;
+    const startPosition = touchStartX.current;
+
+    if (startPosition <= 50 && diff > swipeThreshold) {
+      setMobileMenuOpen(true);
+    }
+
+    touchStartX.current = 0;
+    touchStartY.current = 0;
+    touchEndX.current = 0;
+    touchEndY.current = 0;
+    isSwiping.current = false;
   };
 
   const unavailableProducts = (products || []).filter(p => !p.isAvailable);
@@ -298,15 +370,15 @@ export default function AdminLayout() {
           </div>
         </aside>
 
-        {/* Mobile Sidebar */}
-        <aside
-          ref={drawerRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className={`lg:hidden fixed left-0 top-0 h-screen w-72 bg-black text-white flex flex-col z-50 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
-          style={{ boxShadow: mobileMenuOpen ? "0 0 20px rgba(0,0,0,0.5)" : "none", touchAction: "pan-y" }}
-        >
+      {/* Mobile Sidebar */}
+      <aside
+        ref={drawerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`lg:hidden fixed left-0 top-0 h-screen w-72 bg-black text-white flex flex-col z-50 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ boxShadow: mobileMenuOpen ? "4px 0 25px rgba(0,0,0,0.5)" : "none", touchAction: "pan-y" }}
+      >
           <div className="p-4 border-b border-gray-800 flex-shrink-0 flex items-center justify-between">
             <div>
               <h1 className="text-lg font-bold flex items-center gap-1">
@@ -366,14 +438,15 @@ export default function AdminLayout() {
               <span className="text-sm">Logout</span>
             </button>
           </div>
-
-          <div className="p-4 border-t border-gray-800">
-            <p className="text-xs text-gray-500 text-center">Swipe right to close</p>
-          </div>
         </aside>
 
         {/* Main Content */}
-        <main className="lg:ml-56 pt-16 lg:pt-0 overflow-auto min-h-screen">
+        <main
+          className="lg:ml-56 pt-16 lg:pt-0 overflow-auto min-h-screen"
+          onTouchStart={handleMainContentTouchStart}
+          onTouchMove={handleMainContentTouchMove}
+          onTouchEnd={handleMainContentTouchEnd}
+        >
           <div className="p-3 sm:p-4 md:p-6 lg:p-8">
             <Outlet />
           </div>
