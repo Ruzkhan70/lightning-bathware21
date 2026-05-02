@@ -20,9 +20,6 @@ export default function CompareBar() {
             <Scale className="w-5 h-5 text-[#D4AF37]" />
             <span className="font-medium text-sm">Compare ({compareList.length}/4)</span>
           </div>
-          <Button variant="outline" size="sm" onClick={clearCompare} className="sm:hidden min-h-[44px]">
-            Clear
-          </Button>
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
@@ -49,17 +46,18 @@ export default function CompareBar() {
           ))}
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
           <Button 
             variant="outline" 
             size="sm"
             onClick={clearCompare}
+            className="flex-1 sm:flex-none"
           >
             Clear
           </Button>
           <Button 
             asChild
-            className="bg-[#D4AF37] hover:bg-[#B8962E] text-black"
+            className="bg-[#D4AF37] hover:bg-[#B8962E] text-black flex-1 sm:flex-none min-h-[44px]"
             disabled={compareList.length < 2}
           >
             <Link to="/compare">
