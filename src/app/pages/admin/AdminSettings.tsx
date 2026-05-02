@@ -1578,14 +1578,14 @@ export default function AdminSettings() {
               <Card title="Security Code" icon={<Key className="w-5 h-5" />} description="Protect account changes with a 6-digit code">
                 <div className="space-y-4">
                   {securityCodeExpiryInfo && (
-                    <div className={`rounded-lg p-4 border ${
+                    <div className={`rounded-lg p-3 sm:p-4 border ${
                       securityCodeExpiryInfo.isExpired
                         ? 'bg-red-50 border-red-200'
                         : securityCodeExpiryInfo.isExpiringSoon
                           ? 'bg-amber-50 border-amber-200'
                           : 'bg-green-50 border-green-200'
                     }`}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                             securityCodeExpiryInfo.isExpired
@@ -1603,7 +1603,7 @@ export default function AdminSettings() {
                             )}
                           </div>
                           <div>
-                            <p className={`font-semibold ${
+                            <p className={`font-semibold text-sm sm:text-base ${
                               securityCodeExpiryInfo.isExpired
                                 ? 'text-red-900'
                                 : securityCodeExpiryInfo.isExpiringSoon
@@ -1616,12 +1616,12 @@ export default function AdminSettings() {
                                   ? 'Expiring Soon'
                                   : 'Active'}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs sm:text-sm text-gray-600">
                               {securityCodeExpiryInfo.isExpired
-                                ? 'A new code has been sent to your recovery email'
+                                ? 'New code sent to email'
                                 : securityCodeExpiryInfo.isExpiringSoon
-                                  ? `Expires in ~${securityCodeExpiryInfo.remainingHours} hours`
-                                  : `Expires in ~${securityCodeExpiryInfo.remainingHours} hours`}
+                                  ? `~${securityCodeExpiryInfo.remainingHours}h remaining`
+                                  : `~${securityCodeExpiryInfo.remainingHours}h remaining`}
                             </p>
                           </div>
                         </div>
@@ -1631,7 +1631,7 @@ export default function AdminSettings() {
                           onClick={async () => {
                             await rotateSecurityCode();
                           }}
-                          className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10"
+                          className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10 w-full sm:w-auto"
                         >
                           <RefreshCw className="w-4 h-4 mr-1" />
                           Rotate Now
@@ -1643,17 +1643,17 @@ export default function AdminSettings() {
                   {securityCodeVerified && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                      <p className="text-sm text-green-800">Security code verified. You can change username and password.</p>
-                      <Button size="sm" variant="ghost" onClick={clearSecurityVerification} className="ml-auto text-green-700 hover:text-green-900">
+                      <p className="text-xs sm:text-sm text-green-800">Security code verified. You can change username and password.</p>
+                      <Button size="sm" variant="ghost" onClick={clearSecurityVerification} className="ml-auto text-green-700 hover:text-green-900 flex-shrink-0">
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                   )}
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Button
                       onClick={() => setShowSecurityCodeModal(true)}
-                      className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+                      className="bg-[#D4AF37] hover:bg-[#C5A028] text-black"
                     >
                       <Key className="w-4 h-4 mr-2" />
                       Enter Security Code
@@ -1661,7 +1661,7 @@ export default function AdminSettings() {
                     <Button
                       onClick={() => setShowForgotCodeModal(true)}
                       variant="outline"
-                      className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                      className="border-amber-300 text-amber-700 hover:bg-amber-50"
                     >
                       <AlertTriangle className="w-4 h-4 mr-2" />
                       Forgot Code
@@ -1673,16 +1673,16 @@ export default function AdminSettings() {
               {/* Device Sessions */}
               <Card title="Logged-in Devices" icon={<Shield className="w-5 h-5" />} description="Manage devices with admin access">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                         <Check className="w-5 h-5 text-green-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 text-sm truncate max-w-[200px] sm:max-w-none">
                           {adminEmail}
                         </p>
-                        <p className="text-sm text-green-600 font-medium">
+                        <p className="text-xs sm:text-sm text-green-600 font-medium">
                           {deviceSessions?.length || 0} active device{(deviceSessions?.length || 0) !== 1 ? 's' : ''} connected
                         </p>
                       </div>
@@ -1692,7 +1692,7 @@ export default function AdminSettings() {
                       size="sm" 
                       onClick={handleLogoutAllDevices}
                       disabled={!deviceSessions?.some(d => !d.isCurrentDevice)}
-                      className="text-red-500 border-red-300 hover:bg-red-50"
+                      className="text-red-500 border-red-300 hover:bg-red-50 w-full sm:w-auto"
                     >
                       <LogOut className="w-4 h-4 mr-1" />
                       Logout Others
@@ -1715,103 +1715,103 @@ export default function AdminSettings() {
                     {deviceSessions.map((device) => (
                       <div 
                         key={device.id}
-                        className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
+                        className={`rounded-xl border transition-all duration-200 ${
                           device.isCurrentDevice 
                             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-sm' 
                             : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
                         }`}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4">
+                          <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                             device.device === 'Mobile' || device.device === 'Tablet' 
                               ? 'bg-blue-100' 
                               : 'bg-purple-100'
                           }`}>
                             {device.device === 'Mobile' || device.device === 'Tablet' ? (
-                              <Smartphone className="w-6 h-6 text-blue-600" />
+                              <Smartphone className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                             ) : (
-                              <Monitor className="w-6 h-6 text-purple-600" />
+                              <Monitor className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                             )}
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-semibold text-gray-900">{device.device}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <p className="font-semibold text-gray-900 text-sm">{device.device}</p>
                               <span className="text-gray-400">•</span>
-                              <p className="text-gray-700">{device.browser}</p>
+                              <p className="text-gray-700 text-sm">{device.browser}</p>
                               {device.isCurrentDevice && (
-                                <span className="px-2.5 py-0.5 bg-green-500 text-white text-xs font-semibold rounded-full">Current</span>
+                                <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded-full">Current</span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-gray-500">
                               {device.os}
                             </p>
                             <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
                               <Clock className="w-3 h-3" />
-                              <span>Last active: {new Date(device.lastActive).toLocaleString()}</span>
+                              <span className="truncate">{new Date(device.lastActive).toLocaleString()}</span>
                             </div>
                           </div>
+                          
+                          {!device.isCurrentDevice && (
+                            <div className="flex gap-2 w-full sm:w-auto">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => logoutDeviceSession(device.deviceId)}
+                                className="text-orange-600 border-orange-300 hover:bg-orange-50 flex-1 sm:flex-none"
+                              >
+                                <LogOut className="w-4 h-4 mr-1" />
+                                Logout
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => removeDeviceSession(device.deviceId)}
+                                className="text-red-600 border-red-300 hover:bg-red-50 flex-shrink-0"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {device.isCurrentDevice && (
+                            <div className="hidden sm:flex items-center gap-2 text-green-600 flex-shrink-0">
+                              <CheckCircle className="w-5 h-5" />
+                              <span className="text-sm font-medium">This device</span>
+                            </div>
+                          )}
                         </div>
-                        
-                        {!device.isCurrentDevice && (
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => logoutDeviceSession(device.deviceId)}
-                              className="text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400"
-                            >
-                              <LogOut className="w-4 h-4 mr-1" />
-                              Logout
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => removeDeviceSession(device.deviceId)}
-                              className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {device.isCurrentDevice && (
-                          <div className="hidden sm:flex items-center gap-2 text-green-600">
-                            <CheckCircle className="w-5 h-5" />
-                            <span className="text-sm font-medium">This device</span>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </Card>
 
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-5">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-5 h-5 text-blue-600" />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Session Security</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
+                    <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Session Security</h4>
+                    <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
                       <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-blue-600" />
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Sessions automatically expire after 24 hours
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-blue-600" />
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Only you can logout or remove other devices
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-blue-600" />
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Each device is tracked with unique session ID
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-blue-600" />
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Security code required for username/password changes
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-blue-600" />
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Security code auto-rotates every 7 days
                       </li>
                     </ul>
@@ -1849,14 +1849,14 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-[#D4AF37]/10 rounded-lg flex items-center justify-center text-[#D4AF37]">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#D4AF37]/10 rounded-lg flex items-center justify-center text-[#D4AF37] flex-shrink-0">
           {icon}
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900">{title}</h3>
-          <p className="text-sm text-gray-500">{description}</p>
+          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{title}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">{description}</p>
         </div>
       </div>
       {children}
