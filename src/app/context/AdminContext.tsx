@@ -1296,6 +1296,32 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
   }, [adminEmail, getOrCreateDeviceId, getDeviceInfo]);
 
+  // Watch current device session status for remote logout
+  useEffect(() => {
+    if (!isAdminLoggedIn || !adminEmail) return;
+
+    const deviceId = getOrCreateDeviceId();
+    const q = query(
+      collection(db, DEVICE_SESSIONS_COLLECTION),
+      where('deviceId', '==', deviceId),
+      where('email', '==', adminEmail)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) return;
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        if (data.status === 'logged_out') {
+          toast.info("You have been logged out from another device");
+          logout();
+          break;
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isAdminLoggedIn, adminEmail, getOrCreateDeviceId]);
+
   // Update last active on current device periodically
   useEffect(() => {
     if (!isAdminLoggedIn || !adminEmail) return;
