@@ -3014,11 +3014,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     
     const productCode = generateProductCode(product.category);
-    const newProduct: Product = { 
-      ...product, 
+    const newProduct: Product = {
       id: generateUniqueId(),
+      name: product.name || '',
+      category: product.category || '',
+      price: product.price || 0,
+      isAvailable: product.isAvailable ?? true,
+      description: product.description || '',
+      image: product.image || '',
       product_code: productCode,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      has_variants: product.has_variants || false,
+      has_sizes: product.has_sizes || false,
+      variants: product.variants || [],
+      sizes: product.sizes || [],
     };
     const currentProducts = products;
     const updated = [...currentProducts, newProduct];
@@ -3085,11 +3094,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const productsWithIds = newProducts.map(p => ({ 
-      ...p, 
+    const productsWithIds = newProducts.map(p => ({
       id: generateUniqueId(),
+      name: p.name || '',
+      category: p.category || '',
+      price: p.price || 0,
+      isAvailable: p.isAvailable ?? true,
+      description: p.description || '',
+      image: p.image || '',
       product_code: generateProductCode(p.category),
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      has_variants: p.has_variants || false,
+      has_sizes: p.has_sizes || false,
+      variants: p.variants || [],
+      sizes: p.sizes || [],
     }));
     const updated = [...products, ...productsWithIds];
     setProducts(updated);
@@ -3118,7 +3136,29 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     
     const productName = products.find(p => p.id === id)?.name;
-    const updated = products.map(p => p.id === id ? { ...p, ...product } : p);
+    const updated = products.map(p => {
+      if (p.id === id) {
+        const merged = { ...p, ...product };
+        // Strip undefined values to prevent Firestore errors
+        const cleaned: Product = {
+          id: merged.id,
+          name: merged.name ?? '',
+          category: merged.category ?? '',
+          price: merged.price ?? 0,
+          isAvailable: merged.isAvailable ?? true,
+          description: merged.description ?? '',
+          image: merged.image ?? '',
+          product_code: merged.product_code,
+          created_at: merged.created_at,
+          has_variants: merged.has_variants ?? false,
+          has_sizes: merged.has_sizes ?? false,
+          variants: merged.variants ?? [],
+          sizes: merged.sizes ?? [],
+        };
+        return cleaned;
+      }
+      return p;
+    });
     setProducts(updated);
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
@@ -3161,7 +3201,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     
     const productName = products.find(p => p.id === id)?.name;
-    const updated = products.filter(p => p.id !== id);
+    const updated = products.filter(p => p.id !== id).map(p => ({
+      id: p.id,
+      name: p.name ?? '',
+      category: p.category ?? '',
+      price: p.price ?? 0,
+      isAvailable: p.isAvailable ?? true,
+      description: p.description ?? '',
+      image: p.image ?? '',
+      product_code: p.product_code,
+      created_at: p.created_at,
+      has_variants: p.has_variants ?? false,
+      has_sizes: p.has_sizes ?? false,
+      variants: p.variants ?? [],
+      sizes: p.sizes ?? [],
+    }));
     setProducts(updated);
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
@@ -3191,7 +3245,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const bulkDeleteProducts = async (ids: string[]) => {
     const deletedProducts = products.filter(p => ids.includes(p.id));
-    const updated = products.filter(p => !ids.includes(p.id));
+    const updated = products.filter(p => !ids.includes(p.id)).map(p => ({
+      id: p.id,
+      name: p.name ?? '',
+      category: p.category ?? '',
+      price: p.price ?? 0,
+      isAvailable: p.isAvailable ?? true,
+      description: p.description ?? '',
+      image: p.image ?? '',
+      product_code: p.product_code,
+      created_at: p.created_at,
+      has_variants: p.has_variants ?? false,
+      has_sizes: p.has_sizes ?? false,
+      variants: p.variants ?? [],
+      sizes: p.sizes ?? [],
+    }));
     setProducts(updated);
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
