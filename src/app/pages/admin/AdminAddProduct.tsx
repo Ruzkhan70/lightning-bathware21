@@ -783,8 +783,6 @@ export default function AdminAddProduct() {
           sizes: productSizes,
         });
         
-        toast.success("Product added successfully!");
-        
         // Clear form - this is local state so it won't cause parent re-render
         setFormData({
           name: "",
@@ -804,8 +802,8 @@ export default function AdminAddProduct() {
         if (descRef.current) descRef.current.value = "";
         if (priceRef.current) priceRef.current.value = "";
         
-      } catch (error) {
-        toast.error("Failed to add product");
+      } catch (error: any) {
+        console.error("Failed to add product:", error);
       }
     };
 

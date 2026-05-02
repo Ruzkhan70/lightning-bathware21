@@ -3025,30 +3025,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setProducts(updated);
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
-      toast.success("Product added successfully!");
-      
-      await createGlobalNotification(
-        "product",
-        "New Product Available!",
-        `${newProduct.name} is now available in our store`,
-        newProduct.id
-      );
-      
-      await createAnnouncement(
-        `🆕 New Product: ${newProduct.name}`,
-        `Check out our latest addition - ${newProduct.name} only at ${storeProfile.storeName} ${storeProfile.storeNameAccent}!`,
-        "product",
-        48
-      );
-      
-      await logProductAction(
-        'PRODUCT_ADD',
-        adminUid || 'unknown',
-        adminEmail,
-        newProduct.id,
-        newProduct.name,
-        `Added new product: ${newProduct.name}`
-      );
     } catch (error) {
       console.error("Error adding product to Firebase:", error);
       toast.error("Failed to save product to database");
@@ -3061,6 +3037,44 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Failed to add product: ${newProduct.name}`,
         'failed'
       );
+      throw error;
+    }
+    
+    toast.success("Product added successfully!");
+    
+    try {
+      await createGlobalNotification(
+        "product",
+        "New Product Available!",
+        `${newProduct.name} is now available in our store`,
+        newProduct.id
+      );
+    } catch (e) {
+      console.error("Error creating notification:", e);
+    }
+    
+    try {
+      await createAnnouncement(
+        `🆕 New Product: ${newProduct.name}`,
+        `Check out our latest addition - ${newProduct.name} only at ${storeProfile.storeName} ${storeProfile.storeNameAccent}!`,
+        "product",
+        48
+      );
+    } catch (e) {
+      console.error("Error creating announcement:", e);
+    }
+    
+    try {
+      await logProductAction(
+        'PRODUCT_ADD',
+        adminUid || 'unknown',
+        adminEmail,
+        newProduct.id,
+        newProduct.name,
+        `Added new product: ${newProduct.name}`
+      );
+    } catch (e) {
+      console.error("Error logging product action:", e);
     }
   };
 
