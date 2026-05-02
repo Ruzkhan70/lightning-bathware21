@@ -3024,7 +3024,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = [...currentProducts, newProduct];
     setProducts(updated);
     try {
-      await updateDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success("Product added successfully!");
       
       await createGlobalNotification(
@@ -3051,7 +3051,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error adding product to Firebase:", error);
-      await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      toast.error("Failed to save product to database");
       await logProductAction(
         'PRODUCT_ADD',
         adminUid || 'unknown',
@@ -3080,7 +3080,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = [...products, ...productsWithIds];
     setProducts(updated);
     try {
-      await updateDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
+      toast.success(`${newProducts.length} products added successfully!`);
       await logProductAction(
         'PRODUCT_ADD',
         adminUid || 'unknown',
@@ -3091,7 +3092,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error adding products to Firebase:", error);
-      await setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      toast.error("Failed to save products to database");
     }
   };
 
@@ -3149,7 +3150,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
     try {
-      await updateDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success("Product deleted!");
       logProductAction(
         'PRODUCT_DELETE',
@@ -3161,7 +3162,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error deleting product from Firebase:", error);
-      setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      toast.error("Failed to delete product from database");
       logProductAction(
         'PRODUCT_DELETE',
         adminUid || 'unknown',
@@ -3174,12 +3175,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const bulkDeleteProducts = (ids: string[]) => {
+  const bulkDeleteProducts = async (ids: string[]) => {
     const deletedProducts = products.filter(p => ids.includes(p.id));
     const updated = products.filter(p => !ids.includes(p.id));
     setProducts(updated);
     try {
-      updateDoc(doc(db, "storeData", "products"), { products: updated });
+      await setDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success(`${ids.length} products deleted!`);
       logAdminAction(
         'PRODUCT_BULK_DELETE',
@@ -3191,7 +3192,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
     } catch (error) {
       console.error("Error bulk deleting products from Firebase:", error);
-      setDoc(doc(db, "storeData", "products"), { products: updated }, { merge: true });
+      toast.error("Failed to delete products from database");
       logAdminAction(
         'PRODUCT_BULK_DELETE',
         adminUid || 'unknown',
