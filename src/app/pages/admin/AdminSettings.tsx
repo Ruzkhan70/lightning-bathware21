@@ -3,7 +3,8 @@ import {
   Settings, Store, Image, FileText, Shield, User, Lock, Key, 
   Monitor, Smartphone, LogOut, Trash2, Check, ChevronRight, Save,
   Globe, Phone, Mail, MapPin, Clock, Truck, CreditCard, Award,
-  Plus, X, CheckCircle, AlertCircle, Zap, RotateCcw, ToggleLeft, ToggleRight
+  Plus, X, CheckCircle, AlertCircle, Zap, RotateCcw, ToggleLeft, ToggleRight,
+  AlertTriangle, Timer, RefreshCw
 } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import ImageUpload from "../../components/admin/ImageUpload";
@@ -12,6 +13,8 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
+import SecurityCodeModal from "../../components/SecurityCodeModal";
+import ForgotCodeModal from "../../components/ForgotCodeModal";
 
 type SettingsSection = 
   | 'store-profile'
@@ -55,8 +58,19 @@ export default function AdminSettings() {
     removeDeviceSession,
     logoutDeviceSession,
     currentDeviceId,
-    adminEmail
+    adminEmail,
+    securityCodeVerified,
+    securityCodeExpiryInfo,
+    verifySecurityCodeAction,
+    requestForgotCodeOTP,
+    submitForgotCode,
+    rotateSecurityCode,
+    clearSecurityVerification,
   } = useAdmin();
+
+  const [showSecurityCodeModal, setShowSecurityCodeModal] = useState(false);
+  const [showForgotCodeModal, setShowForgotCodeModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"username" | "password" | null>(null);
 
   // Form states - initialize with safe defaults
   const [profileForm, setProfileForm] = useState<any>(storeProfile || {});
@@ -141,6 +155,11 @@ export default function AdminSettings() {
   // Account handlers
   const handleUsernameSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!securityCodeVerified) {
+      setPendingAction("username");
+      setShowSecurityCodeModal(true);
+      return;
+    }
     if (!usernameForm.newUsername || usernameForm.newUsername.length < 3) {
       toast.error("Username must be at least 3 characters");
       return;
@@ -152,6 +171,11 @@ export default function AdminSettings() {
 
   const handlePasswordSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!securityCodeVerified) {
+      setPendingAction("password");
+      setShowSecurityCodeModal(true);
+      return;
+    }
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
       toast.error("Please fill in all fields");
       return;
@@ -164,13 +188,29 @@ export default function AdminSettings() {
       toast.error("Password must be at least 6 characters");
       return;
     }
-    const success = await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-    if (success) {
+    const result = await changePassword(passwordForm.newPassword);
+    if (result.success) {
       toast.success("Password updated!");
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } else {
-      toast.error("Current password is incorrect");
+      toast.error(result.error || "Current password is incorrect");
     }
+  };
+
+  const handleSecurityCodeSuccess = () => {
+    if (pendingAction === "username") {
+      changeUsername(usernameForm.newUsername).then(s => {
+        if (s) toast.success("Username updated!");
+      });
+    } else if (pendingAction === "password") {
+      changePassword(passwordForm.newPassword).then(r => {
+        if (r.success) {
+          toast.success("Password updated!");
+          setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        }
+      });
+    }
+    setPendingAction(null);
   };
 
   // Device handlers
@@ -1450,16 +1490,31 @@ export default function AdminSettings() {
           {/* Account Section */}
           {activeSection === 'account' && (
             <div className="max-w-2xl mx-auto space-y-6">
+              {securityCodeVerified && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <p className="text-sm text-green-800">Security verified. You can change your username and password.</p>
+                </div>
+              )}
+
               <Card title="Change Username" icon={<User className="w-5 h-5" />} description="Update your admin username">
                 <form onSubmit={handleUsernameSave} className="space-y-4">
                   <div>
                     <Label>New Username</Label>
                     <Input value={usernameForm.newUsername} onChange={(e) => setUsernameForm({newUsername: e.target.value})} />
                   </div>
-                  <Button type="submit" className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black">
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Username
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button type="submit" className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black">
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Username
+                    </Button>
+                    {!securityCodeVerified && (
+                      <Button type="button" variant="outline" size="sm" onClick={() => { setPendingAction("username"); setShowSecurityCodeModal(true); }} className="flex-shrink-0">
+                        <Key className="w-4 h-4 mr-1" />
+                        Verify
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </Card>
 
@@ -1478,10 +1533,18 @@ export default function AdminSettings() {
                     <Label>Confirm New Password</Label>
                     <Input type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} />
                   </div>
-                  <Button type="submit" className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black">
-                    <Lock className="w-4 h-4 mr-2" />
-                    Update Password
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button type="submit" className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black">
+                      <Lock className="w-4 h-4 mr-2" />
+                      Update Password
+                    </Button>
+                    {!securityCodeVerified && (
+                      <Button type="button" variant="outline" size="sm" onClick={() => { setPendingAction("password"); setShowSecurityCodeModal(true); }} className="flex-shrink-0">
+                        <Key className="w-4 h-4 mr-1" />
+                        Verify
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </Card>
 
@@ -1491,14 +1554,123 @@ export default function AdminSettings() {
                   <li>• Use a strong password with 8+ characters</li>
                   <li>• Include uppercase, lowercase, numbers, and symbols</li>
                   <li>• Don't share your credentials with anyone</li>
+                  <li>• A security code is required before changing username or password</li>
+                  <li>• Security code auto-rotates every 7 days</li>
                 </ul>
               </div>
+
+              <SecurityCodeModal
+                isOpen={showSecurityCodeModal}
+                onClose={() => { setShowSecurityCodeModal(false); setPendingAction(null); }}
+                onSuccess={handleSecurityCodeSuccess}
+              />
+              <ForgotCodeModal
+                isOpen={showForgotCodeModal}
+                onClose={() => setShowForgotCodeModal(false)}
+              />
             </div>
           )}
 
           {/* Security Section */}
           {activeSection === 'security' && (
             <div className="max-w-4xl mx-auto space-y-6">
+              {/* Security Code Status Card */}
+              <Card title="Security Code" icon={<Key className="w-5 h-5" />} description="Protect account changes with a 6-digit code">
+                <div className="space-y-4">
+                  {securityCodeExpiryInfo && (
+                    <div className={`rounded-lg p-4 border ${
+                      securityCodeExpiryInfo.isExpired
+                        ? 'bg-red-50 border-red-200'
+                        : securityCodeExpiryInfo.isExpiringSoon
+                          ? 'bg-amber-50 border-amber-200'
+                          : 'bg-green-50 border-green-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            securityCodeExpiryInfo.isExpired
+                              ? 'bg-red-100'
+                              : securityCodeExpiryInfo.isExpiringSoon
+                                ? 'bg-amber-100'
+                                : 'bg-green-100'
+                          }`}>
+                            {securityCodeExpiryInfo.isExpired ? (
+                              <AlertTriangle className="w-5 h-5 text-red-600" />
+                            ) : securityCodeExpiryInfo.isExpiringSoon ? (
+                              <Timer className="w-5 h-5 text-amber-600" />
+                            ) : (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className={`font-semibold ${
+                              securityCodeExpiryInfo.isExpired
+                                ? 'text-red-900'
+                                : securityCodeExpiryInfo.isExpiringSoon
+                                  ? 'text-amber-900'
+                                  : 'text-green-900'
+                            }`}>
+                              {securityCodeExpiryInfo.isExpired
+                                ? 'Code Expired'
+                                : securityCodeExpiryInfo.isExpiringSoon
+                                  ? 'Expiring Soon'
+                                  : 'Active'}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {securityCodeExpiryInfo.isExpired
+                                ? 'A new code has been sent to your recovery email'
+                                : securityCodeExpiryInfo.isExpiringSoon
+                                  ? `Expires in ~${securityCodeExpiryInfo.remainingHours} hours`
+                                  : `Expires in ~${securityCodeExpiryInfo.remainingHours} hours`}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            await rotateSecurityCode();
+                          }}
+                          className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        >
+                          <RefreshCw className="w-4 h-4 mr-1" />
+                          Rotate Now
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {securityCodeVerified && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      <p className="text-sm text-green-800">Security code verified. You can change username and password.</p>
+                      <Button size="sm" variant="ghost" onClick={clearSecurityVerification} className="ml-auto text-green-700 hover:text-green-900">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowSecurityCodeModal(true)}
+                      className="flex-1 bg-[#D4AF37] hover:bg-[#C5A028] text-black"
+                    >
+                      <Key className="w-4 h-4 mr-2" />
+                      Enter Security Code
+                    </Button>
+                    <Button
+                      onClick={() => setShowForgotCodeModal(true)}
+                      variant="outline"
+                      className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                    >
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Forgot Code
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Device Sessions */}
               <Card title="Logged-in Devices" icon={<Shield className="w-5 h-5" />} description="Manage devices with admin access">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -1634,10 +1806,28 @@ export default function AdminSettings() {
                         <Check className="w-4 h-4 text-blue-600" />
                         Each device is tracked with unique session ID
                       </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-blue-600" />
+                        Security code required for username/password changes
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-blue-600" />
+                        Security code auto-rotates every 7 days
+                      </li>
                     </ul>
                   </div>
                 </div>
               </div>
+
+              <SecurityCodeModal
+                isOpen={showSecurityCodeModal}
+                onClose={() => setShowSecurityCodeModal(false)}
+                onSuccess={handleSecurityCodeSuccess}
+              />
+              <ForgotCodeModal
+                isOpen={showForgotCodeModal}
+                onClose={() => setShowForgotCodeModal(false)}
+              />
             </div>
           )}
         </div>

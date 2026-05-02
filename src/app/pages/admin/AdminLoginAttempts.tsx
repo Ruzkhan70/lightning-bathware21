@@ -24,6 +24,8 @@ interface LoginAttemptLog {
   browser?: string;
   failureReason?: string;
   action?: string;
+  ipAddress?: string;
+  deviceType?: "mobile" | "tablet" | "desktop";
 }
 
 const ITEMS_PER_PAGE = 15;
@@ -55,6 +57,8 @@ export default function AdminLoginAttempts() {
           browser: data.browser,
           failureReason: data.failureReason,
           action: data.action,
+          ipAddress: data.ipAddress,
+          deviceType: data.deviceType,
         };
       });
       setLogs(logsData);
@@ -125,13 +129,14 @@ export default function AdminLoginAttempts() {
   );
 
   const exportToCSV = () => {
-    const headers = ["Date/Time", "Email", "Status", "Device", "Browser", "Failure Reason"];
+    const headers = ["Date/Time", "Email", "Status", "IP Address", "Device", "Browser", "Failure Reason"];
     const csvContent = [
       headers.join(","),
       ...filteredLogs.map((log) => [
         new Date(log.timestamp).toLocaleString(),
         log.email,
         log.status.toUpperCase(),
+        log.ipAddress || "Unknown",
         log.device || "Unknown",
         log.browser || "Unknown",
         log.failureReason || "N/A",
@@ -343,6 +348,7 @@ export default function AdminLoginAttempts() {
                 <th className="text-left py-4 px-4 font-semibold">Status</th>
                 <th className="text-left py-4 px-4 font-semibold">Date & Time</th>
                 <th className="text-left py-4 px-4 font-semibold">Email</th>
+                <th className="text-left py-4 px-4 font-semibold">IP Address</th>
                 <th className="text-left py-4 px-4 font-semibold">Failure Reason</th>
                 <th className="text-left py-4 px-4 font-semibold">Device</th>
                 <th className="text-left py-4 px-4 font-semibold">Browser</th>
@@ -352,7 +358,7 @@ export default function AdminLoginAttempts() {
             <tbody>
               {paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-500">
+                  <td colSpan={8} className="py-12 text-center text-gray-500">
                     No login attempts found
                   </td>
                 </tr>
@@ -386,17 +392,23 @@ export default function AdminLoginAttempts() {
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-4">
-                        {log.failureReason ? (
-                          <span className={`text-sm px-2 py-1 rounded ${getSeverityColor(severity)}`}>
-                            {log.failureReason}
-                          </span>
-                        ) : log.action === "logout" ? (
-                          <span className="text-sm text-gray-500">Logged out</span>
-                        ) : (
-                          <span className="text-sm text-gray-400">-</span>
-                        )}
-                      </td>
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Globe className="w-4 h-4" />
+          {log.ipAddress || "Unknown"}
+        </div>
+      </td>
+      <td className="py-3 px-4">
+        {log.failureReason ? (
+          <span className={`text-sm px-2 py-1 rounded ${getSeverityColor(severity)}`}>
+            {log.failureReason}
+          </span>
+        ) : log.action === "logout" ? (
+          <span className="text-sm text-gray-500">Logged out</span>
+        ) : (
+          <span className="text-sm text-gray-400">-</span>
+        )}
+      </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Monitor className="w-4 h-4" />
@@ -519,6 +531,10 @@ export default function AdminLoginAttempts() {
                 )}
 
                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    {log.ipAddress || "Unknown"}
+                  </span>
                   <span className="flex items-center gap-1">
                     <Monitor className="w-3 h-3" />
                     {log.device || "Unknown"}

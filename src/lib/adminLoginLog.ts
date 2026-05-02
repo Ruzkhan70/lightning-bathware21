@@ -1,6 +1,7 @@
 import { db } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { getDeviceInfo } from "./activityLog";
+import { getIPAddress, getDeviceType } from "./deviceInfo";
 
 export interface AdminLoginLog {
   email: string;
@@ -11,6 +12,7 @@ export interface AdminLoginLog {
   userAgent?: string;
   device?: string;
   browser?: string;
+  deviceType?: "mobile" | "tablet" | "desktop";
   failureReason?: string;
 }
 
@@ -29,17 +31,26 @@ export const logAdminLogin = async (
   failureReason?: string
 ): Promise<void> => {
   try {
-    const { device, browser } = getDeviceInfo();
+    const { device, browser, userAgent } = getDeviceInfo();
     const maskedEmail = maskEmail(email);
-    
+
+    let ipAddress = "unknown";
+    try {
+      ipAddress = await getIPAddress();
+    } catch {
+      ipAddress = "unknown";
+    }
+
     const logEntry: AdminLoginLog = {
       email,
       emailMasked: maskedEmail,
       status,
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
+      ipAddress,
+      userAgent,
       device,
       browser,
+      deviceType: getDeviceType(),
       failureReason,
     };
 
@@ -56,17 +67,26 @@ export const logAdminLogin = async (
 
 export const logAdminLogout = async (email: string): Promise<void> => {
   try {
-    const { device, browser } = getDeviceInfo();
+    const { device, browser, userAgent } = getDeviceInfo();
     const maskedEmail = maskEmail(email);
-    
+
+    let ipAddress = "unknown";
+    try {
+      ipAddress = await getIPAddress();
+    } catch {
+      ipAddress = "unknown";
+    }
+
     await addDoc(collection(db, "adminLogs"), {
       email,
       emailMasked: maskedEmail,
       status: "success",
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
+      ipAddress,
+      userAgent,
       device,
       browser,
+      deviceType: getDeviceType(),
       action: "logout",
       createdAt: serverTimestamp(),
     });

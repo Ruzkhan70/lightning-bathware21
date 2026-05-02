@@ -13,6 +13,11 @@ import {
 import { toast } from "sonner";
 import { logAdminLogin, logAdminLogout } from "../../lib/adminLoginLog";
 import { logOrderAction, logProductAction, logCategoryAction, logOfferAction, logAdminAction, logPasswordChange } from "../../lib/adminActionLog";
+import { 
+  loadSecurityCode, saveSecurityCode, verifySecurityCode, generateSecurityCode,
+  checkCodeExpired, getSecurityCodeExpiryInfo, generateOTP, verifyAndConsumeOTP,
+} from "../../lib/securityCode";
+import { sendSecurityCodeEmail, sendOTPCodeEmail } from "../../lib/securityEmails";
 
 const createGlobalNotification = async (
   type: "product" | "offer" | "terms" | "update",
@@ -468,6 +473,13 @@ interface AdminContextType {
   removeDeviceSession: (deviceId: string) => Promise<void>;
   logoutDeviceSession: (deviceId: string) => Promise<void>;
   currentDeviceId: string | null;
+  securityCodeVerified: boolean;
+  securityCodeExpiryInfo: SecurityCodeExpiryInfo | null;
+  verifySecurityCodeAction: (code: string) => Promise<boolean>;
+  requestForgotCodeOTP: () => Promise<{ success: boolean; error?: string }>;
+  submitForgotCode: (otp: string, newCode: string) => Promise<{ success: boolean; error?: string }>;
+  rotateSecurityCode: () => Promise<void>;
+  clearSecurityVerification: () => void;
 }
 
 export interface UserProfile {
@@ -501,6 +513,13 @@ export interface DeviceSession {
   loginTime: string;
   lastActive: string;
   ipAddress?: string;
+}
+
+export interface SecurityCodeExpiryInfo {
+  isExpired: boolean;
+  isExpiringSoon: boolean;
+  expiresAt: string | null;
+  remainingHours: number;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -969,6 +988,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [lockedEmails, setLockedEmails] = useState<Record<string, Date>>({});
   const [deviceSessions, setDeviceSessions] = useState<DeviceSession[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
+  const [securityCodeVerified, setSecurityCodeVerified] = useState(false);
+  const [securityCodeExpiryInfo, setSecurityCodeExpiryInfo] = useState<SecurityCodeExpiryInfo | null>(null);
+  const verificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkIfUserIsAdmin = useCallback(async (user: FirebaseUser): Promise<boolean> => {
     try {
@@ -2665,6 +2687,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (!firebaseUser) {
         return { success: false, error: "Not authenticated" };
       }
+
+      if (!securityCodeVerified) {
+        return { success: false, error: "Security code verification required" };
+      }
       
       if (newPassword.length < 6) {
         return { success: false, error: "Password should be at least 6 characters" };
@@ -2699,6 +2725,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.error("Username must be at least 3 characters");
       return false;
     }
+
+    if (!securityCodeVerified) {
+      toast.error("Security code verification required");
+      return false;
+    }
     
     try {
       if (firebaseUser) {
@@ -2720,6 +2751,131 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return false;
     }
   };
+
+  const verifySecurityCodeAction = async (code: string): Promise<boolean> => {
+    try {
+      const state = await loadSecurityCode();
+      if (!state) {
+        toast.error("No security code set. Contact support.");
+        return false;
+      }
+
+      const isValid = await verifySecurityCode(code, state.hashedCode, state.salt);
+      if (!isValid) {
+        toast.error("Incorrect security code");
+        return false;
+      }
+
+      setSecurityCodeVerified(true);
+
+      if (verificationTimerRef.current) clearTimeout(verificationTimerRef.current);
+      verificationTimerRef.current = setTimeout(() => {
+        setSecurityCodeVerified(false);
+      }, 10 * 60 * 1000);
+
+      toast.success("Security code verified");
+      return true;
+    } catch {
+      toast.error("Verification failed");
+      return false;
+    }
+  };
+
+  const clearSecurityVerification = useCallback(() => {
+    setSecurityCodeVerified(false);
+    if (verificationTimerRef.current) clearTimeout(verificationTimerRef.current);
+  }, []);
+
+  const requestForgotCodeOTP = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const otp = await generateOTP();
+      const sent = await sendOTPCodeEmail(otp);
+
+      if (!sent) {
+        return { success: false, error: "Failed to send OTP. Check email configuration." };
+      }
+
+      toast.success("OTP sent to your recovery email");
+      return { success: true };
+    } catch {
+      return { success: false, error: "Failed to generate OTP. Try again." };
+    }
+  };
+
+  const submitForgotCode = async (otp: string, newCode: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const valid = await verifyAndConsumeOTP(otp);
+      if (!valid) {
+        return { success: false, error: "Invalid or expired OTP" };
+      }
+
+      if (!/^\d{6}$/.test(newCode)) {
+        return { success: false, error: "Security code must be 6 digits" };
+      }
+
+      await saveSecurityCode(newCode);
+      setSecurityCodeVerified(true);
+      toast.success("Security code updated successfully");
+      return { success: true };
+    } catch {
+      return { success: false, error: "Failed to update security code" };
+    }
+  };
+
+  const rotateSecurityCode = async (): Promise<void> => {
+    try {
+      const newCode = generateSecurityCode();
+      await saveSecurityCode(newCode);
+
+      const sent = await sendSecurityCodeEmail(newCode, "Automatic weekly rotation");
+      if (sent) {
+        toast.success("Security code rotated and sent to recovery email");
+      } else {
+        toast.success("Security code rotated (email delivery pending)");
+      }
+
+      await logAdminAction(
+        'SETTINGS_UPDATE',
+        adminUid || 'unknown',
+        adminEmail,
+        'Security code auto-rotated and emailed',
+        'success',
+        { action: 'code_rotation' }
+      );
+    } catch (error) {
+      console.error("Error rotating security code:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!isAdminLoggedIn || !adminEmail) return;
+
+    const checkAndRotate = async () => {
+      const info = await getSecurityCodeExpiryInfo();
+      setSecurityCodeExpiryInfo(info);
+
+      if (!info) {
+        const initialCode = generateSecurityCode();
+        await saveSecurityCode(initialCode);
+        await sendSecurityCodeEmail(initialCode, "Initial setup");
+        return;
+      }
+
+      if (info.isExpired) {
+        await rotateSecurityCode();
+        const newInfo = await getSecurityCodeExpiryInfo();
+        setSecurityCodeExpiryInfo(newInfo);
+      }
+    };
+
+    checkAndRotate();
+    const interval = setInterval(checkAndRotate, 60 * 60 * 1000);
+
+    return () => {
+      clearInterval(interval);
+      if (verificationTimerRef.current) clearTimeout(verificationTimerRef.current);
+    };
+  }, [isAdminLoggedIn, adminEmail]);
 
   const updateStoreProfile = async (profile: Partial<StoreProfile>) => {
     const updated = { ...storeProfile, ...profile };
@@ -3596,6 +3752,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setupAdmin,
         changePassword,
         changeUsername,
+        securityCodeVerified,
+        securityCodeExpiryInfo,
+        verifySecurityCodeAction,
+        requestForgotCodeOTP,
+        submitForgotCode,
+        rotateSecurityCode,
+        clearSecurityVerification,
+        deviceSessions,
+        removeDeviceSession,
+        logoutDeviceSession,
+        currentDeviceId,
         storeProfile,
         updateStoreProfile,
         products,
