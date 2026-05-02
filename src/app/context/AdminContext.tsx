@@ -2498,77 +2498,57 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeDeviceSession = async (deviceId: string) => {
-    try {
-      // Use the predictable document ID format
-      const docId = `${adminEmail}_${deviceId}`;
-      await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId));
-      toast.success("Device removed successfully");
-      
-      // If removing current device, logout
-      if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
-        await logout();
-      }
-    } catch (error) {
-      console.error("Error removing device session:", error);
-      // Try alternate lookup
-      try {
-        const q = query(
-          collection(db, DEVICE_SESSIONS_COLLECTION),
-          where('deviceId', '==', deviceId),
-          where('email', '==', adminEmail)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, snapshot.docs[0].id));
-          toast.success("Device removed successfully");
-          if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
-            await logout();
-          }
-        }
-      } catch (e) {
-        console.error("Fallback remove also failed:", e);
-        toast.error("Failed to remove device");
-      }
-    }
-  };
-
   const logoutDeviceSession = async (deviceId: string) => {
     try {
-      // Use the predictable document ID format
-      const docId = `${adminEmail}_${deviceId}`;
-      await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docId), {
-        status: 'logged_out',
-      });
+      const q = query(
+        collection(db, DEVICE_SESSIONS_COLLECTION),
+        where('deviceId', '==', deviceId),
+        where('email', '==', adminEmail)
+      );
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        toast.error("Device session not found");
+        return;
+      }
+      for (const docSnap of snapshot.docs) {
+        await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docSnap.id), {
+          status: 'logged_out',
+        });
+      }
       toast.success("Device logged out successfully");
       
-      // If logging out current device, logout
       if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
         await logout();
       }
     } catch (error) {
       console.error("Error logging out device session:", error);
-      // Try alternate lookup
-      try {
-        const q = query(
-          collection(db, DEVICE_SESSIONS_COLLECTION),
-          where('deviceId', '==', deviceId),
-          where('email', '==', adminEmail)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          await updateDoc(doc(db, DEVICE_SESSIONS_COLLECTION, snapshot.docs[0].id), {
-            status: 'logged_out',
-          });
-          toast.success("Device logged out successfully");
-          if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
-            await logout();
-          }
-        }
-      } catch (e) {
-        console.error("Fallback logout also failed:", e);
-        toast.error("Failed to log out device");
+      toast.error("Failed to log out device");
+    }
+  };
+
+  const removeDeviceSession = async (deviceId: string) => {
+    try {
+      const q = query(
+        collection(db, DEVICE_SESSIONS_COLLECTION),
+        where('deviceId', '==', deviceId),
+        where('email', '==', adminEmail)
+      );
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        toast.error("Device session not found");
+        return;
       }
+      for (const docSnap of snapshot.docs) {
+        await deleteDoc(doc(db, DEVICE_SESSIONS_COLLECTION, docSnap.id));
+      }
+      toast.success("Device removed successfully");
+      
+      if (deviceId === localStorage.getItem(DEVICE_ID_KEY)) {
+        await logout();
+      }
+    } catch (error) {
+      console.error("Error removing device session:", error);
+      toast.error("Failed to remove device");
     }
   };
   
