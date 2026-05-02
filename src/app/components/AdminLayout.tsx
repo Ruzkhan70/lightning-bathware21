@@ -90,14 +90,13 @@ export default function AdminLayout() {
 
     const swipeThreshold = 60;
     const diff = touchEndX.current - touchStartX.current;
-    const startPosition = touchStartX.current;
 
     if (mobileMenuOpen) {
       if (diff < -swipeThreshold) {
         closeMobileMenu();
       }
     } else {
-      if (startPosition <= 50 && diff > swipeThreshold) {
+      if (diff > swipeThreshold) {
         setMobileMenuOpen(true);
       }
     }
@@ -137,9 +136,8 @@ export default function AdminLayout() {
 
     const swipeThreshold = 60;
     const diff = touchEndX.current - touchStartX.current;
-    const startPosition = touchStartX.current;
 
-    if (startPosition <= 50 && diff > swipeThreshold) {
+    if (diff > swipeThreshold) {
       setMobileMenuOpen(true);
     }
 
