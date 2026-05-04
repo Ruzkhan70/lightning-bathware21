@@ -11,7 +11,7 @@ export default function Layout() {
       <AnnouncementBanner />
       <ScrollToTop />
       <Header />
-      <main className="flex-1">
+      <main className="flex-1 bg-background">
         <PageTransition />
       </main>
       <CompareBar />

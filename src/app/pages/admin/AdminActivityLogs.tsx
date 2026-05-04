@@ -286,7 +286,7 @@ export default function AdminActivityLogs() {
       <div className="bg-card rounded-lg shadow-sm overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-muted/50 border-b">
+            <thead className="bg-muted-50 border-b">
               <tr>
                 <th className="text-left py-4 px-4 font-semibold">Status</th>
                 <th className="text-left py-4 px-4 font-semibold">Timestamp</th>
@@ -305,7 +305,7 @@ export default function AdminActivityLogs() {
                 </tr>
               ) : (
                 paginatedLogs.map((log) => (
-                  <tr key={log.id} className="border-b hover:bg-muted/50">
+                  <tr key={log.id} className="border-b hover:bg-muted-50">
                     <td className="py-3 px-4">
                       {getStatusIcon(log.status)}
                     </td>

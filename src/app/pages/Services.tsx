@@ -14,7 +14,7 @@ export default function Services() {
   }));
 
   return (
-    <div className="min-h-screen bg-muted/50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">

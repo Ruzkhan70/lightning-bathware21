@@ -121,7 +121,7 @@ export default function AdminOffers() {
 
       {/* Offers Grid */}
       {filteredOffers.length === 0 ? (
-        <div className="text-center py-12 bg-muted/50 rounded-lg">
+        <div className="text-center py-12 bg-muted-50 rounded-lg">
           <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-4">
             {searchTerm ? "No offers found" : "No offers yet"}

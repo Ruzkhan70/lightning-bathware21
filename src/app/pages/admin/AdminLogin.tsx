@@ -244,7 +244,7 @@ export default function AdminLogin() {
           </form>
 
           {/* Security Notice */}
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
+          <div className="mt-6 p-4 bg-muted-50 rounded-lg border">
             <div className="flex items-start gap-3">
               <Shield className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
               <div>

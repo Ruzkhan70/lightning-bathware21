@@ -85,7 +85,7 @@ export default function SessionWarning({
                   <Button
                     onClick={handleLogout}
                     variant="outline"
-                    className="flex-1 border-border text-foreground hover:bg-muted/50 pointer-events-auto relative z-[202]"
+                    className="flex-1 border-border text-foreground hover:bg-muted-50 pointer-events-auto relative z-[202]"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout Now

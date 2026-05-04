@@ -335,7 +335,7 @@ export default function Invoice() {
             <div className="p-6 md:p-10 lg:p-12">
               {/* Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div className="bg-muted/50 p-5 rounded-xl border border-border min-w-0">
+                <div className="bg-muted-50 p-5 rounded-xl border border-border min-w-0">
                   <h4 className="font-bold text-sm uppercase tracking-wider text-[#D4AF37] mb-3 flex items-center gap-2">
                     <Package className="w-4 h-4 shrink-0" />
                     Order Information
@@ -367,7 +367,7 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
                   )}
                 </div>
 
-                <div className="bg-muted/50 p-5 rounded-xl border border-border min-w-0">
+                <div className="bg-muted-50 p-5 rounded-xl border border-border min-w-0">
                   <h4 className="font-bold text-sm uppercase tracking-wider text-[#D4AF37] mb-3 flex items-center gap-2">
                     <span className="text-[#D4AF37] shrink-0">@</span>
                     Customer Details
@@ -395,7 +395,7 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
                   </thead>
                   <tbody>
                     {invoice.products.map((product, index) => (
-                      <tr key={product.id || index} className={`border-b border-border ${index % 2 === 0 ? "bg-card" : "bg-muted/30"} hover:bg-muted/50 transition-colors`}>
+                      <tr key={product.id || index} className={`border-b border-border ${index % 2 === 0 ? "bg-card" : "bg-muted/30"} hover:bg-muted-50 transition-colors`}>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
                             {getProductImage(product) && (
@@ -430,7 +430,7 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
 
               {/* Totals Section */}
               <div className="flex justify-end mb-8">
-                <div className="bg-muted/50 rounded-xl p-5 w-full sm:min-w-[300px] sm:w-auto border border-border">
+                <div className="bg-muted-50 rounded-xl p-5 w-full sm:min-w-[300px] sm:w-auto border border-border">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
@@ -477,7 +477,7 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
             </div>
 
             {/* Action Buttons */}
-            <div className="bg-muted/50 px-8 py-4 flex flex-wrap gap-3 justify-center print:hidden border-t border-border">
+            <div className="bg-muted-50 px-8 py-4 flex flex-wrap gap-3 justify-center print:hidden border-t border-border">
               <Button
                 onClick={downloadPDF}
                 disabled={isDownloading}

@@ -516,7 +516,7 @@ export default function AdminProducts() {
       <div className="hidden md:block bg-card rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-muted/50 border-b">
+            <thead className="bg-muted-50 border-b">
               <tr>
                 <th className="py-4 px-4 w-12">
                   <button
@@ -543,7 +543,7 @@ export default function AdminProducts() {
               </thead>
               <tbody>
               {paginatedProducts.map((product) => (
-                <tr key={product.id} className={`border-b hover:bg-muted/50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
+                <tr key={product.id} className={`border-b hover:bg-muted-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
                   <td className="py-3 px-4">
                     <button
                       onClick={() => handleSelectProduct(product.id)}
@@ -902,7 +902,7 @@ export default function AdminProducts() {
 
               <div className="space-y-4">
                 {editVariants.map((variant, idx) => (
-                  <div key={idx} className="border rounded-lg p-3 bg-muted/50">
+                  <div key={idx} className="border rounded-lg p-3 bg-muted-50">
                     <div className="flex items-center gap-2 mb-2">
                       <Input
                         value={variant.color}
@@ -939,7 +939,7 @@ export default function AdminProducts() {
                           </button>
                         </div>
                       ))}
-                      <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-muted/50">
+                      <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-muted-50">
                         <span className="text-muted-foreground text-xs">+Add</span>
                         <input
                           type="file"
@@ -975,7 +975,7 @@ export default function AdminProducts() {
 
               <div className="space-y-4">
                 {editSizes.map((sizeItem, idx) => (
-                  <div key={idx} className="border rounded-lg p-3 bg-muted/50">
+                  <div key={idx} className="border rounded-lg p-3 bg-muted-50">
                     <div className="flex items-center gap-2 mb-2">
                       <Input
                         value={sizeItem.size}
@@ -1012,7 +1012,7 @@ export default function AdminProducts() {
                           </button>
                         </div>
                       ))}
-                      <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-muted/50">
+                      <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-muted-50">
                         <span className="text-muted-foreground text-xs">+Add</span>
                         <input
                           type="file"

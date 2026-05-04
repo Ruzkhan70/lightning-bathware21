@@ -226,7 +226,7 @@ export default function Header() {
                       key={product.id}
                       type="button"
                       onClick={() => handleSuggestionClick(product.name)}
-                      className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-muted-50 border-b border-border/50 last:border-0 transition-colors"
                     >
                       <div className="font-medium text-foreground">{product.name}</div>
                       <div className="text-sm text-muted-foreground">{product.category}</div>
@@ -234,7 +234,7 @@ export default function Header() {
                   ))}
                   <button
                     type="submit"
-                    className="w-full text-left px-4 py-3 bg-muted/50 hover:bg-muted text-[#D4AF37] font-medium transition-colors"
+                    className="w-full text-left px-4 py-3 bg-muted-50 hover:bg-muted text-[#D4AF37] font-medium transition-colors"
                   >
                     View all results for "{searchQuery}"
                   </button>
@@ -307,7 +307,7 @@ export default function Header() {
                     key={product.id}
                     type="button"
                     onClick={() => handleSuggestionClick(product.name)}
-                    className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-muted-50 border-b border-border/50 last:border-0 transition-colors"
                   >
                     <div className="font-medium text-foreground">{product.name}</div>
                     <div className="text-sm text-muted-foreground">{product.category}</div>
@@ -357,12 +357,12 @@ export default function Header() {
                           key={category.id}
                           to={`/products?category=${encodeURIComponent(category.name)}`}
                           onClick={() => setShowCategoriesDropdown(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-foreground hover:bg-muted/50"}`}
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-foreground hover:bg-muted-50"}`}
                         >
                           {category.image ? (
                             <img alt={category.name} className="w-10 h-10 rounded-lg object-cover" src={category.image} />
                           ) : (
-                            <span className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
+                            <span className="w-10 h-10 rounded-lg bg-muted-50 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
                           )}
                           <span className="font-medium">{category.name}</span>
                         </Link>

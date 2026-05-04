@@ -190,7 +190,7 @@ export default function AdminLoginAttempts() {
     switch (severity) {
       case "high": return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800";
       case "medium": return "text-orange-600 bg-orange-50 dark:bg-orange-900/20 border-orange-200";
-      default: return "text-muted-foreground bg-muted/50 border-border";
+      default: return "text-muted-foreground bg-muted-50 border-border";
     }
   };
 
@@ -343,7 +343,7 @@ export default function AdminLoginAttempts() {
       <div className="bg-card rounded-lg shadow-sm overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-muted/50 border-b">
+            <thead className="bg-muted-50 border-b">
               <tr>
                 <th className="text-left py-4 px-4 font-semibold">Status</th>
                 <th className="text-left py-4 px-4 font-semibold">Date & Time</th>
@@ -366,7 +366,7 @@ export default function AdminLoginAttempts() {
                 paginatedLogs.map((log) => {
                   const severity = log.status === "failed" ? getFailureSeverity(log.failureReason) : "low";
                   return (
-                    <tr key={log.id} className={`border-b hover:bg-muted/50 ${severity === "high" ? "bg-red-50/30 dark:bg-red-900/20" : ""}`}>
+                    <tr key={log.id} className={`border-b hover:bg-muted-50 ${severity === "high" ? "bg-red-50/30 dark:bg-red-900/20" : ""}`}>
                       <td className="py-3 px-4">
                         {log.status === "success" ? (
                           <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full text-xs font-medium">

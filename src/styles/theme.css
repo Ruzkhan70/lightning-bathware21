@@ -3,8 +3,10 @@
 :root {
   --font-size: 16px;
   --background: #f8f8fa;
+  --background-rgb: 248, 248, 250;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
+  --card-rgb: 255, 255, 255;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -13,8 +15,10 @@
   --secondary: oklch(0.95 0.0058 264.53);
   --secondary-foreground: #030213;
   --muted: #ececf0;
+  --muted-rgb: 236, 236, 240;
   --muted-foreground: #717182;
   --accent: #e9ebef;
+  --accent-rgb: 233, 235, 239;
   --accent-foreground: #030213;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
@@ -43,8 +47,10 @@
 
 .dark {
   --background: #0a0a0f;
+  --background-rgb: 10, 10, 15;
   --foreground: oklch(0.985 0 0);
   --card: #111118;
+  --card-rgb: 17, 17, 24;
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
@@ -53,8 +59,10 @@
   --secondary: oklch(0.205 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: #1a1a24;
+  --muted-rgb: 26, 26, 36;
   --muted-foreground: oklch(0.708 0 0);
   --accent: #1a1a24;
+  --accent-rgb: 26, 26, 36;
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
@@ -79,9 +87,9 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-background: rgba(var(--background-rgb), 1);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
+  --color-card: rgba(var(--card-rgb), 1);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -89,9 +97,9 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
+  --color-muted: rgba(var(--muted-rgb), 1);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: rgba(var(--accent-rgb), 1);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -107,7 +115,7 @@
   --color-chart-5: var(--chart-5);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --radius-lg: calc(var(--radius));
   --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -312,4 +320,18 @@
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background-color: #6b7280;
+}
+
+/* Page background utility - fixes dark mode background issues */
+.page-bg {
+  background-color: rgba(var(--background-rgb), 1);
+}
+
+/* Muted background with opacity support */
+.bg-muted-50 {
+  background-color: rgba(var(--muted-rgb), 0.5);
+}
+
+.dark .bg-muted-50 {
+  background-color: rgba(var(--muted-rgb), 0.5);
 }

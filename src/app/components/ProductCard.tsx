@@ -67,7 +67,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <>
       <div className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 sm:active:shadow-xl active:translate-y-0 transition-all duration-300">
         <div 
-          className="relative aspect-square overflow-hidden bg-muted/50 cursor-pointer"
+          className="relative aspect-square overflow-hidden bg-muted-50 cursor-pointer"
           onClick={handleOpenModal}
         >
           <LazyImage

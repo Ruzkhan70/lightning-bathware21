@@ -90,7 +90,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
 
       {/* Review Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-muted/50 rounded-xl p-6 mb-8">
+        <form onSubmit={handleSubmit} className="bg-muted-50 rounded-xl p-6 mb-8">
           <h3 className="font-bold mb-4">Write Your Review for {productName}</h3>
           
           <div className="mb-4">
@@ -153,7 +153,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
       {loading ? (
         <div className="text-center py-8 text-muted-foreground">Loading reviews...</div>
       ) : reviews.length === 0 ? (
-        <div className="text-center py-8 bg-muted/50 rounded-xl">
+        <div className="text-center py-8 bg-muted-50 rounded-xl">
           <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
         </div>
       ) : (

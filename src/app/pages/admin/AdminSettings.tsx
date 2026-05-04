@@ -254,7 +254,7 @@ export default function AdminSettings() {
   const activeNavItem = navItems.find(item => item.id === activeSection);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-muted/50">
+    <div className="flex h-[calc(100vh-4rem)] bg-muted-50">
       {/* Sidebar */}
       <div className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out
@@ -488,7 +488,7 @@ export default function AdminSettings() {
                     />
                     <p className="text-xs text-muted-foreground mt-1">3-20 characters, letters and numbers only</p>
                   </div>
-                  <div className="bg-muted/50 border border-border rounded-lg p-3">
+                  <div className="bg-muted-50 border border-border rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">
                       Fallback: Visit <code className="bg-muted px-1 rounded">/__admin__</code> to access admin login directly.
                     </p>
@@ -511,7 +511,7 @@ export default function AdminSettings() {
               </Card>
 
               <Card title="Online Payment" icon={<CreditCard className="w-5 h-5" />} description="Enable or disable online payment options">
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted-50 rounded-lg">
                   <div>
                     <p className="font-medium">Enable Online Payment</p>
                     <p className="text-sm text-muted-foreground">Allow customers to pay via Payhere</p>
@@ -532,7 +532,7 @@ export default function AdminSettings() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg mt-4">
+                <div className="flex items-center justify-between p-4 bg-muted-50 rounded-lg mt-4">
                   <div>
                     <p className="font-medium">Enable Product Compare</p>
                     <p className="text-sm text-muted-foreground">Allow customers to compare products side-by-side</p>
@@ -690,7 +690,7 @@ export default function AdminSettings() {
                     <h4 className="font-semibold text-foreground mb-3">Why Choose Us Features</h4>
                     <div className="space-y-4">
                       {contentForm.home.features.map((feature, index) => (
-                        <div key={index} className="border rounded-lg p-4 bg-muted/50">
+                        <div key={index} className="border rounded-lg p-4 bg-muted-50">
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-medium text-sm">Feature {index + 1}</span>
                             <button
@@ -1076,7 +1076,7 @@ export default function AdminSettings() {
                   <div>
                     <h4 className="font-semibold text-foreground mb-3">Find Us Section</h4>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-muted-50 rounded-lg">
                         <div>
                           <p className="font-medium">Show Store Location</p>
                           <p className="text-xs text-muted-foreground">Show/hide store location and parking info</p>
@@ -1122,7 +1122,7 @@ export default function AdminSettings() {
 
                   <div className="border-b pb-4">
                     <h4 className="font-semibold text-foreground mb-3">Connect With Us Section</h4>
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-muted-50 rounded-lg">
                       <div>
                         <p className="font-medium">Show Social Media</p>
                         <p className="text-xs text-muted-foreground">Show/hide social media links on Contact page</p>
@@ -1352,7 +1352,7 @@ export default function AdminSettings() {
 
               <Card title="FAQ Section" icon={<FileText className="w-5 h-5" />} description="Frequently asked questions">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-muted-50 rounded-lg">
                     <div>
                       <p className="font-medium">Show FAQ Section</p>
                       <p className="text-xs text-muted-foreground">Show/hide FAQ section on Contact page</p>
@@ -1374,7 +1374,7 @@ export default function AdminSettings() {
                     <Input value={contentForm.faq.title} onChange={(e) => setContentForm({...contentForm, faq: {...contentForm.faq, title: e.target.value}})} />
                   </div>
                   {contentForm.faq.items.map((item, idx) => (
-                    <div key={idx} className="bg-muted/50 p-4 rounded-lg space-y-3">
+                    <div key={idx} className="bg-muted-50 p-4 rounded-lg space-y-3">
                       <Label>Question {idx + 1}</Label>
                       <Input 
                         value={item.question} 
@@ -1448,7 +1448,7 @@ export default function AdminSettings() {
                     </Button>
                   </div>
                   {contentForm.terms.sections?.map((section: any, idx: number) => (
-                    <div key={section.id} className="bg-muted/50 p-4 rounded-lg space-y-3">
+                    <div key={section.id} className="bg-muted-50 p-4 rounded-lg space-y-3">
                       <div className="flex justify-between items-center">
                         <Label>Section {idx + 1}</Label>
                         <button
@@ -1731,7 +1731,7 @@ export default function AdminSettings() {
                 <div className="border-t my-4" />
                 
                 {(!deviceSessions || deviceSessions.length === 0) ? (
-                  <div className="text-center py-12 bg-muted/50 rounded-xl">
+                  <div className="text-center py-12 bg-muted-50 rounded-xl">
                     <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                       <Monitor className="w-8 h-8 text-muted-foreground" />
                     </div>

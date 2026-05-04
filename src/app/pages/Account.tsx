@@ -286,7 +286,7 @@ export default function Account() {
   if (isLoggedIn && user) {
     if (!isDataLoaded) {
       return (
-        <div className="bg-muted/50 min-h-screen flex items-center justify-center">
+        <div className="bg-muted-50 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#D4AF37]" />
             <p className="mt-2 text-muted-foreground">Loading your account...</p>
@@ -391,28 +391,28 @@ export default function Account() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted-50 rounded-lg">
                     <User className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-muted-foreground">Name</p>
                       <p className="font-medium text-sm sm:text-base text-foreground">{user.name || "Not set"}</p>
                     </div>
                   </div>
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted-50 rounded-lg">
                     <Mail className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-muted-foreground">Email</p>
                       <p className="font-medium text-sm sm:text-base text-foreground break-all">{user.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted-50 rounded-lg">
                     <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-muted-foreground">Phone</p>
                       <p className="font-medium text-sm sm:text-base text-foreground">{user.phone || "Not set"}</p>
                     </div>
                   </div>
-                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg sm:col-span-2">
+                  <div className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted-50 rounded-lg sm:col-span-2">
                     <MapPin className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-muted-foreground">Address</p>
@@ -551,7 +551,7 @@ selectedOrder.status === "Delivered"
                   </Button>
                 </div>
 
-                <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                <div className="bg-muted-50 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Truck className="w-5 h-5 text-[#D4AF37]" />
                     <h3 className="font-semibold">Delivery Information</h3>
@@ -578,7 +578,7 @@ selectedOrder.status === "Delivered"
                     {(selectedOrder.products || []).map((product: { id?: string; image?: string; name?: string; price?: number; quantity?: number; selected_color?: string; selected_size?: string }, index: number) => (
                       <div
                         key={product.id || index}
-                        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted-50 transition-colors"
                       >
                         <img
                           src={product.image || "/placeholder.png"}
@@ -890,7 +890,7 @@ selectedOrder.status === "Delivered"
                   <p className="text-muted-foreground mb-6 text-sm sm:text-base break-all">
                     We've sent a password reset link to <strong className="text-foreground">{forgotEmail}</strong>
                   </p>
-                  <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                  <div className="bg-muted-50 rounded-lg p-4 mb-4">
                     <p className="text-sm text-muted-foreground">
                       Click the link in the email to reset your password. The link will expire in 1 hour.
                     </p>
