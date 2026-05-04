@@ -575,7 +575,7 @@ export default function Header() {
             <ul className="space-y-1">
               <li>
                 <button
-                  onClick={() => { toggleTheme(); }}
+                  onClick={() => { toggleTheme(); closeMobileMenu(); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
                 >
                   {theme === "dark" ? (
