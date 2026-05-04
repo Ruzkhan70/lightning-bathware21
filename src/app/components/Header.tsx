@@ -52,17 +52,32 @@ export default function Header() {
 
   useEffect(() => {
     const handleDocumentTouchStart = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button[aria-label="Toggle menu"]') || target.closest('button[aria-label="Close menu"]')) {
+        return;
+      }
+      
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
       touchStartTime.current = Date.now();
     };
 
     const handleDocumentTouchMove = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button[aria-label="Toggle menu"]') || target.closest('button[aria-label="Close menu"]')) {
+        return;
+      }
+      
       touchEndX.current = e.touches[0].clientX;
       touchEndY.current = e.touches[0].clientY;
     };
 
-    const handleDocumentTouchEnd = () => {
+    const handleDocumentTouchEnd = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button[aria-label="Toggle menu"]') || target.closest('button[aria-label="Close menu"]')) {
+        return;
+      }
+      
       const swipeThreshold = 60;
       const timeThreshold = 500;
       const diffX = touchEndX.current - touchStartX.current;
@@ -110,7 +125,14 @@ export default function Header() {
     touchEndY.current = e.touches[0].clientY;
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e?: React.TouchEvent) => {
+    if (e) {
+      const target = e.target as HTMLElement;
+      if (target.closest('button') || target.tagName === 'BUTTON') {
+        return;
+      }
+    }
+    
     const swipeThreshold = 60;
     const timeThreshold = 500;
     const diffX = touchEndX.current - touchStartX.current;
@@ -258,7 +280,7 @@ export default function Header() {
 
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-              className="md:hidden p-2 -mr-2 transition-colors active:text-[#D4AF37] rounded-lg"
+              className="md:hidden p-2 -mr-2 transition-colors active:text-[#D4AF37] rounded-lg cursor-pointer"
               style={{ color: '#929292' }}
               aria-label="Toggle menu"
             >
