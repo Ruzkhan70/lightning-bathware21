@@ -453,7 +453,7 @@ export default function Home() {
               {activeOffers.slice(0, 3).map((offer) => (
                 <div
                   key={offer.id}
-                  className="bg-white rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group"
+                  className="bg-card rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group"
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img

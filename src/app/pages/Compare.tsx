@@ -56,7 +56,7 @@ export default function ComparePage() {
     }},
     { label: "Category", render: (product: any) => product.category },
     { label: "Availability", render: (product: any) => (
-      <span className={`px-2 py-1 rounded-full text-sm ${product.isAvailable ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+      <span className={`px-2 py-1 rounded-full text-sm ${product.isAvailable ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>
         {product.isAvailable ? "In Stock" : "Out of Stock"}
       </span>
     )},
@@ -92,7 +92,7 @@ export default function ComparePage() {
                     <div className="relative">
                       <button
                         onClick={() => removeFromCompare(product.id)}
-                        className="absolute -top-2 -right-2 p-1 bg-muted rounded-full hover:bg-red-100 hover:text-red-600"
+                        className="absolute -top-2 -right-2 p-1 bg-muted rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -163,7 +163,7 @@ export default function ComparePage() {
                 <div className="relative p-4 bg-muted/50">
                   <button
                     onClick={() => removeFromCompare(product.id)}
-                    className="absolute top-3 right-3 p-1.5 bg-card rounded-full shadow hover:bg-red-100 hover:text-red-600"
+                    className="absolute top-3 right-3 p-1.5 bg-card rounded-full shadow hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -192,7 +192,7 @@ export default function ComparePage() {
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Availability</span>
-                    <span className={`px-2 py-1 rounded-full text-xs ${product.isAvailable ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${product.isAvailable ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>
                       {product.isAvailable ? "In Stock" : "Out of Stock"}
                     </span>
                   </div>
