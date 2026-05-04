@@ -103,7 +103,7 @@ export default function Services() {
                 </button>
               </a>
               <a href={`mailto:${storeProfile.email}`}>
-                <button className="px-8 py-3 bg-card hover:bg-muted text-black font-bold rounded-lg transition-colors hover:scale-105">
+                <button className="px-8 py-3 bg-card hover:bg-muted text-foreground font-bold rounded-lg transition-colors hover:scale-105">
                   {siteContent.services.emailButtonText}
                 </button>
               </a>
