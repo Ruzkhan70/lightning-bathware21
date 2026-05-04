@@ -843,7 +843,7 @@ selectedOrder.status === "Delivered"
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground">Forgot Password</h2>
                   </div>
                   <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-                    Enter your email address to receive a verification code.
+                    Enter your email address to receive a password reset link.
                   </p>
                   <div className="space-y-4">
                     <div>
@@ -865,10 +865,10 @@ selectedOrder.status === "Delivered"
                       {isSendingCode ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Sending Code...
+                          Sending...
                         </>
                       ) : (
-                        "Send Verification Code"
+                        "Send Reset Link"
                       )}
                     </Button>
                   </div>
