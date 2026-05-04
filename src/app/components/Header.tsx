@@ -258,7 +258,8 @@ export default function Header() {
 
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-              className="md:hidden p-2 -mr-2 hover:text-[#D4AF37] transition-colors active:bg-white/10 rounded-lg"
+              className="md:hidden p-2 -mr-2 transition-colors active:text-[#D4AF37] rounded-lg"
+              style={{ color: '#929292' }}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -296,7 +297,7 @@ export default function Header() {
         </div>
       </div>
 
-      <nav className="border-t border-gray-800 hidden md:block">
+      <nav className="hidden md:block" style={{ borderColor: '#929292' }}>
         <div className="container mx-auto px-4">
           <ul className="flex items-center justify-center gap-8 py-3">
             <li>
@@ -402,14 +403,14 @@ export default function Header() {
             : "translate-x-full"
         } transition-transform duration-300 ease-out shadow-[-4px_0_20px_rgba(0,0,0,0.4)]`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+        <div className="flex items-center justify-between p-4" style={{ borderColor: '#929292' }}>
           <div className="text-lg font-bold">
             <span className="text-white">{storeProfile.storeName}</span>
             <span className="text-[#D4AF37]"> {storeProfile.storeNameAccent}</span>
           </div>
           <button
             onClick={closeMobileMenu}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+            className="p-2 rounded-lg transition-colors active:text-[#D4AF37]"
             aria-label="Close menu"
           >
             <X className="w-6 h-6" />
@@ -422,7 +423,7 @@ export default function Header() {
               <Link
                 to="/"
                 onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
               >
                 <Home className="w-5 h-5 text-[#D4AF37]" />
                 <span className="font-medium">Home</span>
@@ -432,7 +433,7 @@ export default function Header() {
               <Link
                 to="/products"
                 onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
               >
                 <Package className="w-5 h-5 text-[#D4AF37]" />
                 <span className="font-medium">Products</span>
@@ -467,7 +468,7 @@ export default function Header() {
                                 setExpandedCategories([...expandedCategories, category.id]);
                               }
                             }}
-                            className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm"
+                            className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm active:text-[#D4AF37]"
                           >
                             <span className="text-muted-foreground">{category.name}</span>
                             <ChevronRight className={`w-3 h-3 ml-auto transition-transform duration-200 ${expandedCategories.includes(category.id) ? 'rotate-90' : ''}`} />
@@ -479,7 +480,7 @@ export default function Header() {
                                   key={subcat}
                                   to={`/products?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(subcat)}`}
                                   onClick={closeMobileMenu}
-                                   className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors text-sm text-muted-foreground"
+                                   className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm text-muted-foreground active:text-[#D4AF37]"
                                 >
                                   <span className="w-1 h-1 rounded-full bg-[#D4AF37]"></span>
                                   {subcat}
@@ -495,7 +496,7 @@ export default function Header() {
                             <Link
                               to={`/products?category=${encodeURIComponent(category.name)}`}
                               onClick={closeMobileMenu}
-                              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${isCategoryActive ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "hover:bg-gray-800 active:bg-gray-700"}`}
+                              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${isCategoryActive ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "active:text-[#D4AF37]"}`}
                             >
                               <Lightbulb className={`w-4 h-4 ${isCategoryActive ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
                               {category.name}
@@ -508,7 +509,8 @@ export default function Header() {
                   <Link
                     to="/categories"
                     onClick={closeMobileMenu}
-                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm border-t border-border mt-2 pt-2 ${isActive("/categories") ? "text-[#D4AF37] bg-muted" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm mt-2 pt-2 ${isActive("/categories") ? "text-[#D4AF37] bg-muted" : "text-muted-foreground active:text-[#D4AF37]"}`}
+                          style={{ borderColor: '#929292' }}
                   >
                     View All Categories →
                   </Link>
@@ -519,7 +521,7 @@ export default function Header() {
               <Link
                 to="/offers"
                 onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
               >
                 <Tag className="w-5 h-5 text-[#D4AF37]" />
                 <span className="font-medium">Offers</span>
@@ -529,7 +531,7 @@ export default function Header() {
               <Link
                 to="/about"
                 onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
               >
                 <Info className="w-5 h-5 text-[#D4AF37]" />
                 <span className="font-medium">About</span>
@@ -539,7 +541,7 @@ export default function Header() {
               <Link
                 to="/contact"
                 onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
               >
                 <Phone className="w-5 h-5 text-[#D4AF37]" />
                 <span className="font-medium">Contact</span>
@@ -547,14 +549,26 @@ export default function Header() {
             </li>
           </ul>
 
-          <div className="border-t border-gray-800 mt-4 pt-4 px-3">
-             <p className="px-4 py-2 text-xs text-muted-foreground uppercase tracking-wider">Account</p>
+          <div className="mt-4 pt-4 px-3" style={{ borderColor: '#929292' }}>
             <ul className="space-y-1">
+              <li>
+                <button
+                  onClick={() => { toggleTheme(); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-5 h-5 text-amber-400" />
+                  ) : (
+                    <Moon className="w-5 h-5" style={{ color: '#929292' }} />
+                  )}
+                  <span className="font-medium">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                </button>
+              </li>
               <li>
                 <Link
                   to="/account"
                   onClick={closeMobileMenu}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
                 >
                   <User className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-medium">My Account</span>
@@ -564,7 +578,7 @@ export default function Header() {
                 <Link
                   to="/wishlist"
                   onClick={closeMobileMenu}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
                 >
                   <Heart className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-medium">Wishlist</span>
@@ -579,7 +593,7 @@ export default function Header() {
                 <Link
                   to="/cart"
                   onClick={closeMobileMenu}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
                 >
                   <ShoppingCart className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-medium">Cart</span>
@@ -594,7 +608,7 @@ export default function Header() {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 text-center" style={{ borderColor: '#929292' }}>
           <p className="text-xs text-muted-foreground text-center">Swipe right to close</p>
         </div>
       </div>

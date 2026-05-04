@@ -26,7 +26,7 @@ function getStoredTheme(): Theme {
   } catch {
     // localStorage unavailable
   }
-  return getSystemTheme();
+  return "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
