@@ -41,11 +41,21 @@ service cloud.firestore {
       allow update, delete: if isAuth();
     }
     
-    // Orders - public create (checkout), authenticated read/update
+    // Orders - public create (checkout), authenticated read/update for admin
     match /orders/{orderId} {
       allow read: if isAuth();
       allow create: if true;
       allow update, delete: if isAuth();
+    }
+    
+    // Activity Logs - authenticated only (admin)
+    match /activityLogs/{logId} {
+      allow read, write: if isAuth();
+    }
+    
+    // Admin Device Sessions - authenticated only (admin)
+    match /adminDeviceSessions/{sessionId} {
+      allow read, write: if isAuth();
     }
     
     // Invoices - authenticated only

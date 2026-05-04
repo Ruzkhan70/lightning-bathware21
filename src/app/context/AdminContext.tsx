@@ -1143,9 +1143,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
   }, [checkAdminExists]);
 
-// Firebase listener for device sessions
+  // Firebase listener for device sessions
   useEffect(() => {
-    if (!adminEmail) {
+    if (!adminEmail || !isAdminLoggedIn) {
       setDeviceSessions([]);
       setCurrentDeviceId(null);
       return;
@@ -1768,11 +1768,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Firebase real-time sync for reviews
   useEffect(() => {
-    if (!isAdminLoggedIn) {
-      setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
-      return;
-    }
-    
     try {
       const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -1791,7 +1786,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       console.error("Firebase reviews sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
     }
-  }, [isAdminLoggedIn]);
+  }, []);
 
   // Firebase real-time sync for activity logs (admin only)
   useEffect(() => {
