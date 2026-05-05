@@ -14,7 +14,7 @@ function getConfig(): EmailConfig | null {
   return { publicKey, serviceId };
 }
 
-export async function sendSecurityCodeEmail(code: string, reason: string = "Weekly rotation"): Promise<boolean> {
+export async function sendSecurityCodeEmail(code: string, reason: string = "Daily auto-renewal"): Promise<boolean> {
   const config = getConfig();
   if (!config) {
     console.warn("EmailJS not configured, cannot send security code email");

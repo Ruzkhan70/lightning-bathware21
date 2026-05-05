@@ -17,6 +17,7 @@ import { isIpBlocked, recordFailedAttempt } from "../../lib/ipSecurity";
 import { 
   loadSecurityCode, saveSecurityCode, verifySecurityCode, generateSecurityCode,
   checkCodeExpired, getSecurityCodeExpiryInfo, generateOTP, verifyAndConsumeOTP,
+  checkAndAutoRenew, verifyDailyCode, isVerifySessionValid, clearVerifySession, resendDailyCode,
 } from "../../lib/securityCode";
 import { sendSecurityCodeEmail, sendOTPCodeEmail } from "../../lib/securityEmails";
 
@@ -477,6 +478,7 @@ interface AdminContextType {
   securityCodeVerified: boolean;
   securityCodeExpiryInfo: SecurityCodeExpiryInfo | null;
   verifySecurityCodeAction: (code: string) => Promise<boolean>;
+  resendDailyCodeAction: () => Promise<{ success: boolean; error?: string }>;
   requestForgotCodeOTP: () => Promise<{ success: boolean; error?: string }>;
   submitForgotCode: (otp: string, newCode: string) => Promise<{ success: boolean; error?: string }>;
   rotateSecurityCode: () => Promise<void>;
@@ -1098,6 +1100,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           setAdminUid(session.uid);
           setAdminEmail(session.email);
           setIsAdminLoggedIn(true);
+          checkAndAutoRenew();
         } else {
           // Session expired, clear it
           localStorage.removeItem(ADMIN_SESSION_KEY);
@@ -2459,6 +2462,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         // Wait for auth state to propagate to Firestore
         await new Promise(resolve => setTimeout(resolve, 500));
         
+        await checkAndAutoRenew();
         await logAdminLogin(cleanEmail, "success");
         return { success: true };
       }
@@ -2782,15 +2786,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const verifySecurityCodeAction = async (code: string): Promise<boolean> => {
     try {
-      const state = await loadSecurityCode();
-      if (!state) {
-        toast.error("No security code set. Contact support.");
-        return false;
+      if (isVerifySessionValid()) {
+        setSecurityCodeVerified(true);
+        return true;
       }
 
-      const isValid = await verifySecurityCode(code, state.hashedCode, state.salt);
-      if (!isValid) {
-        toast.error("Incorrect security code");
+      const result = await verifyDailyCode(code);
+      if (!result.valid) {
+        toast.error(result.error || "Invalid code");
         return false;
       }
 
@@ -2801,7 +2804,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setSecurityCodeVerified(false);
       }, 10 * 60 * 1000);
 
-      toast.success("Security code verified");
+      toast.success("Daily code verified");
       return true;
     } catch {
       toast.error("Verification failed");
@@ -2809,8 +2812,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resendDailyCodeAction = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await resendDailyCode();
+      if (result.success) {
+        toast.success("New code sent to your email");
+        return { success: true };
+      }
+      return { success: false, error: "Failed to send code" };
+    } catch (error: any) {
+      return { success: false, error: error?.message || "Failed to resend code" };
+    }
+  };
+
   const clearSecurityVerification = useCallback(() => {
     setSecurityCodeVerified(false);
+    clearVerifySession();
     if (verificationTimerRef.current) clearTimeout(verificationTimerRef.current);
   }, []);
 
@@ -3867,6 +3884,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         securityCodeVerified,
         securityCodeExpiryInfo,
         verifySecurityCodeAction,
+        resendDailyCodeAction,
         requestForgotCodeOTP,
         submitForgotCode,
         rotateSecurityCode,

@@ -3,8 +3,15 @@ import { doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverT
 
 const SECURITY_CODE_DOC = doc(db, "system", "securityCode");
 const OTP_COLLECTION = collection(db, "codeRotationOtp");
-const CODE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
+const CODE_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const OTP_EXPIRY_MS = 15 * 60 * 1000;
+const MAX_VERIFY_ATTEMPTS = 5;
+const VERIFY_LOCKOUT_MS = 30 * 60 * 1000;
+const VERIFY_SESSION_MS = 10 * 60 * 1000;
+
+const VERIFY_ATTEMPTS_KEY = "daily_code_verify_attempts";
+const VERIFY_LOCKOUT_KEY = "daily_code_verify_lockout";
+const VERIFY_SESSION_KEY = "daily_code_verified_until";
 
 export interface SecurityCodeState {
   hashedCode: string;
@@ -12,6 +19,7 @@ export interface SecurityCodeState {
   createdAt: string;
   expiresAt: string;
   lastRotated: string;
+  lastSentAt: string;
 }
 
 export async function hashSecurityCode(code: string): Promise<{ hash: string; salt: string }> {
@@ -49,6 +57,7 @@ export async function loadSecurityCode(): Promise<SecurityCodeState | null> {
       createdAt: data.createdAt,
       expiresAt: data.expiresAt,
       lastRotated: data.lastRotated,
+      lastSentAt: data.lastSentAt || data.lastRotated,
     };
   } catch {
     return null;
@@ -66,6 +75,7 @@ export async function saveSecurityCode(code: string): Promise<void> {
     createdAt: now,
     expiresAt,
     lastRotated: now,
+    lastSentAt: now,
     updatedAt: serverTimestamp(),
   });
 }
@@ -87,7 +97,7 @@ export async function getSecurityCodeExpiryInfo(): Promise<{ isExpired: boolean;
 
   return {
     isExpired: now > expiry,
-    isExpiringSoon: remainingHours < 24 && remainingHours > 0,
+    isExpiringSoon: remainingHours < 6 && remainingHours > 0,
     expiresAt: state.expiresAt,
     remainingHours: Math.round(remainingHours * 10) / 10,
   };
@@ -131,4 +141,142 @@ export async function verifyAndConsumeOTP(otp: string): Promise<boolean> {
 
 export async function initializeSecurityCode(code: string): Promise<void> {
   await saveSecurityCode(code);
+}
+
+// ── Daily Auto-Renew Verification Code ──────────────────────────────
+
+export async function checkAndAutoRenew(): Promise<{ renewed: boolean; code?: string }> {
+  const state = await loadSecurityCode();
+
+  if (state) {
+    const now = Date.now();
+    const expiry = new Date(state.expiresAt).getTime();
+    if (now < expiry) {
+      return { renewed: false };
+    }
+  }
+
+  const newCode = generateSecurityCode();
+
+  try {
+    const { sendSecurityCodeEmail } = await import("./securityEmails");
+    await sendSecurityCodeEmail(newCode, "Daily auto-renewal");
+  } catch (error) {
+    console.error("[DailyCode] Failed to send email:", error);
+  }
+
+  await saveSecurityCode(newCode);
+  resetVerifyAttempts();
+
+  return { renewed: true, code: newCode };
+}
+
+export async function resendDailyCode(): Promise<{ success: boolean }> {
+  const newCode = generateSecurityCode();
+
+  try {
+    const { sendSecurityCodeEmail } = await import("./securityEmails");
+    const sent = await sendSecurityCodeEmail(newCode, "Manual resend");
+    if (!sent) return { success: false };
+  } catch (error) {
+    console.error("[DailyCode] Failed to send email:", error);
+    return { success: false };
+  }
+
+  await saveSecurityCode(newCode);
+  resetVerifyAttempts();
+  return { success: true };
+}
+
+export async function verifyDailyCode(input: string): Promise<{ valid: boolean; error?: string }> {
+  if (isVerifyLocked()) {
+    return { valid: false, error: "Too many attempts. Please try again in 30 minutes." };
+  }
+
+  const state = await loadSecurityCode();
+  if (!state) {
+    return { valid: false, error: "No verification code found. Please wait for the daily email." };
+  }
+
+  if (Date.now() > new Date(state.expiresAt).getTime()) {
+    return { valid: false, error: "Code expired. Please check your email for the new code." };
+  }
+
+  const isValid = await verifySecurityCode(input, state.hashedCode, state.salt);
+
+  if (!isValid) {
+    recordVerifyAttempt();
+    const attempts = getVerifyAttempts();
+    const remaining = MAX_VERIFY_ATTEMPTS - attempts;
+
+    if (remaining <= 0) {
+      lockVerifyAttempts();
+      return { valid: false, error: "Too many attempts. Locked for 30 minutes." };
+    }
+
+    return { valid: false, error: `Invalid code. ${remaining} attempt(s) remaining.` };
+  }
+
+  setVerifySession();
+  return { valid: true };
+}
+
+export function isVerifySessionValid(): boolean {
+  try {
+    const until = localStorage.getItem(VERIFY_SESSION_KEY);
+    if (!until) return false;
+    return Date.now() < parseInt(until, 10);
+  } catch {
+    return false;
+  }
+}
+
+function setVerifySession(): void {
+  const until = Date.now() + VERIFY_SESSION_MS;
+  localStorage.setItem(VERIFY_SESSION_KEY, until.toString());
+}
+
+export function clearVerifySession(): void {
+  localStorage.removeItem(VERIFY_SESSION_KEY);
+}
+
+function getVerifyAttempts(): number {
+  try {
+    const data = localStorage.getItem(VERIFY_ATTEMPTS_KEY);
+    if (!data) return 0;
+    const parsed = JSON.parse(data);
+    return parsed.count || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function recordVerifyAttempt(): void {
+  const count = getVerifyAttempts() + 1;
+  localStorage.setItem(VERIFY_ATTEMPTS_KEY, JSON.stringify({ count, timestamp: Date.now() }));
+}
+
+function resetVerifyAttempts(): void {
+  localStorage.removeItem(VERIFY_ATTEMPTS_KEY);
+  localStorage.removeItem(VERIFY_LOCKOUT_KEY);
+}
+
+function isVerifyLocked(): boolean {
+  try {
+    const data = localStorage.getItem(VERIFY_LOCKOUT_KEY);
+    if (!data) return false;
+    const parsed = JSON.parse(data);
+    if (Date.now() > parsed.lockedUntil) {
+      resetVerifyAttempts();
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function lockVerifyAttempts(): void {
+  const lockedUntil = Date.now() + VERIFY_LOCKOUT_MS;
+  localStorage.setItem(VERIFY_LOCKOUT_KEY, JSON.stringify({ lockedUntil }));
 }
