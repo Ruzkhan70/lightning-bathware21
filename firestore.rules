@@ -115,5 +115,18 @@ service cloud.firestore {
     match /codeRotationOtp/{otpId} {
       allow read, write: if isAuth();
     }
+
+    // Login Attempts - anyone can create (for logging), authenticated read for admin
+    match /loginAttempts/{attemptId} {
+      allow read: if isAuth();
+      allow create: if true;
+      allow update, delete: if isAuth();
+    }
+
+    // Blocked IPs - anyone can read (for login check), authenticated write
+    match /blockedIps/{blockId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
   }
 }

@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { logAdminLogin, logAdminLogout } from "../../lib/adminLoginLog";
 import { logOrderAction, logProductAction, logCategoryAction, logOfferAction, logAdminAction, logPasswordChange } from "../../lib/adminActionLog";
+import { isIpBlocked, recordFailedAttempt } from "../../lib/ipSecurity";
 import { 
   loadSecurityCode, saveSecurityCode, verifySecurityCode, generateSecurityCode,
   checkCodeExpired, getSecurityCodeExpiryInfo, generateOTP, verifyAndConsumeOTP,
@@ -2358,18 +2359,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      return { success: false, error: "Please enter email and password" };
+    }
+
+    const ipBlockCheck = await isIpBlocked(await import("../../lib/deviceInfo").then(m => m.getIPAddress()));
+    if (ipBlockCheck.blocked) {
+      const remainingMinutes = Math.ceil((ipBlockCheck.blockedUntil!.getTime() - Date.now()) / 60000);
+      return { success: false, error: `Too many attempts. Try again in ${remainingMinutes} minute(s).` };
+    }
+
+    if (lockedEmails[cleanEmail] && new Date() < lockedEmails[cleanEmail]) {
+      const remainingMinutes = Math.ceil((lockedEmails[cleanEmail].getTime() - Date.now()) / 60000);
+      return { success: false, error: `Too many failed attempts. Try again in ${remainingMinutes} minute(s).` };
+    }
+
     try {
-      const cleanEmail = email.trim().toLowerCase();
-
-      if (!cleanEmail || !password) {
-        return { success: false, error: "Please enter email and password" };
-      }
-
-      if (lockedEmails[cleanEmail] && new Date() < lockedEmails[cleanEmail]) {
-        const remainingMinutes = Math.ceil((lockedEmails[cleanEmail].getTime() - Date.now()) / 60000);
-        return { success: false, error: `Too many failed attempts. Try again in ${remainingMinutes} minute(s).` };
-      }
-
       const result = await signInWithEmailAndPassword(auth, cleanEmail, password);
       
       if (result.user) {
@@ -2379,6 +2386,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           await signOut(auth);
           toast.error("Access denied. You are not authorized as admin.");
           await logAdminLogin(cleanEmail, "failed", "Not authorized as admin");
+          await recordFailedAttempt(cleanEmail, "Not authorized as admin");
           
           const attempts = (failedAttempts[cleanEmail] || 0) + 1;
           setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
@@ -2467,14 +2475,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (error instanceof FirebaseError) {
         if (error.code === "auth/user-not-found") {
           errorMessage = "No admin account found with this email";
+          await recordFailedAttempt(cleanEmail, "User not found");
         } else if (error.code === "auth/wrong-password") {
           errorMessage = "Incorrect password";
+          await recordFailedAttempt(cleanEmail, "Invalid password");
         } else if (error.code === "auth/invalid-email") {
           errorMessage = "Invalid email address";
+          await recordFailedAttempt(cleanEmail, "Invalid email");
         } else if (error.code === "auth/too-many-requests") {
           errorMessage = "Too many failed attempts. Please try again later.";
+          await recordFailedAttempt(cleanEmail, "Too many requests");
         } else if (error.code === "auth/invalid-credential") {
           errorMessage = "Invalid email or password";
+          await recordFailedAttempt(cleanEmail, "Invalid credential");
         } else if (error.code === "auth/network-request-failed") {
           errorMessage = "Network error. Please check your connection.";
         }
