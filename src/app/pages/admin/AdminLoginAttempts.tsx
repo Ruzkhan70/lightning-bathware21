@@ -235,10 +235,9 @@ export default function AdminLoginAttempts() {
   const stats = useMemo(() => {
     const total = logs.length;
     const failed = logs.filter(l => l.status === "failed").length;
-    const success = logs.filter(l => l.status === "success").length;
     const currentlyBlocked = blockedIps.filter(b => b.blockedUntil.toDate() > new Date()).length;
     const suspicious = suspiciousIps.size;
-    return { total, failed, success, currentlyBlocked, suspicious };
+    return { total, failed, currentlyBlocked, suspicious };
   }, [logs, blockedIps, suspiciousIps]);
 
   const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
@@ -371,7 +370,7 @@ export default function AdminLoginAttempts() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -380,18 +379,6 @@ export default function AdminLoginAttempts() {
             <div>
               <p className="text-sm text-muted-foreground">Total Attempts</p>
               <p className="text-2xl font-bold">{stats.total}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Successful</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.success}</p>
             </div>
           </div>
         </div>
@@ -461,7 +448,6 @@ export default function AdminLoginAttempts() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="failed">Failed Only</SelectItem>
-              <SelectItem value="success">Successful</SelectItem>
               <SelectItem value="all">All Status</SelectItem>
             </SelectContent>
           </Select>
