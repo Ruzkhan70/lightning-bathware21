@@ -67,7 +67,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <>
       <div className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 sm:active:shadow-xl active:translate-y-0 transition-all duration-300">
         <div 
-          className="relative aspect-square overflow-hidden bg-muted-50 cursor-pointer"
+          className="relative aspect-square overflow-hidden bg-muted/50 cursor-pointer"
           onClick={handleOpenModal}
         >
           <LazyImage
@@ -139,6 +139,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           <h3 className="font-semibold text-foreground mb-2 line-clamp-2 h-12">
             {product.name}
           </h3>
+
+          {product.product_code && (
+            <div className="text-xs text-muted-foreground font-mono mb-2">
+              SKU: {product.product_code}
+            </div>
+          )}
 
           <div className="flex items-baseline gap-2 mb-3">
             {discount.hasDiscount ? (

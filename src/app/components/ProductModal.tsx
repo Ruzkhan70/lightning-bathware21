@@ -82,6 +82,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         quantity: quantity,
         isAvailable: product.isAvailable,
         selected_color: selectedColor,
+        product_code: product.product_code,
       });
       toast.success(`${quantity} x ${product.name} (${selectedColor}) added to cart!`);
     } else if (hasSizes) {
@@ -94,8 +95,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         quantity: quantity,
         isAvailable: product.isAvailable,
         selected_size: selectedSize,
+        product_code: product.product_code,
       });
-      toast.success(`${quantity} x ${product.name} (${selectedSize}) added to cart!`);
     } else {
       addToCart({
         id: product.id,
@@ -105,6 +106,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         image: product.image,
         quantity: quantity,
         isAvailable: product.isAvailable,
+        product_code: product.product_code,
       });
       toast.success(`${quantity} x ${product.name} added to cart!`);
     }
@@ -158,7 +160,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             {/* Image */}
             <div className="relative">
               <div 
-                className="aspect-square rounded-lg overflow-hidden bg-muted-50 relative cursor-crosshair"
+                className="aspect-square rounded-lg overflow-hidden bg-muted/50 relative cursor-crosshair"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 onMouseMove={handleMouseMove}
@@ -292,7 +294,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
 
               {/* Availability Status */}
-              <div className="mb-6 p-4 bg-muted-50 rounded-lg">
+              <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-semibold">Availability:</span>
@@ -307,7 +309,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
 
               {/* Delivery Options */}
-              <div className="mb-6 p-4 bg-muted-50 rounded-lg">
+              <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <Truck className="w-5 h-5 text-[#D4AF37]" />
                   <span className="font-semibold">Delivery Options:</span>

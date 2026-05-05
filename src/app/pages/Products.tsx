@@ -62,7 +62,8 @@ export default function Products() {
         (p) =>
           p.name.toLowerCase().includes(lowerQuery) ||
           p.description.toLowerCase().includes(lowerQuery) ||
-          p.category.toLowerCase().includes(lowerQuery)
+          p.category.toLowerCase().includes(lowerQuery) ||
+          (p.product_code && p.product_code.toLowerCase().includes(lowerQuery))
       );
     }
 

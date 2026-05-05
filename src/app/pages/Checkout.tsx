@@ -495,6 +495,11 @@ paymentMethod === "online"
                         <p className="font-semibold text-sm line-clamp-2">
                           {item.name}
                         </p>
+                        {item.product_code && (
+                          <p className="text-xs text-muted-foreground font-mono">
+                            SKU: {item.product_code}
+                          </p>
+                        )}
                         {(item.selected_color || item.selected_size) && (
                           <p className="text-xs text-[#D4AF37] font-medium">
                             {item.selected_color && `Color: ${item.selected_color}`}
