@@ -27,23 +27,20 @@ export function useAdminTimeout(
   });
   
   const lastActivityRef = useRef<number>(Date.now());
-  const inactivityTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoggedInRef = useRef(isLoggedIn);
   const warningShownRef = useRef(false);
   const hasLoggedOutRef = useRef(false);
-  const sessionStartRef = useRef<number>(Date.now());
-
-  const getTimeout = useCallback(() => {
-    return isRememberMe ? REMEMBER_ME_TIMEOUT : DEFAULT_TIMEOUT;
-  }, [isRememberMe]);
+  const onLogoutRef = useRef(onLogout);
 
   useEffect(() => {
     isLoggedInRef.current = isLoggedIn;
-    if (isLoggedIn) {
-      sessionStartRef.current = Date.now();
-    }
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    onLogoutRef.current = onLogout;
+  }, [onLogout]);
 
   const setRememberMe = useCallback((value: boolean) => {
     setIsRememberMe(value);
@@ -52,13 +49,17 @@ export function useAdminTimeout(
     }
   }, []);
 
+  const getTimeout = useCallback(() => {
+    return isRememberMe ? REMEMBER_ME_TIMEOUT : DEFAULT_TIMEOUT;
+  }, [isRememberMe]);
+
   const clearAllTimers = useCallback(() => {
     if (inactivityTimerRef.current) {
-      clearInterval(inactivityTimerRef.current);
+      clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
     }
     if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
+      clearTimeout(countdownTimerRef.current);
       countdownTimerRef.current = null;
     }
   }, []);
@@ -72,50 +73,87 @@ export function useAdminTimeout(
     setCountdownTime(0);
     warningShownRef.current = false;
     console.log("Session expired - logging out user");
-    onLogout();
-  }, [clearAllTimers, onLogout]);
+    onLogoutRef.current();
+  }, [clearAllTimers]);
+
+  const tickCountdown = useCallback((deadline: number) => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((deadline - now) / 1000));
+    
+    if (remaining <= 0) {
+      countdownTimerRef.current = null;
+      logoutNow();
+      return;
+    }
+    
+    setCountdownTime(remaining);
+    
+    countdownTimerRef.current = setTimeout(() => {
+      tickCountdown(deadline);
+    }, 250);
+  }, [logoutNow]);
 
   const startWarningCountdown = useCallback(() => {
     if (warningShownRef.current) return;
     
     warningShownRef.current = true;
     setShowWarning(true);
-    setCountdownTime(WARNING_COUNTDOWN);
     
     if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
+      clearTimeout(countdownTimerRef.current);
+    }
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
     }
     
-    countdownTimerRef.current = setInterval(() => {
-      setCountdownTime((prev) => {
-        if (prev <= 1) {
-          if (countdownTimerRef.current) {
-            clearInterval(countdownTimerRef.current);
-            countdownTimerRef.current = null;
-          }
-          logoutNow();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [logoutNow]);
+    const deadline = Date.now() + WARNING_COUNTDOWN * 1000;
+    setCountdownTime(WARNING_COUNTDOWN);
+    
+    countdownTimerRef.current = setTimeout(() => {
+      tickCountdown(deadline);
+    }, 250);
+  }, [tickCountdown]);
+
+  const startInactivityCheck = useCallback(() => {
+    const check = () => {
+      if (!isLoggedInRef.current || hasLoggedOutRef.current) return;
+
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
+      const timeout = isRememberMe ? REMEMBER_ME_TIMEOUT : DEFAULT_TIMEOUT;
+      
+      if (elapsed >= timeout && !warningShownRef.current) {
+        startWarningCountdown();
+        return;
+      }
+      
+      const remaining = timeout - elapsed;
+      if (remaining > 0) {
+        inactivityTimerRef.current = setTimeout(check, Math.min(remaining * 1000, 5000));
+      } else {
+        startWarningCountdown();
+      }
+    };
+    
+    inactivityTimerRef.current = setTimeout(check, 5000);
+  }, [isRememberMe, startWarningCountdown]);
 
   const resetTimer = useCallback(() => {
     hasLoggedOutRef.current = false;
     lastActivityRef.current = Date.now();
-    sessionStartRef.current = Date.now();
     warningShownRef.current = false;
     setShowWarning(false);
     setCountdownTime(WARNING_COUNTDOWN);
     
-    if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
-      countdownTimerRef.current = null;
+    clearAllTimers();
+    
+    if (isLoggedInRef.current) {
+      startInactivityCheck();
     }
     
     console.log("Session timer reset - activity detected");
-  }, []);
+  }, [clearAllTimers, startInactivityCheck]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -125,24 +163,13 @@ export function useAdminTimeout(
 
     hasLoggedOutRef.current = false;
     lastActivityRef.current = Date.now();
-    sessionStartRef.current = Date.now();
     warningShownRef.current = false;
     
     clearAllTimers();
-    
-    inactivityTimerRef.current = setInterval(() => {
-      if (!isLoggedInRef.current || hasLoggedOutRef.current) return; 
-
-      const now = Date.now();
-      const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
-      
-      if (elapsed >= getTimeout() && !warningShownRef.current) {
-        startWarningCountdown();
-      }
-    }, 1000);
+    startInactivityCheck();
 
     return () => clearAllTimers();
-  }, [isLoggedIn, clearAllTimers, startWarningCountdown, getTimeout]);
+  }, [isLoggedIn, clearAllTimers, startInactivityCheck]);
 
   useEffect(() => {
     if (!isLoggedIn || showWarning) return;

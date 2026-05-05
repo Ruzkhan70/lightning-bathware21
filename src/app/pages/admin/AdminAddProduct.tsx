@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { PlusCircle, Upload, FileText, X, Check, Loader2, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { PlusCircle, Upload, FileText, X, Check, Loader2, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle, Copy, Lock, Unlock } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -37,7 +37,7 @@ interface BulkProduct {
 }
 
 export default function AdminAddProduct() {
-  const { addProduct, addMultipleProducts, categories } = useAdmin();
+  const { addProduct, addMultipleProducts, categories, products } = useAdmin();
   const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   if (showBulkUpload) {
@@ -281,7 +281,7 @@ export default function AdminAddProduct() {
             </div>
             
             <div className="border rounded-lg overflow-hidden mb-6">
-              <div className="bg-muted-50 px-3 py-2 border-b">
+              <div className="bg-muted/50 px-3 py-2 border-b">
                 <h4 className="font-semibold">Uploaded Products ({uploadedProducts.length})</h4>
               </div>
               <div className="max-h-80 overflow-y-auto">
@@ -358,7 +358,7 @@ export default function AdminAddProduct() {
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-muted-foreground">{bulkProducts.length} products ready to upload</p>
                   <div className="flex gap-2">
-                    <label className="inline-flex items-center px-3 py-2 border border-border rounded-md cursor-pointer hover:bg-muted-50 text-sm">
+                    <label className="inline-flex items-center px-3 py-2 border border-border rounded-md cursor-pointer hover:bg-muted/50 text-sm">
                       <span>{isUploadingImages ? "Uploading..." : "Upload Images"}</span>
                       <input
                         type="file"
@@ -407,7 +407,7 @@ export default function AdminAddProduct() {
 
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-muted-50">
+                    <thead className="bg-muted/50">
                       <tr>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Product Name</th>
                         <th className="px-3 py-3 text-left text-sm font-semibold">Category</th>
@@ -540,6 +540,29 @@ export default function AdminAddProduct() {
   function SingleProductForm() {
     const safeCategories = categories || [];
     
+    const generateProductPrefix = (category: string): string => {
+      const words = category.trim().split(/\s+/);
+      if (words.length >= 2) {
+        return words.slice(0, 3).map(w => w[0].toUpperCase()).join('');
+      }
+      return category.slice(0, 2).toUpperCase();
+    };
+
+    const generateNextCode = (category: string): string => {
+      if (!category) return "";
+      const prefix = generateProductPrefix(category);
+      const allProducts = products || [];
+      const regex = new RegExp(`^${prefix}-\\d{4}$`);
+      let maxNum = 1000;
+      for (const p of allProducts) {
+        if (p.product_code && regex.test(p.product_code)) {
+          const num = parseInt(p.product_code.split('-')[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+      return `${prefix}-${maxNum + 1}`;
+    };
+
     // ALL state inside SingleProductForm - completely isolated
     const [formData, setFormData] = useState({
       name: "",
@@ -548,6 +571,7 @@ export default function AdminAddProduct() {
       isAvailable: true,
       description: "",
       image: "",
+      product_code: "",
     });
     
     const [enableVariants, setEnableVariants] = useState(false);
@@ -561,19 +585,24 @@ export default function AdminAddProduct() {
     const [isUploading, setIsUploading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [variantDragging, setVariantDragging] = useState<{[key: string]: boolean}>({});
+    const [showManualCode, setShowManualCode] = useState(false);
+    const [codeError, setCodeError] = useState("");
 
     // Refs for inputs
     const nameRef = useRef<HTMLInputElement>(null);
     const descRef = useRef<HTMLTextAreaElement>(null);
     const priceRef = useRef<HTMLInputElement>(null);
+    const codeRef = useRef<HTMLInputElement>(null);
 
     // Read values directly from DOM without triggering re-renders
     const getName = () => nameRef.current?.value || "";
     const getDesc = () => descRef.current?.value || "";
-    const getPrice = () => parseFloat(priceRef.current?.value) || 0;
+    const getPrice = () => parseFloat(priceRef.current?.value ?? "") || 0;
 
     const handleCategoryChange = (value: string) => {
-      setFormData(prev => ({ ...prev, category: value }));
+      const newCode = generateNextCode(value);
+      setFormData(prev => ({ ...prev, category: value, product_code: newCode }));
+      setCodeError("");
     };
 
     const handleToggleVariants = () => {
@@ -753,6 +782,18 @@ export default function AdminAddProduct() {
         return;
       }
 
+      if (!formData.product_code) {
+        toast.error("Please select a category to generate a product code");
+        return;
+      }
+
+      const existingCode = (products || []).find(p => p.product_code?.toLowerCase() === formData.product_code.toLowerCase());
+      if (existingCode) {
+        setCodeError("This product code already exists. Please use a unique code.");
+        toast.error("Product code already exists");
+        return;
+      }
+
       // Prepare product data
       const productVariants = enableVariants ? variants
         .filter(v => v.color.trim())
@@ -777,6 +818,7 @@ export default function AdminAddProduct() {
           isAvailable: formData.isAvailable,
           description: description.trim(),
           image: mainImage,
+          product_code: formData.product_code,
           has_variants: enableVariants,
           has_sizes: enableSizes,
           variants: productVariants,
@@ -791,6 +833,7 @@ export default function AdminAddProduct() {
           isAvailable: true,
           description: "",
           image: "",
+          product_code: "",
         });
         setEnableVariants(false);
         setVariants([{ id: "1", color: "", images: [] }]);
@@ -815,6 +858,7 @@ export default function AdminAddProduct() {
         isAvailable: true,
         description: "",
         image: "",
+        product_code: "",
       });
       setEnableVariants(false);
       setVariants([{ id: "1", color: "", images: [] }]);
@@ -861,6 +905,70 @@ export default function AdminAddProduct() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Product Code */}
+        {formData.category && (
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <Label htmlFor="product_code">
+              Product Code
+            </Label>
+            <button
+              type="button"
+              onClick={() => {
+                setShowManualCode(!showManualCode);
+                if (showManualCode) {
+                  setFormData(prev => ({ ...prev, product_code: generateNextCode(prev.category) }));
+                  setCodeError("");
+                }
+              }}
+              className="text-xs text-muted-foreground hover:text-[#D4AF37] flex items-center gap-1"
+            >
+              {showManualCode ? (
+                <><Lock className="w-3 h-3" /> Auto-generate</>
+              ) : (
+                <><Unlock className="w-3 h-3" /> Manual override</>
+              )}
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              id="product_code"
+              ref={codeRef}
+              value={formData.product_code}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, product_code: e.target.value.toUpperCase() }));
+                setCodeError("");
+              }}
+              readOnly={!showManualCode}
+              placeholder="Auto-generated"
+              className={`flex h-10 w-full rounded-md border bg-card px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 ${
+                showManualCode ? 'border-border' : 'border-border bg-muted/50 cursor-not-allowed'
+              } ${codeError ? 'border-red-500' : ''}`}
+            />
+            {formData.product_code && !showManualCode && (
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(formData.product_code);
+                  toast.success(`Copied: ${formData.product_code}`);
+                }}
+                className="flex-shrink-0 p-2 rounded-md border border-border hover:bg-muted/50 transition-colors"
+                title="Copy code"
+              >
+                <Copy className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+          {codeError && (
+            <p className="text-red-500 text-xs mt-1">{codeError}</p>
+          )}
+          {!showManualCode && (
+            <p className="text-xs text-muted-foreground mt-1">Auto-generated based on category. Click "Manual override" to edit.</p>
+          )}
+        </div>
+        )}
 
         {/* Price */}
         <div>
@@ -973,7 +1081,7 @@ export default function AdminAddProduct() {
               </p>
               
               {variants.map((variant, index) => (
-                <div key={variant.id} className="border rounded-lg p-4 bg-muted-50">
+                <div key={variant.id} className="border rounded-lg p-4 bg-muted/50">
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
                       <Label>Color {index + 1} <span className="text-red-500 dark:text-red-400">*</span></Label>
@@ -1018,7 +1126,7 @@ export default function AdminAddProduct() {
                           <label className={`flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed rounded cursor-pointer transition-colors ${
                             variantDragging[variant.id] 
                               ? 'border-[#D4AF37] bg-[#D4AF37]/5' 
-                              : 'border-border hover:border-[#D4AF37] hover:bg-muted-50'
+                              : 'border-border hover:border-[#D4AF37] hover:bg-muted/50'
                           }`}>
                             <ImagePlus className="w-5 h-5 text-muted-foreground" />
                             <input
@@ -1084,7 +1192,7 @@ export default function AdminAddProduct() {
               </p>
               
               {sizes.map((sizeItem, index) => (
-                <div key={sizeItem.id} className="border rounded-lg p-4 bg-muted-50">
+                <div key={sizeItem.id} className="border rounded-lg p-4 bg-muted/50">
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
                       <Label>Size {index + 1} <span className="text-red-500 dark:text-red-400">*</span></Label>

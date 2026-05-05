@@ -3043,7 +3043,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const productCode = generateProductCode(product.category);
+    const productCode = product.product_code || generateProductCode(product.category);
     const newProduct: Product = {
       id: generateUniqueId(),
       name: product.name || '',
@@ -3124,21 +3124,26 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    const productsWithIds = newProducts.map(p => ({
-      id: generateUniqueId(),
-      name: p.name || '',
-      category: p.category || '',
-      price: p.price || 0,
-      isAvailable: p.isAvailable ?? true,
-      description: p.description || '',
-      image: p.image || '',
-      product_code: generateProductCode(p.category),
-      created_at: new Date().toISOString(),
-      has_variants: p.has_variants || false,
-      has_sizes: p.has_sizes || false,
-      variants: p.variants || [],
-      sizes: p.sizes || [],
-    }));
+    const assignedCodes: string[] = [];
+    const productsWithIds = newProducts.map(p => {
+      const productCode = generateUniqueProductCode(p.category, assignedCodes);
+      assignedCodes.push(productCode);
+      return {
+        id: generateUniqueId(),
+        name: p.name || '',
+        category: p.category || '',
+        price: p.price || 0,
+        isAvailable: p.isAvailable ?? true,
+        description: p.description || '',
+        image: p.image || '',
+        product_code: productCode,
+        created_at: new Date().toISOString(),
+        has_variants: p.has_variants || false,
+        has_sizes: p.has_sizes || false,
+        variants: p.variants || [],
+        sizes: p.sizes || [],
+      };
+    });
     const updated = [...products, ...productsWithIds];
     setProducts(updated);
     try {
@@ -3440,10 +3445,51 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     'Bathroom Faucets': 'FAU',
   };
 
-  const generateProductCode = (category: string): string => {
-    const prefix = CATEGORY_CODES[category] || 'PRD';
-    const random = Math.floor(10000 + Math.random() * 90000);
-    return `${prefix}-${random}`;
+  const generateProductPrefix = (category: string): string => {
+    const words = category.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return words.slice(0, 3).map(w => w[0].toUpperCase()).join('');
+    }
+    return category.slice(0, 2).toUpperCase();
+  };
+
+  const generateProductCode = (category: string, existingProducts?: Product[]): string => {
+    const prefix = generateProductPrefix(category);
+    const productsToScan = existingProducts || products;
+    const regex = new RegExp(`^${prefix}-\\d{4}$`);
+    let maxNum = 1000;
+    for (const p of productsToScan) {
+      if (p.product_code && regex.test(p.product_code)) {
+        const num = parseInt(p.product_code.split('-')[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    return `${prefix}-${maxNum + 1}`;
+  };
+
+  const generateUniqueProductCode = (category: string, excludeCodes: string[] = []): string => {
+    const prefix = generateProductPrefix(category);
+    const productsToScan = [...products];
+    const regex = new RegExp(`^${prefix}-\\d{4}$`);
+    let maxNum = 1000;
+    for (const p of productsToScan) {
+      if (p.product_code && regex.test(p.product_code)) {
+        const num = parseInt(p.product_code.split('-')[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    for (const code of excludeCodes) {
+      if (regex.test(code)) {
+        const num = parseInt(code.split('-')[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    const newCode = `${prefix}-${maxNum + 1}`;
+    const allCodes = new Set([...products.map(p => p.product_code).filter(Boolean), ...excludeCodes]);
+    if (allCodes.has(newCode)) {
+      return generateUniqueProductCode(category, [...excludeCodes, newCode]);
+    }
+    return newCode;
   };
 
   const addOrder = async (order: Omit<Order, "id" | "date" | "status" | "paymentStatus">): Promise<Order> => {
