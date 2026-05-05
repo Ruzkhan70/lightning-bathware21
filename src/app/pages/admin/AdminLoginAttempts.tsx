@@ -28,6 +28,7 @@ interface LoginAttemptLog {
   ipAddress?: string;
   deviceType?: "mobile" | "tablet" | "desktop";
   location?: { country: string; city: string };
+  source?: "adminLogs" | "loginAttempts";
 }
 
 interface BlockedIpEntry {
@@ -55,9 +56,32 @@ export default function AdminLoginAttempts() {
   const [ipEmailMap, setIpEmailMap] = useState<Map<string, Set<string>>>(new Map());
 
   useEffect(() => {
-    const q = query(collection(db, "adminLogs"), orderBy("timestamp", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const logsData: LoginAttemptLog[] = snapshot.docs.map(doc => {
+    const adminLogsQ = query(collection(db, "adminLogs"), orderBy("timestamp", "desc"));
+    const loginAttemptsQ = query(collection(db, "loginAttempts"), orderBy("timestamp", "desc"));
+
+    let adminLogsData: LoginAttemptLog[] = [];
+    let loginAttemptsData: LoginAttemptLog[] = [];
+
+    const mergeAndDeduplicate = () => {
+      const combined = [...adminLogsData, ...loginAttemptsData];
+      const seen = new Set<string>();
+      const deduplicated: LoginAttemptLog[] = [];
+
+      for (const log of combined) {
+        const key = `${log.email}-${log.ipAddress}-${log.timestamp}-${log.failureReason}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduplicated.push(log);
+        }
+      }
+
+      deduplicated.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setLogs(deduplicated);
+      setIsLoading(false);
+    };
+
+    const unsub1 = onSnapshot(adminLogsQ, (snapshot) => {
+      adminLogsData = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -72,16 +96,42 @@ export default function AdminLoginAttempts() {
           ipAddress: data.ipAddress,
           deviceType: data.deviceType,
           location: data.location,
+          source: "adminLogs" as const,
         };
       });
-      setLogs(logsData);
-      setIsLoading(false);
+      mergeAndDeduplicate();
     }, (error) => {
-      console.error("Error loading login attempts:", error);
-      setIsLoading(false);
+      console.error("Error loading adminLogs:", error);
     });
 
-    return () => unsubscribe();
+    const unsub2 = onSnapshot(loginAttemptsQ, (snapshot) => {
+      loginAttemptsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const ts = data.timestamp?.toDate?.();
+        return {
+          id: doc.id,
+          email: data.email || "",
+          emailMasked: "",
+          status: data.status === "FAILED" ? "failed" : "success",
+          timestamp: ts ? ts.toISOString() : new Date().toISOString(),
+          device: data.deviceType || "",
+          browser: data.browser || "",
+          failureReason: data.reason,
+          ipAddress: data.ipAddress,
+          deviceType: data.deviceType,
+          location: data.location,
+          source: "loginAttempts" as const,
+        };
+      });
+      mergeAndDeduplicate();
+    }, (error) => {
+      console.error("Error loading loginAttempts:", error);
+    });
+
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, []);
 
   useEffect(() => {
@@ -238,10 +288,11 @@ export default function AdminLoginAttempts() {
     return "";
   };
 
-  const handleDeleteLog = async (logId: string) => {
+  const handleDeleteLog = async (logId: string, source: string = "adminLogs") => {
     try {
       setIsDeleting(true);
-      await deleteDoc(doc(db, "adminLogs", logId));
+      const collectionName = source === "loginAttempts" ? "loginAttempts" : "adminLogs";
+      await deleteDoc(doc(db, collectionName, logId));
       toast.success("Login attempt deleted");
       setDeleteConfirm(null);
     } catch (error) {
@@ -255,7 +306,10 @@ export default function AdminLoginAttempts() {
   const handleClearAll = async () => {
     try {
       setIsDeleting(true);
-      const deletePromises = filteredLogs.map(log => deleteDoc(doc(db, "adminLogs", log.id)));
+      const deletePromises = filteredLogs.map(log => {
+        const collectionName = log.source === "loginAttempts" ? "loginAttempts" : "adminLogs";
+        return deleteDoc(doc(db, collectionName, log.id));
+      });
       await Promise.all(deletePromises);
       toast.success(`Deleted ${filteredLogs.length} login attempt(s)`);
       setShowClearAllConfirm(false);
@@ -535,7 +589,7 @@ export default function AdminLoginAttempts() {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleDeleteLog(log.id)}
+                              onClick={() => handleDeleteLog(log.id, log.source)}
                               disabled={isDeleting}
                               className="bg-red-500 hover:bg-red-600 text-white"
                             >
