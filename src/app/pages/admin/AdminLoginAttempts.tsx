@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Search, Download, Filter, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, XCircle, Shield, Clock, Globe, Monitor, Trash2, Trash, X, MapPin } from "lucide-react";
+import { Search, Download, ChevronLeft, ChevronRight, AlertTriangle, XCircle, Shield, Clock, Globe, Monitor, Trash2, Trash, X, MapPin } from "lucide-react";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../../../firebase";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export default function AdminLoginAttempts() {
     let loginAttemptsData: LoginAttemptLog[] = [];
 
     const mergeAndDeduplicate = () => {
-      const combined = [...adminLogsData, ...loginAttemptsData];
+      const combined = [...adminLogsData, ...loginAttemptsData].filter(l => l.status === "failed");
       const seen = new Set<string>();
       const deduplicated: LoginAttemptLog[] = [];
 
@@ -436,23 +436,6 @@ export default function AdminLoginAttempts() {
           </div>
 
           <Select
-            value={filterStatus}
-            onValueChange={(value) => {
-              setFilterStatus(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-40">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="failed">Failed Only</SelectItem>
-              <SelectItem value="all">All Status</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
             value={filterDate}
             onValueChange={(value) => {
               setFilterDate(value);
@@ -478,7 +461,6 @@ export default function AdminLoginAttempts() {
           <table className="w-full">
             <thead className="bg-muted/50 border-b">
               <tr>
-                <th className="text-left py-4 px-4 font-semibold">Status</th>
                 <th className="text-left py-4 px-4 font-semibold">Date & Time</th>
                 <th className="text-left py-4 px-4 font-semibold">Email</th>
                 <th className="text-left py-4 px-4 font-semibold">IP Address</th>
@@ -492,7 +474,7 @@ export default function AdminLoginAttempts() {
             <tbody>
               {paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     No login attempts found
                   </td>
                 </tr>
@@ -502,19 +484,6 @@ export default function AdminLoginAttempts() {
                   const rowHighlight = getRowHighlight(log.ipAddress, log.status);
                   return (
                     <tr key={log.id} className={`border-b hover:bg-muted/50 ${rowHighlight}`}>
-                      <td className="py-3 px-4">
-                        {log.status === "success" ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full text-xs font-medium">
-                            <CheckCircle className="w-3 h-3" />
-                            Success
-                          </span>
-                        ) : (
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getSeverityColor(severity)}`}>
-                            <XCircle className="w-3 h-3" />
-                            Failed
-                          </span>
-                        )}
-                      </td>
                       <td className="py-3 px-4 text-sm text-muted-foreground">
                         <div>{new Date(log.timestamp).toLocaleDateString()}</div>
                         <div className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleTimeString()}</div>
@@ -652,24 +621,11 @@ export default function AdminLoginAttempts() {
             const severity = log.status === "failed" ? getFailureSeverity(log.failureReason, log.ipAddress) : "low";
             return (
               <div key={log.id} className={`bg-card rounded-lg shadow-sm border p-4 ${getRowHighlight(log.ipAddress, log.status)}`}>
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{log.emailMasked || log.email}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(log.timestamp).toLocaleDateString()} at {new Date(log.timestamp).toLocaleTimeString()}
-                    </p>
-                  </div>
-                  {log.status === "success" ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full text-xs font-medium flex-shrink-0">
-                      <CheckCircle className="w-3 h-3" />
-                      Success
-                    </span>
-                  ) : (
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${getSeverityColor(severity)}`}>
-                      <XCircle className="w-3 h-3" />
-                      Failed
-                    </span>
-                  )}
+                <div className="mb-3">
+                  <h3 className="font-semibold text-foreground">{log.emailMasked || log.email}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(log.timestamp).toLocaleDateString()} at {new Date(log.timestamp).toLocaleTimeString()}
+                  </p>
                 </div>
 
                 {log.failureReason && (
