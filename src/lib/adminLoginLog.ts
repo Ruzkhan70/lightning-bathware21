@@ -1,4 +1,5 @@
 import { db } from "../firebase";
+import { logger } from "./logger";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { getDeviceInfo } from "./activityLog";
 import { getIPAddress, getDeviceType } from "./deviceInfo";
@@ -59,9 +60,9 @@ export const logAdminLogin = async (
       createdAt: serverTimestamp(),
     });
 
-    console.log(`[AdminLoginLog] ${status.toUpperCase()}: ${maskedEmail}${failureReason ? ` - ${failureReason}` : ""}`);
+    logger.log(`[AdminLoginLog] ${status.toUpperCase()}: ${maskedEmail}${failureReason ? ` - ${failureReason}` : ""}`);
   } catch (error) {
-    console.error("[AdminLoginLog] Failed to log admin login attempt:", error);
+    logger.error("[AdminLoginLog] Failed to log admin login attempt:", error);
   }
 };
 
@@ -91,8 +92,8 @@ export const logAdminLogout = async (email: string): Promise<void> => {
       createdAt: serverTimestamp(),
     });
 
-    console.log(`[AdminLoginLog] LOGOUT: ${maskedEmail}`);
+    logger.log(`[AdminLoginLog] LOGOUT: ${maskedEmail}`);
   } catch (error) {
-    console.error("[AdminLoginLog] Failed to log admin logout:", error);
+    logger.error("[AdminLoginLog] Failed to log admin logout:", error);
   }
 };

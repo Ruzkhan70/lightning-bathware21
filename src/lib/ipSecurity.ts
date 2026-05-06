@@ -1,4 +1,5 @@
 import { db } from "../firebase";
+import { logger } from "./logger";
 import {
   collection,
   addDoc,
@@ -86,7 +87,7 @@ export const isIpBlocked = async (ip: string): Promise<{ blocked: boolean; block
 
     return { blocked: false };
   } catch (error) {
-    console.error("[IPSecurity] Error checking blocked IPs:", error);
+    logger.error("[IPSecurity] Error checking blocked IPs:", error);
     return { blocked: false };
   }
 };
@@ -103,9 +104,9 @@ export const blockIp = async (ip: string, reason: string): Promise<void> => {
       createdAt: Timestamp.fromDate(now),
     });
 
-    console.log(`[IPSecurity] Blocked IP: ${ip} until ${blockedUntil.toISOString()}`);
+    logger.log(`[IPSecurity] Blocked IP: ${ip} until ${blockedUntil.toISOString()}`);
   } catch (error) {
-    console.error("[IPSecurity] Error blocking IP:", error);
+    logger.error("[IPSecurity] Error blocking IP:", error);
   }
 };
 
@@ -143,7 +144,7 @@ export const recordFailedAttempt = async (
 
     return { shouldBlock };
   } catch (error) {
-    console.error("[IPSecurity] Error recording failed attempt:", error);
+    logger.error("[IPSecurity] Error recording failed attempt:", error);
     return { shouldBlock: false };
   }
 };
@@ -175,7 +176,7 @@ export const getFailedAttemptsFromIp = async (ip: string): Promise<number> => {
 
     return count;
   } catch (error) {
-    console.error("[IPSecurity] Error counting failed attempts:", error);
+    logger.error("[IPSecurity] Error counting failed attempts:", error);
     return 0;
   }
 };
@@ -200,9 +201,9 @@ export const sendBruteForceAlert = async (
         `Time: ${new Date().toLocaleString()}`
     );
 
-    console.log(`[IPSecurity] Brute force alert sent for IP: ${ip}`);
+    logger.log(`[IPSecurity] Brute force alert sent for IP: ${ip}`);
   } catch (error) {
-    console.error("[IPSecurity] Error sending brute force alert:", error);
+    logger.error("[IPSecurity] Error sending brute force alert:", error);
   }
 };
 

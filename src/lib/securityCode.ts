@@ -1,5 +1,6 @@
 import { db } from "../firebase";
-import { doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "firebase/firestore";
+import { logger } from "./logger";
+import { doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, deleteDoc } from "firebase/firestore";
 
 const SECURITY_CODE_DOC = doc(db, "system", "securityCode");
 const OTP_COLLECTION = collection(db, "codeRotationOtp");
@@ -9,9 +10,20 @@ const MAX_VERIFY_ATTEMPTS = 5;
 const VERIFY_LOCKOUT_MS = 30 * 60 * 1000;
 const VERIFY_SESSION_MS = 10 * 60 * 1000;
 
-const VERIFY_ATTEMPTS_KEY = "daily_code_verify_attempts";
-const VERIFY_LOCKOUT_KEY = "daily_code_verify_lockout";
 const VERIFY_SESSION_KEY = "daily_code_verified_until";
+
+function getDeviceId(): string {
+  let id = localStorage.getItem("security_device_id");
+  if (!id) {
+    id = "sec_" + Date.now() + "_" + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem("security_device_id", id);
+  }
+  return id;
+}
+
+function getAttemptsDocRef() {
+  return doc(db, "securityAttempts", getDeviceId());
+}
 
 export interface SecurityCodeState {
   hashedCode: string;
@@ -162,11 +174,11 @@ export async function checkAndAutoRenew(): Promise<{ renewed: boolean; code?: st
     const { sendSecurityCodeEmail } = await import("./securityEmails");
     await sendSecurityCodeEmail(newCode, "Daily auto-renewal");
   } catch (error) {
-    console.error("[DailyCode] Failed to send email:", error);
+    logger.error("[DailyCode] Failed to send email:", error);
   }
 
   await saveSecurityCode(newCode);
-  resetVerifyAttempts();
+  await resetVerifyAttempts();
 
   return { renewed: true, code: newCode };
 }
@@ -179,17 +191,18 @@ export async function resendDailyCode(): Promise<{ success: boolean }> {
     const sent = await sendSecurityCodeEmail(newCode, "Manual resend");
     if (!sent) return { success: false };
   } catch (error) {
-    console.error("[DailyCode] Failed to send email:", error);
+    logger.error("[DailyCode] Failed to send email:", error);
     return { success: false };
   }
 
   await saveSecurityCode(newCode);
-  resetVerifyAttempts();
+  await resetVerifyAttempts();
   return { success: true };
 }
 
 export async function verifyDailyCode(input: string): Promise<{ valid: boolean; error?: string }> {
-  if (isVerifyLocked()) {
+  const locked = await isVerifyLocked();
+  if (locked) {
     return { valid: false, error: "Too many attempts. Please try again in 30 minutes." };
   }
 
@@ -205,12 +218,12 @@ export async function verifyDailyCode(input: string): Promise<{ valid: boolean; 
   const isValid = await verifySecurityCode(input, state.hashedCode, state.salt);
 
   if (!isValid) {
-    recordVerifyAttempt();
-    const attempts = getVerifyAttempts();
+    await recordVerifyAttempt();
+    const attempts = await getVerifyAttempts();
     const remaining = MAX_VERIFY_ATTEMPTS - attempts;
 
     if (remaining <= 0) {
-      lockVerifyAttempts();
+      await lockVerifyAttempts();
       return { valid: false, error: "Too many attempts. Locked for 30 minutes." };
     }
 
@@ -240,43 +253,52 @@ export function clearVerifySession(): void {
   localStorage.removeItem(VERIFY_SESSION_KEY);
 }
 
-function getVerifyAttempts(): number {
+async function getVerifyAttempts(): Promise<number> {
   try {
-    const data = localStorage.getItem(VERIFY_ATTEMPTS_KEY);
-    if (!data) return 0;
-    const parsed = JSON.parse(data);
-    return parsed.count || 0;
+    const snap = await getDoc(getAttemptsDocRef());
+    if (!snap.exists()) return 0;
+    const data = snap.data();
+    if (Date.now() > (data.lockedUntil || 0)) {
+      await resetVerifyAttempts();
+      return 0;
+    }
+    return data.count || 0;
   } catch {
     return 0;
   }
 }
 
-function recordVerifyAttempt(): void {
-  const count = getVerifyAttempts() + 1;
-  localStorage.setItem(VERIFY_ATTEMPTS_KEY, JSON.stringify({ count, timestamp: Date.now() }));
+async function recordVerifyAttempt(): Promise<void> {
+  const ref = getAttemptsDocRef();
+  const snap = await getDoc(ref);
+  const count = (snap.exists() ? snap.data().count : 0) + 1;
+  await setDoc(ref, { count, timestamp: Date.now(), deviceId: getDeviceId() }, { merge: true });
 }
 
-function resetVerifyAttempts(): void {
-  localStorage.removeItem(VERIFY_ATTEMPTS_KEY);
-  localStorage.removeItem(VERIFY_LOCKOUT_KEY);
-}
-
-function isVerifyLocked(): boolean {
+async function resetVerifyAttempts(): Promise<void> {
   try {
-    const data = localStorage.getItem(VERIFY_LOCKOUT_KEY);
-    if (!data) return false;
-    const parsed = JSON.parse(data);
-    if (Date.now() > parsed.lockedUntil) {
-      resetVerifyAttempts();
+    await deleteDoc(getAttemptsDocRef());
+  } catch {
+    // Ignore if doesn't exist
+  }
+}
+
+async function isVerifyLocked(): Promise<boolean> {
+  try {
+    const snap = await getDoc(getAttemptsDocRef());
+    if (!snap.exists()) return false;
+    const data = snap.data();
+    if (data.lockedUntil && Date.now() > data.lockedUntil) {
+      await resetVerifyAttempts();
       return false;
     }
-    return true;
+    return !!data.lockedUntil;
   } catch {
     return false;
   }
 }
 
-function lockVerifyAttempts(): void {
+async function lockVerifyAttempts(): Promise<void> {
   const lockedUntil = Date.now() + VERIFY_LOCKOUT_MS;
-  localStorage.setItem(VERIFY_LOCKOUT_KEY, JSON.stringify({ lockedUntil }));
+  await setDoc(getAttemptsDocRef(), { count: MAX_VERIFY_ATTEMPTS, lockedUntil, timestamp: Date.now(), deviceId: getDeviceId() }, { merge: true });
 }

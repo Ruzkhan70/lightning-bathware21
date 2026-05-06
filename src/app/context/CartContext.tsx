@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from "react";
+import { logger } from "../../lib/logger";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
@@ -109,7 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }, { merge: true });
       }
     } catch (error) {
-      console.error("Error syncing cart with Firebase:", error);
+      logger.error("Error syncing cart with Firebase:", error);
     } finally {
       setIsSyncing(false);
     }
@@ -130,7 +131,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           updatedAt: new Date().toISOString(),
         }, { merge: true });
       } catch (error) {
-        console.error("Error saving cart to Firebase:", error);
+        logger.error("Error saving cart to Firebase:", error);
       }
     }, 1500);
   }, []);
@@ -153,7 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           saveCartToFirebaseDebounced(user.id, cartItems);
         }
       } catch (error) {
-        console.error("Error getting user ID for cart sync:", error);
+        logger.error("Error getting user ID for cart sync:", error);
       }
     }
   }, [cartItems, saveCartToFirebaseDebounced]);
@@ -208,7 +209,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           setDoc(cartRef, { items: [], updatedAt: new Date().toISOString() }, { merge: true });
         }
       } catch (error) {
-        console.error("Error clearing Firebase cart:", error);
+        logger.error("Error clearing Firebase cart:", error);
       }
     }
   };

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { logger } from "../../lib/logger";
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useUser } from "./UserContext";
@@ -68,12 +69,12 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             setWishlist(snapshot.data().items);
           }
         }, (error) => {
-          console.error("Error in wishlist listener:", error);
+          logger.error("Error in wishlist listener:", error);
         });
 
         return unsubscribe;
       } catch (error) {
-        console.error("Error loading wishlist:", error);
+        logger.error("Error loading wishlist:", error);
         setIsLoading(false);
         setIsWishlistConfirmed(true); // Confirm on error to avoid infinite loading
         return () => {};
@@ -98,7 +99,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     if (isLoggedIn && user?.id) {
       const newWishlist = wishlist.includes(id) ? wishlist : [...wishlist, id];
       setDoc(doc(db, "wishlist", user.id), { items: newWishlist }, { merge: true }).catch(err => {
-        console.error("Error saving wishlist:", err);
+        logger.error("Error saving wishlist:", err);
         toast.error("Failed to save wishlist");
       });
     } else {
@@ -113,7 +114,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     if (isLoggedIn && user?.id) {
       const newWishlist = wishlist.filter((item) => item !== id);
       setDoc(doc(db, "wishlist", user.id), { items: newWishlist }, { merge: true }).catch(err => {
-        console.error("Error saving wishlist:", err);
+        logger.error("Error saving wishlist:", err);
         toast.error("Failed to save wishlist");
       });
     } else {

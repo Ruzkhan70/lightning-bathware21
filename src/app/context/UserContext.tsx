@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { logger } from "../../lib/logger";
 import { FirebaseError } from "firebase/app";
 import { 
   auth, 
@@ -64,7 +65,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
       return null;
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      logger.error("Error fetching user profile:", error);
       return null;
     }
   }, []);
@@ -92,7 +93,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser({ id: fbUser.uid, ...newUser });
       }
     } catch (error) {
-      console.error("Error syncing user data:", error);
+      logger.error("Error syncing user data:", error);
     }
   }, []);
 
@@ -102,7 +103,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const adminDocs = await getDocs(adminQuery);
       return !adminDocs.empty;
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      logger.error("Error checking admin status:", error);
       return false;
     }
   }, []);
@@ -151,7 +152,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       return { success: false, error: "Login failed" };
     } catch (error) {
-      console.error("Login error:", error);
+      logger.error("Login error:", error);
       
       let errorMessage = "Login failed. Please check your credentials.";
       
@@ -218,7 +219,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       return { success: false, error: "Registration failed" };
     } catch (error) {
-      console.error("Registration error:", error);
+      logger.error("Registration error:", error);
       
       let errorMessage = "Registration failed. Please try again.";
       
@@ -241,7 +242,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       await signOut(auth);
       setUser(null);
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
     }
   };
 
@@ -254,7 +255,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser({ ...user, ...updates });
         toast.success("Profile updated!");
       } catch (error) {
-        console.error("Update profile error:", error);
+        logger.error("Update profile error:", error);
         toast.error("Failed to update profile");
       }
     } else {
@@ -269,7 +270,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       toast.success("Password reset email sent!");
       return { success: true };
     } catch (error) {
-      console.error("Reset password error:", error);
+      logger.error("Reset password error:", error);
       
       let errorMessage = "Failed to send reset email.";
       

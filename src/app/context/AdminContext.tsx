@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { toast } from "sonner";
 import { logAdminLogin, logAdminLogout } from "../../lib/adminLoginLog";
+import { logger } from "../../lib/logger";
 import { logOrderAction, logProductAction, logCategoryAction, logOfferAction, logAdminAction, logPasswordChange } from "../../lib/adminActionLog";
 import { isIpBlocked, recordFailedAttempt } from "../../lib/ipSecurity";
 import { 
@@ -37,7 +38,7 @@ const createGlobalNotification = async (
       createdAt: serverTimestamp(),
     });
   } catch (error) {
-    console.error("Error creating notification:", error);
+    logger.error("Error creating notification:", error);
   }
 };
 
@@ -69,7 +70,7 @@ const createAnnouncement = async (
       createdBy: "system",
     });
   } catch (error) {
-    console.error("Error creating announcement:", error);
+    logger.error("Error creating announcement:", error);
   }
 };
 
@@ -937,9 +938,9 @@ const saveDataBackup = (key: string, data: unknown) => {
     const jsonData = JSON.stringify(data);
     localStorage.setItem(key, jsonData);
     localStorage.setItem(BACKUP_KEYS.lastBackup, new Date().toISOString());
-    console.log('[Backup] Saved to localStorage:', key, 'items:', Array.isArray(data) ? data.length : 'N/A');
+    logger.log('[Backup] Saved to localStorage:', key, 'items:', Array.isArray(data) ? data.length : 'N/A');
   } catch (e) {
-    console.error('[Backup] Failed to save:', e);
+    logger.error('[Backup] Failed to save:', e);
   }
 };
 
@@ -948,13 +949,13 @@ const loadDataBackup = (key: string): unknown | null => {
     const data = localStorage.getItem(key);
     if (data) {
       const parsed = JSON.parse(data);
-      console.log('[Backup] Loaded from localStorage:', key, 'items:', Array.isArray(parsed) ? parsed.length : 'N/A');
+      logger.log('[Backup] Loaded from localStorage:', key, 'items:', Array.isArray(parsed) ? parsed.length : 'N/A');
       return parsed;
     }
-    console.log('[Backup] No data in localStorage:', key);
+    logger.log('[Backup] No data in localStorage:', key);
     return null;
   } catch (e) {
-    console.error('[Backup] Failed to load:', e);
+    logger.error('[Backup] Failed to load:', e);
     return null;
   }
 };
@@ -1005,7 +1006,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       return false;
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      logger.error("Error checking admin status:", error);
       return false;
     }
   }, []);
@@ -1027,7 +1028,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       return exists;
     } catch (error) {
-      console.error("Error checking if admin exists:", error);
+      logger.error("Error checking if admin exists:", error);
       return false;
     }
   }, []);
@@ -1096,14 +1097,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     if (savedSession) {
       try {
         const session = JSON.parse(savedSession);
-        // Session expires after 24 hours
-        if (session.expiresAt && Date.now() < session.expiresAt) {
+        const IDLE_TIMEOUT_MS = session.idleTimeout || (4 * 60 * 60 * 1000);
+        const now = Date.now();
+        
+        // Check if session expired (absolute) or idle timeout exceeded
+        const isExpired = session.expiresAt && now > session.expiresAt;
+        const isIdleExpired = session.lastActive && (now - session.lastActive) > IDLE_TIMEOUT_MS;
+        
+        if (!isExpired && !isIdleExpired) {
           setAdminUid(session.uid);
           setAdminEmail(session.email);
           setIsAdminLoggedIn(true);
           checkAndAutoRenew();
         } else {
-          // Session expired, clear it
           localStorage.removeItem(ADMIN_SESSION_KEY);
         }
       } catch (e) {
@@ -1143,7 +1149,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     checkAdminExists().then(exists => {
       setAdminExists(exists);
     }).catch(error => {
-      console.error("Error checking admin exists:", error);
+      logger.error("Error checking admin exists:", error);
       setAdminExists(false);
     });
   }, [checkAdminExists]);
@@ -1187,7 +1193,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           lastActive: now,
         });
       } catch (error) {
-        console.error("Error ensuring current session:", error);
+        logger.error("Error ensuring current session:", error);
       }
 };
     
@@ -1214,7 +1220,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
                 lastActive: now,
               });
             } catch (e) {
-              console.error("Failed to create session:", e);
+              logger.error("Failed to create session:", e);
               setDeviceSessions([{
                 id: 'local',
                 deviceId: deviceId,
@@ -1277,7 +1283,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           setDeviceSessions(sessions);
         }
       }, (error) => {
-        console.error("Error loading device sessions:", error);
+        logger.error("Error loading device sessions:", error);
         // Fallback on error
         const { device, browser, os } = getDeviceInfo();
         setDeviceSessions([{
@@ -1296,7 +1302,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error setting up device sessions listener:", error);
+      logger.error("Error setting up device sessions listener:", error);
     }
     });
   }, [adminEmail, getOrCreateDeviceId, getDeviceInfo]);
@@ -1360,6 +1366,59 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const interval = setInterval(updateLastActive, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [isAdminLoggedIn, adminEmail, getOrCreateDeviceId, getDeviceInfo]);
+
+  // Update localStorage session lastActive on user interaction and check idle timeout
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
+
+    const updateSessionLastActive = () => {
+      try {
+        const savedSession = localStorage.getItem(ADMIN_SESSION_KEY);
+        if (savedSession) {
+          const session = JSON.parse(savedSession);
+          session.lastActive = Date.now();
+          localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+        }
+      } catch {
+        // Ignore
+      }
+    };
+
+    // Check idle timeout periodically
+    const checkIdleTimeout = () => {
+      try {
+        const savedSession = localStorage.getItem(ADMIN_SESSION_KEY);
+        if (savedSession) {
+          const session = JSON.parse(savedSession);
+          const IDLE_TIMEOUT_MS = session.idleTimeout || (4 * 60 * 60 * 1000);
+          const now = Date.now();
+          if (session.lastActive && (now - session.lastActive) > IDLE_TIMEOUT_MS) {
+            localStorage.removeItem(ADMIN_SESSION_KEY);
+            setIsAdminLoggedIn(false);
+            setAdminUid(null);
+            setAdminEmail("");
+            toast.info("Session expired due to inactivity");
+          } else {
+            updateSessionLastActive();
+          }
+        }
+      } catch {
+        // Ignore
+      }
+    };
+
+    // Update lastActive on mouse move, key press, click, scroll
+    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+    events.forEach(event => window.addEventListener(event, updateSessionLastActive, { passive: true }));
+
+    // Check idle timeout every 60 seconds
+    const idleCheckInterval = setInterval(checkIdleTimeout, 60 * 1000);
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, updateSessionLastActive));
+      clearInterval(idleCheckInterval);
+    };
+  }, [isAdminLoggedIn]);
 
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -1438,7 +1497,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // Fallback: if Firebase takes too long, mark as loaded anyway
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.log("[Firebase] Timeout reached, marking as loaded");
+      logger.log("[Firebase] Timeout reached, marking as loaded");
       setIsDataLoaded(true);
     }, 5000); // 5 second timeout
     return () => clearTimeout(timeout);
@@ -1451,7 +1510,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const localBackup = loadDataBackup(BACKUP_KEYS.storeProfile) as StoreProfile | null;
       const hasLocalBackup = localBackup && localBackup.storeName && localBackup.storeName !== DEFAULT_STORE_PROFILE.storeName;
       if (hasLocalBackup) {
-        console.log('[Backup] Found local storeProfile backup');
+        logger.log('[Backup] Found local storeProfile backup');
       }
       
       const profileRef = doc(db, "storeData", "profile");
@@ -1464,16 +1523,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           
           // Check if Firebase has enableCompareFeature explicitly set (not undefined)
           const hasExplicitCompareSetting = data.enableCompareFeature !== undefined;
-          console.log('[storeProfile] Firebase has enableCompareFeature:', fbProfile.enableCompareFeature, 'explicit:', hasExplicitCompareSetting);
+          logger.log('[storeProfile] Firebase has enableCompareFeature:', fbProfile.enableCompareFeature, 'explicit:', hasExplicitCompareSetting);
           
           // If Firebase has explicit enableCompareFeature value, use it
           if (hasExplicitCompareSetting) {
-            console.log('[storeProfile] Using Firebase value, enableCompareFeature:', fbProfile.enableCompareFeature);
+            logger.log('[storeProfile] Using Firebase value, enableCompareFeature:', fbProfile.enableCompareFeature);
             saveDataBackup(BACKUP_KEYS.storeProfile, fbProfile);
             setStoreProfile(fbProfile);
           } else if (hasLocalBackup) {
             // Firebase has defaults but local has data - restore
-            console.log('[storeProfile] Restoring from local backup');
+            logger.log('[storeProfile] Restoring from local backup');
             setDoc(profileRef, { ...localBackup }, { merge: true });
             setStoreProfile(localBackup);
           }
@@ -1490,7 +1549,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error loading storeProfile:", error);
+      logger.error("Error loading storeProfile:", error);
       isInitialized.current.storeProfile = true;
       setFirebaseLoaded(prev => ({ ...prev, storeProfile: true }));
     }
@@ -1502,7 +1561,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const localBackup = loadDataBackup(BACKUP_KEYS.storeAssets) as StoreAssets | null;
       const hasLocalBackup = localBackup && localBackup.heroImage;
       if (hasLocalBackup) {
-        console.log('[Backup] Found local storeAssets backup');
+        logger.log('[Backup] Found local storeAssets backup');
       }
       
       const assetsRef = doc(db, "storeData", "assets");
@@ -1511,12 +1570,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           const data = docSnap.data() as StoreAssets;
           // Firebase always takes precedence
           if (data.heroImage) {
-            console.log('[Firebase] Using storeAssets from Firebase');
+            logger.log('[Firebase] Using storeAssets from Firebase');
             saveDataBackup(BACKUP_KEYS.storeAssets, data);
             setStoreAssets(data);
           } else if (hasLocalBackup) {
             // Firebase has defaults but local has data - restore
-            console.log('[Backup] Restoring from local backup to Firebase');
+            logger.log('[Backup] Restoring from local backup to Firebase');
             setDoc(assetsRef, { ...localBackup }, { merge: true });
             setStoreAssets(localBackup);
           }
@@ -1531,7 +1590,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error loading storeAssets:", error);
+      logger.error("Error loading storeAssets:", error);
       isInitialized.current.storeAssets = true;
       setFirebaseLoaded(prev => ({ ...prev, storeAssets: true }));
     }
@@ -1543,7 +1602,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const localBackup = loadDataBackup(BACKUP_KEYS.siteContent) as SiteContent | null;
       const hasLocalBackup = localBackup && localBackup.home && localBackup.home.heroTitle !== DEFAULT_SITE_CONTENT.home.heroTitle;
       if (hasLocalBackup) {
-        console.log('[Backup] Found local siteContent backup');
+        logger.log('[Backup] Found local siteContent backup');
       }
       
       const contentRef = doc(db, "storeData", "siteContent");
@@ -1552,7 +1611,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           const data = docSnap.data() as SiteContent;
           // Firebase always takes precedence - ensure defaults are merged
           if (data.home) {
-            console.log('[Firebase] Using siteContent from Firebase');
+            logger.log('[Firebase] Using siteContent from Firebase');
             const mergedContent = {
               ...DEFAULT_SITE_CONTENT,
               ...data,
@@ -1565,7 +1624,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             setSiteContent(mergedContent);
           } else if (hasLocalBackup) {
             // Firebase has defaults but local has data - restore
-            console.log('[Backup] Restoring from local backup to Firebase');
+            logger.log('[Backup] Restoring from local backup to Firebase');
             const localMerged = {
               ...DEFAULT_SITE_CONTENT,
               ...localBackup,
@@ -1588,7 +1647,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error loading siteContent:", error);
+      logger.error("Error loading siteContent:", error);
       isInitialized.current.siteContent = true;
       setFirebaseLoaded(prev => ({ ...prev, siteContent: true }));
     }
@@ -1602,26 +1661,26 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const fbCategories = data.categories;
-          console.log('[Firebase] Categories snapshot received, count:', fbCategories?.length || 0);
+          logger.log('[Firebase] Categories snapshot received, count:', fbCategories?.length || 0);
           
           if (fbCategories && Array.isArray(fbCategories)) {
-            console.log('[Firebase] Using categories from Firebase');
+            logger.log('[Firebase] Using categories from Firebase');
             saveDataBackup(BACKUP_KEYS.categories, fbCategories);
             setCategories(fbCategories);
           }
         } else {
-          console.log('[Firebase] No categories in Firestore, showing empty state');
+          logger.log('[Firebase] No categories in Firestore, showing empty state');
         }
         isInitialized.current.categories = true;
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
       }, (error) => {
-        console.error('[Firebase] Categories snapshot error:', error);
+        logger.error('[Firebase] Categories snapshot error:', error);
         isInitialized.current.categories = true;
         setFirebaseLoaded(prev => ({ ...prev, categories: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error loading categories:", error);
+      logger.error("Error loading categories:", error);
       isInitialized.current.categories = true;
       setFirebaseLoaded(prev => ({ ...prev, categories: true }));
     }
@@ -1643,7 +1702,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setOrders(firebaseOrders);
       setFirebaseLoaded(prev => ({ ...prev, orders: true }));
     }, (error) => {
-      console.error("Firebase orders sync error:", error);
+      logger.error("Firebase orders sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, orders: true }));
     });
     return () => unsubscribe();
@@ -1651,7 +1710,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Firebase real-time sync for offers - Firestore is the ONLY source of truth
   useEffect(() => {
-    console.log("[Firebase] Setting up offers listener...");
+    logger.log("[Firebase] Setting up offers listener...");
     
     let unsubscribe: (() => void) | undefined;
     
@@ -1659,12 +1718,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
       unsubscribe = onSnapshot(q, 
         (snapshot) => {
-          console.log("[Firebase] Offers snapshot received:", snapshot.size, "offers");
+          logger.log("[Firebase] Offers snapshot received:", snapshot.size, "offers");
           
           const firebaseOffers: Offer[] = snapshot.docs.map(doc => {
             const data = doc.data();
             const offer = { ...data, id: data.id || doc.id } as Offer;
-            console.log("[Firebase] Offer:", offer.id, offer.title, "isEnabled:", offer.isEnabled);
+            logger.log("[Firebase] Offer:", offer.id, offer.title, "isEnabled:", offer.isEnabled);
             return offer;
           });
           
@@ -1674,20 +1733,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           setFirebaseLoaded(prev => ({ ...prev, offers: true }));
         },
         (error) => {
-          console.error("[Firebase] Offers snapshot error:", error);
+          logger.error("[Firebase] Offers snapshot error:", error);
           setFirebaseLoaded(prev => ({ ...prev, offers: true }));
         }
       );
       
-      console.log("[Firebase] Offers listener set up successfully");
+      logger.log("[Firebase] Offers listener set up successfully");
     } catch (error) {
-      console.error("[Firebase] Offers listener setup error:", error);
+      logger.error("[Firebase] Offers listener setup error:", error);
       setFirebaseLoaded(prev => ({ ...prev, offers: true }));
     }
     
     return () => {
       if (unsubscribe) {
-        console.log("[Firebase] Cleaning up offers listener");
+        logger.log("[Firebase] Cleaning up offers listener");
         unsubscribe();
       }
     };
@@ -1701,26 +1760,26 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const fbProducts = data.products;
-          console.log('[Firebase] Products snapshot received, count:', fbProducts?.length || 0);
+          logger.log('[Firebase] Products snapshot received, count:', fbProducts?.length || 0);
           
           if (fbProducts && Array.isArray(fbProducts)) {
-            console.log('[Firebase] Using products from Firebase');
+            logger.log('[Firebase] Using products from Firebase');
             saveDataBackup(BACKUP_KEYS.products, fbProducts);
             setProducts(fbProducts);
           }
         } else {
-          console.log('[Firebase] No products in Firestore, showing empty state');
+          logger.log('[Firebase] No products in Firestore, showing empty state');
         }
         isInitialized.current.products = true;
         setFirebaseLoaded(prev => ({ ...prev, products: true }));
       }, (error) => {
-        console.error('[Firebase] Products snapshot error:', error);
+        logger.error('[Firebase] Products snapshot error:', error);
         isInitialized.current.products = true;
         setFirebaseLoaded(prev => ({ ...prev, products: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase products sync error:", error);
+      logger.error("Firebase products sync error:", error);
       isInitialized.current.products = true;
       setFirebaseLoaded(prev => ({ ...prev, products: true }));
     }
@@ -1743,12 +1802,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setInvoices(firebaseInvoices);
         setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
       }, (error) => {
-        console.error("Firebase invoices sync error:", error);
+        logger.error("Firebase invoices sync error:", error);
         setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase invoices sync error:", error);
+      logger.error("Firebase invoices sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, invoices: true }));
     }
   }, [isAdminLoggedIn]);
@@ -1770,12 +1829,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setMessages(firebaseMessages);
         setFirebaseLoaded(prev => ({ ...prev, messages: true }));
       }, (error) => {
-        console.error("Firebase messages sync error:", error);
+        logger.error("Firebase messages sync error:", error);
         setFirebaseLoaded(prev => ({ ...prev, messages: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase messages sync error:", error);
+      logger.error("Firebase messages sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, messages: true }));
     }
   }, [isAdminLoggedIn]);
@@ -1792,12 +1851,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setReviews(firebaseReviews);
         setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
       }, (error) => {
-        console.error("Firebase reviews sync error:", error);
+        logger.error("Firebase reviews sync error:", error);
         setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase reviews sync error:", error);
+      logger.error("Firebase reviews sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, reviews: true }));
     }
   }, []);
@@ -1827,12 +1886,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setActivityLogs(logs);
         setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
       }, (error) => {
-        console.error("Firebase activityLogs sync error:", error);
+        logger.error("Firebase activityLogs sync error:", error);
         setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase activityLogs sync error:", error);
+      logger.error("Firebase activityLogs sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, activityLogs: true }));
     }
   }, [isAdminLoggedIn]);
@@ -1845,7 +1904,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await Promise.all(deletePromises);
       toast.success("Activity logs cleared successfully");
     } catch (error) {
-      console.error("Error clearing activity logs:", error);
+      logger.error("Error clearing activity logs:", error);
       toast.error("Failed to clear activity logs");
     }
   };
@@ -1874,12 +1933,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setUsers(usersData);
         setFirebaseLoaded(prev => ({ ...prev, users: true }));
       }, (error) => {
-        console.error("Firebase users sync error:", error);
+        logger.error("Firebase users sync error:", error);
         setFirebaseLoaded(prev => ({ ...prev, users: true }));
       });
       return () => unsubscribe();
     } catch (error) {
-      console.error("Firebase users sync error:", error);
+      logger.error("Firebase users sync error:", error);
       setFirebaseLoaded(prev => ({ ...prev, users: true }));
     }
   }, [isAdminLoggedIn]);
@@ -1896,7 +1955,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.success("Message sent successfully!");
       return docRef.id;
     } catch (error) {
-      console.error("Error adding message:", error);
+      logger.error("Error adding message:", error);
       toast.error("Failed to send message");
       throw error;
     }
@@ -1909,7 +1968,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const messageRef = doc(db, "messages", id);
       await updateDoc(messageRef, { status: "read" });
     } catch (error) {
-      console.error("Error updating in Firebase:", error);
+      logger.error("Error updating in Firebase:", error);
     }
   };
 
@@ -1920,7 +1979,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const messageRef = doc(db, "messages", id);
       await updateDoc(messageRef, { status: "replied" });
     } catch (error) {
-      console.error("Error updating in Firebase:", error);
+      logger.error("Error updating in Firebase:", error);
     }
   };
 
@@ -1935,7 +1994,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         await updateDoc(messageRef, { status: "read" });
       }
     } catch (error) {
-      console.error("Error marking all messages as read in Firebase:", error);
+      logger.error("Error marking all messages as read in Firebase:", error);
     }
   };
 
@@ -1947,7 +2006,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setMessages(prev => prev.filter(m => m.id !== id));
       toast.success("Message deleted");
     } catch (error) {
-      console.error("Error deleting message:", error);
+      logger.error("Error deleting message:", error);
       toast.error("Failed to delete message");
     }
   };
@@ -1964,7 +2023,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.success("Review submitted! It will be visible after approval.");
       return docRef.id;
     } catch (error) {
-      console.error("Error adding review:", error);
+      logger.error("Error adding review:", error);
       toast.error("Failed to submit review");
       throw error;
     }
@@ -1977,7 +2036,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setReviews(prev => prev.map(r => r.id === id ? { ...r, ...reviewData } : r));
       toast.success("Review updated");
     } catch (error) {
-      console.error("Error updating review:", error);
+      logger.error("Error updating review:", error);
       toast.error("Failed to update review");
       throw error;
     }
@@ -1990,7 +2049,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setReviews(prev => prev.filter(r => r.id !== id));
       toast.success("Review deleted");
     } catch (error) {
-      console.error("Error deleting review:", error);
+      logger.error("Error deleting review:", error);
       toast.error("Failed to delete review");
       throw error;
     }
@@ -2003,7 +2062,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setReviews(prev => prev.map(r => r.id === id ? { ...r, status: "approved" } : r));
       toast.success("Review approved!");
     } catch (error) {
-      console.error("Error approving review:", error);
+      logger.error("Error approving review:", error);
       toast.error("Failed to approve review");
     }
   };
@@ -2015,7 +2074,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setReviews(prev => prev.map(r => r.id === id ? { ...r, status: "rejected" } : r));
       toast.success("Review rejected");
     } catch (error) {
-      console.error("Error rejecting review:", error);
+      logger.error("Error rejecting review:", error);
       toast.error("Failed to reject review");
     }
   };
@@ -2037,7 +2096,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const seedDemoReviews = async (signal?: { cancelled: boolean }) => {
-    console.log("Starting to seed reviews...", products.length, "products");
+    logger.log("Starting to seed reviews...", products.length, "products");
     
     const DEMO_REVIEWERS = [
       { name: "Samantha Wickramasinghe", email: "samantha.w@example.lk" },
@@ -2092,18 +2151,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     for (const product of products) {
       // Check for cancellation
       if (signal?.cancelled) {
-        console.log("Seeding cancelled by user");
+        logger.log("Seeding cancelled by user");
         toast.info("Seeding cancelled");
         return;
       }
       
       const numReviews = Math.floor(Math.random() * 3) + 6;
-      console.log(`Adding ${numReviews} reviews for product:`, product.name);
+      logger.log(`Adding ${numReviews} reviews for product:`, product.name);
       
       for (let i = 0; i < numReviews; i++) {
         // Check for cancellation on each iteration
         if (signal?.cancelled) {
-          console.log("Seeding cancelled by user");
+          logger.log("Seeding cancelled by user");
           toast.info("Seeding cancelled");
           return;
         }
@@ -2132,13 +2191,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           await addDoc(collection(db, "reviews"), reviewData);
           reviewsAdded++;
         } catch (error) {
-          console.error(`Error adding review for product ${product.id}:`, error);
+          logger.error(`Error adding review for product ${product.id}:`, error);
           errorsCount++;
         }
       }
     }
     
-    console.log("Seeding complete:", reviewsAdded, "added,", errorsCount, "errors");
+    logger.log("Seeding complete:", reviewsAdded, "added,", errorsCount, "errors");
     
     if (reviewsAdded > 0) {
       toast.success(`Successfully added ${reviewsAdded} demo reviews!`);
@@ -2156,7 +2215,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       toast.success("Demo offers added!");
     } catch (error) {
-      console.error("Error adding demo offers:", error);
+      logger.error("Error adding demo offers:", error);
       toast.error("Failed to add demo offers");
     }
   };
@@ -2222,7 +2281,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       return savedInvoice;
     } catch (error) {
-      console.error("Error creating invoice:", error);
+      logger.error("Error creating invoice:", error);
       // Silent fallback - don't show toast here, let checkout handle the message
       
       // Create and save fallback invoice to Firebase
@@ -2258,7 +2317,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setInvoices(prev => [savedFallback, ...prev]);
         return savedFallback;
       } catch (saveError) {
-        console.error("Failed to save fallback invoice:", saveError);
+        logger.error("Failed to save fallback invoice:", saveError);
         // Return invoice with temp ID as last resort (won't be accessible but checkout won't crash)
         return {
           ...fallbackInvoice,
@@ -2295,7 +2354,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       toast.success(`Payment status updated to ${status}`);
     } catch (error) {
-      console.error("Error updating invoice status:", error);
+      logger.error("Error updating invoice status:", error);
       toast.error("Failed to update status");
     }
   };
@@ -2341,7 +2400,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       toast.success("Invoice deleted successfully");
     } catch (error) {
-      console.error("Error deleting invoice:", error);
+      logger.error("Error deleting invoice:", error);
       toast.error("Failed to delete invoice");
     }
   };
@@ -2366,7 +2425,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       toast.success(`Cleaned up ${orphanedInvoices.length} orphaned invoice(s)`);
     } catch (error) {
-      console.error("Error cleaning orphaned invoices:", error);
+      logger.error("Error cleaning orphaned invoices:", error);
       toast.error("Failed to clean orphaned invoices");
     }
   };
@@ -2432,10 +2491,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         });
         
         // Store admin session in localStorage (separate from Firebase Auth)
+        // Session expires after 4 hours of inactivity
+        const IDLE_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours
         const session = {
           uid: result.user.uid,
           email: result.user.email,
-          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+          expiresAt: Date.now() + IDLE_TIMEOUT_MS,
+          lastActive: Date.now(),
+          idleTimeout: IDLE_TIMEOUT_MS,
         };
         localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
         
@@ -2458,7 +2521,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             lastActive: now,
           }, { merge: true });
         } catch (error) {
-          console.error("Error registering device session:", error);
+          logger.error("Error registering device session:", error);
         }
         
         // Update state
@@ -2479,7 +2542,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       return { success: false, error: "Login failed" };
     } catch (error) {
-      console.error("Admin login error:", error);
+      logger.error("Admin login error:", error);
       
       const attempts = (failedAttempts[cleanEmail] || 0) + 1;
       setFailedAttempts(prev => ({ ...prev, [cleanEmail]: attempts }));
@@ -2544,7 +2607,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             });
           }
         } catch (error) {
-          console.error("Error updating device session:", error);
+          logger.error("Error updating device session:", error);
         }
       }
       
@@ -2556,7 +2619,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setAdminEmail("");
       await logAdminLogout(adminEmail);
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
     }
   };
 
@@ -2583,7 +2646,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         await logout();
       }
     } catch (error) {
-      console.error("Error logging out device session:", error);
+      logger.error("Error logging out device session:", error);
       toast.error("Failed to log out device");
     }
   };
@@ -2609,7 +2672,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         await logout();
       }
     } catch (error) {
-      console.error("Error removing device session:", error);
+      logger.error("Error removing device session:", error);
       toast.error("Failed to remove device");
     }
   };
@@ -2625,7 +2688,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           lastActive: new Date().toISOString(),
         });
       } catch (e) {
-        console.error("Error updating session on logout:", e);
+        logger.error("Error updating session on logout:", e);
       }
       
       await signOut(auth);
@@ -2635,7 +2698,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setAdminEmail("");
       await logAdminLogout(adminEmail);
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
     }
   };
 
@@ -2703,7 +2766,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       
       return { success: false, error: "Setup failed" };
     } catch (error) {
-      console.error("Setup admin error:", error);
+      logger.error("Setup admin error:", error);
       
       let errorMessage = "Setup failed. Please try again.";
       
@@ -2745,7 +2808,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.success("Password changed successfully!");
       return { success: true };
     } catch (error) {
-      console.error("Change password error:", error);
+      logger.error("Change password error:", error);
       
       let errorMessage = "Failed to change password.";
       
@@ -2788,7 +2851,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.success("Username updated successfully!");
       return true;
     } catch (error) {
-      console.error("Error changing username:", error);
+      logger.error("Error changing username:", error);
       toast.error("Failed to change username");
       return false;
     }
@@ -2853,7 +2916,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.success("OTP sent to your recovery email");
       return { success: true };
     } catch (error: any) {
-      console.error("OTP generation failed:", error);
+      logger.error("OTP generation failed:", error);
       return { success: false, error: error?.message || "Failed to generate OTP. Try again." };
     }
   };
@@ -2899,7 +2962,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         { action: 'code_rotation' }
       );
     } catch (error) {
-      console.error("Error rotating security code:", error);
+      logger.error("Error rotating security code:", error);
     }
   };
 
@@ -2948,7 +3011,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         { settingKey: 'storeProfile' }
       );
     } catch (error) {
-      console.error("Error saving storeProfile:", error);
+      logger.error("Error saving storeProfile:", error);
       toast.error("Failed to save profile: " + (error as Error).message);
       logAdminAction(
         'SETTINGS_UPDATE',
@@ -2976,7 +3039,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         { settingKey: 'storeAssets' }
       );
     } catch (error) {
-      console.error("Error saving storeAssets:", error);
+      logger.error("Error saving storeAssets:", error);
       toast.error("Failed to save assets: " + (error as Error).message);
       logAdminAction(
         'SETTINGS_UPDATE',
@@ -3024,7 +3087,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         { settingKey: `siteContent.${sectionKey}` }
       );
     } catch (error) {
-      console.error("Error saving siteContent:", error);
+      logger.error("Error saving siteContent:", error);
       toast.error("Failed to save content: " + (error as Error).message);
       logAdminAction(
         'SETTINGS_UPDATE',
@@ -3042,7 +3105,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "siteContent"), DEFAULT_SITE_CONTENT);
     } catch (error) {
-      console.error("Error resetting siteContent:", error);
+      logger.error("Error resetting siteContent:", error);
     }
   };
 
@@ -3075,7 +3138,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
     } catch (error) {
-      console.error("Error adding product to Firebase:", error);
+      logger.error("Error adding product to Firebase:", error);
       toast.error("Failed to save product to database");
       await logProductAction(
         'PRODUCT_ADD',
@@ -3099,7 +3162,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         newProduct.id
       );
     } catch (e) {
-      console.error("Error creating notification:", e);
+      logger.error("Error creating notification:", e);
     }
     
     try {
@@ -3110,7 +3173,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         48
       );
     } catch (e) {
-      console.error("Error creating announcement:", e);
+      logger.error("Error creating announcement:", e);
     }
     
     try {
@@ -3123,7 +3186,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Added new product: ${newProduct.name}`
       );
     } catch (e) {
-      console.error("Error logging product action:", e);
+      logger.error("Error logging product action:", e);
     }
   };
 
@@ -3168,7 +3231,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Bulk added ${newProducts.length} products`
       );
     } catch (error) {
-      console.error("Error adding products to Firebase:", error);
+      logger.error("Error adding products to Firebase:", error);
       toast.error("Failed to save products to database");
     }
   };
@@ -3225,7 +3288,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Updated product: ${productName || id}`
       );
     } catch (error) {
-      console.error("Error updating product in Firebase:", error);
+      logger.error("Error updating product in Firebase:", error);
       await logProductAction(
         'PRODUCT_EDIT',
         adminUid || 'unknown',
@@ -3274,7 +3337,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Deleted product: ${productName || id}`
       );
     } catch (error) {
-      console.error("Error deleting product from Firebase:", error);
+      logger.error("Error deleting product from Firebase:", error);
       toast.error("Failed to delete product from database");
       logProductAction(
         'PRODUCT_DELETE',
@@ -3318,7 +3381,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         { productIds: ids, productNames: deletedProducts.map(p => p.name) }
       );
     } catch (error) {
-      console.error("Error bulk deleting products from Firebase:", error);
+      logger.error("Error bulk deleting products from Firebase:", error);
       toast.error("Failed to delete products from database");
       logAdminAction(
         'PRODUCT_BULK_DELETE',
@@ -3351,7 +3414,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Updated order ${id} status from ${previousStatus} to ${status}`
       );
     } catch (error) {
-      console.error("Error updating order status:", error);
+      logger.error("Error updating order status:", error);
       toast.error("Failed to update status");
       await logOrderAction(
         'ORDER_UPDATE',
@@ -3380,7 +3443,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       try {
         await setDoc(doc(db, "invoices", invoice.id), { paymentStatus }, { merge: true });
       } catch (error) {
-        console.error("Error updating invoice payment status:", error);
+        logger.error("Error updating invoice payment status:", error);
       }
     }
     
@@ -3388,7 +3451,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await updateDoc(doc(db, "orders", id), { paymentStatus });
       toast.success("Payment status updated!");
     } catch (error) {
-      console.error("Error updating payment status:", error);
+      logger.error("Error updating payment status:", error);
       toast.error("Failed to update payment status");
     }
   };
@@ -3421,7 +3484,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Deleted order ${id}`
       );
     } catch (error) {
-      console.error("Error deleting order:", error);
+      logger.error("Error deleting order:", error);
       toast.error("Failed to delete order");
       await logOrderAction(
         'ORDER_DELETE',
@@ -3516,9 +3579,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     
     try {
       await setDoc(doc(db, "orders", newOrder.id), newOrder);
-      console.log("[Orders] Order saved to Firebase:", newOrder.id);
+      logger.log("[Orders] Order saved to Firebase:", newOrder.id);
     } catch (error) {
-      console.error("[Orders] Error saving order to Firebase:", error);
+      logger.error("[Orders] Error saving order to Firebase:", error);
       // Order is still valid in local state
     }
     
@@ -3532,13 +3595,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     
-    console.log("[Offers] Adding offer:", newOffer.id, newOffer.title);
+    logger.log("[Offers] Adding offer:", newOffer.id, newOffer.title);
     
     setOffers(prev => [...prev, newOffer]);
     
     setDoc(doc(db, "offers", newOffer.id), newOffer)
       .then(async () => {
-        console.log("[Offers] Successfully saved to Firebase:", newOffer.id);
+        logger.log("[Offers] Successfully saved to Firebase:", newOffer.id);
         toast.success("Offer added!");
         
         await createGlobalNotification(
@@ -3565,7 +3628,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         );
       })
       .catch((error) => {
-        console.error("[Offers] Error saving to Firebase:", error);
+        logger.error("[Offers] Error saving to Firebase:", error);
         toast.error("Failed to save offer to database");
         setOffers(prev => prev.filter(o => o.id !== newOffer.id));
         logOfferAction(
@@ -3589,13 +3652,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     
     const previousOffer = offers.find(o => o.id === id);
     
-    console.log("[Offers] Updating offer:", id, "with:", offer);
+    logger.log("[Offers] Updating offer:", id, "with:", offer);
     
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...offer } : o));
     
     try {
       await updateDoc(doc(db, "offers", id), offer);
-      console.log("[Offers] Successfully updated in Firebase:", id);
+      logger.log("[Offers] Successfully updated in Firebase:", id);
       toast.success("Offer updated!");
       
       await createGlobalNotification(
@@ -3623,7 +3686,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Updated offer: ${previousOffer?.title || id}`
       );
     } catch (error) {
-      console.error("[Offers] Error updating in Firebase:", error);
+      logger.error("[Offers] Error updating in Firebase:", error);
       toast.error("Failed to update offer in database");
       if (previousOffer) {
         setOffers(prev => prev.map(o => o.id === id ? previousOffer : o));
@@ -3643,13 +3706,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const deleteOffer = (id: string) => {
     const deletedOffer = offers.find(o => o.id === id);
     
-    console.log("[Offers] Deleting offer:", id);
+    logger.log("[Offers] Deleting offer:", id);
     
     setOffers(prev => prev.filter(o => o.id !== id));
     
     deleteDoc(doc(db, "offers", id))
       .then(() => {
-        console.log("[Offers] Successfully deleted from Firebase:", id);
+        logger.log("[Offers] Successfully deleted from Firebase:", id);
         toast.success("Offer deleted!");
         logOfferAction(
           'OFFER_DELETE',
@@ -3661,7 +3724,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         );
       })
       .catch((error) => {
-        console.error("[Offers] Error deleting from Firebase:", error);
+        logger.error("[Offers] Error deleting from Firebase:", error);
         toast.error("Failed to delete offer from database");
         if (deletedOffer) {
           setOffers(prev => [...prev, deletedOffer]);
@@ -3681,10 +3744,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const toggleOfferStatus = (id: string) => {
     const offer = offers.find(o => o.id === id);
     if (offer) {
-      console.log("[Offers] Toggling offer:", id, "from", offer.isEnabled, "to", !offer.isEnabled);
+      logger.log("[Offers] Toggling offer:", id, "from", offer.isEnabled, "to", !offer.isEnabled);
       updateOffer(id, { isEnabled: !offer.isEnabled });
     } else {
-      console.error("[Offers] Offer not found for toggle:", id);
+      logger.error("[Offers] Offer not found for toggle:", id);
     }
   };
 
@@ -3706,7 +3769,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const endDate = new Date(o.endDate);
       
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        console.warn('[Offers] Invalid date for offer:', o.id, o.title, 'start:', o.startDate, 'end:', o.endDate);
+        logger.warn('[Offers] Invalid date for offer:', o.id, o.title, 'start:', o.startDate, 'end:', o.endDate);
         return false;
       }
       
@@ -3757,11 +3820,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
-    console.log('[addCategory] Adding:', id, category.name);
+    logger.log('[addCategory] Adding:', id, category.name);
     
     const newCategory: Category = { ...category, id };
     const allUpdated = [...categories, newCategory];
-    console.log('[addCategory] New categories list:', allUpdated.map(c => c.name));
+    logger.log('[addCategory] New categories list:', allUpdated.map(c => c.name));
     setCategories(allUpdated);
     try {
       await setDoc(doc(db, "storeData", "categories"), { categories: allUpdated }, { merge: true });
@@ -3775,7 +3838,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Added category: ${newCategory.name}`
       );
     } catch (error) {
-      console.error("Error saving category:", error);
+      logger.error("Error saving category:", error);
       toast.error("Failed to save category to database");
       logCategoryAction(
         'CATEGORY_ADD',
@@ -3802,7 +3865,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       await setDoc(doc(db, "storeData", "categories"), { categories: reordered }, { merge: true });
       toast.success("Category order saved!");
     } catch (error) {
-      console.error("Error saving category order:", error);
+      logger.error("Error saving category order:", error);
       toast.error("Failed to save category order");
     }
   };
@@ -3833,7 +3896,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Updated category: ${categoryName || id}`
       );
     } catch (error) {
-      console.error("Error updating category:", error);
+      logger.error("Error updating category:", error);
       logCategoryAction(
         'CATEGORY_EDIT',
         adminUid || 'unknown',
@@ -3849,11 +3912,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const deleteCategory = async (id: string) => {
     const categoryToDelete = categories.find(c => c.id === id);
     if (!categoryToDelete) {
-      console.error('[Delete] Category not found:', id);
+      logger.error('[Delete] Category not found:', id);
       return;
     }
     
-    console.log('[Delete] Deleting category:', id, categoryToDelete.name);
+    logger.log('[Delete] Deleting category:', id, categoryToDelete.name);
     
     const updated = categories.filter(c => c.id !== id);
     setCategories(updated);
@@ -3878,7 +3941,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `Deleted category: ${categoryToDelete.name}`
       );
     } catch (error) {
-      console.error("Error deleting category:", error);
+      logger.error("Error deleting category:", error);
       await setDoc(doc(db, "storeData", "categories"), { categories: updated }, { merge: true });
       await setDoc(doc(db, "storeData", "products"), { products: updatedProducts }, { merge: true });
       logCategoryAction(

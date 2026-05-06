@@ -1,4 +1,5 @@
 import { db } from "../firebase";
+import { logger } from "./logger";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ActivityAction, getDeviceInfo } from "./activityLog";
 
@@ -45,9 +46,9 @@ export const logAdminAction = async (
       createdAt: serverTimestamp(),
     });
 
-    console.log(`[AdminActionLog] ${action}: ${details} - ${status}`);
+    logger.log(`[AdminActionLog] ${action}: ${details} - ${status}`);
   } catch (error) {
-    console.error("[AdminActionLog] Failed to log admin action:", error);
+    logger.error("[AdminActionLog] Failed to log admin action:", error);
   }
 };
 

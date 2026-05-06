@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import { logger } from "../../lib/logger";
 
 type Theme = "light" | "dark";
 

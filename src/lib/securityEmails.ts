@@ -1,6 +1,7 @@
 import emailjs from "@emailjs/browser";
+import { logger } from "./logger";
 
-const RECOVERY_EMAIL = "ruzkhanhazar@gmail.com";
+const RECOVERY_EMAIL = import.meta.env.VITE_RECOVERY_EMAIL || "";
 
 interface EmailConfig {
   publicKey: string;
@@ -17,13 +18,13 @@ function getConfig(): EmailConfig | null {
 export async function sendSecurityCodeEmail(code: string, reason: string = "Daily auto-renewal"): Promise<boolean> {
   const config = getConfig();
   if (!config) {
-    console.warn("EmailJS not configured, cannot send security code email");
+    logger.warn("EmailJS not configured, cannot send security code email");
     return false;
   }
 
   const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_SECURITY_CODE;
   if (!templateId) {
-    console.warn("No security code email template configured");
+    logger.warn("No security code email template configured");
     return false;
   }
 
@@ -36,7 +37,7 @@ export async function sendSecurityCodeEmail(code: string, reason: string = "Dail
     }, config.publicKey);
     return true;
   } catch (error) {
-    console.error("Failed to send security code email:", error);
+    logger.error("Failed to send security code email:", error);
     return false;
   }
 }
@@ -44,13 +45,13 @@ export async function sendSecurityCodeEmail(code: string, reason: string = "Dail
 export async function sendOTPCodeEmail(otp: string): Promise<boolean> {
   const config = getConfig();
   if (!config) {
-    console.warn("EmailJS not configured, cannot send OTP email");
+    logger.warn("EmailJS not configured, cannot send OTP email");
     return false;
   }
 
   const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_SECURITY_OTP;
   if (!templateId) {
-    console.warn("No OTP email template configured");
+    logger.warn("No OTP email template configured");
     return false;
   }
 
@@ -63,7 +64,7 @@ export async function sendOTPCodeEmail(otp: string): Promise<boolean> {
     }, config.publicKey);
     return true;
   } catch (error) {
-    console.error("Failed to send OTP email:", error);
+    logger.error("Failed to send OTP email:", error);
     return false;
   }
 }
@@ -84,7 +85,7 @@ export async function sendSecurityAlertEmail(type: string, details: string): Pro
     }, config.publicKey);
     return true;
   } catch (error) {
-    console.error("Failed to send security alert email:", error);
+    logger.error("Failed to send security alert email:", error);
     return false;
   }
 }

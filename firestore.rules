@@ -6,89 +6,92 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function isOwner(userId) {
-      return request.auth.uid == userId;
+    // Check if the authenticated user is an admin
+    // This checks if there's a document in admins/{uid} with role == "admin"
+    function isAdmin() {
+      return isAuth() && 
+             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == "admin";
     }
     
-    // System collection - for admin setup tracking
+    // System collection - admin only
     match /system/{document} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     
-    // Admins collection - check for admin role
+    // Admins collection - only admins can manage
     match /admins/{adminId} {
-      allow read: if isAuth();
+      allow read: if isAdmin();
       allow create: if isAuth() && request.auth.uid == adminId;
-      allow update, delete: if isAuth() && request.auth.uid == adminId;
+      allow update, delete: if isAdmin() && request.auth.uid == adminId;
     }
     
-    // Products in storeData - public read, authenticated write
+    // Store data (products, profile, assets, content, categories) - public read, admin write
     match /storeData/{document=**} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     
-    // Admin credentials - authenticated users
+    // Admin credentials - admin only
     match /adminCredentials/{document=**} {
-      allow read, write: if isAuth();
+      allow read, write: if isAdmin();
     }
     
-    // Admin login logs - anyone can create (for logging)
+    // Admin login logs - anyone can create (for logging), admin read
     match /adminLogs/{logId} {
-      allow read: if isAuth();
-      allow create: if true;
-      allow update, delete: if isAuth();
+      allow read: if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
     
-    // Orders - public create (checkout), authenticated read/update for admin
+    // Orders - public create (checkout), admin read/update
     match /orders/{orderId} {
       allow read: if isAuth();
       allow create: if true;
-      allow update, delete: if isAuth();
+      allow update, delete: if isAdmin();
     }
     
-    // Activity Logs - authenticated only (admin)
+    // Activity Logs - admin only
     match /activityLogs/{logId} {
-      allow read, write: if isAuth();
+      allow read, write: if isAdmin();
     }
     
-    // Admin Device Sessions - authenticated only (admin)
+    // Admin Device Sessions - admin only
     match /adminDeviceSessions/{sessionId} {
-      allow read, write: if isAuth();
+      allow read, write: if isAdmin();
     }
     
-    // Invoices - authenticated only
+    // Invoices - public read for verification, admin write
     match /invoices/{invoiceId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     
-    // Messages - public create (contact form), authenticated read/update/delete
+    // Messages - public create (contact form), admin read/update/delete
     match /messages/{messageId} {
-      allow read, delete, update: if isAuth();
+      allow read, delete, update: if isAdmin();
       allow create: if true;
     }
     
-    // Offers - public read, authenticated write
+    // Offers - public read, admin write
     match /offers/{offerId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     
-    // Reviews - public read/create, authenticated update/delete
+    // Reviews - public read/create, admin update/delete
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if isAuth();
+      allow update, delete: if isAdmin();
     }
     
-    // Users - public read/create, owner or authenticated update own data
+    // Users - public read/create, admin update
     match /users/{userId} {
       allow read: if true;
       allow create: if true;
-      allow update: if isAuth() && (request.auth.uid == userId || isAuth());
-      allow delete: if isAuth() && request.auth.uid == userId;
+      allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
+      allow delete: if isAdmin();
     }
     
     // Wishlist - users can only access their own
@@ -101,32 +104,27 @@ service cloud.firestore {
       allow read, write: if isAuth() && request.auth.uid == userId;
     }
     
-    // Activity Logs - authenticated only
-    match /activityLogs/{logId} {
-      allow read, write: if isAuth();
-    }
-    
-    // Admin Device Sessions - authenticated only
-    match /adminDeviceSessions/{sessionId} {
-      allow read, write: if isAuth();
-    }
-    
-    // Code Rotation OTP - authenticated only
+    // Code Rotation OTP - admin only
     match /codeRotationOtp/{otpId} {
-      allow read, write: if isAuth();
+      allow read, write: if isAdmin();
     }
 
-    // Login Attempts - anyone can create (for logging), authenticated read for admin
+    // Login Attempts - anyone can create (for logging), admin read
     match /loginAttempts/{attemptId} {
-      allow read: if isAuth();
-      allow create: if true;
-      allow update, delete: if isAuth();
+      allow read: if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
 
-    // Blocked IPs - anyone can read (for login check), authenticated write
+    // Blocked IPs - admin read/write, public read for login check
     match /blockedIps/{blockId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // Security verification attempts - admin only
+    match /securityAttempts/{attemptId} {
+      allow read, write: if isAdmin();
     }
   }
 }
