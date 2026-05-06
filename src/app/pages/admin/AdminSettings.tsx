@@ -967,10 +967,129 @@ export default function AdminSettings() {
                         <div>
                           <Label>Email Button Text</Label>
                           <Input value={contentForm.services.emailButtonText} onChange={(e) => setContentForm({...contentForm, services: {...contentForm.services, emailButtonText: e.target.value}})} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                       </div>
+                     </div>
+                   </div>
+                   <div className="border-t pt-4">
+                     <h4 className="font-semibold text-foreground mb-3">Why Choose Us Items</h4>
+                     <div className="space-y-4">
+                       {contentForm.services.whyChooseItems.map((item, idx) => (
+                         <div key={idx} className="border rounded-lg p-4 bg-muted/50 space-y-3">
+                           <span className="font-medium text-sm">Item {idx + 1}</span>
+                           <div>
+                             <Label>Title</Label>
+                             <Input
+                               value={item.title}
+                               onChange={(e) => {
+                                 const newItems = [...contentForm.services.whyChooseItems];
+                                 newItems[idx] = { ...newItems[idx], title: e.target.value };
+                                 setContentForm({ ...contentForm, services: { ...contentForm.services, whyChooseItems: newItems } });
+                               }}
+                             />
+                           </div>
+                           <div>
+                             <Label>Description</Label>
+                             <Textarea
+                               value={item.description}
+                               onChange={(e) => {
+                                 const newItems = [...contentForm.services.whyChooseItems];
+                                 newItems[idx] = { ...newItems[idx], description: e.target.value };
+                                 setContentForm({ ...contentForm, services: { ...contentForm.services, whyChooseItems: newItems } });
+                               }}
+                               rows={2}
+                             />
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                   <div className="border-t pt-4">
+                     <h4 className="font-semibold text-foreground mb-3">Service Cards</h4>
+                     <div className="space-y-4">
+                       {contentForm.services.items.map((service, idx) => (
+                         <div key={idx} className="border rounded-lg p-4 bg-muted/50 space-y-4">
+                           <span className="font-medium text-sm">{service.title}</span>
+                           <div>
+                             <Label>Title</Label>
+                             <Input
+                               value={service.title}
+                               onChange={(e) => {
+                                 const newItems = [...contentForm.services.items];
+                                 newItems[idx] = { ...newItems[idx], title: e.target.value };
+                                 setContentForm({ ...contentForm, services: { ...contentForm.services, items: newItems } });
+                               }}
+                             />
+                           </div>
+                           <div>
+                             <Label>Description</Label>
+                             <Textarea
+                               value={service.description}
+                               onChange={(e) => {
+                                 const newItems = [...contentForm.services.items];
+                                 newItems[idx] = { ...newItems[idx], description: e.target.value };
+                                 setContentForm({ ...contentForm, services: { ...contentForm.services, items: newItems } });
+                               }}
+                               rows={2}
+                             />
+                           </div>
+                           <div>
+                             <div className="flex items-center justify-between mb-2">
+                               <Label>Features</Label>
+                               <Button
+                                 type="button"
+                                 size="sm"
+                                 variant="outline"
+                                 onClick={() => {
+                                   const newItems = [...contentForm.services.items];
+                                   newItems[idx] = {
+                                     ...newItems[idx],
+                                     features: [...newItems[idx].features, "New feature"],
+                                   };
+                                   setContentForm({ ...contentForm, services: { ...contentForm.services, items: newItems } });
+                                 }}
+                                 className="text-xs"
+                               >
+                                 <Plus className="w-3 h-3 mr-1" /> Add Feature
+                               </Button>
+                             </div>
+                             <div className="space-y-2">
+                               {service.features.map((feature, fIdx) => (
+                                 <div key={fIdx} className="flex items-center gap-2">
+                                   <Input
+                                     value={feature}
+                                     onChange={(e) => {
+                                       const newItems = [...contentForm.services.items];
+                                       const newFeatures = [...newItems[idx].features];
+                                       newFeatures[fIdx] = e.target.value;
+                                       newItems[idx] = { ...newItems[idx], features: newFeatures };
+                                       setContentForm({ ...contentForm, services: { ...contentForm.services, items: newItems } });
+                                     }}
+                                   />
+                                   <Button
+                                     type="button"
+                                     size="sm"
+                                     variant="ghost"
+                                     onClick={() => {
+                                       const newItems = [...contentForm.services.items];
+                                       newItems[idx] = {
+                                         ...newItems[idx],
+                                         features: newItems[idx].features.filter((_, i) => i !== fIdx),
+                                       };
+                                       setContentForm({ ...contentForm, services: { ...contentForm.services, items: newItems } });
+                                     }}
+                                     className="text-red-500 p-1 h-8 w-8"
+                                   >
+                                     <X className="w-4 h-4" />
+                                   </Button>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 </div>
                 </div>
                 <div className="flex justify-end pt-4 border-t mt-6">
                   <Button
