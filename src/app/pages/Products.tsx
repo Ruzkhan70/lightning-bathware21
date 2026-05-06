@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { setMetaTags } from "../utils/seo";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Filter, X } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import RecentlyViewed from "../components/RecentlyViewed";
@@ -25,6 +25,18 @@ export default function Products() {
   const [sortBy, setSortBy] = useState<string>("default");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCategoryChange = (category: string) => {
+    const newCategory = category === "All Categories" ? "all" : category;
+    setSelectedCategory(newCategory);
+    
+    if (newCategory === "all") {
+      navigate("/products", { replace: true });
+    } else {
+      navigate(`/products?category=${encodeURIComponent(category)}`, { replace: true });
+    }
+  };
 
   // Update category from URL params when it changes
   useEffect(() => {
@@ -194,11 +206,7 @@ export default function Products() {
                           (selectedCategory === "all" &&
                             category === "All Categories")
                         }
-                        onChange={() =>
-                          setSelectedCategory(
-                            category === "All Categories" ? "all" : category
-                          )
-                        }
+                        onChange={() => handleCategoryChange(category)}
                         className="w-4 h-4 accent-[#D4AF37]"
                       />
                       <span>{category}</span>
@@ -286,11 +294,7 @@ export default function Products() {
                             (selectedCategory === "all" &&
                               category === "All Categories")
                           }
-                          onChange={() =>
-                            setSelectedCategory(
-                              category === "All Categories" ? "all" : category
-                            )
-                          }
+                          onChange={() => handleCategoryChange(category)}
                           className="w-4 h-4 accent-[#D4AF37]"
                         />
                         <span>{category}</span>
