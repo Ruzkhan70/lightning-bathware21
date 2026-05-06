@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight, Download, Upload, Scale, Eye, Check, Copy } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
+import { uploadImage } from "../../../lib/imageUpload";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -239,18 +240,10 @@ export default function AdminProducts() {
 
   const addVariantImage = async (index: number, file: File) => {
     try {
-      const formDataImg = new FormData();
-      formDataImg.append("image", file);
-      const response = await fetch(
-        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-        { method: "POST", body: formDataImg }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setEditVariants(prev => prev.map((v, i) => 
-          i === index ? { ...v, images: [...v.images, data.data.url] } : v
-        ));
-      }
+      const url = await uploadImage(file);
+      setEditVariants(prev => prev.map((v, i) => 
+        i === index ? { ...v, images: [...v.images, url] } : v
+      ));
     } catch (error) {
       const url = URL.createObjectURL(file);
       setEditVariants(prev => prev.map((v, i) => 
@@ -281,18 +274,10 @@ export default function AdminProducts() {
 
   const addSizeImage = async (index: number, file: File) => {
     try {
-      const formDataImg = new FormData();
-      formDataImg.append("image", file);
-      const response = await fetch(
-        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-        { method: "POST", body: formDataImg }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setEditSizes(prev => prev.map((s, i) => 
-          i === index ? { ...s, images: [...s.images, data.data.url] } : s
-        ));
-      }
+      const url = await uploadImage(file);
+      setEditSizes(prev => prev.map((s, i) => 
+        i === index ? { ...s, images: [...s.images, url] } : s
+      ));
     } catch (error) {
       const url = URL.createObjectURL(file);
       setEditSizes(prev => prev.map((s, i) => 

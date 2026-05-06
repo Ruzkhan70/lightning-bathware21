@@ -5,7 +5,8 @@ import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 import ContentLoader from "./components/ContentLoader";
 import { ProtectedAdminRoute } from "./components/ProtectedAdminRoute";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, ShieldAlert } from "lucide-react";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Lazy load all pages with optimized loading
 const Home = lazy(() => import("./pages/Home"));
@@ -75,6 +76,30 @@ function ErrorPage() {
   );
 }
 
+// Custom error page for admin routes
+function AdminErrorPage() {
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gray-900 rounded-xl shadow-lg p-8 text-center border border-gray-800">
+        <div className="w-20 h-20 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+          <ShieldAlert className="w-10 h-10 text-red-400" />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-3">Admin Portal Error</h1>
+        <p className="text-gray-400 mb-6">
+          Something went wrong. Please try refreshing the page.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold px-6 py-3 rounded-lg transition-colors cursor-pointer"
+        >
+          <RefreshCw className="w-5 h-5" />
+          Refresh Page
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export const router = createHashRouter([
   {
     path: "/",
@@ -101,7 +126,8 @@ export const router = createHashRouter([
   { path: "/admin/login", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminLogin /></Suspense> },
   {
     path: "/admin",
-    element: <ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>,
+    element: <ErrorBoundary fallback={<AdminErrorPage />}><ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute></ErrorBoundary>,
+    errorElement: <AdminErrorPage />,
     children: [
       { index: true, element: <Suspense fallback={<ContentLoaderWrapper />}><AdminDashboard /></Suspense> },
       { path: "products", element: <Suspense fallback={<ContentLoaderWrapper />}><AdminProducts /></Suspense> },
@@ -123,4 +149,3 @@ export const router = createHashRouter([
     ],
   },
 ]);
-

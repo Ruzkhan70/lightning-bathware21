@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { Upload, X, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { handleError } from "../../../lib/errorHandler";
+import { uploadImage } from "../../../lib/imageUpload";
 
 interface ImageUploadProps {
   value: string;
@@ -66,31 +67,6 @@ export default function ImageUpload({
     });
   };
 
-  const uploadToImgBB = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("image", file);
-    
-    const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
-    if (!apiKey) {
-      throw new Error("Image upload API key not configured");
-    }
-    
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-      method: "POST",
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error("Upload failed");
-    }
-    
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error?.message || "Upload failed");
-    }
-    return data.data.url;
-  };
-
   const validateFile = (file: File): string | null => {
     if (!allowedTypes.includes(file.type)) {
       return `Invalid file type. Allowed: ${allowedTypes.map(t => t.split("/")[1]).join(", ")}`;
@@ -112,8 +88,9 @@ export default function ImageUpload({
     toast.info("Uploading image...");
 
     try {
-      const compressedFile = await compressImage(file);
-      const imageUrl = await uploadToImgBB(compressedFile);
+      const compressedBlob = await compressImage(file);
+      const compressedFile = new File([compressedBlob], file.name, { type: "image/jpeg" });
+      const imageUrl = await uploadImage(compressedFile);
       onChange(imageUrl);
       toast.success("Image uploaded successfully!");
     } catch (error) {

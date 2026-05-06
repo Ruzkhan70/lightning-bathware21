@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { logger } from "../../../lib/logger";
+import { uploadImage } from "../../../lib/imageUpload";
 import { PlusCircle, Upload, FileText, X, Check, Loader2, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle, Copy, Lock, Unlock } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -81,18 +82,10 @@ export default function AdminAddProduct() {
 
     const handleRowImageUpload = async (productId: string, file: File) => {
       try {
-        const formDataImg = new FormData();
-        formDataImg.append("image", file);
-        const response = await fetch(
-          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-          { method: "POST", body: formDataImg }
-        );
-        const data = await response.json();
-        if (data.success) {
-          setBulkProducts(prev => prev.map(p => 
-            p.id === productId ? { ...p, image: data.data.url } : p
-          ));
-        }
+        const url = await uploadImage(file);
+        setBulkProducts(prev => prev.map(p => 
+          p.id === productId ? { ...p, image: url } : p
+        ));
       } catch (error) {
         const url = URL.createObjectURL(file);
         setBulkProducts(prev => prev.map(p => 
@@ -379,16 +372,10 @@ export default function AdminAddProduct() {
                             formDataImg.append("image", file);
                             
                             try {
-                              const response = await fetch(
-                                `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-                                { method: "POST", body: formDataImg }
-                              );
-                              const data = await response.json();
-                              if (data.success) {
-                                setBulkProducts(prev => prev.map(p => 
-                                  p.id === product.id ? { ...p, image: data.data.url } : p
-                                ));
-                              }
+                              const url = await uploadImage(file);
+                              setBulkProducts(prev => prev.map(p => 
+                                p.id === product.id ? { ...p, image: url } : p
+                              ));
                             } catch (error) {
                               const url = URL.createObjectURL(file);
                               setBulkProducts(prev => prev.map(p => 
@@ -651,21 +638,9 @@ export default function AdminAddProduct() {
     const uploadMainImage = async (file: File) => {
       setIsUploading(true);
       try {
-        const formDataObj = new FormData();
-        formDataObj.append("image", file);
-
-        const response = await fetch(
-          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-          { method: "POST", body: formDataObj }
-        );
-        const data = await response.json();
-        
-        if (data.success) {
-          setFormData(prev => ({ ...prev, image: data.data.url }));
-          toast.success("Image uploaded!");
-        } else {
-          toast.error("Upload failed");
-        }
+        const url = await uploadImage(file);
+        setFormData(prev => ({ ...prev, image: url }));
+        toast.success("Image uploaded!");
       } catch (error) {
         toast.error("Upload failed");
       }
@@ -674,31 +649,13 @@ export default function AdminAddProduct() {
 
     const uploadVariantImage = async (variantId: string, file: File) => {
       try {
-        const formDataImg = new FormData();
-        formDataImg.append("image", file);
-
-        const response = await fetch(
-          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-          { method: "POST", body: formDataImg }
-        );
-        const data = await response.json();
-        
-        if (data.success) {
-          setVariants(prev => prev.map(v => {
-            if (v.id === variantId) {
-              return { ...v, images: [...v.images, data.data.url] };
-            }
-            return v;
-          }));
-        } else {
-          const url = URL.createObjectURL(file);
-          setVariants(prev => prev.map(v => {
-            if (v.id === variantId) {
-              return { ...v, images: [...v.images, url] };
-            }
-            return v;
-          }));
-        }
+        const url = await uploadImage(file);
+        setVariants(prev => prev.map(v => {
+          if (v.id === variantId) {
+            return { ...v, images: [...v.images, url] };
+          }
+          return v;
+        }));
       } catch (error) {
         const url = URL.createObjectURL(file);
         setVariants(prev => prev.map(v => {
