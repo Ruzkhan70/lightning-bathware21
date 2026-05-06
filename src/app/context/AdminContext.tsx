@@ -994,6 +994,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [securityCodeVerified, setSecurityCodeVerified] = useState(false);
   const [securityCodeExpiryInfo, setSecurityCodeExpiryInfo] = useState<SecurityCodeExpiryInfo | null>(null);
   const verificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasInitializedLogoutWatcher = useRef(false);
 
   const checkIfUserIsAdmin = useCallback(async (user: FirebaseUser): Promise<boolean> => {
     try {
@@ -1302,7 +1303,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   // Watch current device session status for remote logout
   useEffect(() => {
-    if (!isAdminLoggedIn || !adminEmail) return;
+    if (!isAdminLoggedIn || !adminEmail) {
+      hasInitializedLogoutWatcher.current = false;
+      return;
+    }
 
     const deviceId = getOrCreateDeviceId();
     const q = query(
@@ -1312,6 +1316,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      // Skip the first snapshot - it may reflect stale cleanup state from login
+      if (!hasInitializedLogoutWatcher.current) {
+        hasInitializedLogoutWatcher.current = true;
+        return;
+      }
+      
       if (snapshot.empty) return;
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
