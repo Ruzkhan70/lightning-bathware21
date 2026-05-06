@@ -43,7 +43,7 @@ export default function RecentlyViewed() {
             to={`/products?search=${encodeURIComponent(product.name)}`}
             className="flex-shrink-0 w-40 group"
           >
-            <div className="aspect-square rounded-lg overflow-hidden bg-muted-50 mb-2">
+            <div className="aspect-square rounded-lg overflow-hidden bg-muted/50 mb-2">
               <LazyImage
                 src={product.image}
                 alt={product.name}

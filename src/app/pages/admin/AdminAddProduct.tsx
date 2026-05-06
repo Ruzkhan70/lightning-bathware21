@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { logger } from "../../../lib/logger";
 import { PlusCircle, Upload, FileText, X, Check, Loader2, ImagePlus, Trash2, Images, FileSpreadsheet, AlertTriangle, Copy, Lock, Unlock } from "lucide-react";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -846,7 +847,7 @@ export default function AdminAddProduct() {
         if (priceRef.current) priceRef.current.value = "";
         
       } catch (error: any) {
-        console.error("Failed to add product:", error);
+        logger.error("Failed to add product:", error);
       }
     };
 

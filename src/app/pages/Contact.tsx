@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../../lib/logger";
 import { setMetaTags } from "../utils/seo";
 import { MapPin, Phone, Mail, Clock, Send, Facebook, Instagram, Twitter } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
@@ -80,7 +81,7 @@ export default function Contact() {
         message: "",
       });
     } catch (error) {
-      console.error("Failed to send message:", error);
+      logger.error("Failed to send message:", error);
       toast.error("Failed to send message. Please try again.");
     }
   };

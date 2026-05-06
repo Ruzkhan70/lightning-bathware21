@@ -171,7 +171,7 @@ export default function AdminStatistics() {
         {/* Mobile Card View */}
         <div className="md:hidden space-y-2">
           {categoryStats.map((cat) => (
-            <div key={cat.name} className="flex items-center justify-between p-3 bg-muted-50 rounded-lg">
+            <div key={cat.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <span className="font-semibold">{cat.name}</span>
               <div className="flex gap-4 text-sm">
                 <span className="text-muted-foreground">{cat.products} Products</span>
@@ -215,7 +215,7 @@ export default function AdminStatistics() {
             {topSellingProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="flex items-center gap-4 p-4 bg-muted-50 rounded-lg"
+                className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg"
               >
                 <div className="w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center font-bold">
                   {index + 1}

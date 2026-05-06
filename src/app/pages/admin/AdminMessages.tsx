@@ -168,7 +168,7 @@ export default function AdminMessages() {
           <div className="hidden md:block bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-muted-50 border-b">
+                <thead className="bg-muted/50 border-b">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">Customer</th>
@@ -182,7 +182,7 @@ export default function AdminMessages() {
                   {filteredMessages.map((message) => (
                     <tr 
                       key={message.id} 
-                      className={`hover:bg-muted-50 transition-colors ${message.status === "new" ? "bg-red-50/30 dark:bg-red-900/20" : ""}`}
+                      className={`hover:bg-muted/50 transition-colors ${message.status === "new" ? "bg-red-50/30 dark:bg-red-900/20" : ""}`}
                     >
                       <td className="px-6 py-4">
                         {getStatusBadge(message.status)}
@@ -341,14 +341,14 @@ export default function AdminMessages() {
               </div>
 
               <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center gap-3 p-3 md:p-4 bg-muted-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-muted/50 rounded-lg">
                   <User className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm text-muted-foreground">Customer Name</p>
                     <p className="font-medium text-sm md:text-base truncate">{currentMessage.name}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 md:p-4 bg-muted-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-muted/50 rounded-lg">
                   <Mail className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm text-muted-foreground">Email Address</p>
@@ -363,7 +363,7 @@ export default function AdminMessages() {
                   </div>
                 </div>
                 {currentMessage.phone && (
-                  <div className="flex items-center gap-3 p-3 md:p-4 bg-muted-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-muted/50 rounded-lg">
                     <Phone className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
                     <div>
                       <p className="text-xs md:text-sm text-muted-foreground">Phone Number</p>
@@ -374,7 +374,7 @@ export default function AdminMessages() {
                   </div>
                 )}
                 {currentMessage.subject && (
-                  <div className="flex items-center gap-3 p-3 md:p-4 bg-muted-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-muted/50 rounded-lg">
                     <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37] flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs md:text-sm text-muted-foreground">Subject</p>
@@ -384,7 +384,7 @@ export default function AdminMessages() {
                 )}
               </div>
 
-              <div className="bg-muted-50 rounded-lg p-4 md:p-6">
+              <div className="bg-muted/50 rounded-lg p-4 md:p-6">
                 <h3 className="text-xs md:text-sm text-muted-foreground mb-2 font-medium">Message</h3>
                 <p className="text-foreground whitespace-pre-wrap leading-relaxed text-sm md:text-base">
                   {currentMessage.message}

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { logger } from "../../../lib/logger";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -101,7 +102,7 @@ export default function AdminLoginAttempts() {
       });
       mergeAndDeduplicate();
     }, (error) => {
-      console.error("Error loading adminLogs:", error);
+      logger.error("Error loading adminLogs:", error);
     });
 
     const unsub2 = onSnapshot(loginAttemptsQ, (snapshot) => {
@@ -125,7 +126,7 @@ export default function AdminLoginAttempts() {
       });
       mergeAndDeduplicate();
     }, (error) => {
-      console.error("Error loading loginAttempts:", error);
+      logger.error("Error loading loginAttempts:", error);
     });
 
     return () => {
@@ -143,7 +144,7 @@ export default function AdminLoginAttempts() {
       })) as BlockedIpEntry[];
       setBlockedIps(blocked);
     }, (error) => {
-      console.error("Error loading blocked IPs:", error);
+      logger.error("Error loading blocked IPs:", error);
     });
 
     return () => unsubscribe();
@@ -295,7 +296,7 @@ export default function AdminLoginAttempts() {
       toast.success("Login attempt deleted");
       setDeleteConfirm(null);
     } catch (error) {
-      console.error("Error deleting log:", error);
+      logger.error("Error deleting log:", error);
       toast.error("Failed to delete log");
     } finally {
       setIsDeleting(false);
@@ -313,7 +314,7 @@ export default function AdminLoginAttempts() {
       toast.success(`Deleted ${filteredLogs.length} login attempt(s)`);
       setShowClearAllConfirm(false);
     } catch (error) {
-      console.error("Error clearing logs:", error);
+      logger.error("Error clearing logs:", error);
       toast.error("Failed to clear logs");
     } finally {
       setIsDeleting(false);

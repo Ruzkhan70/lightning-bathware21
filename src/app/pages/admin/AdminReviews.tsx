@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logger } from "../../../lib/logger";
 import { Star, Check, X, Trash2, Edit2, Search, CheckCircle, XCircle, Clock, Database, RefreshCw, Square, CheckSquare, SquareCheck } from "lucide-react";
 import { useAdmin, Review } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
@@ -144,7 +145,7 @@ export default function AdminReviews() {
   const cancelRef = { cancelled: false };
 
   const handleSeedReviews = async () => {
-    console.log("handleSeedReviews called, products:", products.length);
+    logger.log("handleSeedReviews called, products:", products.length);
     
     if (products.length === 0) {
       toast.error("No products found. Please add products first.");
@@ -154,13 +155,13 @@ export default function AdminReviews() {
     // Reset cancellation flag
     cancelRef.cancelled = false;
     setIsSeeding(true);
-    console.log("Starting seeding...");
+    logger.log("Starting seeding...");
     
     try {
       await seedDemoReviews(cancelRef);
-      console.log("Seeding completed");
+      logger.log("Seeding completed");
     } catch (error) {
-      console.error("Seeding failed:", error);
+      logger.error("Seeding failed:", error);
       toast.error("Failed to seed reviews. Check console for errors.");
     } finally {
       setIsSeeding(false);

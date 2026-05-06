@@ -36,7 +36,7 @@ export async function generateProductDescription(
     const data = await response.json();
     return data.description || generateFallbackDescription(productName, category, productIndex);
   } catch (error) {
-    console.error("Description API error:", error);
+    logger.error("Description API error:", error);
     return generateFallbackDescription(productName, category, productIndex);
   }
 }

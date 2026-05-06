@@ -143,7 +143,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {recentOrders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-muted-50 transition-colors">
+                    <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
                       <td className="py-3 px-4 font-mono text-sm">#{order.id.slice(-6)}</td>
                       <td className="py-3 px-4">{order.customerName}</td>
                        <td className="py-3 px-4 text-sm text-muted-foreground">{order.products.length} items</td>
@@ -279,7 +279,7 @@ export default function AdminDashboard() {
           </h3>
           <div className="space-y-2">
             {unavailableProducts.slice(0, 5).map((product) => (
-              <div key={product.id} className="flex items-center justify-between p-2 bg-muted-50 rounded">
+              <div key={product.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
                 <span className="text-sm truncate flex-1">{product.name}</span>
                 <span className="font-semibold text-sm ml-2 text-red-600 dark:text-red-400">
                   Not Available

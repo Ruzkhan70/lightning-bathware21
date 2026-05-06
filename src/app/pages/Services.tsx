@@ -14,7 +14,7 @@ export default function Services() {
   }));
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
       <section className="bg-black text-white py-16">
         <div className="container mx-auto px-4 text-center">
@@ -103,7 +103,7 @@ export default function Services() {
                 </button>
               </a>
               <a href={`mailto:${storeProfile.email}`}>
-                <button className="px-8 py-3 bg-card hover:bg-muted text-foreground font-bold rounded-lg transition-colors hover:scale-105">
+                <button className="px-8 py-3 bg-card hover:bg-muted text-black font-bold rounded-lg transition-colors hover:scale-105">
                   {siteContent.services.emailButtonText}
                 </button>
               </a>

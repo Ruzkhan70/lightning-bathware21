@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { logger } from "../../lib/logger";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, updateDoc, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
 
@@ -90,7 +91,7 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
       setCurrentAnnouncement(activeAnnouncements[0] || null);
       setIsLoading(false);
     }, (error) => {
-      console.error("Announcements error:", error);
+      logger.error("Announcements error:", error);
       setIsLoading(false);
     });
 
@@ -123,7 +124,7 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
         createdBy: "admin",
       });
     } catch (error) {
-      console.error("Error creating announcement:", error);
+      logger.error("Error creating announcement:", error);
       throw error;
     }
   };
@@ -132,7 +133,7 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
     try {
       await deleteDoc(doc(db, "announcements", id));
     } catch (error) {
-      console.error("Error deleting announcement:", error);
+      logger.error("Error deleting announcement:", error);
       throw error;
     }
   };
@@ -141,7 +142,7 @@ export function AnnouncementProvider({ children }: { children: ReactNode }) {
     try {
       await updateDoc(doc(db, "announcements", id), { isActive: false });
     } catch (error) {
-      console.error("Error expiring announcement:", error);
+      logger.error("Error expiring announcement:", error);
       throw error;
     }
   };

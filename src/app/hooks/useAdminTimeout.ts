@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "../../lib/logger";
 
 const DEFAULT_TIMEOUT = 30 * 60; // 30 minutes in seconds
 const REMEMBER_ME_TIMEOUT = 24 * 60 * 60; // 24 hours in seconds
@@ -72,7 +73,7 @@ export function useAdminTimeout(
     setShowWarning(false);
     setCountdownTime(0);
     warningShownRef.current = false;
-    console.log("Session expired - logging out user");
+    logger.log("Session expired - logging out user");
     onLogoutRef.current();
   }, [clearAllTimers]);
 
@@ -152,7 +153,7 @@ export function useAdminTimeout(
       startInactivityCheck();
     }
     
-    console.log("Session timer reset - activity detected");
+    logger.log("Session timer reset - activity detected");
   }, [clearAllTimers, startInactivityCheck]);
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { logger } from "../../../lib/logger";
 import { Bell, Trash2, Eye, Info, Clock, Check, X, Loader2, Plus, Tag, FileText, RefreshCw, Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -31,7 +32,7 @@ const typeOptions: TypeOption[] = [
   { value: "offer", label: "Special Offer", icon: Tag, color: "text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20" },
   { value: "product", label: "New Product", icon: Plus, color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
   { value: "terms", label: "Terms Update", icon: FileText, color: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20" },
-  { value: "general", label: "General Notice", icon: Info, color: "text-muted-foreground bg-muted-50" },
+  { value: "general", label: "General Notice", icon: Info, color: "text-muted-foreground bg-muted/50" },
 ];
 
 const expiryOptions = [
@@ -90,7 +91,7 @@ export default function AdminAnnouncements() {
       setAnnouncements(data);
       setIsLoading(false);
     }, (error) => {
-      console.error("Error fetching announcements:", error);
+      logger.error("Error fetching announcements:", error);
       setIsLoading(false);
     });
 
@@ -250,7 +251,7 @@ export default function AdminAnnouncements() {
       toast.success("Announcement published!");
       setFormData({ title: "", message: "", type: "general", expiresInHours: 72, sourceId: "" });
     } catch (error) {
-      console.error("Error creating announcement:", error);
+      logger.error("Error creating announcement:", error);
       toast.error(`Failed to publish: ${error instanceof Error ? error.message : "Please try again"}`);
     } finally {
       setIsSubmitting(false);
@@ -295,7 +296,7 @@ export default function AdminAnnouncements() {
 
   const getTypeColor = (type: string) => {
     const option = typeOptions.find(t => t.value === type);
-    return option?.color || "text-muted-foreground bg-muted-50";
+    return option?.color || "text-muted-foreground bg-muted/50";
   };
 
   const PreviewBanner = () => (
@@ -527,7 +528,7 @@ export default function AdminAnnouncements() {
               ) : (
                 <div className="space-y-4">
                   {announcements.filter(a => !a.isActive).slice(0, 5).map((announcement) => (
-                    <div key={announcement.id} className="flex items-start justify-between p-4 bg-muted-50 rounded-lg">
+                    <div key={announcement.id} className="flex items-start justify-between p-4 bg-muted/50 rounded-lg">
                       <div className="flex gap-3">
                         <div className={`p-2 rounded-lg ${getTypeColor(announcement.type)}`}>
                           {getTypeIcon(announcement.type)}

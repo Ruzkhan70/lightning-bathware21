@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { logger } from "../../../lib/logger";
 import { useAdmin } from "../../context/AdminContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -291,7 +292,7 @@ export default function AdminInvoices() {
       return doc;
     }
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      logger.error("Error generating PDF:", error);
       toast.error("Failed to generate PDF");
       if (single) {
         return;
@@ -323,7 +324,7 @@ export default function AdminInvoices() {
     link.click();
     toast.success("CSV exported!");
     } catch (error) {
-      console.error("Error exporting CSV:", error);
+      logger.error("Error exporting CSV:", error);
       toast.error("Failed to export CSV");
     }
   };
@@ -360,7 +361,7 @@ export default function AdminInvoices() {
     doc.save(`invoices-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
     toast.success("PDF report exported!");
     } catch (error) {
-      console.error("Error exporting PDF:", error);
+      logger.error("Error exporting PDF:", error);
       toast.error("Failed to export PDF report");
     }
   };
@@ -472,7 +473,7 @@ export default function AdminInvoices() {
         </div>
 
         {showFilters && (
-          <div className="p-4 border-b bg-muted-50 flex flex-wrap gap-4">
+          <div className="p-4 border-b bg-muted/50 flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Status:</label>
               <select
@@ -777,28 +778,28 @@ export default function AdminInvoices() {
           {selectedInvoice ? (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted-50 p-3 rounded-lg">
+                <div className="bg-muted/50 p-3 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Customer</p>
                   <p className="font-semibold flex items-center gap-1">
                     <User className="w-3 h-3" />
                     {selectedInvoice.customerName || "Unknown"}
                   </p>
                 </div>
-                <div className="bg-muted-50 p-3 rounded-lg">
+                <div className="bg-muted/50 p-3 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Phone</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Phone className="w-3 h-3" />
                     {selectedInvoice.customerPhone || "N/A"}
                   </p>
                 </div>
-                <div className="bg-muted-50 p-3 rounded-lg">
+                <div className="bg-muted/50 p-3 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Email</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Mail className="w-3 h-3" />
                     {selectedInvoice.customerEmail || "N/A"}
                   </p>
                 </div>
-                <div className="bg-muted-50 p-3 rounded-lg">
+                <div className="bg-muted/50 p-3 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Date</p>
                   <p className="font-semibold flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
@@ -807,7 +808,7 @@ export default function AdminInvoices() {
                 </div>
               </div>
 
-              <div className="bg-muted-50 p-3 rounded-lg">
+              <div className="bg-muted/50 p-3 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-1">Delivery Address</p>
                 <p className="font-semibold flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
@@ -845,7 +846,7 @@ export default function AdminInvoices() {
               </div>
 
               <div className="flex justify-between">
-                <div className="bg-muted-50 p-3 rounded-lg">
+                <div className="bg-muted/50 p-3 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">QR Code</p>
                   <div className="bg-card p-2 rounded inline-block">
                     <QRCodeSVG

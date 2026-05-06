@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../../../lib/logger";
 import { useNavigate, useLocation } from "react-router";
 import { Lock, Mail, AlertCircle, Shield, User, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -84,7 +85,7 @@ export default function AdminLogin() {
         setErrorMessage(result.error || "Authentication failed");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      logger.error("Login error:", error);
       setErrorMessage("An unexpected error occurred. Please try again.");
       toast.error("An error occurred. Please try again.");
     } finally {
@@ -244,7 +245,7 @@ export default function AdminLogin() {
           </form>
 
           {/* Security Notice */}
-          <div className="mt-6 p-4 bg-muted-50 rounded-lg border">
+          <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
             <div className="flex items-start gap-3">
               <Shield className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
               <div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../../../lib/logger";
 import { Users, Trash2, Search, Loader2, AlertTriangle, X, RefreshCw } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -36,7 +37,7 @@ export default function AdminCustomers() {
       })) as Customer[];
       setCustomers(usersData);
     } catch (error) {
-      console.error("Error fetching customers:", error);
+      logger.error("Error fetching customers:", error);
       toast.error("Failed to load customers");
     } finally {
       setLoading(false);
@@ -70,7 +71,7 @@ export default function AdminCustomers() {
       setShowDeleteConfirm(false);
       setCustomerToDelete(null);
     } catch (error) {
-      console.error("Error deleting customer:", error);
+      logger.error("Error deleting customer:", error);
       toast.error("Failed to delete customer");
     } finally {
       setIsDeleting(false);
@@ -99,7 +100,7 @@ export default function AdminCustomers() {
           await deleteDoc(doc(db, "users", customer.id));
           deletedCount++;
         } catch (error) {
-          console.error(`Error deleting customer ${customer.id}:`, error);
+          logger.error(`Error deleting customer ${customer.id}:`, error);
           failedCount++;
         }
       }
@@ -185,7 +186,7 @@ export default function AdminCustomers() {
         <div className="bg-card rounded-xl shadow-sm overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted-50 border-b">
+              <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">
                     Name
@@ -206,7 +207,7 @@ export default function AdminCustomers() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-muted-50">
+                  <tr key={customer.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4">
                       <div className="font-medium">{customer.name || "N/A"}</div>
                     </td>

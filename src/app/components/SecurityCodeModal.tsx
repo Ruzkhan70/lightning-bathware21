@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logger } from "../../lib/logger";
 import { X, Shield, Key, AlertCircle } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "./ui/button";
@@ -43,7 +44,7 @@ export default function SecurityCodeModal({ isOpen, onClose, onSuccess }: Securi
       if (result.success) {
         setShowForgot(true);
       } else {
-        console.error(result.error);
+        logger.error(result.error);
       }
     } finally {
       setIsSendingOTP(false);

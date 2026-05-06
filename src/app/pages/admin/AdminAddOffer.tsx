@@ -319,7 +319,7 @@ export default function AdminAddOffer() {
                     {categoryProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted-50 cursor-pointer"
+                        className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest('button')) return;
                           handleProductToggle(product.id);
@@ -365,7 +365,7 @@ export default function AdminAddOffer() {
           </div>
 
           {/* Status */}
-          <div className="flex items-center gap-3 p-4 bg-muted-50 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
             <Checkbox
               id="isEnabled"
               checked={formData.isEnabled}

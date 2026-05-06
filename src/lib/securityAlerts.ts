@@ -1,4 +1,5 @@
 import { ActivityLog } from './activityLog';
+import { logger } from "./logger";
 
 const getEmailJSConfig = () => ({
   serviceId: 'service_xdnqytp',
@@ -21,14 +22,14 @@ export const sendSecurityAlertEmail = async (data: SecurityAlertData): Promise<b
   const config = getEmailJSConfig();
   
   if (!config.serviceId || !config.templateId || !config.publicKey) {
-    console.warn('[Security] EmailJS not configured, skipping security alert');
+    logger.warn('[Security] EmailJS not configured, skipping security alert');
     return false;
   }
 
   try {
     const emailjs = (window as any).emailjs;
     if (!emailjs) {
-      console.warn('[Security] EmailJS not loaded');
+      logger.warn('[Security] EmailJS not loaded');
       return false;
     }
 
@@ -110,10 +111,10 @@ Lightning Bathware Admin Portal
       }
     );
 
-    console.log('[Security] Alert email sent successfully');
+    logger.log('[Security] Alert email sent successfully');
     return true;
   } catch (error) {
-    console.error('[Security] Failed to send security alert email:', error);
+    logger.error('[Security] Failed to send security alert email:', error);
     return false;
   }
 };

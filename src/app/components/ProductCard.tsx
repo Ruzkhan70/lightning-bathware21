@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logger } from "../../lib/logger";
 import { Heart, ShoppingCart, Eye, Sparkles, Scale } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
@@ -20,7 +21,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { getProductDiscount, storeProfile } = useAdmin();
   const [showModal, setShowModal] = useState(false);
   
-  console.log('[ProductCard] enableCompareFeature:', storeProfile?.enableCompareFeature);
+  logger.log('[ProductCard] enableCompareFeature:', storeProfile?.enableCompareFeature);
   const enableCompare = storeProfile?.enableCompareFeature === true;
   
   const discount = getProductDiscount(product.id);

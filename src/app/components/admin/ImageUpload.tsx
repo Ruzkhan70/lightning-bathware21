@@ -169,7 +169,7 @@ export default function ImageUpload({
         onClick={() => !isUploading && fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-lg p-4 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[150px]
           ${isDragging ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-border hover:border-[#D4AF37]"}
-          ${value ? "bg-muted-50" : "bg-card"}
+          ${value ? "bg-muted/50" : "bg-card"}
           ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
       >
         <input

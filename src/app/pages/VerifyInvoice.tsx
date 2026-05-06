@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../../lib/logger";
 import { useParams, Link } from "react-router";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
@@ -38,7 +39,7 @@ export default function VerifyInvoice() {
             foundInvoice = { ...docSnap.data(), id: docSnap.id };
           }
         } catch (error) {
-          console.error("Error fetching invoice from Firebase:", error);
+          logger.error("Error fetching invoice from Firebase:", error);
         }
       }
 
@@ -55,7 +56,7 @@ export default function VerifyInvoice() {
               foundInvoice = { ...docSnap.data(), id: docSnap.id };
             }
           } catch (error) {
-            console.error("Error fetching invoice:", error);
+            logger.error("Error fetching invoice:", error);
           }
         }
       }
@@ -64,7 +65,7 @@ export default function VerifyInvoice() {
       if (!foundInvoice && invoices && invoices.length > 0) {
         foundInvoice = invoices.find(inv => inv.orderId === id || inv.orderId === id.replace(/-/g, ""));
         if (foundInvoice) {
-          console.log("Found invoice by orderId match");
+          logger.log("Found invoice by orderId match");
         }
       }
       
@@ -72,7 +73,7 @@ export default function VerifyInvoice() {
       if (!foundInvoice && invoices && invoices.length > 0) {
         foundInvoice = invoices.find(inv => inv.invoiceNumber === id || inv.invoiceNumber === id.toUpperCase());
         if (foundInvoice) {
-          console.log("Found invoice by invoiceNumber match");
+          logger.log("Found invoice by invoiceNumber match");
         }
       }
 
@@ -97,7 +98,7 @@ export default function VerifyInvoice() {
 
   if (status === "not_found") {
     return (
-      <div className="min-h-screen bg-muted-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <div className="bg-card rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <XCircle className="w-10 h-10 text-red-500" />
@@ -109,7 +110,7 @@ export default function VerifyInvoice() {
           <p className="text-sm text-muted-foreground mb-6">
             Verification ID: <code className="bg-muted px-2 py-1 rounded">{id}</code>
           </p>
-          <div className="bg-muted-50 p-4 rounded-lg">
+          <div className="bg-muted/50 p-4 rounded-lg">
             <p className="text-sm text-muted-foreground">If you believe this is an error, please contact:</p>
             <p className="font-semibold mt-1 flex items-center justify-center gap-2">
               <Phone className="w-4 h-4" />
@@ -169,25 +170,25 @@ export default function VerifyInvoice() {
 
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-muted-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <User className="w-4 h-4" /> Customer
                 </p>
                 <p className="font-semibold">{invoice.customerName}</p>
               </div>
-              <div className="bg-muted-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <Phone className="w-4 h-4" /> Phone
                 </p>
                 <p className="font-semibold">{invoice.customerPhone}</p>
               </div>
-              <div className="bg-muted-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <Calendar className="w-4 h-4" /> Date
                 </p>
                 <p className="font-semibold">{format(new Date(invoice.date), "dd MMM yyyy, HH:mm")}</p>
               </div>
-              <div className="bg-muted-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                   <Package className="w-4 h-4" /> Items
                 </p>
@@ -195,7 +196,7 @@ export default function VerifyInvoice() {
               </div>
             </div>
 
-            <div className="bg-muted-50 p-4 rounded-lg">
+            <div className="bg-muted/50 p-4 rounded-lg">
               <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                 <MapPin className="w-4 h-4" /> Delivery Address
               </p>
@@ -254,7 +255,7 @@ export default function VerifyInvoice() {
             </div>
           </div>
 
-          <div className="bg-muted-50 px-6 py-4 flex justify-center">
+          <div className="bg-muted/50 px-6 py-4 flex justify-center">
             <Link to={`/invoice/${invoice.id}`}>
               <Button className="bg-[#D4AF37] hover:bg-[#b8962f] text-white">
                 <FileText className="w-4 h-4 mr-2" />

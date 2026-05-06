@@ -52,32 +52,17 @@ export default function Header() {
 
   useEffect(() => {
     const handleDocumentTouchStart = (e: TouchEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('button[aria-label="Toggle menu"]') || target.closest('button[aria-label="Close menu"]')) {
-        return;
-      }
-      
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
       touchStartTime.current = Date.now();
     };
 
     const handleDocumentTouchMove = (e: TouchEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('button[aria-label="Toggle menu"]') || target.closest('button[aria-label="Close menu"]')) {
-        return;
-      }
-      
       touchEndX.current = e.touches[0].clientX;
       touchEndY.current = e.touches[0].clientY;
     };
 
-    const handleDocumentTouchEnd = (e: TouchEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('button[aria-label="Toggle menu"]') || target.closest('button[aria-label="Close menu"]')) {
-        return;
-      }
-      
+    const handleDocumentTouchEnd = () => {
       const swipeThreshold = 60;
       const timeThreshold = 500;
       const diffX = touchEndX.current - touchStartX.current;
@@ -125,14 +110,7 @@ export default function Header() {
     touchEndY.current = e.touches[0].clientY;
   };
 
-  const handleTouchEnd = (e?: React.TouchEvent) => {
-    if (e) {
-      const target = e.target as HTMLElement;
-      if (target.closest('button') || target.tagName === 'BUTTON') {
-        return;
-      }
-    }
-    
+  const handleTouchEnd = () => {
     const swipeThreshold = 60;
     const timeThreshold = 500;
     const diffX = touchEndX.current - touchStartX.current;
@@ -226,7 +204,7 @@ export default function Header() {
                       key={product.id}
                       type="button"
                       onClick={() => handleSuggestionClick(product.name)}
-                      className="w-full text-left px-4 py-3 hover:bg-muted-50 border-b border-border/50 last:border-0 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
                     >
                       <div className="font-medium text-foreground">{product.name}</div>
                       <div className="text-sm text-muted-foreground">{product.category}</div>
@@ -234,7 +212,7 @@ export default function Header() {
                   ))}
                   <button
                     type="submit"
-                    className="w-full text-left px-4 py-3 bg-muted-50 hover:bg-muted text-[#D4AF37] font-medium transition-colors"
+                    className="w-full text-left px-4 py-3 bg-muted/50 hover:bg-muted text-[#D4AF37] font-medium transition-colors"
                   >
                     View all results for "{searchQuery}"
                   </button>
@@ -280,7 +258,7 @@ export default function Header() {
 
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-              className="md:hidden p-2 -mr-2 transition-colors active:text-[#D4AF37] rounded-lg cursor-pointer"
+              className="md:hidden p-2 -mr-2 transition-colors active:text-[#D4AF37] rounded-lg"
               style={{ color: '#929292' }}
               aria-label="Toggle menu"
             >
@@ -307,7 +285,7 @@ export default function Header() {
                     key={product.id}
                     type="button"
                     onClick={() => handleSuggestionClick(product.name)}
-                    className="w-full text-left px-4 py-3 hover:bg-muted-50 border-b border-border/50 last:border-0 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
                   >
                     <div className="font-medium text-foreground">{product.name}</div>
                     <div className="text-sm text-muted-foreground">{product.category}</div>
@@ -357,12 +335,12 @@ export default function Header() {
                           key={category.id}
                           to={`/products?category=${encodeURIComponent(category.name)}`}
                           onClick={() => setShowCategoriesDropdown(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-foreground hover:bg-muted-50"}`}
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${isCategoryActive ? "text-[#D4AF37] bg-[#D4AF37]/10" : "text-foreground hover:bg-muted/50"}`}
                         >
                           {category.image ? (
                             <img alt={category.name} className="w-10 h-10 rounded-lg object-cover" src={category.image} />
                           ) : (
-                            <span className="w-10 h-10 rounded-lg bg-muted-50 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
+                            <span className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center font-bold">{category.name.charAt(0)}</span>
                           )}
                           <span className="font-medium">{category.name}</span>
                         </Link>
@@ -575,7 +553,7 @@ export default function Header() {
             <ul className="space-y-1">
               <li>
                 <button
-                  onClick={() => { toggleTheme(); closeMobileMenu(); }}
+                  onClick={() => { toggleTheme(); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
                 >
                   {theme === "dark" ? (

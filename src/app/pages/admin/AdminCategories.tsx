@@ -397,7 +397,7 @@ export default function AdminCategories() {
             <Download className="w-4 h-4" />
             <span className="ml-2 hidden sm:inline">Export</span>
           </Button>
-          <label className="cursor-pointer border border-border px-3 py-2 rounded-lg hover:bg-muted-50 flex items-center gap-2">
+          <label className="cursor-pointer border border-border px-3 py-2 rounded-lg hover:bg-muted/50 flex items-center gap-2">
             <Upload className="w-4 h-4" />
             <span className="hidden sm:inline">Import</span>
             <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
@@ -429,7 +429,7 @@ export default function AdminCategories() {
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "grid" ? "bg-black text-white" : "bg-card text-muted-foreground hover:bg-muted-50"}`}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "grid" ? "bg-black text-white" : "bg-card text-muted-foreground hover:bg-muted/50"}`}
             >
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Grid</span>
@@ -437,7 +437,7 @@ export default function AdminCategories() {
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "list" ? "bg-black text-white" : "bg-card text-muted-foreground hover:bg-muted-50"}`}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${viewMode === "list" ? "bg-black text-white" : "bg-card text-muted-foreground hover:bg-muted/50"}`}
             >
               <List className="w-4 h-4" />
               <span className="hidden sm:inline">List</span>

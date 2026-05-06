@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { logger } from "../../lib/logger";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 
@@ -41,13 +42,13 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
         setReviews(reviewsData);
         setLoading(false);
       }, (error) => {
-        console.error("Error fetching reviews:", error);
+        logger.error("Error fetching reviews:", error);
         setLoading(false);
       });
 
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error setting up reviews listener:", error);
+      logger.error("Error setting up reviews listener:", error);
       setLoading(false);
     }
   }, []);
@@ -84,7 +85,7 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("Error adding review:", error);
+      logger.error("Error adding review:", error);
       throw error;
     }
   };

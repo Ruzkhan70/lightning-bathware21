@@ -1,4 +1,5 @@
 import emailjs from "@emailjs/browser";
+import { logger } from "./logger";
 
 interface OrderNotificationData {
   orderId: string;
@@ -24,7 +25,7 @@ export async function sendOrderNotificationToAdmin(orderData: OrderNotificationD
   const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_ADMIN_ORDER || import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 
   if (!publicKey || !serviceId || !templateId) {
-    console.warn("EmailJS not configured, skipping order notification");
+    logger.warn("EmailJS not configured, skipping order notification");
     return false;
   }
 
@@ -50,7 +51,7 @@ export async function sendOrderNotificationToAdmin(orderData: OrderNotificationD
     await emailjs.send(serviceId, templateId, templateParams, publicKey);
     return true;
   } catch (error) {
-    console.error("Failed to send order notification:", error);
+    logger.error("Failed to send order notification:", error);
     return false;
   }
 }
@@ -66,7 +67,7 @@ export async function sendOrderConfirmationToCustomer(
   const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_CUSTOMER_ORDER;
 
   if (!publicKey || !serviceId || !templateId) {
-    console.warn("EmailJS not configured for customer confirmation");
+    logger.warn("EmailJS not configured for customer confirmation");
     return false;
   }
 
@@ -79,7 +80,7 @@ export async function sendOrderConfirmationToCustomer(
     }, publicKey);
     return true;
   } catch (error) {
-    console.error("Failed to send customer confirmation:", error);
+    logger.error("Failed to send customer confirmation:", error);
     return false;
   }
 }
@@ -95,7 +96,7 @@ export async function sendContactNotification(
   const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_CONTACT || import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 
   if (!publicKey || !serviceId || !templateId) {
-    console.warn("EmailJS not configured, skipping contact notification");
+    logger.warn("EmailJS not configured, skipping contact notification");
     return false;
   }
 
@@ -108,7 +109,7 @@ export async function sendContactNotification(
     }, publicKey);
     return true;
   } catch (error) {
-    console.error("Failed to send contact notification:", error);
+    logger.error("Failed to send contact notification:", error);
     return false;
   }
 }

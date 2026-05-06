@@ -52,7 +52,7 @@ export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
   return (
     <div className="bg-card rounded-lg shadow overflow-hidden">
       <div className="border-b">
-        <div className="flex gap-4 p-4 bg-muted-50">
+        <div className="flex gap-4 p-4 bg-muted/50">
           {Array.from({ length: cols }).map((_, i) => (
             <Skeleton key={i} className="h-4 flex-1" />
           ))}

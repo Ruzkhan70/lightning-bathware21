@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logger } from "../../../lib/logger";
 import { Eye, Search, Trash2, AlertTriangle, FileText, CheckCircle, Clock, Truck, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAdmin } from "../../context/AdminContext";
@@ -168,7 +169,7 @@ export default function AdminOrders() {
       
       setViewingOrder(null);
     } catch (error) {
-      console.error("Error adding tracking:", error);
+      logger.error("Error adding tracking:", error);
       toast.error("Failed to add tracking information");
     }
   };
@@ -276,7 +277,7 @@ export default function AdminOrders() {
         <div className="hidden md:block bg-card rounded-lg shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted-50 border-b">
+              <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="text-left py-4 px-4 w-10">
                     <input
@@ -307,7 +308,7 @@ export default function AdminOrders() {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-b hover:bg-muted-50">
+                  <tr key={order.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4">
                       <input
                         type="checkbox"
@@ -506,7 +507,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
           {currentOrder && (
             <div className="space-y-6 py-4">
               {/* Customer Info */}
-              <div className="bg-muted-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <h3 className="font-semibold mb-3">Customer Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -543,7 +544,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                   {(currentOrder.products || currentOrder.items || []).map((product, idx) => (
                     <div
                       key={product.id || `product-${idx}`}
-                      className="flex items-center gap-4 p-3 bg-muted-50 rounded-lg"
+                      className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg"
                     >
                       <img
                         src={product.image}
@@ -602,7 +603,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
               </div>
 
               {/* Order & Payment Status */}
-              <div className="bg-muted-50 p-4 rounded-lg">
+              <div className="bg-muted/50 p-4 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Order Status</p>

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { logger } from "../../lib/logger";
 import { db } from "../../firebase";
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { toast } from "sonner";
@@ -54,7 +55,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(BANNER_DISMISSED_KEY, JSON.stringify(dismissed));
       }
     } catch (e) {
-      console.error("Error saving dismissed ID:", e);
+      logger.error("Error saving dismissed ID:", e);
     }
   }, [getDismissedIds]);
 
@@ -77,7 +78,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(TRACKED_NOTIFICATIONS_KEY, JSON.stringify(tracked));
       }
     } catch (e) {
-      console.error("Error saving tracked ID:", e);
+      logger.error("Error saving tracked ID:", e);
     }
   }, [getTrackedIds]);
 
@@ -130,7 +131,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       
       setIsLoading(false);
     }, (error) => {
-      console.error("Notifications error:", error);
+      logger.error("Notifications error:", error);
       setIsLoading(false);
     });
 
@@ -162,7 +163,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       
       toast.success("Notification sent to all users!");
     } catch (error) {
-      console.error("Error adding notification:", error);
+      logger.error("Error adding notification:", error);
       toast.error("Failed to create notification");
     }
   };

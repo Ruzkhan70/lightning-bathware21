@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../../lib/logger";
 import { useNavigate, Link } from "react-router";
 import { useCart } from "../context/CartContext";
 import { useAdmin } from "../context/AdminContext";
@@ -108,7 +109,7 @@ export default function Checkout() {
     }
 
     try {
-      console.log("[Checkout] Starting order placement...");
+      logger.log("[Checkout] Starting order placement...");
       
       const orderData = {
         userId: user.id,
@@ -129,9 +130,9 @@ export default function Checkout() {
         deliveryCost: deliveryCost,
       };
       
-      console.log("[Checkout] Order data:", orderData);
+      logger.log("[Checkout] Order data:", orderData);
       const savedOrder = await addOrder(orderData);
-      console.log("[Checkout] Order saved:", savedOrder.id);
+      logger.log("[Checkout] Order saved:", savedOrder.id);
       
       const orderNotification = {
         orderId: savedOrder.id || `ORD-${Date.now()}`,
@@ -199,7 +200,7 @@ export default function Checkout() {
           toast.success("Order placed successfully! Invoice generated.");
           navigate(`/invoice/${invoice.id}`);
         } catch (invoiceError) {
-          console.error("Invoice creation failed:", invoiceError);
+          logger.error("Invoice creation failed:", invoiceError);
           clearCart();
           setIsSubmitting(false);
           toast.success("Order placed successfully!");
@@ -208,7 +209,7 @@ export default function Checkout() {
       }
     } catch (error) {
       setIsSubmitting(false);
-      console.error("Error placing order:", error);
+      logger.error("Error placing order:", error);
       toast.error("Failed to place order. Please try again.");
     }
   };

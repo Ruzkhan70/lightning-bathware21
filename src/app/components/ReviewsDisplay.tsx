@@ -104,7 +104,7 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
     return (
       <div className="border-t pt-8">
         <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
-         <div className="text-center py-8 bg-muted-50 rounded-lg">
+         <div className="text-center py-8 bg-muted/50 rounded-lg">
            <Star className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
            <p className="text-muted-foreground mb-2">No reviews yet for this product</p>
            <p className="text-sm text-muted-foreground mb-4">Be the first to share your experience!</p>
@@ -146,7 +146,7 @@ export default function ReviewsDisplay({ productId, productName }: ReviewsDispla
            </p>
         </div>
         
-         <div className="md:col-span-2 p-4 bg-muted-50 rounded-lg">
+         <div className="md:col-span-2 p-4 bg-muted/50 rounded-lg">
           {renderRatingBars()}
         </div>
       </div>

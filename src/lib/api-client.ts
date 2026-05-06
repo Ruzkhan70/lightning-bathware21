@@ -29,7 +29,7 @@ export async function uploadImageViaApi(imageData: string): Promise<UploadImageR
       deleteUrl: data.deleteUrl,
     };
   } catch (error) {
-    console.error('API upload error:', error);
+    logger.error('API upload error:', error);
     return { success: false, error: 'Network error during upload' };
   }
 }
@@ -69,7 +69,7 @@ export async function generateDescriptionViaApi(
       description: data.description,
     };
   } catch (error) {
-    console.error('API generation error:', error);
+    logger.error('API generation error:', error);
     return { success: false, error: 'Network error during generation' };
   }
 }

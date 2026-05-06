@@ -86,7 +86,7 @@ export default function ComparePage() {
           <table className="w-full bg-card rounded-lg shadow">
             <thead>
               <tr>
-                <th className="p-4 text-left bg-muted-50 w-40 text-foreground"></th>
+                <th className="p-4 text-left bg-muted/50 w-40 text-foreground"></th>
                 {compareList.map((product) => (
                   <th key={product.id} className="p-4 text-center border-l border-border">
                     <div className="relative">
@@ -116,7 +116,7 @@ export default function ComparePage() {
             <tbody>
               {compareRows.map((row, i) => (
                 <tr key={row.label} className={i === 0 ? "" : "border-t border-border"}>
-                  <td className="p-4 font-medium bg-muted-50 text-foreground">{row.label}</td>
+                  <td className="p-4 font-medium bg-muted/50 text-foreground">{row.label}</td>
                   {compareList.map((product) => (
                     <td key={product.id} className="p-4 text-center border-l border-border text-sm text-muted-foreground">
                       {row.render(product)}
@@ -125,7 +125,7 @@ export default function ComparePage() {
                 </tr>
               ))}
               <tr className="border-t border-border">
-                <td className="p-4 font-medium bg-muted-50 text-foreground">Actions</td>
+                <td className="p-4 font-medium bg-muted/50 text-foreground">Actions</td>
                 {compareList.map((product) => (
                   <td key={product.id} className="p-4 text-center border-l">
                     <div className="flex flex-col gap-2 items-center">
@@ -160,7 +160,7 @@ export default function ComparePage() {
             const displayPrice = discount.hasDiscount ? discount.discountedPrice : product.price;
             return (
               <div key={product.id} className="bg-card rounded-xl shadow overflow-hidden">
-                <div className="relative p-4 bg-muted-50">
+                <div className="relative p-4 bg-muted/50">
                   <button
                     onClick={() => removeFromCompare(product.id)}
                     className="absolute top-3 right-3 p-1.5 bg-card rounded-full shadow hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
