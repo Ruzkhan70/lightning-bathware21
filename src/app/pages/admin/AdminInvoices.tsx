@@ -20,7 +20,7 @@ import {
 import { 
   FileText, Search, Filter, Download, Eye, CheckCircle, 
   Clock, X, Calendar, User, Phone, Mail, MapPin, Package,
-  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet, AlertCircle, Trash2
+  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet, AlertCircle, AlertTriangle, Trash2
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import jsPDF from "jspdf";
