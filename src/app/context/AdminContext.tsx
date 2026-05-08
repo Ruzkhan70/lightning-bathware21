@@ -2480,16 +2480,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Remove from local state
-      setInvoices(prev => prev.filter(inv => inv.id !== id));
-
-      // Delete from Firebase
+      // Delete from Firebase FIRST, then update local state
+      // (avoid race where onSnapshot re-populates the deleted invoice)
       await deleteDoc(doc(db, "invoices", id));
+
+      // Only remove from local state after successful Firebase delete
+      setInvoices(prev => prev.filter(inv => inv.id !== id));
 
       toast.success("Invoice deleted successfully");
     } catch (error) {
       logger.error("Error deleting invoice:", error);
-      toast.error("Failed to delete invoice");
+      // Firestore permission errors show the error code in the message
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes("permission-denied") || msg.includes("PERMISSION_DENIED")) {
+        toast.error("Permission denied. Your admin session may have expired. Please re-login.");
+      } else {
+        toast.error("Failed to delete invoice");
+      }
     }
   };
 
