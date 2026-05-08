@@ -497,6 +497,19 @@ export default function AdminSettings() {
               </Card>
 
               <Card title="Delivery Settings" icon={<Truck className="w-5 h-5" />} description="Shipping options and pricing">
+                <div className="flex items-center justify-between p-4 bg-muted-50 rounded-lg mb-4">
+                  <div>
+                    <p className="font-medium">Customer Pays Delivery</p>
+                    <p className="text-sm text-muted-foreground">When disabled, delivery is free for all customers</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProfileForm({...profileForm, deliveryPaidByCustomer: !profileForm.deliveryPaidByCustomer})}
+                    className={profileForm.deliveryPaidByCustomer ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
+                  >
+                    {profileForm.deliveryPaidByCustomer ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Colombo Delivery (Rs.)</Label>

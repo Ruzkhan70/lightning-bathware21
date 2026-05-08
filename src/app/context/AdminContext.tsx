@@ -232,6 +232,7 @@ export interface StoreProfile {
   adminShortcut: string;
   deliveryColomboPrice: number;
   deliveryIslandwidePrice: number;
+  deliveryPaidByCustomer: boolean;
   statsYearsExperience: string;
   statsProducts: string;
   statsCustomers: string;
@@ -559,6 +560,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   adminShortcut: "5212",
   deliveryColomboPrice: 500,
   deliveryIslandwidePrice: 1000,
+  deliveryPaidByCustomer: true,
   statsYearsExperience: "10+",
   statsProducts: "350+",
   statsCustomers: "5,000+",

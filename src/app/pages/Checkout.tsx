@@ -64,7 +64,7 @@ export default function Checkout() {
   const selectedDelivery = deliveryOptions.find(
     (opt) => opt.value === formData.deliveryOption
   );
-  const deliveryCost = Number(selectedDelivery?.cost) || 0;
+  const deliveryCost = storeProfile.deliveryPaidByCustomer ? (Number(selectedDelivery?.cost) || 0) : 0;
   const grandTotal = Number(cartTotal) + deliveryCost;
 
   const handleInputChange = (
@@ -197,13 +197,20 @@ export default function Checkout() {
           const invoice = await createInvoice(savedOrder, formData.email);
           clearCart();
           setIsSubmitting(false);
-          toast.success("Order placed successfully! Invoice generated.");
-          navigate(`/invoice/${invoice.id}`);
+          
+          if (invoice.id.startsWith("temp-")) {
+            logger.warn("[Checkout] Invoice not persisted to Firebase:", invoice.id);
+            toast.success("Order placed successfully! Invoice will be generated shortly.");
+            navigate("/account");
+          } else {
+            toast.success("Order placed successfully! Invoice generated.");
+            navigate(`/invoice/${invoice.id}`);
+          }
         } catch (invoiceError) {
           logger.error("Invoice creation failed:", invoiceError);
           clearCart();
           setIsSubmitting(false);
-          toast.success("Order placed successfully!");
+          toast.success("Order placed successfully! Invoice will be available in your account shortly.");
           navigate("/account");
         }
       }
