@@ -22,6 +22,7 @@ import {
   Bell,
   Sun,
   Moon,
+  Receipt,
 } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { useTheme } from "../context/ThemeContext";
@@ -239,6 +240,11 @@ export default function AdminLayout() {
       icon: Bell,
       label: "Announcements",
       path: "/admin/announcements",
+    },
+    {
+      icon: Receipt,
+      label: "Invoice Generator",
+      path: "/admin/invoice-generator",
     },
     {
       icon: Star,

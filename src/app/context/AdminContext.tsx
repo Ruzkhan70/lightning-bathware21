@@ -144,6 +144,7 @@ export interface Invoice {
     selected_color?: string;
     selected_size?: string;
     image?: string;
+    code?: string;
   }>;
   subtotal: number;
   discount: number;
@@ -451,6 +452,24 @@ interface AdminContextType {
   totalRevenue: number;
   invoices: Invoice[];
   createInvoice: (order: Order, customerEmail?: string) => Promise<Invoice>;
+  addManualInvoice: (data: {
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    address: string;
+    products: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+      image?: string;
+      code?: string;
+    }>;
+    discount: number;
+    tax: number;
+    notes?: string;
+  }) => Promise<Invoice>;
   updateInvoicePaymentStatus: (id: string, status: "Paid" | "Pending") => void;
   getInvoiceByOrderId: (orderId: string) => Invoice | undefined;
   getInvoiceById: (id: string) => Invoice | undefined;
@@ -2330,6 +2349,69 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addManualInvoice = async (data: {
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    address: string;
+    products: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+      image?: string;
+      code?: string;
+    }>;
+    discount: number;
+    tax: number;
+    notes?: string;
+  }): Promise<Invoice> => {
+    const invoiceNumber = generateInvoiceNumber();
+    const subtotal = data.products.reduce((sum, p) => sum + p.total, 0);
+    const grandTotal = subtotal - data.discount + data.tax;
+
+    const invoiceData: Omit<Invoice, "id"> = {
+      invoiceNumber,
+      orderId: `MANUAL-${Date.now()}`,
+      customerName: data.customerName || "Unknown",
+      customerPhone: data.customerPhone || "",
+      customerEmail: data.customerEmail || "",
+      address: data.address || "",
+      products: data.products.map(p => ({
+        id: p.id,
+        name: p.name,
+        quantity: p.quantity,
+        unitPrice: p.unitPrice,
+        total: p.total,
+        image: p.image || "",
+        code: p.code,
+      })),
+      subtotal,
+      discount: data.discount || 0,
+      tax: data.tax || 0,
+      deliveryCost: 0,
+      grandTotal,
+      paymentStatus: "Pending",
+      date: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, "invoices"), invoiceData);
+      const savedInvoice: Invoice = { ...invoiceData, id: docRef.id };
+      setInvoices(prev => [savedInvoice, ...prev]);
+      toast.success(`Invoice ${invoiceNumber} created!`);
+      return savedInvoice;
+    } catch (error) {
+      logger.error("Error creating manual invoice:", error);
+      const fallbackInvoice = { ...invoiceData, id: `temp-${Date.now()}` } as Invoice;
+      setInvoices(prev => [fallbackInvoice, ...prev]);
+      toast.error("Invoice saved locally, but failed to sync to database");
+      return fallbackInvoice;
+    }
+  };
+
   const updateInvoicePaymentStatus = async (id: string, status: "Paid" | "Pending") => {
     try {
       const cleanId = id.replace(/-/g, "");
@@ -4057,6 +4139,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         totalRevenue,
         invoices,
         createInvoice,
+        addManualInvoice,
         updateInvoicePaymentStatus,
         getInvoiceByOrderId,
         getInvoiceById,
