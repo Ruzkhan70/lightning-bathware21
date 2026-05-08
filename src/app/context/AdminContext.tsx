@@ -231,7 +231,8 @@ export interface StoreProfile {
   twitterEnabled: boolean;
   tiktokEnabled: boolean;
   adminShortcut: string;
-  deliveryCharge: number;
+  deliveryColomboPrice: number;
+  deliveryIslandwidePrice: number;
   deliveryPaidByCustomer: boolean;
   statsYearsExperience: string;
   statsProducts: string;
@@ -558,7 +559,8 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   twitterEnabled: false,
   tiktokEnabled: false,
   adminShortcut: "5212",
-  deliveryCharge: 350,
+  deliveryColomboPrice: 500,
+  deliveryIslandwidePrice: 1000,
   deliveryPaidByCustomer: true,
   statsYearsExperience: "10+",
   statsProducts: "350+",

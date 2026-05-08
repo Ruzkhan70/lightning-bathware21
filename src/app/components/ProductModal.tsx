@@ -317,11 +317,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-between">
                     <span>• Delivery within Colombo</span>
-                    <span className="font-semibold text-foreground">{storeProfile?.deliveryPaidByCustomer ? `Rs. ${(storeProfile?.deliveryCharge || 0).toLocaleString()}` : "FREE"}</span>
+                    <span className="font-semibold text-foreground">{storeProfile?.deliveryPaidByCustomer ? `Rs. ${(storeProfile?.deliveryColomboPrice || 0).toLocaleString()}` : "FREE"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>• Islandwide delivery</span>
-                    <span className="font-semibold text-foreground">{storeProfile?.deliveryPaidByCustomer ? `Rs. ${(storeProfile?.deliveryCharge || 0).toLocaleString()}` : "FREE"}</span>
+                    <span className="font-semibold text-foreground">{storeProfile?.deliveryPaidByCustomer ? `Rs. ${(storeProfile?.deliveryIslandwidePrice || 0).toLocaleString()}` : "FREE"}</span>
                   </div>
                 </div>
               </div>
