@@ -540,7 +540,7 @@ export default function AdminInvoices() {
                         <p className="text-sm text-muted-foreground">{invoice.customerPhone}</p>
                       </div>
                     </TableCell>
-                    <TableCell>{format(new Date(invoice.date), "dd MMM yyyy")}</TableCell>
+                    <TableCell>{format(new Date(invoice.date || Date.now()), "dd MMM yyyy")}</TableCell>
                     <TableCell className="text-right font-semibold">
                       Rs. {(invoice.grandTotal || 0).toLocaleString()}
                     </TableCell>
@@ -670,7 +670,7 @@ export default function AdminInvoices() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Date</span>
-                    <span className="font-medium">{format(new Date(invoice.date), "dd MMM yyyy")}</span>
+                    <span className="font-medium">{format(new Date(invoice.date || Date.now()), "dd MMM yyyy")}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total</span>
