@@ -247,6 +247,11 @@ export default function AdminLayout() {
       path: "/admin/invoice-generator",
     },
     {
+      icon: FileText,
+      label: "Invoices",
+      path: "/admin/invoices",
+    },
+    {
       icon: Star,
       label: "Reviews",
       path: "/admin/reviews",
