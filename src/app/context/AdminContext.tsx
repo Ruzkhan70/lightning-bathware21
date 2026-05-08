@@ -1002,7 +1002,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     products: false,
   });
   
-  const [storeProfile, setStoreProfile] = useState<StoreProfile>(DEFAULT_STORE_PROFILE);
+  const [storeProfile, setStoreProfile] = useState<StoreProfile>(() => {
+    const backup = loadDataBackup(BACKUP_KEYS.storeProfile) as StoreProfile | null;
+    return backup || DEFAULT_STORE_PROFILE;
+  });
   const [storeAssets, setStoreAssets] = useState<StoreAssets>(DEFAULT_STORE_ASSETS);
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [categories, setCategories] = useState<Category[]>([]);
