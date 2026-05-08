@@ -20,7 +20,7 @@ import {
 import { 
   FileText, Search, Filter, Download, Eye, CheckCircle, 
   Clock, X, Calendar, User, Phone, Mail, MapPin, Package,
-  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet, AlertCircle
+  QrCode, ChevronLeft, ChevronRight, FileSpreadsheet, AlertCircle, Trash2
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import jsPDF from "jspdf";
@@ -60,7 +60,7 @@ interface Invoice {
 }
 
 export default function AdminInvoices() {
-  const { invoices, updateInvoicePaymentStatus, updateOrderStatus, orders, storeProfile } = useAdmin();
+  const { invoices, deleteInvoice, updateInvoicePaymentStatus, updateOrderStatus, orders, storeProfile } = useAdmin();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "Paid" | "Pending">("all");
@@ -70,6 +70,7 @@ export default function AdminInvoices() {
   });
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [deleteConfirmInvoice, setDeleteConfirmInvoice] = useState<Invoice | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showFilters, setShowFilters] = useState(false);
@@ -610,6 +611,14 @@ export default function AdminInvoices() {
                             <CheckCircle className="w-4 h-4" />
                           )}
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setDeleteConfirmInvoice(invoice)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -727,6 +736,15 @@ export default function AdminInvoices() {
                       <CheckCircle className="w-4 h-4 mr-2" />
                     )}
                     {invoice.paymentStatus === "Paid" ? "Pending" : "Paid"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDeleteConfirmInvoice(invoice)}
+                    className="flex-1 h-11 text-red-500 border-red-300 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
                   </Button>
                 </div>
               </div>
@@ -915,6 +933,43 @@ export default function AdminInvoices() {
               <p>No invoice data available</p>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteConfirmInvoice} onOpenChange={(open) => !open && setDeleteConfirmInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Invoice
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">
+              Are you sure you want to delete invoice <strong>{deleteConfirmInvoice?.invoiceNumber}</strong>?
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              This action cannot be undone. The invoice will be permanently removed.
+            </p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setDeleteConfirmInvoice(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteConfirmInvoice) {
+                  deleteInvoice(deleteConfirmInvoice.id);
+                  setDeleteConfirmInvoice(null);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Invoice
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
