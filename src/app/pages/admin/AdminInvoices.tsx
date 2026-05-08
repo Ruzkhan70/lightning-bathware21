@@ -31,31 +31,31 @@ import { format, startOfDay, endOfDay } from "date-fns";
 interface InvoiceProduct {
   id: string;
   name: string;
-  price: number;
+  unitPrice: number;
   quantity: number;
-  image?: string;
   total: number;
+  image?: string;
+  code?: string;
+  selected_color?: string;
+  selected_size?: string;
 }
 
 interface Invoice {
   id: string;
   invoiceNumber: string;
-  orderId?: string;
-  customerId?: string;
+  orderId: string;
   customerName: string;
   customerEmail?: string;
   customerPhone: string;
-  customerAddress?: string;
-  date: string | Date;
-  dueDate?: string | Date;
+  address: string;
   products: InvoiceProduct[];
   subtotal: number;
-  delivery: number;
-  total: number;
-  paymentMethod?: string;
+  discount: number;
+  deliveryCost: number;
+  grandTotal: number;
   paymentStatus: "Paid" | "Pending";
-  paymentDate?: string;
-  notes?: string;
+  date: string;
+  createdAt: string;
   [key: string]: unknown;
 }
 
@@ -134,8 +134,8 @@ export default function AdminInvoices() {
         products: (invoice.products || []).map((p: InvoiceProduct) => ({
           name: p.name || "Unknown",
           quantity: p.quantity || 0,
-          unitPrice: p.unitPrice || p.price || 0,
-          total: p.total || ((p.unitPrice || p.price || 0) * (p.quantity || 1)),
+          unitPrice: p.unitPrice || 0,
+          total: p.total || 0,
         })),
         subtotal: invoice.subtotal || 0,
         discount: invoice.discount || 0,
