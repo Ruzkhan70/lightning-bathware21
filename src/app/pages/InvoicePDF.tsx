@@ -577,14 +577,12 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
                 {formatPrice(invoice.subtotal)}
               </Text>
             </View>
-            {(invoice.deliveryCost || 0) > 0 && (
-              <View style={styles.totalsRow}>
-                <Text style={styles.totalsLabel}>Delivery</Text>
-                <Text style={styles.totalsValue}>
-                  {formatPrice(invoice.deliveryCost)}
-                </Text>
-              </View>
-            )}
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Delivery</Text>
+              <Text style={styles.totalsValue}>
+                {(invoice.deliveryCost || 0) > 0 ? formatPrice(invoice.deliveryCost) : "Free Delivery"}
+              </Text>
+            </View>
             {(invoice.discount || 0) > 0 && (
               <View style={styles.totalsRow}>
                 <Text style={{ color: "#16a34a", fontSize: 8 }}>Discount</Text>

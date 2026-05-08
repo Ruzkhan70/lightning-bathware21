@@ -120,6 +120,7 @@ export interface Order {
   paymentStatus: "Pending" | "Paid";
   date: string;
   deliveryOption: string;
+  deliveryType: string;
   deliveryCost: number;
   trackingNumber?: string;
   trackingUrl?: string;
@@ -230,8 +231,7 @@ export interface StoreProfile {
   twitterEnabled: boolean;
   tiktokEnabled: boolean;
   adminShortcut: string;
-  deliveryColomboPrice: number;
-  deliveryIslandwidePrice: number;
+  deliveryCharge: number;
   deliveryPaidByCustomer: boolean;
   statsYearsExperience: string;
   statsProducts: string;
@@ -558,8 +558,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   twitterEnabled: false,
   tiktokEnabled: false,
   adminShortcut: "5212",
-  deliveryColomboPrice: 500,
-  deliveryIslandwidePrice: 1000,
+  deliveryCharge: 350,
   deliveryPaidByCustomer: true,
   statsYearsExperience: "10+",
   statsProducts: "350+",

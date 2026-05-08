@@ -56,15 +56,17 @@ export default function Checkout() {
     }
   }, [user]);
 
+  const deliveryCharge = Number(storeProfile.deliveryCharge) || 0;
   const deliveryOptions = [
-    { value: "colombo", label: "Delivery within Colombo", cost: Number(storeProfile.deliveryColomboPrice) },
-    { value: "islandwide", label: "Islandwide delivery", cost: Number(storeProfile.deliveryIslandwidePrice) },
+    { value: "colombo", label: "Delivery within Colombo", cost: deliveryCharge },
+    { value: "islandwide", label: "Islandwide delivery", cost: deliveryCharge },
   ];
 
   const selectedDelivery = deliveryOptions.find(
     (opt) => opt.value === formData.deliveryOption
   );
-  const deliveryCost = storeProfile.deliveryPaidByCustomer ? (Number(selectedDelivery?.cost) || 0) : 0;
+  const deliveryCost = storeProfile.deliveryPaidByCustomer ? deliveryCharge : 0;
+  const deliveryType = storeProfile.deliveryPaidByCustomer ? "Customer Pays" : "Free Delivery";
   const grandTotal = Number(cartTotal) + deliveryCost;
 
   const handleInputChange = (
@@ -127,6 +129,7 @@ export default function Checkout() {
         })),
         total: grandTotal,
         deliveryOption: selectedDelivery?.label || "",
+        deliveryType: deliveryType,
         deliveryCost: deliveryCost,
       };
       

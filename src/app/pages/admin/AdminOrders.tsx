@@ -529,9 +529,15 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                     </p>
                   </div>
                   <div>
+                    <p className="text-sm text-muted-foreground">Delivery Payment</p>
+                    <p className="font-semibold">
+                      {currentOrder.deliveryType || (currentOrder.deliveryCost > 0 ? "Customer Pays" : "Free Delivery")}
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-sm text-muted-foreground">Delivery Cost</p>
                     <p className="font-semibold">
-                      Rs. {currentOrder.deliveryCost.toLocaleString()}
+                      {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : "FREE"}
                     </p>
                   </div>
                 </div>

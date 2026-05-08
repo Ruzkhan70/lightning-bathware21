@@ -308,20 +308,20 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
               </div>
 
-              {/* Delivery Options */}
+              {/* Delivery Info */}
               <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <Truck className="w-5 h-5 text-[#D4AF37]" />
-                  <span className="font-semibold">Delivery Options:</span>
+                  <span className="font-semibold">Delivery:</span>
                 </div>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-between">
                     <span>• Delivery within Colombo</span>
-                    <span className="font-semibold text-foreground">Rs. {(storeProfile?.deliveryColomboPrice || 0).toLocaleString()}</span>
+                    <span className="font-semibold text-foreground">{storeProfile?.deliveryPaidByCustomer ? `Rs. ${(storeProfile?.deliveryCharge || 0).toLocaleString()}` : "FREE"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>• Islandwide delivery</span>
-                    <span className="font-semibold text-foreground">Rs. {(storeProfile?.deliveryIslandwidePrice || 0).toLocaleString()}</span>
+                    <span className="font-semibold text-foreground">{storeProfile?.deliveryPaidByCustomer ? `Rs. ${(storeProfile?.deliveryCharge || 0).toLocaleString()}` : "FREE"}</span>
                   </div>
                 </div>
               </div>

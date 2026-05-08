@@ -496,7 +496,7 @@ export default function AdminSettings() {
                 </div>
               </Card>
 
-              <Card title="Delivery Settings" icon={<Truck className="w-5 h-5" />} description="Shipping options and pricing">
+              <Card title="Delivery Settings" icon={<Truck className="w-5 h-5" />} description="Configure delivery charges and payment responsibility">
                 <div className="flex items-center justify-between p-4 bg-muted-50 rounded-lg mb-4">
                   <div>
                     <p className="font-medium">Customer Pays Delivery</p>
@@ -510,17 +510,13 @@ export default function AdminSettings() {
                     {profileForm.deliveryPaidByCustomer ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {profileForm.deliveryPaidByCustomer && (
                   <div>
-                    <Label>Colombo Delivery (Rs.)</Label>
-                    <Input type="number" value={profileForm.deliveryColomboPrice} onChange={(e) => setProfileForm({...profileForm, deliveryColomboPrice: Number(e.target.value)})} />
-                    <p className="text-xs text-muted-foreground mt-1">Set to 0 for free delivery</p>
+                    <Label>Delivery Charge Amount (Rs.)</Label>
+                    <Input type="number" value={profileForm.deliveryCharge} onChange={(e) => setProfileForm({...profileForm, deliveryCharge: Number(e.target.value)})} />
+                    <p className="text-xs text-muted-foreground mt-1">This amount will be added to the customer's order total</p>
                   </div>
-                  <div>
-                    <Label>Island-wide Delivery (Rs.)</Label>
-                    <Input type="number" value={profileForm.deliveryIslandwidePrice} onChange={(e) => setProfileForm({...profileForm, deliveryIslandwidePrice: Number(e.target.value)})} />
-                  </div>
-                </div>
+                )}
               </Card>
 
               <Card title="Online Payment" icon={<CreditCard className="w-5 h-5" />} description="Enable or disable online payment options">

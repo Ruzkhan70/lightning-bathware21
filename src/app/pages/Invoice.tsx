@@ -437,12 +437,10 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
                       <span className="text-muted-foreground">Subtotal</span>
                       <span className="font-medium text-foreground">{formatPrice(invoice.subtotal)}</span>
                     </div>
-                    {(invoice.deliveryCost || 0) > 0 && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Delivery</span>
-                        <span className="font-medium text-foreground">{formatPrice(invoice.deliveryCost)}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Delivery</span>
+                      <span className="font-medium text-foreground">{(invoice.deliveryCost || 0) > 0 ? formatPrice(invoice.deliveryCost) : "Free Delivery"}</span>
+                    </div>
                     {(invoice.discount || 0) > 0 && (
                       <div className="flex justify-between items-center text-sm text-green-600">
                         <span className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5" /> Discount</span>
