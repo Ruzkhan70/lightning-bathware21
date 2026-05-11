@@ -1170,6 +1170,37 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     return authReady && !!firebaseUser;
   }, [authReady, firebaseUser]);
 
+  const ensureAdminDocument = useCallback(async (uid: string, email: string): Promise<boolean> => {
+    try {
+      await setDoc(doc(db, "admins", uid), {
+        email,
+        role: "admin",
+        displayName: email.split('@')[0],
+        createdAt: new Date().toISOString(),
+        createdBy: uid,
+        recovered: true,
+      });
+      return true;
+    } catch (error: any) {
+      if (error.code === "permission-denied") {
+        toast.error("Admin permission issue. Try logging out and back in.");
+      }
+      return false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAdminDataLoaded && authReady && firebaseUser && adminUid) {
+      getDoc(doc(db, "admins", adminUid)).then(docSnap => {
+        if (!docSnap.exists()) {
+          ensureAdminDocument(adminUid, adminEmail);
+        }
+      }).catch(() => {
+        ensureAdminDocument(adminUid, adminEmail);
+      });
+    }
+  }, [isAdminDataLoaded, authReady, firebaseUser, adminUid, adminEmail, ensureAdminDocument]);
+
   useEffect(() => {
     checkAdminExists().then(exists => {
       setAdminExists(exists);
@@ -3508,15 +3539,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         id,
         `Updated order ${id} status from ${previousStatus} to ${status}`
       );
-    } catch (error) {
+    } catch (error: any) {
+      setOrders(prev => prev.map(order => order.id === id ? { ...order, status: previousStatus || order.status } : order));
       logger.error("Error updating order status:", error);
-      toast.error("Failed to update status");
+      const msg = error?.code === "permission-denied"
+        ? "Permission denied. Make sure your admin account exists in Firestore (admins collection)."
+        : error?.message || "Failed to update status";
+      toast.error(msg);
       await logOrderAction(
         'ORDER_UPDATE',
         adminUid || 'unknown',
         adminEmail,
         id,
-        `Failed to update order status`,
+        `Failed to update order status: ${error?.message || 'unknown'}`,
         'failed'
       );
     }
@@ -3529,25 +3564,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
+    const previousPaymentStatus = orders.find(o => o.id === id)?.paymentStatus;
     setOrders(prev => prev.map(order => order.id === id ? { ...order, paymentStatus } : order));
     
     // Also update the invoice's payment status
     const invoice = invoices.find(inv => inv.orderId === id);
     if (invoice) {
       setInvoices(prev => prev.map(inv => inv.orderId === id ? { ...inv, paymentStatus } : inv));
-      try {
-        await setDoc(doc(db, "invoices", invoice.id), { paymentStatus }, { merge: true });
-      } catch (error) {
-        logger.error("Error updating invoice payment status:", error);
-      }
     }
     
     try {
       await updateDoc(doc(db, "orders", id), { paymentStatus });
+      
+      if (invoice) {
+        await setDoc(doc(db, "invoices", invoice.id), { paymentStatus }, { merge: true });
+      }
+      
       toast.success("Payment status updated!");
-    } catch (error) {
+    } catch (error: any) {
+      setOrders(prev => prev.map(order => order.id === id ? { ...order, paymentStatus: previousPaymentStatus || order.paymentStatus } : order));
+      if (invoice) {
+        setInvoices(prev => prev.map(inv => inv.orderId === id ? { ...inv, paymentStatus: previousPaymentStatus || inv.paymentStatus } : inv));
+      }
       logger.error("Error updating payment status:", error);
-      toast.error("Failed to update payment status");
+      const msg = error?.code === "permission-denied"
+        ? "Permission denied. Make sure your admin account exists in Firestore (admins collection)."
+        : error?.message || "Failed to update payment status";
+      toast.error(msg);
     }
   };
 

@@ -97,14 +97,15 @@ export default function AdminOrders() {
     }
   };
 
-  const handleBulkStatusUpdate = () => {
+  const handleBulkStatusUpdate = async () => {
     if (selectedOrders.length === 0 || !bulkStatus) return;
     
-    selectedOrders.forEach(orderId => {
-      updateOrderStatus(orderId, bulkStatus as "Pending" | "Processing" | "Delivered");
-    });
+    await Promise.allSettled(
+      selectedOrders.map(orderId =>
+        updateOrderStatus(orderId, bulkStatus as "Pending" | "Processing" | "Delivered")
+      )
+    );
     
-    toast.success(`${selectedOrders.length} orders updated to ${bulkStatus}`);
     setSelectedOrders([]);
     setBulkStatus("");
   };
@@ -120,14 +121,15 @@ export default function AdminOrders() {
 
   const currentOrder = safeOrders.find((o) => o.id === viewingOrder);
 
-  const handleStatusChange = (orderId: string, status: "Pending" | "Processing" | "Delivered") => {
-    updateOrderStatus(orderId, status);
-    toast.success("Order status updated!");
+  const handleStatusChange = async (orderId: string, status: "Pending" | "Processing" | "Delivered") => {
+    try {
+      await updateOrderStatus(orderId, status);
+    } catch {
+    }
   };
 
-  const handleDeleteOrder = (orderId: string) => {
-    deleteOrder(orderId);
-    toast.success("Order deleted successfully!");
+  const handleDeleteOrder = async (orderId: string) => {
+    await deleteOrder(orderId);
     setDeletingOrder(null);
   };
 
@@ -497,9 +499,9 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
         open={!!viewingOrder}
         onOpenChange={() => setViewingOrder(null)}
       >
-        <DialogContent className="max-w-5xl w-[95%] h-[95vh] p-0 gap-0 overflow-hidden">
+        <DialogContent className="max-w-7xl w-[95%] max-h-[98vh] p-0 gap-0 overflow-y-auto">
           {currentOrder && (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col">
               {/* ====== PREMIUM STICKY HEADER ====== */}
               <div className="sticky top-0 z-40 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 py-5 shrink-0">
                 <div className="flex items-start justify-between gap-4">
@@ -551,7 +553,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
               </div>
 
               {/* ====== SCROLLABLE CONTENT ====== */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="px-6 py-6">
                 {/* Quick Actions Bar */}
                 <div className="flex flex-wrap items-center gap-2 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
                   <Button
