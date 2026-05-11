@@ -99,9 +99,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const checkIfUserIsAdmin = useCallback(async (fbUser: FirebaseUser): Promise<boolean> => {
     try {
-      const adminQuery = query(collection(db, "admins"), where("email", "==", fbUser.email));
-      const adminDocs = await getDocs(adminQuery);
-      return !adminDocs.empty;
+      const adminDoc = await getDoc(doc(db, "admins", fbUser.uid));
+      return adminDoc.exists() && adminDoc.data()?.role === "admin";
     } catch (error) {
       logger.error("Error checking admin status:", error);
       return false;
