@@ -620,7 +620,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                             <MapPin className="w-3 h-3" />
                             Address
                           </p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-relaxed">{currentOrder.address}</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-relaxed break-words">{currentOrder.address}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Order ID</p>
@@ -635,14 +635,14 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                         <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
                         Delivery
                       </h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Option</span>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{currentOrder.deliveryOption || "Standard"}</span>
+                      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <div className="flex justify-between items-start py-3 gap-4 first:pt-0 last:pb-0">
+                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Option</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-right break-words max-w-[60%]">{currentOrder.deliveryOption || "Standard"}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Type</span>
-                          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                        <div className="flex justify-between items-start py-3 gap-4">
+                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Type</span>
+                          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full text-right shrink-0 ${
                             currentOrder.deliveryCost > 0
                               ? "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
                               : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
@@ -650,9 +650,9 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                             {currentOrder.deliveryType || (currentOrder.deliveryCost > 0 ? "Customer Pays" : "Free Delivery")}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Cost</span>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="flex justify-between items-start py-3 gap-4">
+                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Cost</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-right break-words max-w-[60%]">
                             {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : "FREE"}
                           </span>
                         </div>
@@ -681,10 +681,10 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                         <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
                         Payment
                       </h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</span>
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <div className="flex justify-between items-start py-3 gap-4 first:pt-0 last:pb-0">
+                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Status</span>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ${
                             currentOrder.paymentStatus === "Paid"
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800"
                               : "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"
@@ -693,13 +693,13 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                             {currentOrder.paymentStatus === "Paid" ? "Paid" : "Pending"}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Amount</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Rs. {currentOrder.total.toLocaleString()}</span>
+                        <div className="flex justify-between items-start py-3 gap-4">
+                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Amount</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100 text-right break-words max-w-[60%]">Rs. {currentOrder.total.toLocaleString()}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Delivery</span>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="flex justify-between items-start py-3 gap-4">
+                          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Delivery</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-right break-words max-w-[60%]">
                             {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : "FREE"}
                           </span>
                         </div>
@@ -864,22 +864,22 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                         <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
                         Summary
                       </h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Subtotal</span>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <div className="flex justify-between items-start py-3 gap-4 first:pt-0">
+                          <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0">Subtotal</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-right break-words max-w-[60%]">
                             Rs. {(currentOrder.total - currentOrder.deliveryCost).toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-800">
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Delivery</span>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="flex justify-between items-start py-3 gap-4">
+                          <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0">Delivery</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-right break-words max-w-[60%]">
                             {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-emerald-600 dark:text-emerald-400">FREE</span>}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center py-3 border-t border-gray-200 dark:border-gray-700">
-                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Grand Total</span>
-                          <span className="text-xl font-bold text-[#D4AF37]">Rs. {currentOrder.total.toLocaleString()}</span>
+                        <div className="flex justify-between items-start py-4 gap-4">
+                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100 shrink-0">Grand Total</span>
+                          <span className="text-xl font-bold text-[#D4AF37] text-right break-words max-w-[60%]">Rs. {currentOrder.total.toLocaleString()}</span>
                         </div>
                       </div>
 
