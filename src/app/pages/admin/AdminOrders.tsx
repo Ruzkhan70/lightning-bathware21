@@ -520,60 +520,61 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
               <div className="shrink-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
                 <div className="relative">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4AF37] via-[#F5D76E] to-[#D4AF37]" />
-                  <div className="px-6 lg:px-8 pt-4 pb-3">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B8962F] flex items-center justify-center shadow-lg shadow-[#D4AF37]/30">
-                            <ShoppingCart className="w-5 h-5 text-black" />
-                          </div>
-                          <div>
-                            <DialogHeader className="p-0">
-                              <DialogTitle className="text-xl lg:text-2xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
-                                Order <span className="text-[#D4AF37]">#{currentOrder.id.slice(-8)}</span>
-                              </DialogTitle>
-                            </DialogHeader>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                              {currentOrder.customerName}
-                              <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
-                              {new Date(currentOrder.date).toLocaleDateString("en-US", {
-                                month: "short", day: "numeric", year: "numeric",
-                                hour: "2-digit", minute: "2-digit"
-                              })}
-                            </p>
-                          </div>
+                  <div className="px-4 lg:px-6 pt-3 pb-2">
+                    <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#B8962F] flex items-center justify-center shadow shadow-[#D4AF37]/30 shrink-0">
+                          <ShoppingCart className="w-4 h-4 text-black" />
+                        </div>
+                        <div className="min-w-0 truncate">
+                          <DialogHeader className="p-0 inline">
+                            <DialogTitle className="inline text-base lg:text-lg font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
+                              Order <span className="text-[#D4AF37]">#{currentOrder.id.slice(-8)}</span>
+                            </DialogTitle>
+                          </DialogHeader>
+                          <span className="text-gray-300 dark:text-gray-600 mx-1.5 text-[10px]">|</span>
+                          <span className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                            {currentOrder.customerName}
+                          </span>
+                          <span className="text-gray-300 dark:text-gray-600 mx-1.5 text-[10px]">|</span>
+                          <span className="text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                            {new Date(currentOrder.date).toLocaleDateString("en-US", {
+                              month: "short", day: "numeric",
+                              hour: "2-digit", minute: "2-digit"
+                            })}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-sm border-2 ${
+                      <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border-2 ${
                           currentOrder.status === "Pending"
                             ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700"
                             : currentOrder.status === "Processing"
                             ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
                             : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
                         }`}>
-                          <div className={`w-2 h-2 rounded-full ${
+                          <div className={`w-1.5 h-1.5 rounded-full ${
                             currentOrder.status === "Pending" ? "bg-amber-500" : currentOrder.status === "Processing" ? "bg-blue-500" : "bg-emerald-500"
                           }`} />
                           {currentOrder.status}
                         </span>
 
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-sm border-2 ${
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border-2 ${
                           currentOrder.paymentStatus === "Paid"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
                             : "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700"
                         }`}>
-                          <div className={`w-2 h-2 rounded-full ${currentOrder.paymentStatus === "Paid" ? "bg-emerald-500" : "bg-rose-500"}`} />
+                          <div className={`w-1.5 h-1.5 rounded-full ${currentOrder.paymentStatus === "Paid" ? "bg-emerald-500" : "bg-rose-500"}`} />
                           {currentOrder.paymentStatus === "Paid" ? "Paid" : "Pending"}
                         </span>
 
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-sm border-2 ${
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border-2 ${
                           currentOrder.deliveryCost > 0
                             ? "bg-violet-50 text-violet-700 border-violet-300 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700"
                             : "bg-gray-50 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600"
                         }`}>
-                          <Truck className="w-3.5 h-3.5" />
+                          <Truck className="w-2.5 h-2.5" />
                           {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : "Free"}
                         </span>
                       </div>
