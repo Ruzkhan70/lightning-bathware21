@@ -568,64 +568,64 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
 
               {/* ====== CONTENT ====== */}
               <div className="p-6 lg:p-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
 
                   {/* ====== LEFT COLUMN ====== */}
-                  <div className="lg:col-span-7 space-y-6">
+                  <div className="space-y-8">
 
                     {/* --- Customer Information --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-5">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
                         <User className="w-4 h-4 text-[#D4AF37]" />
-                        Customer Information
+                        CUSTOMER INFORMATION
                       </h3>
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                      <div className="grid grid-cols-2 gap-y-5 gap-x-10">
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Full Name</p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{currentOrder.customerName}</p>
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Full Name</p>
+                          <p className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">{currentOrder.customerName}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Phone</p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{currentOrder.phone}</p>
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Phone</p>
+                          <p className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">{currentOrder.phone}</p>
                         </div>
                         <div className="col-span-2">
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5" />
                             Delivery Address
                           </p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{currentOrder.address}</p>
+                          <p className="text-[15px] font-semibold text-gray-900 dark:text-gray-100 leading-relaxed">{currentOrder.address}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* --- Delivery Information --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-5">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
                         <Package className="w-4 h-4 text-[#D4AF37]" />
-                        Delivery Information
+                        DELIVERY INFORMATION
                       </h3>
-                      <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+                      <div className="grid grid-cols-3 gap-y-5 gap-x-10">
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Option</p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{currentOrder.deliveryOption || "Standard"}</p>
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Option</p>
+                          <p className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">{currentOrder.deliveryOption || "Standard"}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Type</p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Type</p>
+                          <p className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">
                             {currentOrder.deliveryType || (currentOrder.deliveryCost > 0 ? "Customer Pays" : "Free Delivery")}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Cost</p>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Cost</p>
+                          <p className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">
                             {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : "FREE"}
                           </p>
                         </div>
                       </div>
 
                       {(currentOrder.trackingNumber || currentOrder.courierName) && (
-                        <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
-                          <div className="flex items-center justify-between gap-3">
+                        <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl px-5 py-4 border border-blue-100 dark:border-blue-800">
+                          <div className="flex items-center justify-between gap-4">
                             <div>
                               <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider">Tracking</p>
                               {currentOrder.courierName && <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1">{currentOrder.courierName}</p>}
@@ -643,57 +643,51 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                     </div>
 
                     {/* --- Ordered Products --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <div className="flex items-center justify-between mb-5">
-                        <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">
-                          <Package className="w-4 h-4 text-[#D4AF37]" />
-                          Products ({currentOrder.products.length})
-                        </h3>
-                      </div>
-                      <div className="space-y-4">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
+                        <Package className="w-4 h-4 text-[#D4AF37]" />
+                        PRODUCTS ({currentOrder.products.length})
+                      </h3>
+                      <div className="space-y-5">
                         {currentOrder.products.map((product, idx) => (
-                          <div key={product.id || `product-${idx}`} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
-                            <div className="flex gap-4 p-4">
-                              <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                          <div key={product.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                            <div className="flex items-center gap-5 p-5">
+                              <div className="w-[88px] h-[88px] shrink-0 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                                 {product.image ? (
                                   <img src={product.image} alt={product.name} className="w-full h-full object-cover"
-                                    onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/80x80/e2e8f0/94a3b8?text=N/A"; }}
+                                    onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/88x88/e2e8f0/94a3b8?text=N/A"; }}
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
-                                    <Package className="w-6 h-6" />
+                                    <Package className="w-7 h-7" />
                                   </div>
                                 )}
                               </div>
-
-                              <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-4 items-start">
                                 <div className="min-w-0">
-                                  <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{product.name}</p>
-                                  {product.id && (
-                                    <p className="text-[11px] text-gray-400 dark:text-gray-500 font-mono mt-1">ID: {product.id.slice(-8)}</p>
-                                  )}
-                                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                  <p className="font-semibold text-[15px] text-gray-900 dark:text-gray-100 leading-snug">{product.name}</p>
+                                  <p className="text-[11px] text-gray-400 dark:text-gray-500 font-mono mt-1">ID: {product.id.slice(-8)}</p>
+                                  <div className="flex flex-wrap items-center gap-2 mt-3">
                                     {product.selected_color && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-300 border border-pink-100 dark:border-pink-800">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-300 border border-pink-100 dark:border-pink-800">
                                         {product.selected_color}
                                       </span>
                                     )}
                                     {product.selected_size && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
                                         {product.selected_size}
                                       </span>
                                     )}
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                       Qty: {product.quantity}
                                     </span>
                                   </div>
                                 </div>
-
-                                <div className="text-right shrink-0">
-                                  <p className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                                <div className="text-right shrink-0 self-start">
+                                  <p className="font-bold text-[15px] text-gray-900 dark:text-gray-100">
                                     Rs. {(product.quantity * product.price).toLocaleString()}
                                   </p>
-                                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 whitespace-nowrap">
                                     Rs. {product.price.toLocaleString()} &times; {product.quantity}
                                   </p>
                                 </div>
@@ -706,13 +700,13 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                   </div>
 
                   {/* ====== RIGHT COLUMN ====== */}
-                  <div className="lg:col-span-5 space-y-6">
+                  <div className="space-y-8">
 
                     {/* --- Order Timeline --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-5">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
                         <Clock className="w-4 h-4 text-[#D4AF37]" />
-                        Order Timeline
+                        ORDER TIMELINE
                       </h3>
                       <div className="relative">
                         {[
@@ -729,20 +723,20 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                         ].map((step, idx) => {
                           const StepIcon = step.icon;
                           return (
-                            <div key={step.label} className="flex items-start gap-4 pb-6 relative last:pb-0">
+                            <div key={step.label} className="flex items-start gap-4 pb-7 relative last:pb-0">
                               {idx < 4 && (
-                                <div className={`absolute left-[15px] top-8 w-0.5 h-[calc(100%+4px)] ${step.done ? "bg-[#D4AF37]" : "bg-gray-200 dark:bg-gray-700"}`} />
+                                <div className={`absolute left-4 top-9 w-0.5 h-[calc(100%+8px)] ${step.done ? "bg-[#D4AF37]" : "bg-gray-200 dark:bg-gray-700"}`} />
                               )}
-                              <div className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 z-10 ring-2 ring-white dark:ring-gray-950 ${
+                              <div className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 z-10 ring-[3px] ring-white dark:ring-gray-950 ${
                                 step.done
-                                  ? "bg-[#D4AF37]/10 text-[#D4AF37] ring-[#D4AF37]/30"
+                                  ? "bg-[#D4AF37]/15 text-[#D4AF37]"
                                   : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                               }`}>
-                                <StepIcon className="w-4 h-4" />
+                                <StepIcon className="w-[15px] h-[15px]" />
                               </div>
-                              <div className="pt-1">
-                                <p className={`text-sm font-semibold ${step.done ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"}`}>{step.label}</p>
-                                <p className={`text-xs mt-0.5 font-medium ${step.done ? "text-green-600 dark:text-green-400" : "text-gray-400 dark:text-gray-500"}`}>{step.desc}</p>
+                              <div className="pt-0.5">
+                                <p className={`text-sm font-semibold ${step.done ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"}`}>{step.label}</p>
+                                <p className={`text-[11px] mt-1 font-medium ${step.done ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"}`}>{step.desc}</p>
                               </div>
                             </div>
                           );
@@ -751,23 +745,17 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                     </div>
 
                     {/* --- Status Controls --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-5">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-[#D4AF37]" />
-                        Status Controls
+                        STATUS CONTROLS
                       </h3>
-                      <div className="space-y-4">
+                      <div className="space-y-5">
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Order Status</p>
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Order Status</p>
                           <Select value={currentOrder.status}
                             onValueChange={(value) => handleStatusChange(currentOrder.id, value as "Pending" | "Processing" | "Delivered")}>
-                            <SelectTrigger className={`font-semibold w-full ${
-                              currentOrder.status === "Pending"
-                                ? "border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
-                                : currentOrder.status === "Processing"
-                                ? "border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                                : "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                            }`}>
+                            <SelectTrigger className="font-semibold w-full">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -778,14 +766,10 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                           </Select>
                         </div>
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Payment Status</p>
+                          <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Payment Status</p>
                           <Select value={currentOrder.paymentStatus || "Pending"}
                             onValueChange={(value) => updatePaymentStatus(currentOrder.id, value as "Pending" | "Paid")}>
-                            <SelectTrigger className={`font-semibold w-full ${
-                              currentOrder.paymentStatus === "Paid"
-                                ? "text-green-600 dark:text-green-400 border-green-300 dark:border-green-700"
-                                : "text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700"
-                            }`}>
+                            <SelectTrigger className="font-semibold w-full">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -798,28 +782,28 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                     </div>
 
                     {/* --- Delivery Progress --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-5">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
                         <Truck className="w-4 h-4 text-[#D4AF37]" />
-                        Delivery Progress
+                        DELIVERY PROGRESS
                       </h3>
 
-                      <div className="mb-5 p-4 bg-gray-50 dark:bg-gray-900/80 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                      <div className="mb-6 p-5 bg-gray-50 dark:bg-gray-900/80 rounded-xl border border-gray-100 dark:border-gray-800 space-y-4">
                         <div>
-                          <Label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Tracking # *</Label>
-                          <Input value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="TRK123456" className="mt-1 text-sm" />
+                          <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Tracking Number *</p>
+                          <Input value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="TRK123456" className="text-sm" />
                         </div>
                         <div>
-                          <Label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Courier</Label>
-                          <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="LankaPost" className="mt-1 text-sm" />
+                          <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Courier Name</p>
+                          <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="LankaPost" className="text-sm" />
                         </div>
                         <div>
-                          <Label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">URL</Label>
-                          <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." className="mt-1 text-sm" />
+                          <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Tracking URL</p>
+                          <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." className="text-sm" />
                         </div>
                         <Button onClick={handleAddTracking} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white w-full">
-                          <Truck className="w-3.5 h-3.5 mr-1.5" />
-                          {currentOrder.trackingNumber ? "Update" : "Add Tracking"}
+                          <Truck className="w-3.5 h-3.5 mr-2" />
+                          {currentOrder.trackingNumber ? "Update Tracking" : "Add Tracking Info"}
                         </Button>
                       </div>
 
@@ -830,19 +814,19 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                           { label: "Shipped", done: currentOrder.status === "Delivered" },
                           { label: "Delivered", done: currentOrder.status === "Delivered" },
                         ].map((step, idx) => (
-                          <div key={step.label} className="flex items-start gap-4 pb-6 relative last:pb-0">
+                          <div key={step.label} className="flex items-start gap-4 pb-7 relative last:pb-0">
                             {idx < 3 && (
-                              <div className={`absolute left-[13px] top-7 w-0.5 h-[calc(100%+4px)] ${step.done ? "bg-green-400" : "bg-gray-200 dark:bg-gray-700"}`} />
+                              <div className={`absolute left-4 top-8 w-0.5 h-[calc(100%+8px)] ${step.done ? "bg-emerald-400" : "bg-gray-200 dark:bg-gray-700"}`} />
                             )}
-                            <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 z-10 ring-2 ring-white dark:ring-gray-950 ${
-                              step.done ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 z-10 ring-[3px] ring-white dark:ring-gray-950 ${
+                              step.done ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                             }`}>
-                              {step.done ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                              {step.done ? <CheckCircle className="w-[15px] h-[15px]" /> : <Circle className="w-[15px] h-[15px]" />}
                             </div>
                             <div className="pt-0.5">
-                              <p className={`text-sm font-semibold ${step.done ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"}`}>{step.label}</p>
+                              <p className={`text-sm font-semibold ${step.done ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"}`}>{step.label}</p>
                               {step.done && step.label === "Order Placed" && (
-                                <p className="text-xs text-green-600 dark:text-green-400 mt-0.5 font-medium">{new Date(currentOrder.date).toLocaleDateString()}</p>
+                                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{new Date(currentOrder.date).toLocaleDateString()}</p>
                               )}
                             </div>
                           </div>
@@ -851,36 +835,36 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                     </div>
 
                     {/* --- Order Summary --- */}
-                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-5">
+                    <div className="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-sm">
+                      <h3 className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500 mb-6 flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-[#D4AF37]" />
-                        Order Summary
+                        ORDER SUMMARY
                       </h3>
 
                       <div className="bg-gray-50 dark:bg-gray-900/80 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                        <div className="p-5 space-y-3">
+                        <div className="p-6 space-y-4">
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-500 dark:text-gray-400">Subtotal</span>
-                            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
                               Rs. {(currentOrder.total - currentOrder.deliveryCost).toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-500 dark:text-gray-400">Delivery</span>
-                            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                              {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-green-600 dark:text-green-400 font-semibold">FREE</span>}
+                            <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                              {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-emerald-600 dark:text-emerald-400 font-semibold">FREE</span>}
                             </span>
                           </div>
-                          <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
-                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Grand Total</span>
-                            <span className="text-xl font-bold text-[#D4AF37]">Rs. {currentOrder.total.toLocaleString()}</span>
+                          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-between items-center">
+                            <span className="text-base font-bold text-gray-900 dark:text-gray-100">Grand Total</span>
+                            <span className="text-2xl font-bold text-[#D4AF37]">Rs. {currentOrder.total.toLocaleString()}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-4">
+                      <div className="mt-6">
                         <Button onClick={() => handleViewInvoice(currentOrder)}
-                          className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B8962F] hover:from-[#B8962F] hover:to-[#A0852A] text-black font-semibold shadow-md hover:shadow-lg transition-all py-3">
+                          className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B8962F] hover:from-[#B8962F] hover:to-[#A0852A] text-black font-semibold shadow-md hover:shadow-lg transition-all py-3.5">
                           <FileText className="w-4 h-4 mr-2" /> View Invoice
                         </Button>
                       </div>
