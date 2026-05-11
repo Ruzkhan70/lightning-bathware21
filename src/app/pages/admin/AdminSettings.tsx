@@ -1220,7 +1220,7 @@ export default function AdminSettings() {
                             contact: { ...contentForm.contact, showFindUsSection: contentForm.contact.showFindUsSection === false }
                           })}
                           className={`relative w-12 h-6 rounded-full transition-colors ${
-                            contentForm.contact.showFindUsSection !== false ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'
+                            contentForm.contact.showFindUsSection !== false ? 'bg-green-50 dark:bg-green-700' : 'bg-muted'
                           }`}
                         >
                           <div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-transform ${
@@ -1266,7 +1266,7 @@ export default function AdminSettings() {
                           contact: { ...contentForm.contact, showSocialSection: contentForm.contact.showSocialSection === false }
                         })}
                         className={`relative w-12 h-6 rounded-full transition-colors ${
-                          contentForm.contact.showSocialSection !== false ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'
+                          contentForm.contact.showSocialSection !== false ? 'bg-green-50 dark:bg-green-700' : 'bg-muted'
                         }`}
                       >
                         <div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-transform ${
@@ -1493,7 +1493,7 @@ export default function AdminSettings() {
                       type="button"
                       onClick={() => setContentForm({...contentForm, faq: {...contentForm.faq, showFaqSection: !contentForm.faq.showFaqSection}})}
                       className={`relative w-12 h-6 rounded-full transition-colors ${
-                        contentForm.faq.showFaqSection !== false ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'
+                        contentForm.faq.showFaqSection !== false ? 'bg-green-50 dark:bg-green-700' : 'bg-muted'
                       }`}
                     >
                       <div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-transform ${
@@ -1651,7 +1651,7 @@ export default function AdminSettings() {
           {activeSection === 'account' && (
             <div className="max-w-2xl mx-auto space-y-6">
               {securityCodeVerified && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                <div className="bg-green-50 dark:bg-green-900/40 border border-green-200 rounded-lg p-3 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                   <p className="text-sm text-green-800">Security verified. You can change your username and password.</p>
                 </div>
@@ -1743,7 +1743,7 @@ export default function AdminSettings() {
                         ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                         : securityCodeExpiryInfo.isExpiringSoon
                           ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                          : 'bg-green-50 dark:bg-green-900/20 border-green-200'
+                          : 'bg-green-50 dark:bg-green-900/40 border-green-200'
                     }`}>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
@@ -1801,7 +1801,7 @@ export default function AdminSettings() {
                   )}
 
                   {securityCodeVerified && (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                    <div className="bg-green-50 dark:bg-green-900/40 border border-green-200 rounded-lg p-3 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                       <p className="text-xs sm:text-sm text-green-800">Security code verified. You can change username and password.</p>
                       <Button size="sm" variant="ghost" onClick={clearSecurityVerification} className="ml-auto text-green-700 hover:text-green-900 flex-shrink-0">
