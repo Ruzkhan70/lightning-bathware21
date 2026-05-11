@@ -3218,6 +3218,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       toast.success(`${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)} page updated successfully`);
 
       if (sectionKey === "terms") {
+        await createGlobalNotification(
+          "terms",
+          "Terms & Conditions Updated",
+          "We have updated our Terms & Conditions. Please review the changes."
+        );
+
         await createAnnouncement(
           "Terms & Conditions Updated",
           "We have updated our Terms & Conditions. Please review the changes.",
@@ -3370,6 +3376,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       await setDoc(doc(db, "storeData", "products"), { products: updated });
       toast.success(`${newProducts.length} products added successfully!`);
+
+      await createGlobalNotification(
+        "product",
+        "New Products Available!",
+        `${newProducts.length} new products have been added to our store`,
+        productsWithIds[0]?.id
+      );
+
+      await createAnnouncement(
+        `🆕 ${newProducts.length} New Products Added!`,
+        `We've added ${newProducts.length} new products to our store. Check them out now at ${storeProfile.storeName} ${storeProfile.storeNameAccent}!`,
+        "product",
+        48
+      );
+
       await logProductAction(
         'PRODUCT_ADD',
         adminUid || 'unknown',
@@ -3426,7 +3447,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         `${productName} has been updated with new details`,
         id
       );
-      
+
+      await createAnnouncement(
+        `📦 Product Updated: ${productName}`,
+        `${productName} has been updated with new details. Check it out now at ${storeProfile.storeName} ${storeProfile.storeNameAccent}!`,
+        "product",
+        48
+      );
+
       await logProductAction(
         'PRODUCT_EDIT',
         adminUid || 'unknown',
