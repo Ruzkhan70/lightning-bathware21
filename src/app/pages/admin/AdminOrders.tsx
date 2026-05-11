@@ -532,51 +532,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                               Order <span className="text-[#D4AF37]">#{currentOrder.id.slice(-8)}</span>
                             </DialogTitle>
                           </DialogHeader>
-                          <span className="text-gray-300 dark:text-gray-600 mx-1.5 text-[10px]">|</span>
-                          <span className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                            {currentOrder.customerName}
-                          </span>
-                          <span className="text-gray-300 dark:text-gray-600 mx-1.5 text-[10px]">|</span>
-                          <span className="text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                            {new Date(currentOrder.date).toLocaleDateString("en-US", {
-                              month: "short", day: "numeric",
-                              hour: "2-digit", minute: "2-digit"
-                            })}
-                          </span>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border-2 ${
-                          currentOrder.status === "Pending"
-                            ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700"
-                            : currentOrder.status === "Processing"
-                            ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
-                        }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${
-                            currentOrder.status === "Pending" ? "bg-amber-500" : currentOrder.status === "Processing" ? "bg-blue-500" : "bg-emerald-500"
-                          }`} />
-                          {currentOrder.status}
-                        </span>
-
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border-2 ${
-                          currentOrder.paymentStatus === "Paid"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
-                            : "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700"
-                        }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${currentOrder.paymentStatus === "Paid" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                          {currentOrder.paymentStatus === "Paid" ? "Paid" : "Pending"}
-                        </span>
-
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border-2 ${
-                          currentOrder.deliveryCost > 0
-                            ? "bg-violet-50 text-violet-700 border-violet-300 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700"
-                            : "bg-gray-50 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600"
-                        }`}>
-                          <Truck className="w-2.5 h-2.5" />
-                          {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : "Free"}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -853,8 +809,6 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                             desc: currentOrder.status === "Processing" || currentOrder.status === "Delivered" ? "In Progress" : "Awaiting" },
                           { label: "Packed", done: currentOrder.status === "Delivered", icon: CheckCircle,
                             desc: currentOrder.status === "Delivered" ? "Ready" : "Pending" },
-                          { label: "Shipped", done: currentOrder.status === "Delivered", icon: Truck,
-                            desc: currentOrder.status === "Delivered" ? "In Transit" : "Awaiting" },
                           { label: "Out for Delivery", done: currentOrder.status === "Delivered", icon: Truck,
                             desc: currentOrder.status === "Delivered" ? "On the way" : "Pending" },
                           { label: "Delivered", done: currentOrder.status === "Delivered", icon: CheckCircle,
@@ -863,7 +817,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                           const StepIcon = step.icon;
                           return (
                             <div key={step.label} className="flex items-start gap-3 pb-5 relative last:pb-0">
-                              {idx < 6 && (
+                              {idx < 5 && (
                                 <div className={`absolute left-[14px] top-8 w-0.5 h-[calc(100%+4px)] transition-all duration-500 ${
                                   step.done ? "bg-[#D4AF37]" : "bg-gray-200 dark:bg-gray-700"
                                 }`} />
