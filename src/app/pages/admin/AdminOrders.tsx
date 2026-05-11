@@ -487,11 +487,11 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
         open={!!viewingOrder}
         onOpenChange={() => setViewingOrder(null)}
       >
-        <DialogContent className="w-[95%] max-w-[1500px] max-h-[94vh] p-0 gap-0 overflow-y-auto scroll-smooth">
+        <DialogContent className="w-[98%] max-w-[1800px] max-h-[94vh] p-0 gap-0 overflow-y-auto scroll-smooth">
           {currentOrder && (
             <div className="flex flex-col min-h-0">
               {/* ====== HEADER ====== */}
-              <div className="sticky top-0 z-40 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-5 lg:px-8 py-4 lg:py-5 shrink-0">
+              <div className="sticky top-0 z-40 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 lg:px-10 py-5 lg:py-6 shrink-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="min-w-0">
                     <DialogHeader className="p-0">
@@ -567,8 +567,8 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
               </div>
 
               {/* ====== CONTENT ====== */}
-              <div className="p-5 lg:p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+              <div className="p-6 lg:p-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
 
                   {/* ====== LEFT COLUMN ====== */}
                   <div className="lg:col-span-7 space-y-6">
