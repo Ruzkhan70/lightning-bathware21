@@ -105,6 +105,19 @@ service cloud.firestore {
       allow read, write: if isAuth() && request.auth.uid == userId;
     }
     
+    // Announcements - public read, admin write
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Notifications - public read, auth create, admin update/delete
+    match /notifications/{notificationId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
     // Code Rotation OTP - admin only
     match /codeRotationOtp/{otpId} {
       allow read, write: if isAdmin();
