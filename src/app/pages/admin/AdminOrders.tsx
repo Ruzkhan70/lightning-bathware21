@@ -499,7 +499,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
         open={!!viewingOrder}
         onOpenChange={() => setViewingOrder(null)}
       >
-        <DialogContent className="max-w-7xl w-[95%] max-h-[98vh] p-0 gap-0 overflow-y-auto">
+        <DialogContent className="max-w-[95vw] w-[95%] max-h-[98vh] p-0 gap-0 overflow-y-auto">
           {currentOrder && (
             <div className="flex flex-col">
               {/* ====== PREMIUM STICKY HEADER ====== */}
@@ -610,10 +610,10 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                 </div>
 
                 {/* ====== TWO COLUMN LAYOUT ====== */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                  {/* ====== LEFT COLUMN (3/5) ====== */}
-                  <div className="lg:col-span-3 space-y-6">
+                  {/* ====== LEFT COLUMN ====== */}
+                  <div className="lg:col-span-5 space-y-6">
 
                     {/* --- Customer Information Card --- */}
                     <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
@@ -871,8 +871,8 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                     </div>
                   </div>
 
-                  {/* ====== RIGHT COLUMN (2/5) ====== */}
-                  <div className="lg:col-span-2 space-y-6">
+                  {/* ====== RIGHT COLUMN ====== */}
+                  <div className="lg:col-span-7 space-y-6">
 
                     {/* --- Ordered Products --- */}
                     <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
