@@ -1125,15 +1125,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const IDLE_TIMEOUT_MS = session.idleTimeout || (4 * 60 * 60 * 1000);
         const now = Date.now();
         
-        // Check if session expired (absolute) or idle timeout exceeded
         const isExpired = session.expiresAt && now > session.expiresAt;
         const isIdleExpired = session.lastActive && (now - session.lastActive) > IDLE_TIMEOUT_MS;
         
         if (!isExpired && !isIdleExpired) {
           setAdminUid(session.uid);
           setAdminEmail(session.email);
-          setIsAdminLoggedIn(true);
-          checkAndAutoRenew();
         } else {
           localStorage.removeItem(ADMIN_SESSION_KEY);
         }
@@ -1155,6 +1152,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
     return () => unsubscribe();
   }, []);
+
+  // After both localStorage session and Firebase Auth are ready, verify and activate
+  useEffect(() => {
+    if (!isAdminDataLoaded || !authReady) return;
+    
+    const savedSession = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (!savedSession || !adminUid || !adminEmail) return;
+    
+    if (!firebaseUser) {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      setAdminUid(null);
+      setAdminEmail("");
+      return;
+    }
+    
+    if (firebaseUser.uid !== adminUid) {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      setAdminUid(null);
+      setAdminEmail("");
+      return;
+    }
+    
+    setIsAdminLoggedIn(true);
+    checkAndAutoRenew();
+  }, [isAdminDataLoaded, authReady, firebaseUser, adminUid, adminEmail]);
 
   const waitForAuth = useCallback(async (): Promise<boolean> => {
     if (authReady && firebaseUser) return true;
