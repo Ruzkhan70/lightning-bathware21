@@ -3623,12 +3623,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return;
     }
     
+    const ordersBeforeDelete = orders;
+    const invoicesBeforeDelete = invoices;
+    const invoice = invoices.find(inv => inv.orderId === id);
+    
+    setOrders(prev => prev.filter(order => order.id !== id));
+    setInvoices(prev => prev.filter(inv => inv.orderId !== id));
+    
     try {
-      const invoice = invoices.find(inv => inv.orderId === id);
-      
-      setOrders(prev => prev.filter(order => order.id !== id));
-      setInvoices(prev => prev.filter(inv => inv.orderId !== id));
-      
       await deleteDoc(doc(db, "orders", id));
       
       if (invoice) {
@@ -3643,9 +3645,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         id,
         `Deleted order ${id}`
       );
-    } catch (error) {
+    } catch (error: any) {
+      setOrders(ordersBeforeDelete);
+      setInvoices(invoicesBeforeDelete);
       logger.error("Error deleting order:", error);
-      toast.error("Failed to delete order");
+      const msg = error?.code === "permission-denied"
+        ? "Permission denied. Make sure your admin account exists in Firestore (admins collection)."
+        : error?.message || "Failed to delete order";
+      toast.error(msg);
       await logOrderAction(
         'ORDER_DELETE',
         adminUid || 'unknown',
