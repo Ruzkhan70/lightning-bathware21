@@ -512,9 +512,9 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
         open={!!viewingOrder}
         onOpenChange={() => setViewingOrder(null)}
       >
-        <DialogContent className="w-[96vw] max-w-[1700px] max-h-[95vh] p-0 gap-0 overflow-hidden bg-gradient-to-br from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 border border-gray-200/80 dark:border-gray-800/80 shadow-2xl">
+        <DialogContent className="w-[96vw] max-w-[1700px] h-[95vh] max-h-[95vh] p-0 gap-0 overflow-hidden bg-gradient-to-br from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 border border-gray-200/80 dark:border-gray-800/80 shadow-2xl">
           {currentOrder && (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full min-h-0">
 
               {/* ====== HEADER ====== */}
               <div className="shrink-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
@@ -624,7 +624,7 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
               </div>
 
               {/* ====== BODY (SINGLE COLUMN) ====== */}
-              <div className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex-1 overflow-y-auto min-h-0 bg-gray-50/50 dark:bg-gray-900/50">
                 <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
 
                   {/* --- CUSTOMER --- */}
