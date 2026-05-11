@@ -44,9 +44,9 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
-    // Orders - public create (checkout), admin read/update
+    // Orders - public create (checkout), owner or admin read, admin update/delete
     match /orders/{orderId} {
-      allow read: if isAuth();
+      allow read: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
       allow create: if true;
       allow update, delete: if isAdmin();
     }
@@ -61,9 +61,9 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     
-    // Invoices - public read (verification), authenticated create (checkout), admin update/delete
+    // Invoices - owner or admin read, authenticated create (checkout), admin update/delete
     match /invoices/{invoiceId} {
-      allow read: if true;
+      allow read: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
       allow create: if isAuth();
       allow update, delete: if isAdmin();
     }
@@ -87,9 +87,9 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
-    // Users - public read/create, admin update
+    // Users - own read/create, admin or self update, admin delete
     match /users/{userId} {
-      allow read: if true;
+      allow read: if isAuth() && request.auth.uid == userId;
       allow create: if true;
       allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
       allow delete: if isAdmin();

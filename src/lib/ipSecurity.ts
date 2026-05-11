@@ -52,7 +52,7 @@ export const getIpGeoLocation = async (ip: string): Promise<IpGeoLocation | null
   if (ip === "unknown" || !ip) return null;
 
   try {
-    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,city`);
+    const res = await fetch(`https://ip-api.com/json/${ip}?fields=country,city`);
     const data = await res.json() as { country?: string; city?: string; status?: string };
     if (data.status !== "fail" && data.country) {
       const location = { country: data.country, city: data.city || "Unknown" };
