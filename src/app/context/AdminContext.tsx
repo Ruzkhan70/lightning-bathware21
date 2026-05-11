@@ -1203,10 +1203,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         recovered: true,
       });
       return true;
-    } catch (error: any) {
-      if (error.code === "permission-denied") {
-        toast.error("Admin permission issue. Try logging out and back in.");
-      }
+    } catch {
       return false;
     }
   }, []);

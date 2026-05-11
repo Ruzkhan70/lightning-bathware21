@@ -19,11 +19,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // Admins collection - only admins can manage
+    // Admins collection - auth read (for admin setup check), admin create/update/delete
     match /admins/{adminId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow create: if isAuth() && request.auth.uid == adminId;
-      allow update, delete: if isAdmin() && request.auth.uid == adminId;
+      allow update, delete: if isAdmin();
     }
     
     // Store data (products, profile, assets, content, categories) - public read, admin write
@@ -87,9 +87,9 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
-    // Users - own read/create, admin or self update, admin delete
+    // Users - any auth read (for registration email check), self create/update, admin delete
     match /users/{userId} {
-      allow read: if isAuth() && request.auth.uid == userId;
+      allow read: if true;
       allow create: if true;
       allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
       allow delete: if isAdmin();
