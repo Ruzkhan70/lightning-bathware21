@@ -623,387 +623,377 @@ className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dar
                 </div>
               </div>
 
-              {/* ====== BODY ====== */}
+              {/* ====== BODY (SINGLE COLUMN) ====== */}
               <div className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-gray-900/50">
-                <div className="p-6 lg:p-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
 
-                    {/* ====== LEFT COLUMN ====== */}
-                    <div className="lg:col-span-4 xl:col-span-3 space-y-5">
-
-                      {/* --- CUSTOMER --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                              <User className="w-3.5 h-3.5 text-[#D4AF37]" />
-                              Customer
-                            </h3>
-                            <div className="flex items-center gap-1">
-                              {currentOrder.phone && (
-                                <>
-                                  <button onClick={() => window.open(`tel:${currentOrder.phone}`, "_blank")}
-                                    className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-400 hover:text-blue-600 transition-all" title="Call">
-                                    <Phone className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button onClick={() => window.open(`https://wa.me/${currentOrder.phone.replace(/[^0-9]/g, "")}`, "_blank")}
-                                    className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-gray-400 hover:text-emerald-600 transition-all" title="WhatsApp">
-                                    <MessageSquare className="w-3.5 h-3.5" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="px-5 py-4 space-y-4">
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Full Name</p>
-                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{currentOrder.customerName}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Phone Number</p>
-                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 font-mono tracking-tight">{currentOrder.phone}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              Delivery Address
-                            </p>
-                            <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed break-words">{currentOrder.address}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Customer ID</p>
-                            <p className="text-sm font-bold font-mono text-[#D4AF37]">{currentOrder.userId ? `#${currentOrder.userId.slice(-8)}` : "N/A"}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* --- DELIVERY --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                            <Truck className="w-3.5 h-3.5 text-[#D4AF37]" />
-                            Delivery Info
-                          </h3>
-                        </div>
-                        <div className="px-5 py-4">
-                          <div className="space-y-0">
-                            <div className="flex justify-between items-start py-2.5 border-b border-gray-50 dark:border-gray-800/50 first:pt-0 last:border-0">
-                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Method</span>
-                              <span className="text-sm font-bold text-gray-900 dark:text-gray-100 text-right max-w-[55%]">{currentOrder.deliveryOption || "Standard"}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-2.5 border-b border-gray-50 dark:border-gray-800/50">
-                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Type</span>
-                              <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full shrink-0 ${
-                                currentOrder.deliveryCost > 0
-                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                  : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                              }`}>
-                                {currentOrder.deliveryType || (currentOrder.deliveryCost > 0 ? "Customer Pays" : "Free")}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center py-2.5">
-                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Fee</span>
-                              <span className="text-sm font-bold text-gray-900 dark:text-gray-100 text-right">
-                                {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-emerald-600 dark:text-emerald-400">FREE</span>}
-                              </span>
-                            </div>
-                          </div>
-                          {(currentOrder.trackingNumber || currentOrder.courierName) && (
-                            <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3.5 border border-blue-100 dark:border-blue-800/50">
-                              <p className="text-[9px] text-blue-600 dark:text-blue-400 font-extrabold uppercase tracking-wider mb-2 flex items-center gap-1">
-                                <Info className="w-3 h-3" /> Tracking Details
-                              </p>
-                              {currentOrder.courierName && <p className="text-xs font-bold text-gray-900 dark:text-gray-100">{currentOrder.courierName}</p>}
-                              {currentOrder.trackingNumber && <p className="text-xs font-mono font-bold text-blue-700 dark:text-blue-300 mt-0.5">{currentOrder.trackingNumber}</p>}
-                              {currentOrder.trackingUrl && (
-                                <Button size="sm" variant="outline" onClick={() => window.open(currentOrder.trackingUrl, "_blank")}
-                                  className="mt-2.5 bg-white dark:bg-gray-900 text-[10px] font-bold h-7 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-3">
-                                  <ExternalLink className="w-3 h-3 mr-1" /> Track Package
-                                </Button>
-                              )}
-                            </div>
+                  {/* --- CUSTOMER --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                          <User className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          Customer
+                        </h3>
+                        <div className="flex items-center gap-1">
+                          {currentOrder.phone && (
+                            <>
+                              <button onClick={() => window.open(`tel:${currentOrder.phone}`, "_blank")}
+                                className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-400 hover:text-blue-600 transition-all" title="Call">
+                                <Phone className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => window.open(`https://wa.me/${currentOrder.phone.replace(/[^0-9]/g, "")}`, "_blank")}
+                                className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-gray-400 hover:text-emerald-600 transition-all" title="WhatsApp">
+                                <MessageSquare className="w-3.5 h-3.5" />
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
-
-                      {/* --- PAYMENT --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                            <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
-                            Payment
-                          </h3>
-                        </div>
-                        <div className="px-5 py-4">
-                          <div className="space-y-0">
-                            <div className="flex justify-between items-center py-2.5 border-b border-gray-50 dark:border-gray-800/50 first:pt-0">
-                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Status</span>
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold shrink-0 border-2 ${
-                                currentOrder.paymentStatus === "Paid"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
-                                  : "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700"
-                              }`}>
-                                <div className={`w-2 h-2 rounded-full ${currentOrder.paymentStatus === "Paid" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                                {currentOrder.paymentStatus === "Paid" ? "Paid" : "Pending"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center py-2.5 border-b border-gray-50 dark:border-gray-800/50">
-                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Method</span>
-                              <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Cash on Delivery</span>
-                            </div>
-                            <div className="flex justify-between items-center py-2.5">
-                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Total</span>
-                              <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">Rs. {currentOrder.total.toLocaleString()}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                     </div>
-
-                    {/* ====== CENTER COLUMN ====== */}
-                    <div className="lg:col-span-5 xl:col-span-5 space-y-5">
-
-                      {/* --- PRODUCTS --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                              <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
-                              Ordered Items
-                            </h3>
-                            <span className="text-[10px] font-extrabold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">
-                              {currentOrder.products.length} item{currentOrder.products.length !== 1 ? "s" : ""}
-                            </span>
-                          </div>
+                    <div className="px-5 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Full Name</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{currentOrder.customerName}</p>
                         </div>
-                        <div className="px-5 py-4 space-y-4">
-                          {currentOrder.products.map((product, idx) => {
-                            const swatchColor = getColorSwatch(product.selected_color || "");
-                            return (
-                              <div key={`${product.id}-${idx}`} className="bg-white dark:bg-gray-900/80 border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden hover:border-[#D4AF37]/30 dark:hover:border-[#D4AF37]/20 hover:shadow-lg transition-all duration-300 group">
-                                <div className="flex gap-4 p-4">
-                                  <div className="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
-                                    {product.image ? (
-                                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                        onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/112x112/e2e8f0/94a3b8?text=N/A"; }}
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
-                                        <Package className="w-10 h-10" />
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-gray-900 dark:text-gray-100 leading-tight">{product.name}</p>
-                                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-1 font-semibold">SKU: #{product.id.slice(-8)}</p>
-
-                                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                                      {product.selected_color && (
-                                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold border-2 shadow-sm"
-                                          style={{
-                                            backgroundColor: `${swatchColor}18`,
-                                            borderColor: `${swatchColor}40`,
-                                            color: swatchColor,
-                                          }}>
-                                          <span className="w-3 h-3 rounded-full"
-                                            style={{ backgroundColor: swatchColor, outline: `2px solid ${swatchColor}40`, outlineOffset: 1 }}
-                                          />
-                                          {product.selected_color}
-                                        </span>
-                                      )}
-                                      {product.selected_size && (
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-800 shadow-sm">
-                                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                          Size: {product.selected_size}
-                                        </span>
-                                      )}
-                                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700">
-                                        Qty: {product.quantity}
-                                      </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between mt-3 pt-3 border-t-2 border-gray-100 dark:border-gray-800">
-                                      <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">
-                                        Rs. {product.price.toLocaleString()} &times; {product.quantity}
-                                      </span>
-                                      <span className="font-extrabold text-sm text-gray-900 dark:text-gray-100">
-                                        Rs. {(product.quantity * product.price).toLocaleString()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Phone Number</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 font-mono tracking-tight">{currentOrder.phone}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            Delivery Address
+                          </p>
+                          <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed break-words">{currentOrder.address}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Customer ID</p>
+                          <p className="text-sm font-bold font-mono text-[#D4AF37]">{currentOrder.userId ? `#${currentOrder.userId.slice(-8)}` : "N/A"}</p>
                         </div>
                       </div>
-                    </div>
-
-                    {/* ====== RIGHT COLUMN ====== */}
-                    <div className="lg:col-span-3 xl:col-span-4 space-y-5">
-
-                      {/* --- TIMELINE --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                            <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
-                            Timeline
-                          </h3>
-                        </div>
-                        <div className="px-5 py-5">
-                          <div className="relative">
-                            {[
-                              { label: "Order Placed", done: true, icon: ShoppingCart,
-                                desc: new Date(currentOrder.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) },
-                              { label: "Payment", done: currentOrder.paymentStatus === "Paid", icon: Shield,
-                                desc: currentOrder.paymentStatus === "Paid" ? "Completed" : "Pending" },
-                              { label: "Processing", done: currentOrder.status === "Processing" || currentOrder.status === "Delivered", icon: Package,
-                                desc: currentOrder.status === "Processing" || currentOrder.status === "Delivered" ? "In Progress" : "Awaiting" },
-                              { label: "Packed", done: currentOrder.status === "Delivered", icon: CheckCircle,
-                                desc: currentOrder.status === "Delivered" ? "Ready" : "Pending" },
-                              { label: "Shipped", done: currentOrder.status === "Delivered", icon: Truck,
-                                desc: currentOrder.status === "Delivered" ? "In Transit" : "Awaiting" },
-                              { label: "Out for Delivery", done: currentOrder.status === "Delivered", icon: Truck,
-                                desc: currentOrder.status === "Delivered" ? "On the way" : "Pending" },
-                              { label: "Delivered", done: currentOrder.status === "Delivered", icon: CheckCircle,
-                                desc: currentOrder.status === "Delivered" ? "Completed" : "Pending" },
-                            ].map((step, idx) => {
-                              const StepIcon = step.icon;
-                              return (
-                                <div key={step.label} className="flex items-start gap-3 pb-5 relative last:pb-0">
-                                  {idx < 6 && (
-                                    <div className={`absolute left-[14px] top-8 w-0.5 h-[calc(100%+4px)] transition-all duration-500 ${
-                                      step.done ? "bg-[#D4AF37]" : "bg-gray-200 dark:bg-gray-700"
-                                    }`} />
-                                  )}
-                                  <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 z-10 ring-[3px] ring-white dark:ring-gray-900 transition-all duration-300 ${
-                                    step.done
-                                      ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/30"
-                                      : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600"
-                                  }`}>
-                                    <StepIcon className="w-3.5 h-3.5" />
-                                  </div>
-                                  <div className="pt-0.5 min-w-0">
-                                    <p className={`text-xs font-extrabold transition-colors duration-300 ${
-                                      step.done ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"
-                                    }`}>{step.label}</p>
-                                    <p className={`text-[10px] mt-0.5 font-bold transition-colors duration-300 ${
-                                      step.done ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"
-                                    }`}>{step.desc}</p>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* --- STATUS CONTROLS --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                            <ArrowRight className="w-3.5 h-3.5 text-[#D4AF37]" />
-                            Status
-                          </h3>
-                        </div>
-                        <div className="px-5 py-4 space-y-4">
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Order Status</p>
-                            <Select value={currentOrder.status}
-                              onValueChange={(value) => handleStatusChange(currentOrder.id, value as "Pending" | "Processing" | "Delivered")}>
-                              <SelectTrigger className="w-full h-10 text-sm font-bold border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Pending"><span className="flex items-center gap-2 text-sm font-bold"><Clock className="w-4 h-4 text-amber-500" /> Pending</span></SelectItem>
-                                <SelectItem value="Processing"><span className="flex items-center gap-2 text-sm font-bold"><Truck className="w-4 h-4 text-blue-500" /> Processing</span></SelectItem>
-                                <SelectItem value="Delivered"><span className="flex items-center gap-2 text-sm font-bold"><CheckCircle className="w-4 h-4 text-emerald-500" /> Delivered</span></SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Payment Status</p>
-                            <Select value={currentOrder.paymentStatus || "Pending"}
-                              onValueChange={(value) => updatePaymentStatus(currentOrder.id, value as "Pending" | "Paid")}>
-                              <SelectTrigger className="w-full h-10 text-sm font-bold border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Pending"><span className="flex items-center gap-2 text-sm font-bold"><Clock className="w-4 h-4 text-amber-500" /> Pending</span></SelectItem>
-                                <SelectItem value="Paid"><span className="flex items-center gap-2 text-sm font-bold"><CheckCircle className="w-4 h-4 text-emerald-500" /> Paid</span></SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* --- ORDER SUMMARY --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                            <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
-                            Summary
-                          </h3>
-                        </div>
-                        <div className="px-5 py-4">
-                          <div className="space-y-0">
-                            <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-800/50 first:pt-0">
-                              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Subtotal</span>
-                              <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">Rs. {(currentOrder.total - currentOrder.deliveryCost).toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-800/50">
-                              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Delivery Fee</span>
-                              <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">
-                                {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-emerald-600 dark:text-emerald-400">FREE</span>}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center py-4">
-                              <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">Grand Total</span>
-                              <span className="text-lg font-black text-[#D4AF37]">Rs. {currentOrder.total.toLocaleString()}</span>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 pt-4 border-t-2 border-gray-100 dark:border-gray-800">
-                            <Button onClick={() => handleViewInvoice(currentOrder)}
-                              className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B8962F] hover:from-[#C49E2E] hover:to-[#A0852A] text-black font-extrabold shadow-lg hover:shadow-xl hover:shadow-[#D4AF37]/30 transition-all duration-200 py-2.5 h-auto text-sm rounded-xl">
-                              <FileText className="w-4 h-4 mr-2" /> View Invoice
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* --- TRACKING --- */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                          <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                            <Truck className="w-3.5 h-3.5 text-[#D4AF37]" />
-                            Tracking
-                          </h3>
-                        </div>
-                        <div className="px-5 py-4 space-y-3.5">
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Tracking Number</p>
-                            <Input value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="e.g. TRK123456" className="text-sm h-9 font-bold bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Courier</p>
-                            <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="e.g. LankaPost" className="text-sm h-9 font-bold bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Tracking URL</p>
-                            <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." className="text-sm h-9 font-bold bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl" />
-                          </div>
-                          <Button onClick={handleAddTracking} size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 text-sm font-extrabold rounded-xl shadow-md hover:shadow-lg transition-all">
-                            <Truck className="w-4 h-4 mr-1.5" />
-                            {currentOrder.trackingNumber ? "Update Tracking" : "Add Tracking"}
-                          </Button>
-                        </div>
-                      </div>
-
                     </div>
                   </div>
+
+                  {/* --- DELIVERY --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                        <Truck className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Delivery Info
+                      </h3>
+                    </div>
+                    <div className="px-5 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Method</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{currentOrder.deliveryOption || "Standard"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Type</p>
+                          <span className={`inline-block text-[11px] font-extrabold px-2.5 py-1 rounded-full ${
+                            currentOrder.deliveryCost > 0
+                              ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                              : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                          }`}>
+                            {currentOrder.deliveryType || (currentOrder.deliveryCost > 0 ? "Customer Pays" : "Free")}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Fee</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                            {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-emerald-600 dark:text-emerald-400">FREE</span>}
+                          </p>
+                        </div>
+                      </div>
+                      {(currentOrder.trackingNumber || currentOrder.courierName) && (
+                        <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3.5 border border-blue-100 dark:border-blue-800/50">
+                          <p className="text-[9px] text-blue-600 dark:text-blue-400 font-extrabold uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <Info className="w-3 h-3" /> Tracking Details
+                          </p>
+                          <div className="flex flex-wrap items-center gap-4">
+                            {currentOrder.courierName && <p className="text-xs font-bold text-gray-900 dark:text-gray-100">{currentOrder.courierName}</p>}
+                            {currentOrder.trackingNumber && <p className="text-xs font-mono font-bold text-blue-700 dark:text-blue-300">{currentOrder.trackingNumber}</p>}
+                            {currentOrder.trackingUrl && (
+                              <Button size="sm" variant="outline" onClick={() => window.open(currentOrder.trackingUrl, "_blank")}
+                                className="bg-white dark:bg-gray-900 text-[10px] font-bold h-7 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-3">
+                                <ExternalLink className="w-3 h-3 mr-1" /> Track Package
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* --- PAYMENT --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                        <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Payment
+                      </h3>
+                    </div>
+                    <div className="px-5 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Status</p>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold border-2 ${
+                            currentOrder.paymentStatus === "Paid"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
+                              : "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700"
+                          }`}>
+                            <div className={`w-2 h-2 rounded-full ${currentOrder.paymentStatus === "Paid" ? "bg-emerald-500" : "bg-rose-500"}`} />
+                            {currentOrder.paymentStatus === "Paid" ? "Paid" : "Pending"}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Method</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Cash on Delivery</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Total</p>
+                          <p className="text-sm font-extrabold text-gray-900 dark:text-gray-100">Rs. {currentOrder.total.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* --- PRODUCTS --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                          <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          Ordered Items
+                        </h3>
+                        <span className="text-[10px] font-extrabold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">
+                          {currentOrder.products.length} item{currentOrder.products.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="px-5 py-4 space-y-4">
+                      {currentOrder.products.map((product, idx) => {
+                        const swatchColor = getColorSwatch(product.selected_color || "");
+                        return (
+                          <div key={`${product.id}-${idx}`} className="bg-white dark:bg-gray-900/80 border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden hover:border-[#D4AF37]/30 dark:hover:border-[#D4AF37]/20 hover:shadow-lg transition-all duration-300 group">
+                            <div className="flex gap-4 p-4">
+                              <div className="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+                                {product.image ? (
+                                  <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/112x112/e2e8f0/94a3b8?text=N/A"; }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
+                                    <Package className="w-10 h-10" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-gray-900 dark:text-gray-100 leading-tight">{product.name}</p>
+                                <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-1 font-semibold">SKU: #{product.id.slice(-8)}</p>
+                                <div className="flex flex-wrap items-center gap-2 mt-3">
+                                  {product.selected_color && (
+                                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold border-2 shadow-sm"
+                                      style={{
+                                        backgroundColor: `${swatchColor}18`,
+                                        borderColor: `${swatchColor}40`,
+                                        color: swatchColor,
+                                      }}>
+                                      <span className="w-3 h-3 rounded-full"
+                                        style={{ backgroundColor: swatchColor, outline: `2px solid ${swatchColor}40`, outlineOffset: 1 }}
+                                      />
+                                      {product.selected_color}
+                                    </span>
+                                  )}
+                                  {product.selected_size && (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-800 shadow-sm">
+                                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                      Size: {product.selected_size}
+                                    </span>
+                                  )}
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700">
+                                    Qty: {product.quantity}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between mt-3 pt-3 border-t-2 border-gray-100 dark:border-gray-800">
+                                  <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+                                    Rs. {product.price.toLocaleString()} &times; {product.quantity}
+                                  </span>
+                                  <span className="font-extrabold text-sm text-gray-900 dark:text-gray-100">
+                                    Rs. {(product.quantity * product.price).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* --- TIMELINE --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Timeline
+                      </h3>
+                    </div>
+                    <div className="px-5 py-5">
+                      <div className="relative max-w-2xl">
+                        {[
+                          { label: "Order Placed", done: true, icon: ShoppingCart,
+                            desc: new Date(currentOrder.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) },
+                          { label: "Payment", done: currentOrder.paymentStatus === "Paid", icon: Shield,
+                            desc: currentOrder.paymentStatus === "Paid" ? "Completed" : "Pending" },
+                          { label: "Processing", done: currentOrder.status === "Processing" || currentOrder.status === "Delivered", icon: Package,
+                            desc: currentOrder.status === "Processing" || currentOrder.status === "Delivered" ? "In Progress" : "Awaiting" },
+                          { label: "Packed", done: currentOrder.status === "Delivered", icon: CheckCircle,
+                            desc: currentOrder.status === "Delivered" ? "Ready" : "Pending" },
+                          { label: "Shipped", done: currentOrder.status === "Delivered", icon: Truck,
+                            desc: currentOrder.status === "Delivered" ? "In Transit" : "Awaiting" },
+                          { label: "Out for Delivery", done: currentOrder.status === "Delivered", icon: Truck,
+                            desc: currentOrder.status === "Delivered" ? "On the way" : "Pending" },
+                          { label: "Delivered", done: currentOrder.status === "Delivered", icon: CheckCircle,
+                            desc: currentOrder.status === "Delivered" ? "Completed" : "Pending" },
+                        ].map((step, idx) => {
+                          const StepIcon = step.icon;
+                          return (
+                            <div key={step.label} className="flex items-start gap-3 pb-5 relative last:pb-0">
+                              {idx < 6 && (
+                                <div className={`absolute left-[14px] top-8 w-0.5 h-[calc(100%+4px)] transition-all duration-500 ${
+                                  step.done ? "bg-[#D4AF37]" : "bg-gray-200 dark:bg-gray-700"
+                                }`} />
+                              )}
+                              <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 z-10 ring-[3px] ring-white dark:ring-gray-900 transition-all duration-300 ${
+                                step.done
+                                  ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/30"
+                                  : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600"
+                              }`}>
+                                <StepIcon className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="pt-0.5 min-w-0">
+                                <p className={`text-xs font-extrabold transition-colors duration-300 ${
+                                  step.done ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"
+                                }`}>{step.label}</p>
+                                <p className={`text-[10px] mt-0.5 font-bold transition-colors duration-300 ${
+                                  step.done ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"
+                                }`}>{step.desc}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* --- STATUS CONTROLS --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                        <ArrowRight className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Status
+                      </h3>
+                    </div>
+                    <div className="px-5 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Order Status</p>
+                          <Select value={currentOrder.status}
+                            onValueChange={(value) => handleStatusChange(currentOrder.id, value as "Pending" | "Processing" | "Delivered")}>
+                            <SelectTrigger className="w-full h-10 text-sm font-bold border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending"><span className="flex items-center gap-2 text-sm font-bold"><Clock className="w-4 h-4 text-amber-500" /> Pending</span></SelectItem>
+                              <SelectItem value="Processing"><span className="flex items-center gap-2 text-sm font-bold"><Truck className="w-4 h-4 text-blue-500" /> Processing</span></SelectItem>
+                              <SelectItem value="Delivered"><span className="flex items-center gap-2 text-sm font-bold"><CheckCircle className="w-4 h-4 text-emerald-500" /> Delivered</span></SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Payment Status</p>
+                          <Select value={currentOrder.paymentStatus || "Pending"}
+                            onValueChange={(value) => updatePaymentStatus(currentOrder.id, value as "Pending" | "Paid")}>
+                            <SelectTrigger className="w-full h-10 text-sm font-bold border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending"><span className="flex items-center gap-2 text-sm font-bold"><Clock className="w-4 h-4 text-amber-500" /> Pending</span></SelectItem>
+                              <SelectItem value="Paid"><span className="flex items-center gap-2 text-sm font-bold"><CheckCircle className="w-4 h-4 text-emerald-500" /> Paid</span></SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* --- ORDER SUMMARY --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                        <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Summary
+                      </h3>
+                    </div>
+                    <div className="px-5 py-4">
+                      <div className="max-w-md space-y-0">
+                        <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-800/50 first:pt-0">
+                          <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Subtotal</span>
+                          <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">Rs. {(currentOrder.total - currentOrder.deliveryCost).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-800/50">
+                          <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Delivery Fee</span>
+                          <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">
+                            {currentOrder.deliveryCost > 0 ? `Rs. ${currentOrder.deliveryCost.toLocaleString()}` : <span className="text-emerald-600 dark:text-emerald-400">FREE</span>}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-4">
+                          <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">Grand Total</span>
+                          <span className="text-lg font-black text-[#D4AF37]">Rs. {currentOrder.total.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t-2 border-gray-100 dark:border-gray-800">
+                        <Button onClick={() => handleViewInvoice(currentOrder)}
+                          className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B8962F] hover:from-[#C49E2E] hover:to-[#A0852A] text-black font-extrabold shadow-lg hover:shadow-xl hover:shadow-[#D4AF37]/30 transition-all duration-200 py-2.5 h-auto text-sm rounded-xl">
+                          <FileText className="w-4 h-4 mr-2" /> View Invoice
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* --- TRACKING --- */}
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                        <Truck className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Tracking
+                      </h3>
+                    </div>
+                    <div className="px-5 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Tracking Number</p>
+                          <Input value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="e.g. TRK123456" className="text-sm h-9 font-bold bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Courier</p>
+                          <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="e.g. LankaPost" className="text-sm h-9 font-bold bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Tracking URL</p>
+                          <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." className="text-sm h-9 font-bold bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl" />
+                        </div>
+                      </div>
+                      <Button onClick={handleAddTracking} size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 text-sm font-extrabold rounded-xl shadow-md hover:shadow-lg transition-all mt-4">
+                        <Truck className="w-4 h-4 mr-1.5" />
+                        {currentOrder.trackingNumber ? "Update Tracking" : "Add Tracking"}
+                      </Button>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
