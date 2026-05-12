@@ -46,7 +46,7 @@ export default function Products() {
     } else {
       setSelectedCategory("all");
     }
-  }, [searchParams]);
+  }, [searchParams.toString()]);
 
   // Memoize active categories to prevent recalculation
   const activeCategories = useMemo(() => [
@@ -109,7 +109,7 @@ export default function Products() {
     }
 
     return [...result].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
-  }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
+  }, [safeProducts, searchParams.toString(), selectedCategory, sortBy, priceRange]);
 
   useEffect(() => {
     const categoryParam = searchParams.get("category");
@@ -139,7 +139,7 @@ export default function Products() {
         "Browse our extensive collection of premium lighting, bathroom fittings, plumbing, and electrical hardware at Lightning Bathware."
       );
     }
-  }, [searchParams, safeCategories]);
+  }, [searchParams.toString(), safeCategories]);
 
   const clearFilters = () => {
     setSelectedCategory("all");
