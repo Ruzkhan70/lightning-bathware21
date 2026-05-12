@@ -140,7 +140,9 @@ export default function Header() {
   const searchSuggestions = searchQuery.trim().length > 0
     ? safeProducts.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
+        p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.product_code && p.product_code.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : [];
 
