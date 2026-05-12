@@ -149,6 +149,9 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSearchSuggestions(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     } else {
@@ -159,6 +162,9 @@ export default function Header() {
   const handleSuggestionClick = (productName: string) => {
     setSearchQuery(productName);
     setShowSearchSuggestions(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     navigate(`/products?search=${encodeURIComponent(productName)}`);
   };
 
