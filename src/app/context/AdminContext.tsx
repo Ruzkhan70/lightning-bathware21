@@ -98,6 +98,7 @@ export interface Product {
   variants?: ProductVariant[];
   sizes?: ProductSize[];
   created_at?: string;
+  order?: number;
 }
 
 export interface Order {
@@ -444,6 +445,7 @@ interface AdminContextType {
   toggleCategoryStatus: (id: string) => void;
   reorderCategories: (newOrder: Category[]) => Promise<void>;
   saveCategoryOrder: (newOrder: Category[]) => Promise<void>;
+  reorderProducts: (orderedProducts: Product[]) => Promise<void>;
   showAdminLogin: boolean;
   setShowAdminLogin: (show: boolean) => void;
   isDataLoaded: boolean;
@@ -3282,6 +3284,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       has_sizes: product.has_sizes || false,
       variants: product.variants || [],
       sizes: product.sizes || [],
+      order: products.length,
     };
     const currentProducts = products;
     const updated = [...currentProducts, newProduct];
@@ -4066,6 +4069,38 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     await saveCategoryOrder(newOrder);
   };
 
+  const saveProductOrder = async (orderedProducts: Product[]) => {
+    const authReady = await waitForAuth();
+    if (!authReady) {
+      toast.error("Authentication not ready. Please refresh and try again.");
+      return;
+    }
+
+    const reordered = orderedProducts.map((p, index) => ({ ...p, order: index }));
+    setProducts(reordered);
+    try {
+      await setDoc(doc(db, "storeData", "products"), { products: reordered }, { merge: true });
+      toast.success("Product order saved!");
+    } catch (error) {
+      logger.error("Error saving product order:", error);
+      toast.error("Failed to save product order");
+    }
+  };
+
+  const reorderProducts = async (orderedProducts: Product[]) => {
+    const allProducts = products;
+    const reindexed = orderedProducts.map((p, index) => ({ ...p, order: index }));
+    const rest = allProducts.filter(ap => !orderedProducts.find(op => op.id === ap.id));
+    const merged = [...reindexed, ...rest].map((p, index) => ({ ...p, order: index }));
+    setProducts(merged);
+    try {
+      await setDoc(doc(db, "storeData", "products"), { products: merged }, { merge: true });
+    } catch (error) {
+      logger.error("Error saving product order:", error);
+      toast.error("Failed to save product order");
+    }
+  };
+
   const updateCategory = async (id: string, category: Partial<Category>) => {
     const authReady = await waitForAuth();
     if (!authReady) {
@@ -4239,6 +4274,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         deleteCategory,
         toggleCategoryStatus,
         reorderCategories,
+        reorderProducts,
         saveCategoryOrder,
         isDataLoaded,
         topSellingProducts,

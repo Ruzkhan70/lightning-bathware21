@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight, Download, Upload, Scale, Eye, Check, Copy } from "lucide-react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { Edit, Trash2, Search, CheckSquare, Square, X, Filter, ChevronLeft, ChevronRight, Download, Upload, Scale, Eye, Check, Copy, GripVertical } from "lucide-react";
 import ImageUpload from "../../components/admin/ImageUpload";
 import { uploadImage } from "../../../lib/imageUpload";
 import { useAdmin } from "../../context/AdminContext";
@@ -23,9 +23,128 @@ import {
 } from "../../components/ui/select";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableProductRow({ product, isSelected, onSelect, onEdit, onDelete, compareMode, compareProducts, onToggleCompare, copyToClipboard }: {
+  product: any;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  compareMode: boolean;
+  compareProducts: string[];
+  onToggleCompare: (id: string) => void;
+  copyToClipboard: (code: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 100 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} className={`border-b hover:bg-muted/50 transition-colors ${isSelected ? 'bg-[#D4AF37]/10' : ''} ${isDragging ? 'shadow-lg border-[#D4AF37]' : 'border-border'}`}>
+      <td className="py-3 px-2 w-10">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-1 inline-flex">
+          <GripVertical className="w-4 h-4" />
+        </div>
+      </td>
+      <td className="py-3 px-4 w-12">
+        <button
+          onClick={() => onSelect(product.id)}
+          className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
+        >
+          {isSelected ? (
+            <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
+          ) : (
+            <Square className="w-5 h-5" />
+          )}
+        </button>
+      </td>
+      <td className="py-3 px-4">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-16 h-16 object-cover rounded"
+        />
+      </td>
+      <td className="py-3 px-4 max-w-xs">
+        <div className="font-semibold">{product.name}</div>
+        <div className="text-sm text-muted-foreground truncate">
+          {product.description}
+        </div>
+      </td>
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+            {product.product_code || "—"}
+          </span>
+          {product.product_code && (
+            <button
+              onClick={() => copyToClipboard(product.product_code!)}
+              className="p-1 rounded hover:bg-muted/80 transition-colors"
+              title="Copy code"
+            >
+              <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      </td>
+      <td className="py-3 px-4">
+        <span className="px-3 py-1 bg-muted rounded-full text-sm">
+          {product.category}
+        </span>
+      </td>
+      <td className="py-3 px-4 font-semibold">
+        Rs. {product.price.toLocaleString()}
+      </td>
+      <td className="py-3 px-4">
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          product.isAvailable
+            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+        }`}>
+          {product.isAvailable ? "Available" : "Not Available"}
+        </span>
+      </td>
+      {compareMode && (
+        <td className="py-3 px-4">
+          <button
+            onClick={() => onToggleCompare(product.id)}
+            className={`p-2 rounded transition-colors ${
+              compareProducts.includes(product.id)
+                ? "bg-[#D4AF37] text-black"
+                : "bg-muted text-muted-foreground hover:border-border"
+            }`}
+          >
+            <Scale className="w-4 h-4" />
+          </button>
+        </td>
+      )}
+      <td className="py-3 px-4">
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => onEdit(product.id)}>
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm" variant="outline"
+            onClick={() => onDelete(product.id)}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+}
 
 export default function AdminProducts() {
-  const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories, storeProfile } = useAdmin();
+  const { products, updateProduct, deleteProduct, bulkDeleteProducts, categories, storeProfile, reorderProducts } = useAdmin();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -40,6 +159,12 @@ export default function AdminProducts() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareProducts, setCompareProducts] = useState<string[]>([]);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const toggleCompareProduct = (productId: string) => {
     setCompareProducts(prev =>
@@ -160,12 +285,25 @@ export default function AdminProducts() {
       (filterStock === "available" && p.isAvailable) ||
       (filterStock === "unavailable" && !p.isAvailable);
     return matchesSearch && matchesCategory && matchesAvailability;
-  });
+  }).sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = paginatedProducts.findIndex(p => p.id === active.id);
+    const newIndex = paginatedProducts.findIndex(p => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(paginatedProducts, oldIndex, newIndex);
+    setIsSavingOrder(true);
+    reorderProducts(reordered).finally(() => setIsSavingOrder(false));
+  }, [paginatedProducts, reorderProducts]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const pageRanges = useMemo(() => {
@@ -506,10 +644,32 @@ export default function AdminProducts() {
 
       {/* Desktop Table View */}
       <div className="hidden md:block bg-card rounded-lg shadow-lg overflow-hidden">
+        {!searchQuery && (
+          <div className="bg-gradient-to-r from-[#D4AF37]/10 to-transparent px-4 py-3 border-b border-[#D4AF37]/20 flex items-center gap-3">
+            <GripVertical className="w-5 h-5 text-[#D4AF37]" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-sm">Drag & Drop to Reorder</h3>
+              <p className="text-xs text-muted-foreground">Drag the grip handle to set product display order</p>
+            </div>
+            {isSavingOrder && (
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            )}
+          </div>
+        )}
+        {searchQuery && (
+          <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 px-4 py-3 flex items-center gap-2">
+            <Search className="w-3.5 h-3.5" />
+            Drag-and-drop is disabled while searching. Clear search to reorder.
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50 border-b">
               <tr>
+                <th className="py-4 px-2 w-10"></th>
                 <th className="py-4 px-4 w-12">
                   <button
                     onClick={handleSelectAll}
@@ -535,101 +695,89 @@ export default function AdminProducts() {
                 </tr>
               </thead>
               <tbody>
-              {paginatedProducts.map((product) => (
-                <tr key={product.id} className={`border-b hover:bg-muted/50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
-                  <td className="py-3 px-4">
-                    <button
-                      onClick={() => handleSelectProduct(product.id)}
-                      className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
-                    >
-                      {selectedProducts.includes(product.id) ? (
-                        <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
-                      ) : (
-                        <Square className="w-5 h-5" />
-                      )}
-                    </button>
-                  </td>
-                  <td className="py-3 px-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                  </td>
-                  <td className="py-3 px-4 max-w-xs">
-                    <div className="font-semibold">{product.name}</div>
-                    <div className="text-sm text-muted-foreground truncate">
-                      {product.description}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
-                        {product.product_code || "—"}
-                      </span>
-                      {product.product_code && (
-                        <button
-                          onClick={() => copyToClipboard(product.product_code!)}
-                          className="p-1 rounded hover:bg-muted/80 transition-colors"
-                          title="Copy code"
-                        >
-                          <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-3 py-1 bg-muted rounded-full text-sm">
-                      {product.category}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 font-semibold">
-                    Rs. {product.price.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      product.isAvailable
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                    }`}>
-                      {product.isAvailable ? "Available" : "Not Available"}
-                    </span>
-                  </td>
-                  {compareMode && (
+              {!searchQuery ? (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={paginatedProducts.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                    {paginatedProducts.map((product) => (
+                      <SortableProductRow
+                        key={product.id}
+                        product={product}
+                        isSelected={selectedProducts.includes(product.id)}
+                        onSelect={handleSelectProduct}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        compareMode={compareMode}
+                        compareProducts={compareProducts}
+                        onToggleCompare={toggleCompareProduct}
+                        copyToClipboard={copyToClipboard}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                paginatedProducts.map((product) => (
+                  <tr key={product.id} className={`border-b hover:bg-muted/50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-[#D4AF37]/10' : ''}`}>
+                    <td className="py-3 px-2 w-10"></td>
                     <td className="py-3 px-4">
                       <button
-                        onClick={() => toggleCompareProduct(product.id)}
-                        className={`p-2 rounded transition-colors ${
-                          compareProducts.includes(product.id)
-                            ? "bg-[#D4AF37] text-black"
-                            : "bg-muted text-muted-foreground hover:border-border"
-                        }`}
+                        onClick={() => handleSelectProduct(product.id)}
+                        className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
                       >
-                        <Scale className="w-4 h-4" />
+                        {selectedProducts.includes(product.id) ? (
+                          <CheckSquare className="w-5 h-5 text-[#D4AF37]" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
                       </button>
                     </td>
-                  )}
-                  <td className="py-3 px-4">
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(product.id)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(product.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    <td className="py-3 px-4">
+                      <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded" />
+                    </td>
+                    <td className="py-3 px-4 max-w-xs">
+                      <div className="font-semibold">{product.name}</div>
+                      <div className="text-sm text-muted-foreground truncate">{product.description}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-sm bg-muted px-2 py-1 rounded">{product.product_code || "—"}</span>
+                        {product.product_code && (
+                          <button onClick={() => copyToClipboard(product.product_code!)} className="p-1 rounded hover:bg-muted/80 transition-colors" title="Copy code">
+                            <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="px-3 py-1 bg-muted rounded-full text-sm">{product.category}</span>
+                    </td>
+                    <td className="py-3 px-4 font-semibold">Rs. {product.price.toLocaleString()}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        product.isAvailable
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                      }`}>{product.isAvailable ? "Available" : "Not Available"}</span>
+                    </td>
+                    {compareMode && (
+                      <td className="py-3 px-4">
+                        <button onClick={() => toggleCompareProduct(product.id)}
+                          className={`p-2 rounded transition-colors ${
+                            compareProducts.includes(product.id)
+                              ? "bg-[#D4AF37] text-black" : "bg-muted text-muted-foreground hover:border-border"
+                          }`}>
+                          <Scale className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(product.id)}><Edit className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

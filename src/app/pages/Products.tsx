@@ -108,7 +108,7 @@ export default function Products() {
       return [...result].sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    return result;
+    return [...result].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   }, [safeProducts, searchParams, selectedCategory, sortBy, priceRange]);
 
   useEffect(() => {
