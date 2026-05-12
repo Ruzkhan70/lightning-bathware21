@@ -128,43 +128,81 @@ export default function AdminDashboard() {
             Recent Orders
           </h2>
 
-          {recentOrders.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Order ID</th>
-                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Customer</th>
-                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Items</th>
-                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Total</th>
-                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
-                   <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4 font-mono text-sm">#{order.id.slice(-6)}</td>
-                      <td className="py-3 px-4">{order.customerName}</td>
-                       <td className="py-3 px-4 text-sm text-muted-foreground">{order.products.length} items</td>
-                      <td className="py-3 px-4 font-semibold">Rs. {order.total.toLocaleString()}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          order.status === "Pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
-                          order.status === "Processing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
-                          "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                        }`}>
-                          {order.status}
-                        </span>
-                      </td>
-                       <td className="py-3 px-4 text-sm text-muted-foreground">
-                         {new Date(order.date).toLocaleDateString()}
-                       </td>
+      {recentOrders.length > 0 ? (
+            <>
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden md:block">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Order ID</th>
+                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Customer</th>
+                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Items</th>
+                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Total</th>
+                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
+                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map((order) => (
+                      <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
+                        <td className="py-3 px-4 font-mono text-sm">#{order.id.slice(-6)}</td>
+                        <td className="py-3 px-4">{order.customerName}</td>
+                         <td className="py-3 px-4 text-sm text-muted-foreground">{order.products.length} items</td>
+                        <td className="py-3 px-4 font-semibold">Rs. {order.total.toLocaleString()}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            order.status === "Pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
+                            order.status === "Processing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                            "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                         <td className="py-3 px-4 text-sm text-muted-foreground">
+                           {new Date(order.date).toLocaleDateString()}
+                         </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {recentOrders.map((order) => (
+                  <div key={order.id} className="bg-card rounded-lg border p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="font-mono text-sm font-semibold">#{order.id.slice(-6)}</p>
+                        <p className="font-medium">{order.customerName}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        order.status === "Pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
+                        order.status === "Processing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                        "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Items</span>
+                        <span>{order.products.length} items</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total</span>
+                        <span className="font-semibold">Rs. {order.total.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Date</span>
+                        <span>{new Date(order.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
                  <div className="text-center py-12 text-muted-foreground">
               <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />

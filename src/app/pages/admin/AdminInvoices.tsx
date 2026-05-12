@@ -701,12 +701,12 @@ export default function AdminInvoices() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-3">
+                <div className="grid grid-cols-2 gap-2 mt-3">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => viewInvoice(invoice)}
-                    className="flex-1 h-11"
+                    className="h-11"
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     View
@@ -715,7 +715,7 @@ export default function AdminInvoices() {
                     size="sm"
                     variant="outline"
                     onClick={() => generatePDF(invoice)}
-                    className="flex-1 h-11"
+                    className="h-11"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     PDF
@@ -724,7 +724,7 @@ export default function AdminInvoices() {
                     size="sm"
                     variant="outline"
                     onClick={() => togglePaymentStatus(invoice)}
-                    className={`flex-1 h-11 ${
+                    className={`h-11 ${
                       invoice.paymentStatus === "Paid"
                         ? "text-yellow-600 border-yellow-300"
                         : "text-green-600 border-green-300"
@@ -741,7 +741,7 @@ export default function AdminInvoices() {
                     size="sm"
                     variant="outline"
                     onClick={() => setDeleteConfirmInvoice(invoice)}
-                    className="flex-1 h-11 text-red-500 border-red-300 hover:bg-red-50"
+                    className="h-11 text-red-500 border-red-300 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
