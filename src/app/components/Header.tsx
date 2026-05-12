@@ -201,7 +201,7 @@ export default function Header() {
               />
               
               {showSearchSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border z-50 max-h-80 overflow-y-auto">
                   {searchSuggestions.map((product) => (
                     <button
                       key={product.id}
