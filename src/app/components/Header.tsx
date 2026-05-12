@@ -205,7 +205,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={handleInputChange}
                 onFocus={() => searchQuery.trim() && setShowSearchSuggestions(true)}
-                className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-12 py-6 bg-background text-foreground border-0 rounded-full"
+                className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-12 py-6 bg-gray-100 dark:bg-white/10 text-foreground border border-white/20 rounded-full"
               />
               
               {showSearchSuggestions && searchQuery.trim() && (
@@ -218,26 +218,26 @@ export default function Header() {
                         onClick={() => handleSuggestionClick(product.name)}
                         className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors flex items-center gap-3"
                       >
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-10 h-10 rounded object-cover flex-shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <div className="font-medium text-foreground truncate">{product.name}</div>
-                        <div className="text-sm text-muted-foreground">{product.category}</div>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-6 text-center text-muted-foreground">
-                    <p className="font-medium">No results found</p>
-                    <p className="text-sm mt-1">Try a different search term</p>
-                  </div>
-                )}
-              </div>
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-10 h-10 rounded object-cover flex-shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground truncate">{product.name}</div>
+                          <div className="text-sm text-muted-foreground">{product.category}</div>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-6 text-center text-muted-foreground">
+                      <p className="font-medium">No results found</p>
+                      <p className="text-sm mt-1">Try a different search term</p>
+                    </div>
+                  )}
+                </div>
               )}
 
             </form>
@@ -297,7 +297,7 @@ export default function Header() {
               value={searchQuery}
               onChange={handleInputChange}
               onFocus={() => searchQuery.trim() && setShowSearchSuggestions(true)}
-              className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-4 py-5 bg-background text-foreground border-0 rounded-full"
+              className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 px-3 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-4 pr-4 py-5 bg-gray-100 dark:bg-white/10 text-foreground border border-white/20 rounded-full"
             />
             
             {showSearchSuggestions && searchQuery.trim() && (
