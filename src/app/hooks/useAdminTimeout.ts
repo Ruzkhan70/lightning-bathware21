@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { logger } from "../../lib/logger";
 
-const DEFAULT_TIMEOUT = 30 * 60; // 30 minutes in seconds
-const REMEMBER_ME_TIMEOUT = 24 * 60 * 60; // 24 hours in seconds
-const WARNING_COUNTDOWN = 30; // 30 seconds countdown after warning
+const DEFAULT_TIMEOUT = 2 * 60; // 2 minutes in seconds
+const REMEMBER_ME_TIMEOUT = 2 * 60; // 2 minutes in seconds
+const WARNING_COUNTDOWN = 10; // 10 seconds countdown after warning
 
 interface UseAdminTimeoutReturn {
   showWarning: boolean;
