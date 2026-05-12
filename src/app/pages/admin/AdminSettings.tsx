@@ -1998,7 +1998,16 @@ export default function AdminSettings() {
                     <ul className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1">
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                        Sessions automatically expire after 24 hours
+                        Sessions automatically expire after
+                        <input
+                          type="number"
+                          min={1}
+                          max={720}
+                          value={profileForm.sessionExpiryHours ?? 24}
+                          onChange={(e) => setProfileForm({ ...profileForm, sessionExpiryHours: parseInt(e.target.value) || 24 })}
+                          className="w-16 px-2 py-0.5 rounded border border-blue-300 bg-white text-blue-900 text-xs font-semibold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        hours
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />

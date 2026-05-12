@@ -247,6 +247,7 @@ export interface StoreProfile {
   enableOnlinePayment: boolean;
   enableCompareFeature: boolean;
   authorizedAdminEmail?: string;
+  sessionExpiryHours: number;
 }
 
 export interface StoreAssets {
@@ -594,6 +595,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   enableOnlinePayment: false,
   enableCompareFeature: true,
   authorizedAdminEmail: "",
+  sessionExpiryHours: 24,
 };
 
 const DEFAULT_STORE_ASSETS: StoreAssets = {
@@ -2637,8 +2639,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         });
         
         // Store admin session in localStorage (separate from Firebase Auth)
-        // Session expires after 4 hours of inactivity
-        const IDLE_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours
+        const sessionHours = storeProfile.sessionExpiryHours || 24;
+        const IDLE_TIMEOUT_MS = sessionHours * 60 * 60 * 1000;
         const session = {
           uid: result.user.uid,
           email: result.user.email,
