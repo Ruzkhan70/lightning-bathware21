@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { logger } from "../../lib/logger";
 
-const DEFAULT_TIMEOUT = 2 * 60; // 2 minutes in seconds
-const REMEMBER_ME_TIMEOUT = 2 * 60; // 2 minutes in seconds
-const WARNING_COUNTDOWN = 10; // 10 seconds countdown after warning
+const DEFAULT_TIMEOUT = 2 * 60; // default 2 minutes in seconds
+const REMEMBER_ME_TIMEOUT = 2 * 60; // default 2 minutes in seconds
+const WARNING_COUNTDOWN = 10; // default 10 seconds countdown after warning
 
 interface UseAdminTimeoutReturn {
   showWarning: boolean;
@@ -16,10 +16,14 @@ interface UseAdminTimeoutReturn {
 
 export function useAdminTimeout(
   isLoggedIn: boolean,
-  onLogout: () => void
+  onLogout: () => void,
+  idleTimeoutMinutes?: number,
+  warningCountdownSeconds?: number
 ): UseAdminTimeoutReturn {
+  const effectiveTimeout = (idleTimeoutMinutes || 2) * 60;
+  const effectiveWarningCountdown = warningCountdownSeconds || 10;
   const [showWarning, setShowWarning] = useState(false);
-  const [countdownTime, setCountdownTime] = useState(WARNING_COUNTDOWN);
+  const [countdownTime, setCountdownTime] = useState(effectiveWarningCountdown);
   const [isRememberMe, setIsRememberMe] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("adminRememberMe") === "true";
@@ -51,8 +55,8 @@ export function useAdminTimeout(
   }, []);
 
   const getTimeout = useCallback(() => {
-    return isRememberMe ? REMEMBER_ME_TIMEOUT : DEFAULT_TIMEOUT;
-  }, [isRememberMe]);
+    return effectiveTimeout;
+  }, [effectiveTimeout]);
 
   const clearAllTimers = useCallback(() => {
     if (inactivityTimerRef.current) {
@@ -108,13 +112,13 @@ export function useAdminTimeout(
       inactivityTimerRef.current = null;
     }
     
-    const deadline = Date.now() + WARNING_COUNTDOWN * 1000;
-    setCountdownTime(WARNING_COUNTDOWN);
+    const deadline = Date.now() + effectiveWarningCountdown * 1000;
+    setCountdownTime(effectiveWarningCountdown);
     
     countdownTimerRef.current = setTimeout(() => {
       tickCountdown(deadline);
     }, 250);
-  }, [tickCountdown]);
+  }, [tickCountdown, effectiveWarningCountdown]);
 
   const startInactivityCheck = useCallback(() => {
     const check = () => {
@@ -122,7 +126,7 @@ export function useAdminTimeout(
 
       const now = Date.now();
       const elapsed = Math.floor((now - lastActivityRef.current) / 1000);
-      const timeout = isRememberMe ? REMEMBER_ME_TIMEOUT : DEFAULT_TIMEOUT;
+      const timeout = effectiveTimeout;
       
       if (elapsed >= timeout && !warningShownRef.current) {
         startWarningCountdown();
@@ -138,14 +142,14 @@ export function useAdminTimeout(
     };
     
     inactivityTimerRef.current = setTimeout(check, 5000);
-  }, [isRememberMe, startWarningCountdown]);
+  }, [isRememberMe, startWarningCountdown, effectiveTimeout]);
 
   const resetTimer = useCallback(() => {
     hasLoggedOutRef.current = false;
     lastActivityRef.current = Date.now();
     warningShownRef.current = false;
     setShowWarning(false);
-    setCountdownTime(WARNING_COUNTDOWN);
+    setCountdownTime(effectiveWarningCountdown);
     
     clearAllTimers();
     

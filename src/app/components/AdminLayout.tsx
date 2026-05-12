@@ -47,7 +47,9 @@ export default function AdminLayout() {
 
   const { showWarning, remainingTime, resetTimer, logoutNow, isRememberMe, setRememberMe } = useAdminTimeout(
     isAdminLoggedIn,
-    logout
+    logout,
+    storeProfile?.idleTimeoutMinutes,
+    storeProfile?.warningCountdownSeconds
   );
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);

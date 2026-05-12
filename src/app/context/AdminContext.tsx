@@ -248,6 +248,8 @@ export interface StoreProfile {
   enableCompareFeature: boolean;
   authorizedAdminEmail?: string;
   sessionExpiryHours: number;
+  idleTimeoutMinutes: number;
+  warningCountdownSeconds: number;
 }
 
 export interface StoreAssets {
@@ -596,6 +598,8 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   enableCompareFeature: true,
   authorizedAdminEmail: "",
   sessionExpiryHours: 24,
+  idleTimeoutMinutes: 2,
+  warningCountdownSeconds: 10,
 };
 
 const DEFAULT_STORE_ASSETS: StoreAssets = {

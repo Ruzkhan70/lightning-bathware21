@@ -2024,6 +2024,58 @@ export default function AdminSettings() {
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                        Inactivity timeout:
+                        <input
+                          type="number"
+                          min={1}
+                          max={60}
+                          value={profileForm.idleTimeoutMinutes ?? 2}
+                          onChange={(e) => setProfileForm({ ...profileForm, idleTimeoutMinutes: parseInt(e.target.value) || 2 })}
+                          className="w-14 px-2 py-0.5 rounded border border-blue-300 bg-white text-blue-900 text-xs font-semibold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        min
+                        {profileForm.idleTimeoutMinutes !== (storeProfile?.idleTimeoutMinutes ?? 2) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateStoreProfile({ ...profileForm, idleTimeoutMinutes: profileForm.idleTimeoutMinutes || 2 });
+                              toast.success("Inactivity timeout updated!");
+                            }}
+                            className="ml-2 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors"
+                          >
+                            Save
+                          </button>
+                        )}
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                        Warning countdown:
+                        <input
+                          type="number"
+                          min={3}
+                          max={60}
+                          value={profileForm.warningCountdownSeconds ?? 10}
+                          onChange={(e) => setProfileForm({ ...profileForm, warningCountdownSeconds: parseInt(e.target.value) || 10 })}
+                          className="w-14 px-2 py-0.5 rounded border border-blue-300 bg-white text-blue-900 text-xs font-semibold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        sec
+                        {profileForm.warningCountdownSeconds !== (storeProfile?.warningCountdownSeconds ?? 10) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateStoreProfile({ ...profileForm, warningCountdownSeconds: profileForm.warningCountdownSeconds || 10 });
+                              toast.success("Warning countdown updated!");
+                            }}
+                            className="ml-2 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors"
+                          >
+                            Save
+                          </button>
+                        )}
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                         Only you can logout or remove other devices
                       </li>
                       <li className="flex items-center gap-2">
