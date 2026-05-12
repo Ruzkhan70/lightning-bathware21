@@ -201,7 +201,7 @@ export default function Header() {
               />
               
               {showSearchSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border z-50 max-h-80 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border z-50 max-h-96 overflow-y-auto">
                   {searchSuggestions.map((product) => (
                     <button
                       key={product.id}
@@ -213,12 +213,6 @@ export default function Header() {
                       <div className="text-sm text-muted-foreground">{product.category}</div>
                     </button>
                   ))}
-                  <button
-                    type="submit"
-                    className="w-full text-left px-4 py-3 bg-muted/50 hover:bg-muted text-[#D4AF37] font-medium transition-colors"
-                  >
-                    View all results for "{searchQuery}"
-                  </button>
                 </div>
               )}
             </form>
@@ -282,7 +276,7 @@ export default function Header() {
             />
             
             {showSearchSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border overflow-hidden z-50 max-h-80 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-xl border border-border z-50 max-h-96 overflow-y-auto">
                 {searchSuggestions.map((product) => (
                   <button
                     key={product.id}
