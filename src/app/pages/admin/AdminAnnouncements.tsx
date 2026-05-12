@@ -299,35 +299,51 @@ export default function AdminAnnouncements() {
     return option?.color || "text-muted-foreground bg-muted/50";
   };
 
-  const PreviewBanner = () => (
-    <div className={`fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r ${
-      formData.type === "offer" ? "from-[#D4AF37] to-[#B8962E]" :
-      formData.type === "terms" ? "from-purple-600 to-purple-700" :
-      formData.type === "product" ? "from-blue-600 to-blue-700" :
-      "from-gray-800 to-gray-900"
-    } text-white py-3 px-4 shadow-2xl`}>
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg">
-            {getTypeIcon(formData.type)}
+  const getPreviewConfig = (type: string) => {
+    switch (type) {
+      case "offer":
+        return { gradient: "from-[#D4AF37] to-[#B8962E]", icon: Tag, label: "OFFER" };
+      case "product":
+        return { gradient: "from-blue-600 to-blue-700", icon: Plus, label: "NEW" };
+      case "general":
+        return { gradient: "from-orange-500 to-orange-600", icon: Info, label: "NEW" };
+      default:
+        return { gradient: "from-gray-800 to-gray-900", icon: FileText, label: "NOTICE" };
+    }
+  };
+
+  const PreviewBanner = () => {
+    const cfg = getPreviewConfig(formData.type);
+    const Icon = cfg.icon;
+    return (
+      <div className={`fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r ${cfg.gradient} text-white`}>
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <p className="text-sm truncate">
+                <span className="font-semibold">{formData.title || "Your Title Here"}</span>
+                {formData.message && " — "}
+                <span className="opacity-90">{formData.message || "Your message here"}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-medium hidden sm:inline-block">
+                {cfg.label}
+              </span>
+              <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded font-mono">PREVIEW</span>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div>
-            <p className="font-semibold">{formData.title || "Your Title Here"}</p>
-            <p className="text-sm opacity-90">{formData.message || "Your message here"}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm bg-white/20 px-2 py-1 rounded">PREVIEW</span>
-          <button
-            onClick={() => setShowPreview(false)}
-            className="p-1 hover:bg-white/20 rounded"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
