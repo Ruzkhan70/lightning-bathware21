@@ -75,10 +75,7 @@ export default function Account() {
 
     setIsOrdersLoading(true);
     const ordersRef = collection(db, "orders");
-    
-    // Query with orderBy only first, then filter by userId in memory
-    // This avoids needing a composite index
-    const q = query(ordersRef, orderBy("date", "desc"));
+    const q = query(ordersRef, where("userId", "==", user.id), orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       // Filter orders by userId in memory
