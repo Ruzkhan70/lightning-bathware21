@@ -207,10 +207,17 @@ export default function Header() {
                       key={product.id}
                       type="button"
                       onClick={() => handleSuggestionClick(product.name)}
-                      className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors flex items-center gap-3"
                     >
-                      <div className="font-medium text-foreground">{product.name}</div>
-                      <div className="text-sm text-muted-foreground">{product.category}</div>
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 rounded object-cover flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-medium text-foreground truncate">{product.name}</div>
+                        <div className="text-sm text-muted-foreground">{product.category}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -282,10 +289,17 @@ export default function Header() {
                     key={product.id}
                     type="button"
                     onClick={() => handleSuggestionClick(product.name)}
-                    className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors flex items-center gap-3"
                   >
-                    <div className="font-medium text-foreground">{product.name}</div>
-                    <div className="text-sm text-muted-foreground">{product.category}</div>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-10 h-10 rounded object-cover flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="font-medium text-foreground truncate">{product.name}</div>
+                      <div className="text-sm text-muted-foreground">{product.category}</div>
+                    </div>
                   </button>
                 ))}
               </div>
