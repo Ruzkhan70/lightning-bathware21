@@ -18,7 +18,8 @@ export default function Header() {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
@@ -166,7 +167,9 @@ export default function Header() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+      const isOutsideDesktop = desktopSearchRef.current && !desktopSearchRef.current.contains(e.target as Node);
+      const isOutsideMobile = mobileSearchRef.current && !mobileSearchRef.current.contains(e.target as Node);
+      if (isOutsideDesktop && isOutsideMobile) {
         setShowSearchSuggestions(false);
       }
     };
@@ -185,7 +188,7 @@ export default function Header() {
             </div>
           </Link>
 
-          <div className="hidden md:flex flex-1 max-w-2xl relative" ref={searchRef}>
+          <div className="hidden md:flex flex-1 max-w-2xl relative" ref={desktopSearchRef}>
             <form onSubmit={handleSearch} className="relative w-full">
               <input
                 ref={inputRef}
@@ -267,7 +270,7 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="md:hidden mt-4 relative" ref={searchRef}>
+        <div className="md:hidden mt-4 relative" ref={mobileSearchRef}>
           <form onSubmit={handleSearch} className="relative w-full">
             <input
               type="text"

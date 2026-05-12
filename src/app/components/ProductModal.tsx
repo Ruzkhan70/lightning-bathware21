@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, ShoppingCart, Minus, Plus, Truck, Package, Check } from "lucide-react";
+import { X, ShoppingCart, Minus, Plus, Truck, Package, Check, Loader2 } from "lucide-react";
 import { Product, useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "./ui/button";
@@ -31,6 +31,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [imageLoaded, setImageLoaded] = useState(true);
+  const preloadedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -43,7 +45,22 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const currentImages = currentVariant?.images || (product.image ? [product.image] : []);
   const displayImage = currentImages[currentImageIndex] || currentImages[0] || product.image;
 
+  const preloadVariantImages = (variantImages: string[]) => {
+    variantImages.forEach(url => {
+      if (!preloadedRef.current.has(url)) {
+        preloadedRef.current.add(url);
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  };
+
+  useEffect(() => {
+    variants.forEach(v => preloadVariantImages(v.images || []));
+  }, [variants]);
+
   const handleColorSelect = (color: string) => {
+    setImageLoaded(false);
     setSelectedColor(color);
     setQuantity(1);
     setCurrentImageIndex(0);
@@ -160,15 +177,21 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             {/* Image */}
             <div className="relative">
               <div 
-                className="aspect-square rounded-lg overflow-hidden bg-muted/50 relative cursor-crosshair"
+                className="aspect-square rounded-lg overflow-hidden bg-muted/50 relative cursor-crosshair flex items-center justify-center"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 onMouseMove={handleMouseMove}
               >
+                {!imageLoaded && (
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground absolute" />
+                )}
                 <img
                   src={displayImage}
                   alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-200"
+                  onLoad={() => setImageLoaded(true)}
+                  className={`w-full h-full object-cover transition-transform duration-200 ${
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
                   style={{
                     transform: isZooming ? `scale(2)` : 'scale(1)',
                     transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
