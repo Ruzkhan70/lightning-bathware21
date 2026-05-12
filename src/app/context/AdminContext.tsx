@@ -1409,7 +1409,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
         if (data.status === 'logged_out') {
-          toast.info("You have been logged out from another device");
           logout();
           break;
         }
