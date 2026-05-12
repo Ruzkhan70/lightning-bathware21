@@ -188,7 +188,7 @@ export default function Header() {
             </div>
           </Link>
 
-          <div className="hidden md:flex flex-1 max-w-2xl relative" ref={desktopSearchRef}>
+          <div className="hidden md:flex flex-1 max-w-3xl relative" ref={desktopSearchRef}>
             <form onSubmit={handleSearch} className="relative w-full">
               <input
                 ref={inputRef}
