@@ -499,6 +499,8 @@ paymentMethod === "online"
                       <img
                         src={item.image}
                         alt={item.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-16 h-16 object-cover rounded"
                       />
                       <div className="flex-1">

@@ -189,6 +189,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   src={displayImage}
                   alt={product.name}
                   onLoad={() => setImageLoaded(true)}
+                  fetchPriority="high"
+                  decoding="async"
                   className={`w-full h-full object-cover transition-transform duration-200 ${
                     imageLoaded ? "opacity-100" : "opacity-0"
                   }`}
@@ -210,7 +212,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         idx === currentImageIndex ? "border-[#D4AF37]" : "border-transparent"
                       }`}
                     >
-                      <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`${product.name} ${idx + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>

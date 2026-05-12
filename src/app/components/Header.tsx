@@ -212,25 +212,28 @@ export default function Header() {
                         onClick={() => handleSuggestionClick(product.name)}
                         className="w-full text-left px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors flex items-center gap-3"
                       >
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-10 h-10 rounded object-cover flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <div className="font-medium text-foreground truncate">{product.name}</div>
-                          <div className="text-sm text-muted-foreground">{product.category}</div>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-4 py-6 text-center text-muted-foreground">
-                      <p className="font-medium">No results found</p>
-                      <p className="text-sm mt-1">Try a different search term</p>
-                    </div>
-                  )}
-                </div>
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-10 h-10 rounded object-cover flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-medium text-foreground truncate">{product.name}</div>
+                        <div className="text-sm text-muted-foreground">{product.category}</div>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-6 text-center text-muted-foreground">
+                    <p className="font-medium">No results found</p>
+                    <p className="text-sm mt-1">Try a different search term</p>
+                  </div>
+                )}
+              </div>
               )}
+
             </form>
           </div>
 
@@ -304,6 +307,8 @@ export default function Header() {
                       <img
                         src={product.image}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-10 h-10 rounded object-cover flex-shrink-0"
                       />
                       <div className="min-w-0">

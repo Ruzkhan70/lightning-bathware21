@@ -99,6 +99,8 @@ export default function ComparePage() {
                       <img
                         src={product.image}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-32 h-32 object-cover rounded-lg mx-auto mb-2 cursor-pointer"
                         onClick={() => navigate(`/products?search=${product.name}`)}
                       />
@@ -171,6 +173,8 @@ export default function ComparePage() {
                     <img
                       src={product.image}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-20 h-20 object-cover rounded-lg cursor-pointer"
                       onClick={() => navigate(`/products?search=${product.name}`)}
                     />

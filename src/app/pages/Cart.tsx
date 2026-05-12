@@ -47,6 +47,8 @@ export default function Cart() {
                     <img
                       src={item.image}
                       alt={item.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>

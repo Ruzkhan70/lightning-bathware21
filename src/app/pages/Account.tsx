@@ -581,6 +581,8 @@ selectedOrder.status === "Delivered"
                         <img
                           src={product.image || "/placeholder.png"}
                           alt={product.name || "Product"}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">

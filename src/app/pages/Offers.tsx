@@ -74,6 +74,8 @@ export default function Offers() {
                       <img
                         src={offer.bannerImage}
                         alt={offer.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
@@ -133,6 +135,8 @@ export default function Offers() {
                                   <img
                                     src={product.image}
                                     alt={product.name}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                   />
                                 </div>

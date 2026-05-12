@@ -158,6 +158,8 @@ export default function Categories() {
                       <img
                         src={category.image}
                         alt={category.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
@@ -165,7 +167,7 @@ export default function Categories() {
                         <div className="flex items-center gap-3 mb-2">
                           <div className={`p-3 ${category.color} rounded-lg`}>
                             {isUrlIcon ? (
-                              <img src={iconName} alt={category.name} className="w-6 h-6 object-contain" />
+                              <img src={iconName} alt={category.name} loading="lazy" decoding="async" className="w-6 h-6 object-contain" />
                             ) : (
                               <CategoryIcon className="w-6 h-6 text-white" />
                             )}

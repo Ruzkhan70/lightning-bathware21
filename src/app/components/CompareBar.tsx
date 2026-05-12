@@ -31,6 +31,8 @@ export default function CompareBar() {
               <img 
                 src={product.image} 
                 alt={product.name} 
+                loading="lazy"
+                decoding="async"
                 className="w-8 h-8 object-cover rounded-full"
               />
               <span className="text-sm truncate max-w-[80px] md:max-w-[100px]">
