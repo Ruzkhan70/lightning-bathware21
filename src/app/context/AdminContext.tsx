@@ -1380,7 +1380,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       logger.error("Error setting up device sessions listener:", error);
     }
     });
-  }, [adminEmail, getOrCreateDeviceId, getDeviceInfo]);
+  }, [adminEmail, isAdminLoggedIn, getOrCreateDeviceId, getDeviceInfo]);
 
   // Watch current device session status for remote logout
   useEffect(() => {
