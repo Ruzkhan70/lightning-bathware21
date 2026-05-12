@@ -56,7 +56,7 @@ export default function LoadingScreen() {
           className="mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight flex items-center justify-center gap-1">
-            <span className="text-black">{storeProfile.storeName}</span>
+            <span className="text-foreground">{storeProfile.storeName}</span>
             <span className="text-[#D4AF37]">{storeProfile.storeNameAccent}</span>
           </h1>
         </motion.div>
