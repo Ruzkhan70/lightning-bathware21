@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router";
-import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid, ChevronRight, Lightbulb, Sun, Moon } from "lucide-react";
+import { ShoppingCart, Heart, Menu, User, ChevronDown, X, Home, Package, Tag, Info, Phone, LayoutGrid, ChevronRight, Lightbulb, Sun, Moon, Wrench } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
@@ -538,6 +538,16 @@ export default function Header() {
               >
                 <Tag className="w-5 h-5 text-[#D4AF37]" />
                 <span className="font-medium">Offers</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/services"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:text-[#D4AF37]"
+              >
+                <Wrench className="w-5 h-5 text-[#D4AF37]" />
+                <span className="font-medium">Services</span>
               </Link>
             </li>
             <li>
