@@ -2008,6 +2008,19 @@ export default function AdminSettings() {
                           className="w-16 px-2 py-0.5 rounded border border-blue-300 bg-white text-blue-900 text-xs font-semibold text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         hours
+                        {profileForm.sessionExpiryHours !== (storeProfile?.sessionExpiryHours ?? 24) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateStoreProfile({ ...profileForm, sessionExpiryHours: profileForm.sessionExpiryHours || 24 });
+                              toast.success("Session expiry updated!");
+                            }}
+                            className="ml-2 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors"
+                          >
+                            Save
+                          </button>
+                        )}
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
