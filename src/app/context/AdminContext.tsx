@@ -3436,6 +3436,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           has_sizes: merged.has_sizes ?? false,
           variants: merged.variants ?? [],
           sizes: merged.sizes ?? [],
+          order: merged.order ?? 0,
         };
         return cleaned;
       }

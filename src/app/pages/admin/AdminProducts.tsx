@@ -251,6 +251,7 @@ export default function AdminProducts() {
     has_sizes: boolean;
     variants: { color: string; images: string[] }[];
     sizes: { size: string; images: string[] }[];
+    order: number;
   }>({
     name: "",
     category: "",
@@ -262,6 +263,7 @@ export default function AdminProducts() {
     has_sizes: false,
     variants: [],
     sizes: [],
+    order: 0,
   });
 
   const safeProducts = products || [];
@@ -365,6 +367,7 @@ export default function AdminProducts() {
         has_sizes: product.has_sizes || false,
         variants: variants,
         sizes: sizes,
+        order: product.order ?? 0,
       });
       setEditVariants(variants);
       setEditSizes(sizes);
@@ -990,7 +993,7 @@ export default function AdminProducts() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="edit-price">Price (Rs.)</Label>
                 <Input
@@ -1028,6 +1031,18 @@ export default function AdminProducts() {
                     Not Available
                   </button>
                 </div>
+              </div>
+              <div>
+                <Label htmlFor="edit-order">Display Order</Label>
+                <Input
+                  id="edit-order"
+                  type="number"
+                  min="0"
+                  value={formData.order}
+                  onChange={(e) =>
+                    setFormData({ ...formData, order: Math.max(0, Number(e.target.value) || 0) })
+                  }
+                />
               </div>
             </div>
 
