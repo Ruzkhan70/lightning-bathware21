@@ -4,8 +4,8 @@ import { useParams, useNavigate } from "react-router";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { pdf, renderToStream } from "@react-pdf/renderer";
-import InvoicePDFDocument from "./InvoicePDF";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { 
   Download, Printer, ArrowLeft, FileText, CheckCircle, 
   Clock, MapPin, Phone, Mail, Package, Zap, AlertCircle,
@@ -93,7 +93,6 @@ export default function Invoice() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string>("");
-
   const safeProducts = products || [];
 
   const getProductImage = useCallback((product: InvoiceProduct): string => {
@@ -206,36 +205,39 @@ export default function Invoice() {
     setIsDownloading(true);
     
     try {
-      let blob: Blob;
-      try {
-        blob = await pdf(
-          <InvoicePDFDocument
-            invoice={invoice}
-            order={order}
-            storeProfile={storeProfile}
-          />
-        ).toBlob();
-      } catch {
-        const stream = await renderToStream(
-          <InvoicePDFDocument
-            invoice={invoice}
-            order={order}
-            storeProfile={storeProfile}
-          />
-        );
-        const chunks: Uint8Array[] = [];
-        for await (const chunk of stream as any) {
-          chunks.push(chunk as Uint8Array);
-        }
-        blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
+      const element = document.getElementById("invoice-content");
+      if (!element) throw new Error("Invoice content not found");
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        windowWidth: element.scrollWidth,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
       }
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Invoice-${invoice.invoiceNumber}.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
       toast.success("Invoice downloaded!");
     } catch (err) {
       logger.error("Error generating PDF:", err);
@@ -292,7 +294,7 @@ export default function Invoice() {
           <h1 className="text-3xl font-bold text-foreground">Invoice Details</h1>
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        <div id="invoice-content" className="max-w-4xl mx-auto">
           <div className="bg-card rounded-2xl shadow-lg overflow-hidden print:shadow-none print:rounded-none">
             {/* Header */}
             <div className="bg-[#1a1a1a] text-white p-6 md:p-10">

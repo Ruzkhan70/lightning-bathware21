@@ -952,7 +952,7 @@ export default function AdminProducts() {
       </div>
 
       <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
           </DialogHeader>
@@ -989,7 +989,7 @@ export default function AdminProducts() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-price">Price (Rs.)</Label>
                 <Input
@@ -1069,7 +1069,7 @@ export default function AdminProducts() {
               <div className="space-y-4">
                 {editVariants.map((variant, idx) => (
                   <div key={idx} className="border rounded-lg p-3 bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
                       <Input
                         value={variant.color}
                         onChange={(e) => updateVariantColor(idx, e.target.value)}
@@ -1142,7 +1142,7 @@ export default function AdminProducts() {
               <div className="space-y-4">
                 {editSizes.map((sizeItem, idx) => (
                   <div key={idx} className="border rounded-lg p-3 bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
                       <Input
                         value={sizeItem.size}
                         onChange={(e) => updateSizeName(idx, e.target.value)}

@@ -7,8 +7,8 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import { pdf, renderToStream } from "@react-pdf/renderer";
-import InvoicePDFDocument from "../InvoicePDF";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface InvoiceItem {
   id: string;
@@ -141,55 +141,148 @@ export default function AdminInvoiceGenerator() {
 
   const handleDownloadPDF = useCallback(async () => {
     if (!generatedInvoice) return;
+
+    const container = document.createElement("div");
+    container.style.cssText = "position:fixed;left:-9999px;top:0;width:800px;z-index:-1;";
+    container.innerHTML = `
+      <div style="background:#fff;font-family:Arial,Helvetica,sans-serif;width:760px;padding:0;margin:0;">
+        <style>
+          table { border-collapse: collapse; width: 100%; }
+          th, td { padding: 10px 14px; text-align: left; font-size: 12px; }
+        </style>
+
+        <div style="background:#1a1a1a;padding:28px 36px 20px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <span style="font-size:24px;color:#D4AF37;">⚡</span>
+                <span style="color:#fff;font-size:22px;font-weight:800;">
+                  ${storeProfile.storeName} <span style="color:#D4AF37;">${storeProfile.storeNameAccent}</span>
+                </span>
+              </div>
+              <p style="color:#9ca3af;font-size:11px;margin:0 0 12px;">Premium Lighting & Bathware</p>
+              <p style="color:#aaa;font-size:11px;margin:2px 0;">📍 ${storeProfile.addressStreet}, ${storeProfile.addressCity}</p>
+              <p style="color:#aaa;font-size:11px;margin:2px 0;">📞 ${storeProfile.phone}</p>
+              <p style="color:#aaa;font-size:11px;margin:2px 0;">✉ ${storeProfile.email}</p>
+            </div>
+            <div style="text-align:right;">
+              <p style="color:#D4AF37;font-size:11px;font-weight:700;letter-spacing:2px;margin:0 0 4px;text-transform:uppercase;">INVOICE</p>
+              <p style="color:#fff;font-size:22px;font-weight:800;margin:0 0 4px;">${generatedInvoice.invoiceNumber}</p>
+              <p style="color:#9ca3af;font-size:11px;margin:0 0 10px;">${new Date(generatedInvoice.date || generatedInvoice.createdAt).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"})}</p>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 16px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;${generatedInvoice.paymentStatus === "Paid" ? "background:#22c55e;" : "background:#f97316;"}">
+                ${generatedInvoice.paymentStatus === "Paid" ? "✓ Paid" : "⏳ Pending"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:4px;background:linear-gradient(90deg,#D4AF37,#F5D76E,#D4AF37);"></div>
+
+        <div style="padding:24px 36px;">
+          <div style="display:flex;gap:16px;margin-bottom:24px;">
+            <div style="flex:1;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+              <p style="color:#D4AF37;font-size:10px;font-weight:700;letter-spacing:1.5px;margin:0 0 10px;text-transform:uppercase;">ORDER INFORMATION</p>
+              <p style="font-size:12px;color:#6b7280;margin:3px 0;"><strong style="color:#1a1a1a;">Date:</strong> ${new Date(generatedInvoice.date || generatedInvoice.createdAt).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</p>
+              <p style="font-size:12px;color:#6b7280;margin:3px 0;"><strong style="color:#1a1a1a;">Invoice:</strong> ${generatedInvoice.invoiceNumber}</p>
+            </div>
+            <div style="flex:1;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+              <p style="color:#D4AF37;font-size:10px;font-weight:700;letter-spacing:1.5px;margin:0 0 10px;text-transform:uppercase;">CUSTOMER DETAILS</p>
+              <p style="font-size:14px;font-weight:700;color:#1a1a1a;margin:0 0 4px;">${generatedInvoice.customerName}</p>
+              <p style="font-size:12px;color:#6b7280;margin:2px 0;">${generatedInvoice.customerPhone}</p>
+              ${generatedInvoice.customerEmail ? `<p style="font-size:12px;color:#6b7280;margin:2px 0;">${generatedInvoice.customerEmail}</p>` : ""}
+              ${generatedInvoice.address ? `<p style="font-size:12px;color:#6b7280;margin:4px 0;">${generatedInvoice.address}</p>` : ""}
+            </div>
+          </div>
+
+          <table style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:24px;">
+            <thead>
+              <tr style="background:#1a1a1a;">
+                <th style="color:#fff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;">Product</th>
+                <th style="color:#fff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;text-align:center;">Qty</th>
+                <th style="color:#fff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;text-align:right;">Unit Price</th>
+                <th style="color:#fff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;text-align:right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${generatedInvoice.products.map((p: any, i: number) => `
+                <tr style="${i % 2 === 1 ? "background:#fafafa;" : ""}border-bottom:1px solid #f3f4f6;">
+                  <td style="padding:10px 14px;font-size:12px;color:#1a1a1a;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid #e5e7eb;" />` : ""}
+                      <span>${p.name}</span>
+                    </div>
+                  </td>
+                  <td style="padding:10px 14px;font-size:12px;color:#1a1a1a;text-align:center;">${p.quantity}</td>
+                  <td style="padding:10px 14px;font-size:12px;color:#6b7280;text-align:right;">Rs. ${(p.unitPrice || 0).toLocaleString()}</td>
+                  <td style="padding:10px 14px;font-size:12px;font-weight:700;color:#1a1a1a;text-align:right;">Rs. ${(p.total || 0).toLocaleString()}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;width:300px;margin-left:auto;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:12px;color:#6b7280;">Subtotal</span>
+              <span style="font-size:12px;font-weight:600;color:#1a1a1a;">Rs. ${(generatedInvoice.subtotal || 0).toLocaleString()}</span>
+            </div>
+            ${(generatedInvoice.discount || 0) > 0 ? `
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:12px;color:#16a34a;">Discount</span>
+              <span style="font-size:12px;font-weight:600;color:#16a34a;">-Rs. ${(generatedInvoice.discount || 0).toLocaleString()}</span>
+            </div>` : ""}
+            <div style="height:2px;background:#D4AF37;margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#D4AF37;padding:8px 14px;border-radius:6px;margin-top:4px;">
+              <span style="font-size:13px;font-weight:700;color:#1a1a1a;">GRAND TOTAL</span>
+              <span style="font-size:18px;font-weight:800;color:#1a1a1a;">Rs. ${(generatedInvoice.grandTotal || 0).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid #e5e7eb;padding:20px 36px;text-align:center;">
+          <p style="font-size:13px;font-weight:700;color:#1a1a1a;margin:0 0 4px;">Thank you for choosing ${storeProfile.storeName} ${storeProfile.storeNameAccent}</p>
+          <p style="font-size:11px;color:#6b7280;margin:2px 0;">${storeProfile.addressCity}, Sri Lanka | ${storeProfile.phone} | ${storeProfile.email}</p>
+          <p style="font-size:10px;color:#9ca3af;margin:4px 0;">Generated: ${new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(container);
+
     try {
-      let blob: Blob;
-      try {
-        blob = await pdf(
-          <InvoicePDFDocument
-            invoice={generatedInvoice}
-            order={null}
-            storeProfile={{
-              storeName: storeProfile.storeName,
-              storeNameAccent: storeProfile.storeNameAccent,
-              addressStreet: storeProfile.addressStreet,
-              addressCity: storeProfile.addressCity,
-              phone: storeProfile.phone,
-              email: storeProfile.email,
-            }}
-          />
-        ).toBlob();
-      } catch {
-        const stream = await renderToStream(
-          <InvoicePDFDocument
-            invoice={generatedInvoice}
-            order={null}
-            storeProfile={{
-              storeName: storeProfile.storeName,
-              storeNameAccent: storeProfile.storeNameAccent,
-              addressStreet: storeProfile.addressStreet,
-              addressCity: storeProfile.addressCity,
-              phone: storeProfile.phone,
-              email: storeProfile.email,
-            }}
-          />
-        );
-        const chunks: Uint8Array[] = [];
-        for await (const chunk of stream as any) {
-          chunks.push(chunk as Uint8Array);
-        }
-        blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        width: container.scrollWidth,
+        height: container.scrollHeight,
+        windowWidth: container.scrollWidth,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${generatedInvoice.invoiceNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+
+      pdf.save(`${generatedInvoice.invoiceNumber}.pdf`);
       toast.success("PDF downloaded!");
     } catch {
       toast.error("Failed to generate PDF");
+    } finally {
+      document.body.removeChild(container);
     }
   }, [generatedInvoice, storeProfile]);
 

@@ -91,11 +91,16 @@ export default function ImageUpload({
     toast.info("Uploading image...");
 
     try {
-      const compressedBlob = await compressImage(file);
-      const ext = compressedBlob.type === "image/webp" ? "webp" : "jpg";
-      const baseName = file.name.replace(/\.[^.]+$/, "");
-      const compressedFile = new File([compressedBlob], `${baseName}.${ext}`, { type: compressedBlob.type });
-      const imageUrl = await uploadImage(compressedFile);
+      let imageFile = file;
+      try {
+        const compressedBlob = await compressImage(file);
+        const ext = compressedBlob.type === "image/webp" ? "webp" : "jpg";
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        imageFile = new File([compressedBlob], `${baseName}.${ext}`, { type: compressedBlob.type });
+      } catch {
+        // compression failed, upload original file
+      }
+      const imageUrl = await uploadImage(imageFile);
       onChange(imageUrl);
       toast.success("Image uploaded successfully!");
     } catch (error) {
@@ -198,7 +203,7 @@ export default function ImageUpload({
       
       {/* URL Input Option */}
       {showUrlInput ? (
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="url"
             value={urlInput}
@@ -207,21 +212,23 @@ export default function ImageUpload({
             className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
           />
-          <button
-            onClick={handleUrlSubmit}
-            className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-sm font-medium hover:bg-[#C5A028]"
-          >
-            Save
-          </button>
-          <button
-            onClick={() => {
-              setShowUrlInput(false);
-              setUrlInput("");
-            }}
-            className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80"
-          >
-            Cancel
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={handleUrlSubmit}
+              className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-sm font-medium hover:bg-[#C5A028]"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setShowUrlInput(false);
+                setUrlInput("");
+              }}
+              className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       ) : (
         <button
