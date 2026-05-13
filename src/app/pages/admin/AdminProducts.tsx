@@ -513,7 +513,6 @@ export default function AdminProducts() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
-          {storeProfile?.enableCompareFeature === true && (
           <Button
             variant={compareMode ? "default" : "outline"}
             onClick={() => {
@@ -525,7 +524,6 @@ export default function AdminProducts() {
             {compareMode ? <Check className="w-4 h-4 mr-2" /> : <Scale className="w-4 h-4 mr-2" />}
             Compare {compareMode && `(${compareProducts.length})`}
           </Button>
-          )}
           {compareMode && compareProducts.length >= 2 && (
             <Button
               onClick={handleViewCompare}
