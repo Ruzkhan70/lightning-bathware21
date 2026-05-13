@@ -517,7 +517,7 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
               </Text>
               {hasColor && (
                 <Text style={[styles.tableHeaderCell, styles.tableHeaderCenter]}>
-                  COLOR
+                  DETAILS
                 </Text>
               )}
               <Text style={[styles.tableHeaderCell, styles.tableHeaderCenter]}>
@@ -540,15 +540,21 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
                   </View>
                   {hasColor && (
                     <View style={styles.tableCellCenter}>
-                      {product.selected_color || product.selected_size ? (
-                        <View style={styles.colorBadge}>
-                          <Text style={styles.colorText}>
-                            {product.selected_color || product.selected_size}
+                      <View style={{ flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        {product.selected_color ? (
+                          <View style={styles.colorBadge}>
+                            <Text style={styles.colorText}>{product.selected_color}</Text>
+                          </View>
+                        ) : null}
+                        {product.selected_size ? (
+                          <Text style={{ fontSize: 7, color: "#3b82f6", fontWeight: 600 }}>
+                            Size: {product.selected_size}
                           </Text>
-                        </View>
-                      ) : (
-                        <Text style={{ color: "#9ca3af", fontSize: 7 }}>-</Text>
-                      )}
+                        ) : null}
+                        {!product.selected_color && !product.selected_size ? (
+                          <Text style={{ color: "#9ca3af", fontSize: 7 }}>-</Text>
+                        ) : null}
+                      </View>
                     </View>
                   )}
                   <View style={styles.tableCellCenter}>

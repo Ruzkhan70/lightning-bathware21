@@ -388,7 +388,7 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
                   <thead>
                     <tr className="bg-[#1a1a1a] text-white">
                       <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Product</th>
-                      <th className="px-4 py-3.5 text-center text-xs font-bold uppercase tracking-wider w-24">Color</th>
+                      <th className="px-4 py-3.5 text-center text-xs font-bold uppercase tracking-wider w-28">Details</th>
                       <th className="px-4 py-3.5 text-center text-xs font-bold uppercase tracking-wider w-16">Qty</th>
                       <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider">Unit Price</th>
                       <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider">Total</th>
@@ -410,13 +410,21 @@ order.status === "Delivered" ? "bg-green-100 text-green-700 dark:bg-green-900/30
                           </div>
                         </td>
                         <td className="px-4 py-3.5 text-center">
-                          {(product.selected_color || product.selected_size) ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
-                              {product.selected_color || product.selected_size}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
-                          )}
+                          <div className="flex flex-col items-center gap-0.5">
+                            {product.selected_color && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
+                                {product.selected_color}
+                              </span>
+                            )}
+                            {product.selected_size && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                Size: {product.selected_size}
+                              </span>
+                            )}
+                            {!product.selected_color && !product.selected_size && (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3.5 text-sm text-center font-medium text-foreground">{product.quantity}</td>
                         <td className="px-4 py-3.5 text-sm text-right text-muted-foreground">{formatPrice(product.unitPrice)}</td>
