@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useMemo, useCallback, useState } from "react";
 import EmptyState, { WishlistEmpty } from "../components/EmptyState";
 import { ProductGridSkeleton } from "../components/Skeleton";
+import LazyImage from "../components/LazyImage";
 
 export default function Wishlist() {
   const { wishlist, removeFromWishlist, isWishlistConfirmed } = useWishlist();
@@ -94,12 +95,11 @@ export default function Wishlist() {
               className="bg-card rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
             >
               <div className="relative aspect-square overflow-hidden">
-                <img
+                <LazyImage
                   src={product.image}
                   alt={product.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="w-full h-full group-hover:scale-110 transition-transform duration-500"
                 />
                 <button
                   onClick={() =>

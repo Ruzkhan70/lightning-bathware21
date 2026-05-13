@@ -35,7 +35,7 @@ export default function ImageUpload({
       const img = new Image();
       
       img.onload = () => {
-        const maxDimension = 1920;
+        const maxDimension = 1200;
         let { width, height } = img;
         
         if (width > maxDimension || height > maxDimension) {
@@ -52,13 +52,16 @@ export default function ImageUpload({
         canvas.height = height;
         ctx?.drawImage(img, 0, 0, width, height);
         
+        const supportsWebP = canvas.toDataURL("image/webp").indexOf("image/webp") === 5;
+        const mimeType = supportsWebP ? "image/webp" : "image/jpeg";
+        
         canvas.toBlob(
           (blob) => {
             if (blob) resolve(blob);
             else reject(new Error("Failed to compress image"));
           },
-          "image/jpeg",
-          0.85
+          mimeType,
+          0.8
         );
       };
       
@@ -89,7 +92,9 @@ export default function ImageUpload({
 
     try {
       const compressedBlob = await compressImage(file);
-      const compressedFile = new File([compressedBlob], file.name, { type: "image/jpeg" });
+      const ext = compressedBlob.type === "image/webp" ? "webp" : "jpg";
+      const baseName = file.name.replace(/\.[^.]+$/, "");
+      const compressedFile = new File([compressedBlob], `${baseName}.${ext}`, { type: compressedBlob.type });
       const imageUrl = await uploadImage(compressedFile);
       onChange(imageUrl);
       toast.success("Image uploaded successfully!");

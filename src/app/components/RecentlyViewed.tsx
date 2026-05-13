@@ -47,6 +47,7 @@ export default function RecentlyViewed() {
               <LazyImage
                 src={product.image}
                 alt={product.name}
+                sizes="160px"
                 className="w-full h-full group-hover:scale-105 transition-transform"
               />
             </div>

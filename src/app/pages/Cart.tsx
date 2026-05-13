@@ -5,6 +5,7 @@ import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import EmptyState, { CartEmpty } from "../components/EmptyState";
 import { CartSkeleton } from "../components/Skeleton";
+import LazyImage from "../components/LazyImage";
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } =
@@ -44,12 +45,11 @@ export default function Cart() {
                 >
                   {/* Image */}
                   <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                    <img
+                    <LazyImage
                       src={item.image}
                       alt={item.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover rounded-lg"
+                      sizes="128px"
+                      className="w-full h-full rounded-lg"
                     />
                   </div>
 

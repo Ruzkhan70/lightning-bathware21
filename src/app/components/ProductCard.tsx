@@ -12,9 +12,10 @@ import LazyImage from "./LazyImage";
 
 interface ProductCardProps {
   product: Product;
+  index?: number;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, index }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { toggleCompare, isInCompare } = useCompare();
@@ -74,6 +75,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           <LazyImage
             src={product.image}
             alt={product.name}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            fetchPriority={index !== undefined && index < 3 ? "high" : "auto"}
             className="w-full h-full group-hover:scale-110 transition-transform duration-500"
           />
 

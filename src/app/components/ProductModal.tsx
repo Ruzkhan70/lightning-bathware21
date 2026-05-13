@@ -4,6 +4,7 @@ import { X, ShoppingCart, Minus, Plus, Truck, Package, Check, Loader2 } from "lu
 import { Product, useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "./ui/button";
+import { getOptimizedSrc } from "../../lib/imageOptimizer";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import ReviewsDisplay from "./ReviewsDisplay";
@@ -50,7 +51,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       if (!preloadedRef.current.has(url)) {
         preloadedRef.current.add(url);
         const img = new Image();
-        img.src = url;
+        img.src = getOptimizedSrc(url, 800);
       }
     });
   };
@@ -186,7 +187,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   <Loader2 className="w-8 h-8 animate-spin text-muted-foreground absolute" />
                 )}
                 <img
-                  src={displayImage}
+                  src={getOptimizedSrc(displayImage, 800)}
                   alt={product.name}
                   onLoad={() => setImageLoaded(true)}
                   fetchPriority="high"
@@ -212,7 +213,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         idx === currentImageIndex ? "border-[#D4AF37]" : "border-transparent"
                       }`}
                     >
-                      <img src={img} alt={`${product.name} ${idx + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img src={getOptimizedSrc(img, 200)} alt={`${product.name} ${idx + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>

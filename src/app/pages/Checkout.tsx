@@ -14,6 +14,7 @@ import { ShoppingBag, Truck, CreditCard, Loader2 } from "lucide-react";
 import { loadPayhereScript, initiatePayherePayment, onPayhereCompleted, onPayhereClosed, isPayhereConfigured } from "../../lib/payhere";
 import { sendOrderNotificationToAdmin, sendOrderConfirmationToCustomer } from "../../lib/emailNotifications";
 import ContentLoader from "../components/ContentLoader";
+import LazyImage from "../components/LazyImage";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -496,12 +497,11 @@ paymentMethod === "online"
                 <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex gap-3">
-                      <img
+                      <LazyImage
                         src={item.image}
                         alt={item.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-16 h-16 object-cover rounded"
+                        sizes="64px"
+                        className="w-16 h-16 rounded"
                       />
                       <div className="flex-1">
                         <p className="font-semibold text-sm line-clamp-2">

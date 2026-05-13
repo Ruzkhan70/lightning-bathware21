@@ -6,6 +6,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
+import LazyImage from "../components/LazyImage";
 
 export default function ComparePage() {
   const { compareList, clearCompare, removeFromCompare } = useCompare();
@@ -96,14 +97,17 @@ export default function ComparePage() {
                       >
                         <X className="w-4 h-4" />
                       </button>
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-32 h-32 object-cover rounded-lg mx-auto mb-2 cursor-pointer"
+                      <div
+                        className="cursor-pointer"
                         onClick={() => navigate(`/products?search=${product.name}`)}
-                      />
+                      >
+                        <LazyImage
+                          src={product.image}
+                          alt={product.name}
+                          sizes="128px"
+                          className="w-32 h-32 rounded-lg mx-auto mb-2"
+                        />
+                      </div>
                       <Link 
                         to={`/products?search=${product.name}`}
                         className="font-medium text-sm hover:text-[#D4AF37] line-clamp-2"
@@ -170,14 +174,17 @@ export default function ComparePage() {
                     <X className="w-4 h-4" />
                   </button>
                   <div className="flex items-center gap-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                    <div
+                      className="cursor-pointer"
                       onClick={() => navigate(`/products?search=${product.name}`)}
-                    />
+                    >
+                      <LazyImage
+                        src={product.image}
+                        alt={product.name}
+                        sizes="80px"
+                        className="w-20 h-20 rounded-lg"
+                      />
+                    </div>
                   <div className="min-w-0">
                     <Link to={`/products?search=${product.name}`} className="font-semibold text-sm hover:text-[#D4AF37] text-foreground line-clamp-2">
                       {product.name}
