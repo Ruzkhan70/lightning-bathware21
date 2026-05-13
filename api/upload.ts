@@ -13,14 +13,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const formData = new URLSearchParams();
-    formData.append("key", apiKey);
-    formData.append("image", req.body.image);
+    const imageBase64 = (req.body.image || "").replace(/^data:image\/\w+;base64,/, "");
 
-    const response = await fetch(`${IMGBB_API_URL}?key=${apiKey}`, {
+    const params = new URLSearchParams();
+    params.append("key", apiKey);
+    params.append("image", imageBase64);
+
+    const response = await fetch(IMGBB_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData.toString(),
+      body: params.toString(),
     });
 
     const data = await response.json();

@@ -952,10 +952,11 @@ export default function AdminProducts() {
       </div>
 
       <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden" aria-describedby="edit-product-desc">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
           </DialogHeader>
+          <p id="edit-product-desc" className="sr-only">Edit product details form</p>
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="edit-name">Product Name</Label>
