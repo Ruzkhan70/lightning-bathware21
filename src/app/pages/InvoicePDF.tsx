@@ -3,10 +3,10 @@ import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/rendere
 Font.register({
   family: "Inter",
   fonts: [
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcCo3FwrK3iLTcviYwY.woff2", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcC73FwrK3iLTcviYwY.woff2", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcC73FwrK3iLTcviYwY.woff2", fontWeight: 700 },
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcC73FwrK3iLTcviYwY.woff2", fontWeight: 800 },
+    { src: "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf", fontWeight: 400 },
+    { src: "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf", fontWeight: 600 },
+    { src: "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.ttf", fontWeight: 700 },
+    { src: "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyYMZg.ttf", fontWeight: 800 },
   ],
 });
 
@@ -14,10 +14,11 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#ffffff",
+    fontFamily: "Inter",
   },
   header: {
     backgroundColor: "#1a1a1a",
-    padding: "20px 30px 16px 30px",
+    padding: "24px 32px 18px 32px",
   },
   headerRow: {
     flexDirection: "row",
@@ -27,61 +28,75 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
-  headerInvoiceLabel: {
+  headerBrand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  headerLightning: {
+    fontSize: 20,
     color: "#D4AF37",
-    fontSize: 9,
-    fontWeight: 700,
-    letterSpacing: 1.5,
-    marginBottom: 4,
   },
   headerStoreName: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 800,
   },
-  headerAccent: {
-    color: "#C8B464",
-    fontSize: 10,
-    fontWeight: 400,
-    marginTop: 2,
+  headerStoreAccent: {
+    color: "#D4AF37",
+    fontSize: 20,
+    fontWeight: 800,
   },
   headerSubtitle: {
-    color: "#888888",
-    fontSize: 7,
-    marginTop: 4,
-  },
-  headerContact: {
-    color: "#aaaaaa",
+    color: "#9ca3af",
     fontSize: 8,
-    marginTop: 8,
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  headerContactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 2,
+  },
+  headerContactIcon: {
+    color: "#D4AF37",
+    fontSize: 7,
+    width: 14,
+  },
+  headerContactText: {
+    color: "#aaaaaa",
+    fontSize: 7.5,
   },
   headerRight: {
     alignItems: "flex-end",
   },
-  headerNumberLabel: {
+  headerInvoiceLabel: {
     color: "#D4AF37",
     fontSize: 8,
     fontWeight: 700,
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     marginBottom: 2,
   },
   headerInvoiceNumber: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 800,
+    marginBottom: 2,
   },
   headerDate: {
-    color: "#aaaaaa",
+    color: "#9ca3af",
     fontSize: 8,
-    marginTop: 2,
+    marginBottom: 8,
   },
   badge: {
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
   },
   badgePaid: {
     backgroundColor: "#22c55e",
@@ -95,16 +110,16 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   goldLine: {
-    height: 2,
+    height: 3,
     backgroundColor: "#D4AF37",
   },
   content: {
-    padding: "24px 30px",
+    padding: "20px 32px",
   },
   cardsRow: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
+    gap: 14,
+    marginBottom: 22,
   },
   card: {
     flex: 1,
@@ -116,10 +131,11 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     color: "#D4AF37",
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 700,
-    letterSpacing: 1,
-    marginBottom: 8,
+    letterSpacing: 1.5,
+    marginBottom: 10,
+    textTransform: "uppercase",
   },
   cardRow: {
     flexDirection: "row",
@@ -138,44 +154,26 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
     marginLeft: 4,
   },
-  statusDelivered: {
-    backgroundColor: "#dcfce7",
-  },
-  statusProcessing: {
-    backgroundColor: "#dbeafe",
-  },
-  statusPending: {
-    backgroundColor: "#fef3c7",
-  },
-  statusDeliveredText: {
-    color: "#166534",
-    fontSize: 6,
-    fontWeight: 700,
-  },
-  statusProcessingText: {
-    color: "#1e40af",
-    fontSize: 6,
-    fontWeight: 700,
-  },
-  statusPendingText: {
-    color: "#b45309",
-    fontSize: 6,
-    fontWeight: 700,
-  },
+  statusDelivered: { backgroundColor: "#dcfce7" },
+  statusProcessing: { backgroundColor: "#dbeafe" },
+  statusPending: { backgroundColor: "#fef3c7" },
+  statusDeliveredText: { color: "#166534", fontSize: 7, fontWeight: 700 },
+  statusProcessingText: { color: "#1e40af", fontSize: 7, fontWeight: 700 },
+  statusPendingText: { color: "#b45309", fontSize: 7, fontWeight: 700 },
   customerName: {
     color: "#1a1a1a",
     fontSize: 10,
     fontWeight: 700,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   customerText: {
     color: "#6b7280",
     fontSize: 8,
-    marginBottom: 1,
+    marginBottom: 1.5,
   },
   table: {
     marginBottom: 20,
@@ -187,14 +185,14 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#1a1a1a",
-    paddingVertical: 8,
+    paddingVertical: 9,
     paddingHorizontal: 12,
   },
   tableHeaderCell: {
     color: "#ffffff",
     fontSize: 7,
     fontWeight: 700,
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   tableHeaderProduct: {
     flex: 2,
@@ -214,12 +212,29 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
     alignItems: "center",
+    minHeight: 36,
   },
   tableRowAlt: {
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#fafafa",
   },
   tableCellProduct: {
     flex: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  productImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  productName: {
+    color: "#1a1a1a",
+    fontSize: 8,
+    fontWeight: 500,
+    flex: 1,
   },
   tableCellCenter: {
     flex: 0.5,
@@ -228,11 +243,6 @@ const styles = StyleSheet.create({
   tableCellRight: {
     flex: 1,
     textAlign: "right",
-  },
-  productName: {
-    color: "#1a1a1a",
-    fontSize: 8,
-    fontWeight: 500,
   },
   colorBadge: {
     backgroundColor: "#f3f4f6",
@@ -245,6 +255,11 @@ const styles = StyleSheet.create({
     color: "#374151",
     fontSize: 7,
     fontWeight: 500,
+  },
+  sizeText: {
+    fontSize: 7,
+    color: "#3b82f6",
+    fontWeight: 600,
   },
   qtyText: {
     color: "#1a1a1a",
@@ -270,12 +285,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
     alignSelf: "flex-end",
-    width: "40%",
+    width: "45%",
   },
   totalsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 6,
+    alignItems: "center",
   },
   totalsLabel: {
     color: "#6b7280",
@@ -286,13 +302,13 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: 600,
   },
-  discountValue: {
+  totalsDiscount: {
     color: "#16a34a",
     fontSize: 8,
     fontWeight: 600,
   },
   divider: {
-    height: 1,
+    height: 2,
     backgroundColor: "#D4AF37",
     marginVertical: 8,
   },
@@ -300,24 +316,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "#D4AF37",
-    padding: "8px 12px",
+    padding: "10px 14px",
     borderRadius: 6,
     marginTop: 4,
   },
   grandTotalLabel: {
     color: "#1a1a1a",
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 700,
   },
   grandTotalValue: {
     color: "#1a1a1a",
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: 800,
   },
   footer: {
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
-    padding: "16px 30px",
+    padding: "18px 32px",
     alignItems: "center",
   },
   footerText: {
@@ -345,6 +361,7 @@ interface InvoiceProduct {
   total: number;
   selected_color?: string;
   selected_size?: string;
+  image?: string;
 }
 
 interface InvoicePDFProps {
@@ -411,21 +428,33 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <Text style={styles.headerInvoiceLabel}>INVOICE</Text>
-              <Text style={styles.headerStoreName}>
-                {storeProfile.storeName}{" "}
-                <Text style={{ color: "#D4AF37" }}>
-                  {storeProfile.storeNameAccent}
+              <View style={styles.headerBrand}>
+                <Text style={styles.headerLightning}>⚡</Text>
+                <Text style={styles.headerStoreName}>
+                  {storeProfile.storeName}{" "}
+                  <Text style={styles.headerStoreAccent}>
+                    {storeProfile.storeNameAccent}
+                  </Text>
                 </Text>
-              </Text>
-              <Text style={styles.headerAccent}>{storeProfile.storeNameAccent}</Text>
+              </View>
               <Text style={styles.headerSubtitle}>Premium Lighting & Bathware</Text>
-              <Text style={styles.headerContact}>
-                {storeProfile.addressStreet}, {storeProfile.addressCity}
-              </Text>
+              <View style={styles.headerContactRow}>
+                <Text style={styles.headerContactIcon}>📍</Text>
+                <Text style={styles.headerContactText}>
+                  {storeProfile.addressStreet}, {storeProfile.addressCity}
+                </Text>
+              </View>
+              <View style={styles.headerContactRow}>
+                <Text style={styles.headerContactIcon}>📞</Text>
+                <Text style={styles.headerContactText}>{storeProfile.phone}</Text>
+              </View>
+              <View style={styles.headerContactRow}>
+                <Text style={styles.headerContactIcon}>✉</Text>
+                <Text style={styles.headerContactText}>{storeProfile.email}</Text>
+              </View>
             </View>
             <View style={styles.headerRight}>
-              <Text style={styles.headerNumberLabel}>INVOICE</Text>
+              <Text style={styles.headerInvoiceLabel}>INVOICE</Text>
               <Text style={styles.headerInvoiceNumber}>
                 {invoice.invoiceNumber}
               </Text>
@@ -439,7 +468,7 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
                 ]}
               >
                 <Text style={styles.badgeText}>
-                  {paymentStatus === "Paid" ? "\u2713 Paid" : "Pending"}
+                  {paymentStatus === "Paid" ? "✓ Paid" : "⏳ Pending"}
                 </Text>
               </View>
             </View>
@@ -463,7 +492,7 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
               </View>
               {invoice.orderId && (
                 <View style={styles.cardRow}>
-                  <Text style={styles.cardLabel}>Order:</Text>
+                  <Text style={styles.cardLabel}>Order ID:</Text>
                   <Text style={styles.cardValue}>
                     #{invoice.orderId.slice(-8)}
                   </Text>
@@ -536,6 +565,11 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
               return (
                 <View key={product.id || index} style={isAlt ? [styles.tableRow, styles.tableRowAlt] : styles.tableRow}>
                   <View style={styles.tableCellProduct}>
+                    {product.image ? (
+                      <View style={styles.productImage}>
+                        <Text style={{ fontSize: 6, textAlign: "center", color: "#9ca3af", lineHeight: "24px" }}>img</Text>
+                      </View>
+                    ) : null}
                     <Text style={styles.productName}>{product.name}</Text>
                   </View>
                   {hasColor && (
@@ -547,9 +581,7 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
                           </View>
                         ) : null}
                         {product.selected_size ? (
-                          <Text style={{ fontSize: 7, color: "#3b82f6", fontWeight: 600 }}>
-                            Size: {product.selected_size}
-                          </Text>
+                          <Text style={styles.sizeText}>Size: {product.selected_size}</Text>
                         ) : null}
                         {!product.selected_color && !product.selected_size ? (
                           <Text style={{ color: "#9ca3af", fontSize: 7 }}>-</Text>
@@ -592,7 +624,7 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
             {(invoice.discount || 0) > 0 && (
               <View style={styles.totalsRow}>
                 <Text style={{ color: "#16a34a", fontSize: 8 }}>Discount</Text>
-                <Text style={styles.discountValue}>
+                <Text style={styles.totalsDiscount}>
                   -{formatPrice(invoice.discount)}
                 </Text>
               </View>
@@ -618,7 +650,7 @@ export default function InvoicePDFDocument({ invoice, order, storeProfile }: Inv
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            Thank you for choosing Lightning Bathware
+            Thank you for choosing {storeProfile.storeName} {storeProfile.storeNameAccent}
           </Text>
           <Text style={styles.footerSubtext}>
             {storeProfile.addressCity}, Sri Lanka | {storeProfile.phone} |{" "}
