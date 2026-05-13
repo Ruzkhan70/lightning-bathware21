@@ -584,6 +584,7 @@ selectedOrder.status === "Delivered"
                           loading="lazy"
                           decoding="async"
                           className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm sm:text-base truncate">{product.name || "Unknown Product"}</p>

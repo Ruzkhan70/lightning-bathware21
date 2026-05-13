@@ -224,6 +224,7 @@ export default function Header() {
                           loading="lazy"
                           decoding="async"
                           className="w-10 h-10 rounded object-cover flex-shrink-0"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                         <div className="min-w-0">
                           <div className="font-medium text-foreground truncate">{product.name}</div>
@@ -316,6 +317,7 @@ export default function Header() {
                         loading="lazy"
                         decoding="async"
                         className="w-10 h-10 rounded object-cover flex-shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                       />
                       <div className="min-w-0">
                         <div className="font-medium text-foreground truncate">{product.name}</div>

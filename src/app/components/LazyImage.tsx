@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, memo, useCallback } from "react";
 import { cn } from "../../lib/utils";
 import { isUnsplashUrl, generateSrcSet, getOptimizedSrc } from "../../lib/imageOptimizer";
+import { ImageOff } from "lucide-react";
 
 interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
-  fallbackSrc?: string;
   aspectRatio?: "square" | "video" | "portrait" | "wide";
   sizes?: string;
   fetchPriority?: "high" | "low" | "auto";
@@ -14,15 +14,12 @@ interface LazyImageProps {
   height?: number;
 }
 
-const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23f3f4f6' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3ELoading...%3C/text%3E%3C/svg%3E";
-
 const BLUR_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%23e5e7eb' width='1' height='1'/%3E%3C/svg%3E";
 
 const LazyImageComponent = memo(function LazyImageComponent({
   src,
   alt,
   className,
-  fallbackSrc = FALLBACK,
   sizes,
   fetchPriority = "auto",
   width,
@@ -103,12 +100,14 @@ const LazyImageComponent = memo(function LazyImageComponent({
           className="absolute inset-0 w-full h-full object-cover"
         />
       )}
-      {(error || (!isInView && !isLoaded)) && (
-        <img
-          src={fallbackSrc}
-          alt={alt}
-          className="w-full h-full object-cover"
-        />
+      {error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted text-muted-foreground gap-1.5 p-4">
+          <ImageOff className="w-6 h-6 shrink-0" />
+          <span className="text-xs text-center leading-tight">Image not available</span>
+        </div>
+      )}
+      {!isInView && !isLoaded && !error && (
+        <div className="absolute inset-0 bg-muted" />
       )}
     </div>
   );

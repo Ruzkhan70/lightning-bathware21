@@ -34,6 +34,7 @@ export default function CompareBar() {
                 loading="lazy"
                 decoding="async"
                 className="w-8 h-8 object-cover rounded-full"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
               <span className="text-sm truncate max-w-[80px] md:max-w-[100px]">
                 {product.name}

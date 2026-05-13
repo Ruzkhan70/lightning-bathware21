@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { X, ShoppingCart, Minus, Plus, Truck, Package, Check, Loader2 } from "lucide-react";
+import { X, ShoppingCart, Minus, Plus, Truck, Package, Check, Loader2, ImageOff } from "lucide-react";
 import { Product, useAdmin } from "../context/AdminContext";
 import { useCart } from "../context/CartContext";
 import { Button } from "./ui/button";
@@ -33,6 +33,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const preloadedRef = useRef<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
@@ -46,6 +47,10 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const currentVariant = variants.find(v => v.color === selectedColor);
   const currentImages = currentVariant?.images || (product.image ? [product.image] : []);
   const displayImage = currentImages[currentImageIndex] || currentImages[0] || product.image;
+
+  useEffect(() => {
+    setImageError(false);
+  }, [displayImage]);
 
   const preloadVariantImages = (variantImages: string[], priority: "high" | "low" = "high") => {
     variantImages.forEach(url => {
@@ -189,21 +194,29 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 onMouseLeave={handleMouseLeave}
                 onMouseMove={handleMouseMove}
               >
-                <img
-                  key={displayImage}
-                  src={getOptimizedSrc(displayImage, 800)}
-                  alt={product.name}
-                  onLoad={() => { setImageLoaded(true); setLoading(false); }}
-                  fetchPriority="high"
-                  decoding="async"
-                  className={`w-full h-full object-cover transition-opacity duration-200 ${
-                    imageLoaded ? "opacity-100" : "opacity-0"
-                  }`}
-                  style={{
-                    transform: isZooming ? `scale(2)` : 'scale(1)',
-                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  }}
-                />
+                {imageError ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted text-muted-foreground gap-2">
+                    <ImageOff className="w-10 h-10" />
+                    <p className="text-sm">Image not available</p>
+                  </div>
+                ) : (
+                  <img
+                    key={displayImage}
+                    src={getOptimizedSrc(displayImage, 800)}
+                    alt={product.name}
+                    onLoad={() => { setImageLoaded(true); setLoading(false); }}
+                    onError={() => setImageError(true)}
+                    fetchPriority="high"
+                    decoding="async"
+                    className={`w-full h-full object-cover transition-opacity duration-200 ${
+                      imageLoaded ? "opacity-100" : "opacity-0"
+                    }`}
+                    style={{
+                      transform: isZooming ? `scale(2)` : 'scale(1)',
+                      transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                    }}
+                  />
+                )}
               </div>
 
               {/* Image Thumbnails */}
@@ -217,7 +230,14 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         idx === currentImageIndex ? "border-[#D4AF37]" : "border-transparent"
                       }`}
                     >
-                      <img src={getOptimizedSrc(img, 200)} alt={`${product.name} ${idx + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img
+                        src={getOptimizedSrc(img, 200)}
+                        alt={`${product.name} ${idx + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
                     </button>
                   ))}
                 </div>
