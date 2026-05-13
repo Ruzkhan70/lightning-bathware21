@@ -7,7 +7,7 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import { pdf } from "@react-pdf/renderer";
+import { pdf, renderToStream } from "@react-pdf/renderer";
 import InvoicePDFDocument from "../InvoicePDF";
 
 interface InvoiceItem {
@@ -142,20 +142,43 @@ export default function AdminInvoiceGenerator() {
   const handleDownloadPDF = useCallback(async () => {
     if (!generatedInvoice) return;
     try {
-      const blob = await pdf(
-        <InvoicePDFDocument
-          invoice={generatedInvoice}
-          order={null}
-          storeProfile={{
-            storeName: storeProfile.storeName,
-            storeNameAccent: storeProfile.storeNameAccent,
-            addressStreet: storeProfile.addressStreet,
-            addressCity: storeProfile.addressCity,
-            phone: storeProfile.phone,
-            email: storeProfile.email,
-          }}
-        />
-      ).toBlob();
+      let blob: Blob;
+      try {
+        blob = await pdf(
+          <InvoicePDFDocument
+            invoice={generatedInvoice}
+            order={null}
+            storeProfile={{
+              storeName: storeProfile.storeName,
+              storeNameAccent: storeProfile.storeNameAccent,
+              addressStreet: storeProfile.addressStreet,
+              addressCity: storeProfile.addressCity,
+              phone: storeProfile.phone,
+              email: storeProfile.email,
+            }}
+          />
+        ).toBlob();
+      } catch {
+        const stream = await renderToStream(
+          <InvoicePDFDocument
+            invoice={generatedInvoice}
+            order={null}
+            storeProfile={{
+              storeName: storeProfile.storeName,
+              storeNameAccent: storeProfile.storeNameAccent,
+              addressStreet: storeProfile.addressStreet,
+              addressCity: storeProfile.addressCity,
+              phone: storeProfile.phone,
+              email: storeProfile.email,
+            }}
+          />
+        );
+        const chunks: Uint8Array[] = [];
+        for await (const chunk of stream as any) {
+          chunks.push(chunk as Uint8Array);
+        }
+        blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

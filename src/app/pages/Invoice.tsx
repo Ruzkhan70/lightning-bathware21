@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router";
 import { useAdmin } from "../context/AdminContext";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { pdf } from "@react-pdf/renderer";
+import { pdf, renderToStream } from "@react-pdf/renderer";
 import InvoicePDFDocument from "./InvoicePDF";
 import { 
   Download, Printer, ArrowLeft, FileText, CheckCircle, 
@@ -206,13 +206,29 @@ export default function Invoice() {
     setIsDownloading(true);
     
     try {
-      const blob = await pdf(
-        <InvoicePDFDocument
-          invoice={invoice}
-          order={order}
-          storeProfile={storeProfile}
-        />
-      ).toBlob();
+      let blob: Blob;
+      try {
+        blob = await pdf(
+          <InvoicePDFDocument
+            invoice={invoice}
+            order={order}
+            storeProfile={storeProfile}
+          />
+        ).toBlob();
+      } catch {
+        const stream = await renderToStream(
+          <InvoicePDFDocument
+            invoice={invoice}
+            order={order}
+            storeProfile={storeProfile}
+          />
+        );
+        const chunks: Uint8Array[] = [];
+        for await (const chunk of stream as any) {
+          chunks.push(chunk as Uint8Array);
+        }
+        blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
+      }
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
